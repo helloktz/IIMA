@@ -76,9 +76,24 @@ UserData UserDataStore::Load() {
             data.settings.speed=json->GetNamedNumber(L"speed",1);
             data.settings.recordHistory=json->GetNamedBoolean(L"recordHistory",true);
             data.settings.resumePosition=json->GetNamedBoolean(L"resumePosition",true);
-            if(!std::isfinite(data.settings.volume) || data.settings.volume<0 || data.settings.volume>100 ||
-               !std::isfinite(data.settings.speed) || data.settings.speed<0.01 || data.settings.speed>100)
-                throw std::runtime_error("Invalid settings range");
+            data.settings.pauseWhenOpen=json->GetNamedBoolean(L"pauseWhenOpen",false);
+            data.settings.autoPlayNext=json->GetNamedBoolean(L"autoPlayNext",true);
+            data.settings.muted=json->GetNamedBoolean(L"muted",false);
+            data.settings.subtitlesVisible=json->GetNamedBoolean(L"subtitlesVisible",true);
+            data.settings.maxVolume=json->GetNamedNumber(L"maxVolume",100);
+            data.settings.audioDelay=json->GetNamedNumber(L"audioDelay",0);
+            data.settings.subtitleDelay=json->GetNamedNumber(L"subtitleDelay",0);
+            auto repeat=json->GetNamedString(L"repeatMode",L"off");
+            if(repeat==L"off") data.settings.repeatMode=RepeatMode::Off;
+            else if(repeat==L"file") data.settings.repeatMode=RepeatMode::File;
+            else if(repeat==L"playlist") data.settings.repeatMode=RepeatMode::Playlist;
+            else throw std::runtime_error("Invalid repeat mode");
+            auto screenshot=json->GetNamedString(L"screenshotMode",L"subtitles");
+            if(screenshot==L"subtitles") data.settings.screenshotMode=ScreenshotMode::Subtitles;
+            else if(screenshot==L"video") data.settings.screenshotMode=ScreenshotMode::Video;
+            else if(screenshot==L"window") data.settings.screenshotMode=ScreenshotMode::Window;
+            else throw std::runtime_error("Invalid screenshot mode");
+            if(!ValidUserSettings(data.settings)) throw std::runtime_error("Invalid settings range");
         }
     } catch(...) {
         Preserve(root/L"settings.json");
@@ -109,13 +124,26 @@ UserData UserDataStore::Load() {
     return data;
 }
 void UserDataStore::Save(UserData const& data) {
+    if(!data.writable) throw std::runtime_error("Refusing to overwrite user data that could not be safely loaded");
     std::lock_guard lock(ioMutex);
     auto root=Root();
+    if(!ValidUserSettings(data.settings)) throw std::runtime_error("Invalid settings range");
     auto settings=Document();
     settings.Insert(L"volume",JsonValue::CreateNumberValue(data.settings.volume));
     settings.Insert(L"speed",JsonValue::CreateNumberValue(data.settings.speed));
     settings.Insert(L"recordHistory",JsonValue::CreateBooleanValue(data.settings.recordHistory));
     settings.Insert(L"resumePosition",JsonValue::CreateBooleanValue(data.settings.resumePosition));
+    settings.Insert(L"pauseWhenOpen",JsonValue::CreateBooleanValue(data.settings.pauseWhenOpen));
+    settings.Insert(L"autoPlayNext",JsonValue::CreateBooleanValue(data.settings.autoPlayNext));
+    settings.Insert(L"muted",JsonValue::CreateBooleanValue(data.settings.muted));
+    settings.Insert(L"subtitlesVisible",JsonValue::CreateBooleanValue(data.settings.subtitlesVisible));
+    settings.Insert(L"maxVolume",JsonValue::CreateNumberValue(data.settings.maxVolume));
+    settings.Insert(L"audioDelay",JsonValue::CreateNumberValue(data.settings.audioDelay));
+    settings.Insert(L"subtitleDelay",JsonValue::CreateNumberValue(data.settings.subtitleDelay));
+    settings.Insert(L"repeatMode",JsonValue::CreateStringValue(data.settings.repeatMode==RepeatMode::File ? L"file" :
+        data.settings.repeatMode==RepeatMode::Playlist ? L"playlist" : L"off"));
+    settings.Insert(L"screenshotMode",JsonValue::CreateStringValue(data.settings.screenshotMode==ScreenshotMode::Video ? L"video" :
+        data.settings.screenshotMode==ScreenshotMode::Window ? L"window" : L"subtitles"));
     AtomicWrite(root/L"settings.json",settings);
     auto history=Document(); JsonArray entries;
     for(auto const& entry:data.history) {

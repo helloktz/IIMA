@@ -51,6 +51,7 @@ public:
     MpvClient& operator=(MpvClient const&) = delete;
     // DLL must be absolute and supplied from the application deployment directory.
     void Start(std::wstring dllPath);
+    void SetPauseWhenOpen(bool value);
     std::uint64_t Command(std::vector<std::string> arguments);
     // Nonblocking; completion runs on worker AFTER terminate_destroy and DLL release.
     void CloseAsync(std::function<void()> completion = {});

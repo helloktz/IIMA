@@ -13,6 +13,9 @@ suites = {
     'mpv-nodes': ['Mpv/MpvNodes.cpp', 'Tests/MpvNodesTests.cpp'],
     'player-session': ['Playback/PlaybackState.cpp', 'Playback/PlayerSession.cpp', 'Tests/PlayerSessionTests.cpp'],
     'user-data': ['Tests/UserDataTests.cpp'],
+    'diagnostic-log': ['Diagnostics/DiagnosticLog.cpp', 'Tests/DiagnosticLogTests.cpp'],
+    'local-input': ['Input/LocalInputPolicy.cpp', '../../tests/local_input_policy_tests.cpp'],
+    'instance-protocol': ['../../tests/InstanceProtocolTests.cpp'],
 }
 compiler = os.environ.get('CXX', 'g++')
 for name, inputs in suites.items():

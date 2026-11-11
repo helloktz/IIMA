@@ -86,3 +86,19 @@ Windows 后续步骤：
 6. 连续 DPI/窗口缩放验证逆矩阵和像素大小一致；全屏、设备重建、纯音频 force-window 合成、关闭时输出停止。这些当前未运行。
 
 最终发行仍缺真实 Windows 构建与完整二进制依赖锁定、无开发工具镜像验证、项目正式许可/签名等。不合并 main、不发布 Release。
+
+## 后续设置 / Windows 集成源码批次
+
+`test-portable.py` 新增 diagnostic-log、local-input；设置测试覆盖默认/范围/enum、pauseWhenOpen、启动前配置、观察状态不乐观变化。诊断测试验证1MiB轮转、flush和关闭；输入测试验证扩展策略、自然排序与去重。Windows 文件关联、命名管道、目录权限与取消、设置控件和实际音频延迟均未运行。
+
+Windows 新增验收步骤：
+
+- 同一登录会话同时启动多个副本、连续打开多个中文/空格文件、无文件第二次启动激活窗口；确认没有重复加载/丢失消息。关闭首实例期间转发结果须明确，不能无限挂起。不同用户/登录会话及远端连接不得注入。
+- 用户点击注册后检查 HKCU 候选；验证默认应用没有被强改，设置页可以选择 IIMA；路径带空格时打开正确。移到另一目录注册，再从旧副本撤销必须拒绝；正常撤销不删除其他播放器键。
+- 目录含隐藏项、reparse循环、权限拒绝、大量文件和取消；只解析受支持媒体，有可理解反馈，新请求不被旧解析结果覆盖。
+- pauseWhenOpen、自动下一项、循环、音量上限、静音、字幕可见/延迟、截图三种模式实际生效及重启保持；mpv拒绝时不得显示成成功。
+- 日志不含完整媒体路径；关闭时写入完成；目录只读、写盘失败仍能关闭/播放，不留下日志线程等待UI。
+
+完整源码覆盖和仍缺的具体证据见 COVERAGE.md。远程构建配置见 WINDOWS-RUNNER.md；没有注册runner或发起构建。
+
+本批收拢时已实际重跑 `scripts/test-portable.py` 七组全部通过：playback-state、mpv-nodes、player-session、user-data、diagnostic-log、local-input、instance-protocol。单实例纯协议覆盖 Unicode/emoji/UNC、每个截断点、错误头/长度/尾垃圾、NUL/引号/ADS/设备路径、非法代理对及各资源上限；不等同于命名管道在 Windows 上经过测试。`check-source.py` 与 `git diff --check` 通过；手动workflow仅做YAML解析，官方actions tag SHA已从远端核对，未运行Actions。

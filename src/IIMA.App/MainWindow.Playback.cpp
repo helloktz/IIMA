@@ -144,6 +144,7 @@ void MainWindow::ApplyCollections(iima::PlaybackSnapshot const& state)
     int speedIndex = -1;
     for (int i = 0; i < static_cast<int>(std::size(speeds)); ++i) if (std::abs(state.speed - speeds[i]) < 0.001) speedIndex = i;
     SpeedBox().SelectedIndex(speedIndex);
+    VolumeSlider().Maximum(state.maxVolume);
     VolumeSlider().Value(state.volume);
 }
 }

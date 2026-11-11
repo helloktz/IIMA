@@ -3,6 +3,9 @@
 #include "../IIMA.Core/Playback/PlayerSession.h"
 #include "Presentation/VideoPresenter.h"
 #include "Platform/MediaIntegration.h"
+#include "Platform/LocalInputResolver.h"
+#include "../IIMA.Core/Diagnostics/DiagnosticLog.h"
+#include <winrt/Microsoft.UI.Dispatching.h>
 #include <winrt/Microsoft.UI.Xaml.Input.h>
 #include "../IIMA.Core/Persistence/UserData.h"
 #include <winrt/Microsoft.UI.Windowing.h>
@@ -10,7 +13,9 @@
 namespace winrt::IIMA::implementation {
 struct MainWindow : MainWindowT<MainWindow> {
     MainWindow();
-    void QueueFiles(std::vector<std::string> paths);
+    void QueueFiles(std::vector<std::string> paths, bool append = false);
+    void ReceiveActivation(std::vector<std::wstring> paths);
+    void SetActivationClosing(std::function<void()> callback) { activationClosing_ = std::move(callback); }
 private:
     winrt::fire_and_forget OpenFile(bool append = false);
     winrt::fire_and_forget OpenSubtitle();
@@ -22,6 +27,13 @@ private:
     void ToggleFullscreen();
     void BeginClose();
     void WireFileActions();
+    void WireSettingsControls();
+    void ApplySettingsSnapshot(iima::PlaybackSnapshot const& state);
+    void WireAssociationControls();
+    void FlushActivation();
+    void InitializeDiagnostics();
+    void UpdateDiagnostics(iima::PlaybackSnapshot const& state);
+    void CloseDiagnostics();
     void OpenPendingFiles();
     winrt::fire_and_forget DropFiles(Microsoft::UI::Xaml::DragEventArgs args);
     winrt::fire_and_forget SaveScreenshot();
@@ -43,6 +55,16 @@ private:
     std::shared_ptr<void> swapChain_;
     std::unique_ptr<iima::MediaIntegration> mediaIntegration_;
     std::vector<std::string> pendingFiles_;
+    bool pendingAppend_{};
+    std::stop_source inputStop_;
+    uint64_t inputGeneration_{};
+    Microsoft::UI::Dispatching::DispatcherQueueTimer activationTimer_{nullptr};
+    std::vector<std::wstring> activationInputs_;
+    bool activationDelayElapsed_{};
+    std::function<void()> activationClosing_;
+    std::unique_ptr<iima::DiagnosticLog> diagnostics_;
+    std::string lastDiagnostics_;
+    bool diagnosticsClosed_{};
     iima::UserData userData_;
     std::optional<iima::PlaybackSnapshot> lastMedia_;
     std::optional<int64_t> resumedEntry_;

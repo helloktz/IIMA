@@ -4,6 +4,19 @@
 int main() {
     iima::UserData data;
     assert(data.settings.volume==100 && data.settings.recordHistory && data.settings.resumePosition);
+    assert(iima::ValidUserSettings(data.settings));
+    assert(!data.settings.pauseWhenOpen && data.settings.autoPlayNext && !data.settings.muted && data.settings.subtitlesVisible);
+    assert(data.settings.maxVolume==100 && data.settings.audioDelay==0 && data.settings.subtitleDelay==0);
+    assert(data.settings.repeatMode==iima::RepeatMode::Off && data.settings.screenshotMode==iima::ScreenshotMode::Subtitles);
+    auto settings=data.settings;
+    settings.maxVolume=99; assert(!iima::ValidUserSettings(settings));
+    settings.maxVolume=1001; assert(!iima::ValidUserSettings(settings));
+    settings.maxVolume=200; settings.volume=200; assert(iima::ValidUserSettings(settings));
+    settings.volume=201; assert(!iima::ValidUserSettings(settings));
+    settings=data.settings; settings.audioDelay=std::numeric_limits<double>::infinity(); assert(!iima::ValidUserSettings(settings));
+    settings=data.settings; settings.subtitleDelay=std::numeric_limits<double>::quiet_NaN(); assert(!iima::ValidUserSettings(settings));
+    settings=data.settings; settings.repeatMode=static_cast<iima::RepeatMode>(99); assert(!iima::ValidUserSettings(settings));
+    settings=data.settings; settings.screenshotMode=static_cast<iima::ScreenshotMode>(99); assert(!iima::ValidUserSettings(settings));
     iima::RecordHistory(data,{"C:/影片/a.mp4",10,60,100});
     iima::RecordHistory(data,{"C:/b.mp4",20,60,101});
     iima::RecordHistory(data,{"C:/影片/a.mp4",30,60,102});

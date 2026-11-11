@@ -44,7 +44,7 @@ public static class IimaMpvProbe {
    if(dll==IntPtr.Zero) throw new Exception("LoadLibraryEx failed: "+Marshal.GetLastWin32Error()+". Stage all companion DLLs.");
    IntPtr handle=IntPtr.Zero;
    try {
-     foreach(var symbol in new[]{"mpv_iima_acquire_d3d11_swapchain_v1","mpv_terminate_destroy","mpv_command_async","mpv_set_property_async","mpv_get_property","mpv_observe_property","mpv_wait_event","mpv_wakeup","mpv_error_string","mpv_free","mpv_free_node_contents","mpv_request_log_messages"})
+     foreach(var symbol in new[]{"mpv_iima_acquire_d3d11_swapchain_v1","mpv_terminate_destroy","mpv_command_async","mpv_set_property_async","mpv_set_property_string","mpv_get_property","mpv_observe_property","mpv_wait_event","mpv_wakeup","mpv_error_string","mpv_free","mpv_free_node_contents","mpv_request_log_messages"})
        if(GetProcAddress(dll,symbol)==IntPtr.Zero) throw new Exception("Missing C ABI export: "+symbol);
      uint api=Function<Version>(dll,"mpv_client_api_version")();
      if((api>>16)!=2 || (api&0xffff)<6) throw new Exception("Need libmpv client API 2.6 or compatible newer 2.x; got "+api);

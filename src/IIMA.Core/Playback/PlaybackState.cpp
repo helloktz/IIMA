@@ -3,8 +3,18 @@
 // PlaybackInfo.swift; see docs/PORTING.md and references/iina/LICENSE.
 #include "PlaybackState.h"
 #include <cmath>
+#include <charconv>
+#include <string_view>
 
 namespace iima {
+namespace {
+bool LoopEnabled(std::string_view value) {
+    if(value=="inf" || value=="force" || value=="yes") return true;
+    std::int64_t count{}; auto result=std::from_chars(value.data(),value.data()+value.size(),count);
+    return result.ec==std::errc{} && result.ptr==value.data()+value.size() && count!=0;
+}
+}
+
 void ApplyPlaybackEvent(PlaybackSnapshot& s, MpvEvent const& e) {
     if(s.session==SessionState::Closing || s.session==SessionState::Closed) return;
     switch(e.kind) {
@@ -48,6 +58,16 @@ void ApplyPlaybackEvent(PlaybackSnapshot& s, MpvEvent const& e) {
         else if(e.name=="paused-for-cache" && e.flag) s.buffering=*e.flag;
         else if(e.name=="volume" && e.number && std::isfinite(*e.number)) s.volume=*e.number;
         else if(e.name=="speed" && e.number && std::isfinite(*e.number)) s.speed=*e.number;
+        else if(e.name=="mute" && e.flag) s.muted=*e.flag;
+        else if(e.name=="sub-visibility" && e.flag) s.subtitlesVisible=*e.flag;
+        else if(e.name=="volume-max" && e.number && std::isfinite(*e.number) && *e.number>=100 && *e.number<=1000) s.maxVolume=*e.number;
+        else if(e.name=="audio-delay" && e.number && std::isfinite(*e.number)) s.audioDelay=*e.number;
+        else if(e.name=="sub-delay" && e.number && std::isfinite(*e.number)) s.subtitleDelay=*e.number;
+        else if(e.name=="loop-file" || e.name=="loop-playlist") {
+            if(e.name=="loop-file") s.loopFile=e.text; else s.loopPlaylist=e.text;
+            s.repeatMode=LoopEnabled(s.loopFile) ? RepeatMode::File : LoopEnabled(s.loopPlaylist) ? RepeatMode::Playlist : RepeatMode::Off;
+        }
+        else if(e.name=="keep-open") s.keepOpen=e.text;
         else if(e.name=="path") s.path=e.text;
         else if(e.name=="mpv-version") s.mpvVersion=e.text;
         else if(e.name=="current-tracks/video/codec-desc") s.videoCodec=e.text;

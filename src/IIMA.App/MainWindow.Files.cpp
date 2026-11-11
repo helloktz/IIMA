@@ -28,12 +28,34 @@ void MainWindow::WireFileActions()
     });
     Root().KeyboardAccelerators().Append(screenshot);
 }
-void MainWindow::QueueFiles(std::vector<std::string> paths)
+void MainWindow::QueueFiles(std::vector<std::string> paths, bool append)
 {
     if (closing_ || paths.empty()) return;
-    // A newer explicit open replaces any not-yet-started initial open.
-    pendingFiles_ = std::move(paths);
-    OpenPendingFiles();
+    if (activationTimer_) activationTimer_.Stop();
+    activationInputs_.clear(); activationDelayElapsed_ = false;
+    inputStop_.request_stop();
+    auto generation = ++inputGeneration_;
+    // New user input supersedes old unresolved/pending input, not active playback.
+    pendingFiles_.clear();
+    try {
+    std::vector<std::wstring> inputs;
+    for (auto const& path : paths) inputs.emplace_back(to_hstring(path));
+    auto weak = get_weak();
+    inputStop_ = iima::LocalInputResolver::Resolve(std::move(inputs), DispatcherQueue(),
+        [weak, generation, append](iima::LocalInputResult result) {
+            if (auto self = weak.get(); self && !self->closing_ && self->inputGeneration_ == generation && !result.cancelled) {
+                self->pendingFiles_ = std::move(result.paths);
+                self->pendingAppend_ = append;
+                self->OpenPendingFiles();
+                if (!result.warnings.empty()) {
+                    std::wstring warning;
+                    for (auto const& line : result.warnings) { if (!warning.empty()) warning += L"\n"; warning += line; }
+                    self->ShowError(hstring{warning});
+                }
+            }
+        });
+    } catch (hresult_error const& error) { ShowError(error.message()); }
+      catch (std::exception const& error) { ShowError(to_hstring(error.what())); }
 }
 void MainWindow::OpenPendingFiles()
 {
@@ -44,7 +66,7 @@ void MainWindow::OpenPendingFiles()
     if (state.session != iima::SessionState::Ready || !state.compositionAvailable) {
         ShowError(L"播放内核尚不可用，请安装配套的 libmpv 后重新打开文件。"); return;
     }
-    session_->OpenMultiple(std::move(paths), false);
+    session_->OpenMultiple(std::move(paths), pendingAppend_);
 }
 winrt::fire_and_forget MainWindow::DropFiles(DragEventArgs args)
 {
@@ -54,15 +76,8 @@ winrt::fire_and_forget MainWindow::DropFiles(DragEventArgs args)
     try {
         auto items = co_await args.DataView().GetStorageItemsAsync();
         std::vector<std::string> paths;
-        bool folder = false;
-        for (auto const& item : items) {
-            if (item.IsOfType(Windows::Storage::StorageItemTypes::File)) paths.push_back(to_string(item.Path()));
-            else folder = true;
-        }
-        if (!closing_) {
-            if (folder) ShowError(L"暂不支持拖入文件夹，请选择媒体文件。");
-            else QueueFiles(std::move(paths));
-        }
+        for (auto const& item : items) paths.push_back(to_string(item.Path()));
+        if (!closing_) QueueFiles(std::move(paths));
     } catch (hresult_error const& error) { if (!closing_) ShowError(error.message()); }
     deferral.Complete();
 }

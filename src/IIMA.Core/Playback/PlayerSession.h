@@ -1,5 +1,6 @@
 #pragma once
 #include "PlaybackState.h"
+#include "../Persistence/UserData.h"
 
 namespace iima {
 class PlayerSession final : public std::enable_shared_from_this<PlayerSession> {
@@ -28,6 +29,18 @@ public:
     void SetVolume(double value);
     void SetSpeed(double value);
     void SetCompositionSize(unsigned width, unsigned height);
+    // Local preferences never overwrite observed playback fields. Call on UI thread.
+    void ApplySettings(UserSettings const& settings);
+    void SetPauseWhenOpen(bool value);
+    void SetAutoPlayNext(bool value);
+    void SetMuted(bool value);
+    void ToggleMute();
+    void SetSubtitlesVisible(bool value);
+    void SetAudioDelay(double seconds);
+    void SetSubtitleDelay(double seconds);
+    void SetRepeatMode(RepeatMode mode);
+    void SetMaxVolume(double value);
+    void SetScreenshotMode(ScreenshotMode mode);
     // UI must detach presenter and subscriptions BEFORE calling this.
     void CloseAsync(std::function<void()> completion = {});
     PlaybackSnapshot const& Snapshot() const noexcept { return snapshot_; }
@@ -42,6 +55,8 @@ private:
     Changed changed_;
     std::unique_ptr<MpvClient> client_;
     PlaybackSnapshot snapshot_;
+    UserSettings settings_;
+    bool applySettingsOnReady_{};
     bool presentationReady_{};
     std::uint64_t pauseRequest_{}, loadRequest_{};
     std::int64_t expectedEntry_{-1};

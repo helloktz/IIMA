@@ -25,10 +25,17 @@
     <ClInclude Include="Mpv\MpvNodes.h" />
     <ClCompile Include="Mpv\MpvNodes.cpp" />
     <ClInclude Include="Playback\PlaybackState.h" />
+    <ClInclude Include="Playback\PlaybackSettings.h" />
     <ClInclude Include="Playback\PlayerSession.h" />
     <ClCompile Include="Mpv\MpvClient.cpp" />
+    <ClCompile Include="Diagnostics\DiagnosticLog.cpp" />
+    <ClInclude Include="Diagnostics\DiagnosticLog.h" />
     <ClCompile Include="Playback\PlaybackState.cpp" />
     <ClCompile Include="Playback\PlayerSession.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Input\LocalInputPolicy.h" />
+    <ClCompile Include="Input\LocalInputPolicy.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

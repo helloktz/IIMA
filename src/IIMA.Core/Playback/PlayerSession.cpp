@@ -49,7 +49,7 @@ void PlayerSession::OpenMultiple(std::vector<std::string> paths,bool append) {
         for(auto& path:paths) client_->Command({"loadfile",std::move(path),"append"});
         return;
     }
-    presentationReady_=false; resumePending_=true; expectedEntry_=-1; loadRequest_=0;
+    presentationReady_=false; resumePending_=!settings_.pauseWhenOpen; expectedEntry_=-1; loadRequest_=0;
     pendingCommands_.clear();
     // Match IINA openMainWindow: create VO even for audio-only media, but only
     // once opening, not during app initialization. Composition still owns output.
@@ -61,7 +61,7 @@ void PlayerSession::OpenMultiple(std::vector<std::string> paths,bool append) {
 }
 void PlayerSession::PausedCommand(std::vector<std::string> command) {
     if(!CanOpen()) return;
-    presentationReady_=false; resumePending_=true; loadRequest_=0;
+    presentationReady_=false; resumePending_=!settings_.pauseWhenOpen; loadRequest_=0;
     pendingCommands_={std::move(command)};
     pauseRequest_=client_->Command({"set","pause","yes"});
 }
@@ -103,7 +103,12 @@ void PlayerSession::SelectChapter(std::size_t index) {
 }
 void PlayerSession::ScreenshotToFile(std::string path) {
     if(snapshot_.session!=SessionState::Ready || snapshot_.media!=MediaState::Loaded || path.empty() || path.find('\0')!=std::string::npos) return;
-    client_->Command({"screenshot-to-file",std::move(path),"video"});
+    if(std::none_of(snapshot_.tracks.begin(),snapshot_.tracks.end(),[](auto const& track) { return track.type=="video" && track.selected; })) {
+        snapshot_.error="Screenshots require an active video track"; Notify(); return;
+    }
+    const char* mode=settings_.screenshotMode==ScreenshotMode::Subtitles ? "subtitles" :
+        settings_.screenshotMode==ScreenshotMode::Window ? "window" : "video";
+    client_->Command({"screenshot-to-file",std::move(path),mode});
 }
 void PlayerSession::AddSubtitle(std::string path) {
     if(snapshot_.session!=SessionState::Ready || path.empty() || path.find('\0')!=std::string::npos) return;
@@ -127,7 +132,7 @@ void PlayerSession::Stop() {
 }
 void PlayerSession::SetVolume(double value) {
     if(snapshot_.session==SessionState::Ready && std::isfinite(value))
-        client_->Command({"set","volume",std::to_string(std::clamp(value,0.0,100.0))});
+        client_->Command({"set","volume",std::to_string(std::clamp(value,0.0,settings_.maxVolume))});
 }
 void PlayerSession::SetSpeed(double value) {
     if(snapshot_.session==SessionState::Ready && std::isfinite(value) && value>=0.01 && value<=100)
@@ -136,6 +141,76 @@ void PlayerSession::SetSpeed(double value) {
 void PlayerSession::SetCompositionSize(unsigned width,unsigned height) {
     if(snapshot_.session==SessionState::Ready && width && height && width<=16384 && height<=16384)
         client_->Command({"set","d3d11-composition-size",std::to_string(width)+"x"+std::to_string(height)});
+}
+void PlayerSession::ApplySettings(UserSettings const& settings) {
+    if(!ValidUserSettings(settings)) { snapshot_.error="Playback settings contain an invalid value"; Notify(); return; }
+    settings_=settings;
+    SetPauseWhenOpen(settings.pauseWhenOpen);
+    if(snapshot_.session!=SessionState::Ready) { applySettingsOnReady_=snapshot_.session==SessionState::Initializing; return; }
+    SetMaxVolume(settings.maxVolume);
+    SetVolume(settings.volume);
+    SetSpeed(settings.speed);
+    SetMuted(settings.muted);
+    SetSubtitlesVisible(settings.subtitlesVisible);
+    SetAudioDelay(settings.audioDelay);
+    SetSubtitleDelay(settings.subtitleDelay);
+    SetAutoPlayNext(settings.autoPlayNext);
+    SetRepeatMode(settings.repeatMode);
+    SetScreenshotMode(settings.screenshotMode);
+}
+void PlayerSession::SetPauseWhenOpen(bool value) {
+    settings_.pauseWhenOpen=value;
+    client_->SetPauseWhenOpen(value);
+    if(value) resumePending_=false;
+}
+void PlayerSession::SetAutoPlayNext(bool value) {
+    settings_.autoPlayNext=value;
+    // IINA MPVController maps disabled automatic advance to keep-open=always.
+    // IIMA keeps the last frame at final EOF (keep-open=yes) when enabled.
+    if(snapshot_.session==SessionState::Ready) client_->Command({"set","keep-open",value ? "yes" : "always"});
+}
+void PlayerSession::SetMuted(bool value) {
+    settings_.muted=value;
+    if(snapshot_.session==SessionState::Ready) client_->Command({"set","mute",value ? "yes" : "no"});
+}
+void PlayerSession::ToggleMute() {
+    if(snapshot_.session==SessionState::Ready) client_->Command({"cycle","mute"});
+}
+void PlayerSession::SetSubtitlesVisible(bool value) {
+    settings_.subtitlesVisible=value;
+    if(snapshot_.session==SessionState::Ready) client_->Command({"set","sub-visibility",value ? "yes" : "no"});
+}
+void PlayerSession::SetAudioDelay(double seconds) {
+    if(!std::isfinite(seconds)) return;
+    settings_.audioDelay=seconds;
+    if(snapshot_.session==SessionState::Ready) client_->Command({"set","audio-delay",std::to_string(seconds)});
+}
+void PlayerSession::SetSubtitleDelay(double seconds) {
+    if(!std::isfinite(seconds)) return;
+    settings_.subtitleDelay=seconds;
+    if(snapshot_.session==SessionState::Ready) client_->Command({"set","sub-delay",std::to_string(seconds)});
+}
+void PlayerSession::SetRepeatMode(RepeatMode mode) {
+    if(mode!=RepeatMode::Off && mode!=RepeatMode::File && mode!=RepeatMode::Playlist) return;
+    settings_.repeatMode=mode;
+    if(snapshot_.session!=SessionState::Ready) return;
+    if(mode==RepeatMode::File) client_->Command({"set","loop-file","inf"});
+    else {
+        client_->Command({"set","loop-playlist",mode==RepeatMode::Playlist ? "inf" : "no"});
+        client_->Command({"set","loop-file","no"});
+    }
+}
+void PlayerSession::SetMaxVolume(double value) {
+    if(!std::isfinite(value) || value<100 || value>1000) return;
+    settings_.maxVolume=value;
+    if(snapshot_.session==SessionState::Ready) {
+        client_->Command({"set","volume-max",std::to_string(value)});
+        if(snapshot_.volume>value) SetVolume(value);
+    }
+}
+void PlayerSession::SetScreenshotMode(ScreenshotMode mode) {
+    if(mode==ScreenshotMode::Subtitles || mode==ScreenshotMode::Video || mode==ScreenshotMode::Window)
+        settings_.screenshotMode=mode;
 }
 void PlayerSession::OnEvent(MpvEvent e) {
     if(snapshot_.session==SessionState::Closing || snapshot_.session==SessionState::Closed) return;
@@ -157,6 +232,7 @@ void PlayerSession::OnEvent(MpvEvent e) {
     const auto previousChain=snapshot_.swapChain;
     const bool wasPlaying=!snapshot_.paused;
     ApplyPlaybackEvent(snapshot_,e);
+    if(e.kind==MpvEvent::Kind::Ready && applySettingsOnReady_) { applySettingsOnReady_=false; ApplySettings(settings_); }
     if(e.kind==MpvEvent::Kind::VideoReconfig && previousChain && !snapshot_.swapChain && wasPlaying && snapshot_.media==MediaState::Loaded) {
         // Device/output loss: don't leave invisible audio playing. A later user
         // Pause(true) cancels this deferred recovery, preserving manual intent.

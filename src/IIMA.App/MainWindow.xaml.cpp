@@ -36,6 +36,7 @@ MainWindow::MainWindow()
     Title(L"IIMA " + to_hstring(iima::version()));
     auto weak = get_weak();
     auto dispatcher = DispatcherQueue();
+    InitializeDiagnostics();
     session_ = iima::PlayerSession::Create(
         [dispatcher](std::function<void()> work) {
             dispatcher.TryEnqueue([work = std::move(work)] { work(); });
@@ -70,6 +71,8 @@ MainWindow::MainWindow()
            [weak] { if (auto self = weak.get(); self && self->fullscreen_) self->ToggleFullscreen(); });
     WirePlaybackControls();
     WireUserDataControls();
+    WireSettingsControls();
+    WireAssociationControls();
     WireFileActions();
     try {
         HWND hwnd{};
@@ -117,9 +120,7 @@ winrt::fire_and_forget MainWindow::OpenFile(bool append)
         if (files.Size() && !closing_) {
             std::vector<std::string> paths;
             for (auto const& file : files) paths.push_back(to_string(file.Path()));
-            if (append && session_->Snapshot().session == iima::SessionState::Ready)
-                session_->OpenMultiple(std::move(paths), true);
-            else QueueFiles(std::move(paths));
+            QueueFiles(std::move(paths), append);
         }
     } catch (hresult_error const& error) { if (!closing_) ShowError(error.message()); }
     pickerOpen_ = false;
@@ -163,8 +164,11 @@ void MainWindow::Apply(iima::PlaybackSnapshot const& state)
     }
     session_->SetPresentationReady(state.swapChain && presenter_->IsBound() && presentationError.empty());
     ApplyCollections(state);
+    ApplySettingsSnapshot(state);
+    UpdateDiagnostics(state);
     ApplyUserData(state);
     OpenPendingFiles();
+    FlushActivation();
     if (mediaIntegration_) mediaIntegration_->Update(state);
     bool loaded = state.media == iima::MediaState::Loaded || state.media == iima::MediaState::Ended;
     PauseButton().IsEnabled(loaded && presenter_->IsBound());
@@ -200,6 +204,9 @@ void MainWindow::BeginClose()
     }
     if (closing_) { FinishClose(); return; }
     closing_ = true;
+    inputStop_.request_stop(); ++inputGeneration_;
+    if (activationTimer_) activationTimer_.Stop();
+    if (activationClosing_) activationClosing_();
     if (mediaIntegration_) mediaIntegration_->Close();
     RecordLastMedia();
     Root().IsEnabled(false);
@@ -208,7 +215,7 @@ void MainWindow::BeginClose()
     swapChain_.reset();
     auto weak = get_weak();
     session_->CloseAsync([weak] {
-        if (auto self = weak.get()) { self->coreClosed_ = true; self->FinishClose(); }
+        if (auto self = weak.get()) { self->coreClosed_ = true; self->CloseDiagnostics(); self->FinishClose(); }
     });
 }
 }

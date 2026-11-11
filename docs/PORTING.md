@@ -23,7 +23,7 @@ mpv 接口基准为 `references/mpv-source.txt` 的 `bcde6b93cca4d128d84e1a60d1a
 - 不读用户全局 mpv 配置和外部脚本，以保证默认行为可重现。
 - WinUI 线程投影状态；mpv 工作线程初始化、读取事件和销毁句柄。Swift ARC/闭包转为显式拥有对象与弱引用。
 - 初始播放不暂停；seek 是绝对秒值。未知时长时禁用拖动，不制造假时长。
-- 当前没有移植 IINA 自动续播、历史、目录扫描和 `pauseWhenOpen` 设置；不把硬编码默认值说成设置功能。
+- 第一批没有续播、历史、目录扫描和 pauseWhenOpen；后续批次已接入这些链路，见下文。
 
 ## 合成路径的实际阻碍
 
@@ -77,15 +77,33 @@ Core 工作线程调用扩展，将引用与 DLL 生命周期一起保留到 UI 
 
 ## Windows 文件与系统集成
 
-原生多选、文件拖放和命令行首次启动文件进入同一会话；初始文件等待数据加载与内核 Ready。目录递归、播放列表文件展开策略、多实例路由和注册文件关联尚未实现。
+原生多选、文件拖放和命令行首次启动文件进入同一会话；初始文件等待数据加载与内核 Ready。后续批次已补目录递归、单个播放列表委托 mpv、单实例路由和候选文件关联注册；实际 Windows 行为尚未验证。
 快捷键：Ctrl+O 打开，Space 暂停/继续，F11/Escape 全屏往返，Ctrl+Left/Right 上下项，Ctrl+L 播放列表，Ctrl+Shift+S 截图。UI 事件与媒体键复用相同会话方法。
 
 `NowPlayingInfoManager.updateInfo`、`AppDelegate.RemoteCommandController`、`SleepPreventer.updateSleepPrevention` 对应 `Platform/MediaIntegration`：HWND 绑定 SMTC，实际状态驱动播放/暂停和上下项能力，仅共享文件名而非完整路径；暂停/结束/关闭清除电源请求。PowerCreateRequest 按句柄 RAII 管理，避免线程绑定式防休眠跨线程清理。默认与 IINA preventScreenSaver=true/allowScreenSaverForAudio=false 一致。未实现封面/专辑元数据或系统进度条。
 
 ## 仍不属于已交付能力
 
-没有 Windows 已构建可执行文件或已测试 ZIP；没有注册文件关联、单实例路由、安装器、签名、自动更新或正式发布。HDR、设备丢失/更换、跨屏色彩、多 DPI 实机表现、睡眠恢复仍需硬件验证。项目正式根许可证和完整二进制依赖版本锁定/源码交付义务仍需在发行前完成。
+没有 Windows 已构建可执行文件或已测试 ZIP；文件关联与单实例已在后续批次实现；没有安装器、签名、自动更新或正式发布。HDR、设备丢失/更换、跨屏色彩、多 DPI 实机表现、睡眠恢复仍需硬件验证。项目正式根许可证和完整二进制依赖版本锁定/源码交付义务仍需在发行前完成。
 
 ## libmpv 消费头适配
 
 `src/IIMA.Core/Mpv/include/mpv/client.h` 是固定参考头的完整许可保留副本，唯一差异是 Windows 的 MPV_EXPORT 从 `__declspec(dllexport)` 变为空宏（含解释注释）。应用动态加载 C ABI，不应对外导出 mpv 声明；生产 mpv 构建头仍保留 dllexport。静态检查逐字比对除该行外完全相同；x64 指针、int 大小和 API 2.6 以 static_assert 约束。未用猜测结构重写 ABI，也不需要不同工具链的导入库。
+
+## 后续设置与本地输入批次
+
+设置映射追踪 `PlayerCore` 的循环、音量/速度、延迟、截图入口，`MPVController` 的 keep-open 与 pauseWhenOpen 事件分支，以及 `Preference` 默认值。新增 pauseWhenOpen=false、autoPlayNext=true、mute=false、subtitlesVisible=true、maxVolume=100（上游范围100..1000）、audio/sub delay=0、RepeatMode=Off、ScreenshotMode=Subtitles。
+
+设置模型与快照分离：请求保存偏好不等于已生效，控件从 mpv 观察值投影。大多数设置即时异步生效；打开暂停和截图模式作用于随后操作，不必重启。禁用自动下一项采用 keep-open=always；开启采用 yes 保留最后帧。自动换片的 pauseWhenOpen 按 IINA 在事件工作线程 END_FILE 立即设置、FILE_LOADED 兜底，仍需真实事件竞态测试。UI 的延迟编辑范围为正负60秒，底层接受有限秒值，非有限值被拒绝。JSON schemaVersion=1 采用新增可选字段兼容旧配置。
+
+目录解析依据 `Utility.resolveURLs`、`DraggingDetect.getPlayableFiles` 和 `PlayerCore.openURLs`：显式单个列表交给 mpv；显式多输入按上游黑名单过滤；目录发现使用媒体扩展白名单，排序去重后进入同一 OpenMultiple。Windows 适配在后台执行、stop_token取消与UI代次检查，跳过隐藏/reparse目录，不解析macOS alias/Windows .lnk，拒绝设备路径/NUL/URI/ADS。深度64/候选100000为资源上限，超过或权限错误给予反馈。数字自然排序+Unicode ordinal替代macOS本地化排序，故非ASCII排序可能不同，已列为有意差异。
+
+## Windows 单实例与候选关联
+
+IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数/当前登录会话命名管道。协议有版本、长度限制和严格文件路径校验；endpoint 使用登录 SID 隔离、显式 DACL、拒远端连接。后台收到请求仅投递 UI，不反向等待 UI；多次外部激活合批进入可取消解析器。协议确认表示已接收入队，不表示媒体已播放，未知投递结果不自动重发导致重复打开。
+
+用户点击注册后只写当前用户 HKCU 的 IIMA ProgID/Capabilities/OpenWith 候选，完整引用可执行文件及 `%1` 路径；不改系统 UserChoice。默认应用交由 Windows 设置界面决定。撤销核对当前程序路径，避免删除另一位置副本的关联。移动免安装目录后需要重新注册。没有运行这些注册操作；本次只是实现代码。
+
+## 有界本地诊断
+
+`DiagnosticLog` 在后台串行写 `%LOCALAPPDATA%/IIMA/logs`，队列最多256条，单项截断512字节，文件1MiB轮转保留两份。关闭等待flush；日志失败不阻断播放。不发送遥测，不记录媒体路径/带令牌URL/用户配置，只记录生命周期、API/实际mpv版本、codec、hwdec和VO等技术状态变化。纯测试覆盖轮转、flush、关闭后拒绝写。

@@ -25,7 +25,7 @@ struct Api {
 #define API(name) decltype(&mpv_##name) name{};
     API(client_api_version) API(create) API(initialize) API(terminate_destroy)
     API(set_option_string) API(command_async) API(observe_property) API(wait_event)
-    API(error_string)
+    API(error_string) API(set_property_string)
 #undef API
     ~Api() = default;
     void Load(std::wstring const& path) {
@@ -35,7 +35,7 @@ struct Api {
         moduleLease=std::shared_ptr<void>(module,[](void* p) { FreeLibrary(static_cast<HMODULE>(p)); });
 #define API(name) name = reinterpret_cast<decltype(name)>(GetProcAddress(module, "mpv_" #name)); if (!name) throw std::runtime_error("Missing libmpv export: mpv_" #name);
         API(client_api_version) API(create) API(initialize) API(terminate_destroy)
-        API(set_option_string) API(command_async) API(observe_property) API(wait_event) API(error_string)
+        API(set_option_string) API(command_async) API(observe_property) API(wait_event) API(error_string) API(set_property_string)
 #undef API
         acquireSwapChain = reinterpret_cast<AcquireSwapChain>(GetProcAddress(module,"mpv_iima_acquire_d3d11_swapchain_v1"));
         const auto version = client_api_version();
@@ -51,6 +51,7 @@ struct MpvClient::State {
     std::deque<std::pair<std::uint64_t, std::vector<std::string>>> commands;
     std::vector<std::function<void()>> closedCallbacks;
     bool started{}, closing{}, closed{};
+    std::atomic_bool pauseWhenOpen{};
     std::uint64_t nextId{1};
     void Emit(MpvEvent e) noexcept { try { sink(std::move(e)); } catch (...) {} }
     void Run(std::wstring const& path) noexcept {
@@ -73,11 +74,11 @@ struct MpvClient::State {
                 check(api.set_option_string(handle, name, value), name);
             check(api.initialize(handle), "mpv_initialize");
             std::uint64_t id = 1;
-            for (auto const* name : {"time-pos", "duration", "volume", "speed"})
+            for (auto const* name : {"time-pos", "duration", "volume", "speed", "volume-max", "audio-delay", "sub-delay"})
                 check(api.observe_property(handle, id++, name, MPV_FORMAT_DOUBLE), name);
-            for (auto const* name : {"pause", "paused-for-cache", "vo-configured"})
+            for (auto const* name : {"pause", "paused-for-cache", "vo-configured", "mute", "sub-visibility"})
                 check(api.observe_property(handle, id++, name, MPV_FORMAT_FLAG), name);
-            for(auto const* name : {"path", "mpv-version", "current-tracks/video/codec-desc", "hwdec-current", "current-vo"})
+            for(auto const* name : {"path", "mpv-version", "current-tracks/video/codec-desc", "hwdec-current", "current-vo", "loop-file", "loop-playlist", "keep-open"})
                 check(api.observe_property(handle,id++,name,MPV_FORMAT_STRING),name);
             for(auto const* name : {"playlist", "track-list", "chapter-list"})
                 check(api.observe_property(handle,id++,name,MPV_FORMAT_NODE),name);
@@ -143,6 +144,14 @@ struct MpvClient::State {
                 }
                 default: continue;
                 }
+                // IINA MPVController.handleEvent applies pauseWhenOpen at END_FILE
+                // on the event queue, before UI dispatch, to minimize the next-item race.
+                if(pauseWhenOpen.load() && (e.kind==MpvEvent::Kind::Loaded ||
+                    (e.kind==MpvEvent::Kind::EndFile && e.reason!=MPV_END_FILE_REASON_STOP))) {
+                    const int result=api.set_property_string(handle,"pause","yes");
+                    if(result<0) { MpvEvent failure{MpvEvent::Kind::CommandReply}; failure.error=result;
+                        failure.text=std::string("Pause on open: ")+api.error_string(result); Emit(std::move(failure)); }
+                }
                 if(api.acquireSwapChain && (e.kind==MpvEvent::Kind::VideoReconfig || e.kind==MpvEvent::Kind::Loaded)) {
                     void* chain{};
                     const int result=api.acquireSwapChain(handle,&chain);
@@ -164,6 +173,7 @@ struct MpvClient::State {
 };
 MpvClient::MpvClient(Sink sink) : state_(std::make_shared<State>(std::move(sink))) {}
 MpvClient::~MpvClient() { CloseAsync(); }
+void MpvClient::SetPauseWhenOpen(bool value) { state_->pauseWhenOpen.store(value); }
 void MpvClient::Start(std::wstring path) {
     std::lock_guard lock(state_->mutex);
     if(state_->started || state_->closing) return;

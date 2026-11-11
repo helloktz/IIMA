@@ -1,5 +1,6 @@
 #pragma once
 #include "../Mpv/MpvClient.h"
+#include "PlaybackSettings.h"
 
 namespace iima {
 enum class SessionState { Initializing, Ready, Closing, Closed, Failed };
@@ -9,7 +10,10 @@ struct PlaybackSnapshot {
     MediaState media{MediaState::Empty};
     bool paused{true}, seeking{}, buffering{};
     std::optional<double> position, duration;
-    double volume{100}, speed{1};
+    double volume{100}, speed{1}, maxVolume{100}, audioDelay{}, subtitleDelay{};
+    bool muted{}, subtitlesVisible{true};
+    RepeatMode repeatMode{RepeatMode::Off};
+    std::string loopFile{"no"}, loopPlaylist{"no"}, keepOpen{"yes"};
     std::int64_t entryId{-1};
     std::string path, error;
     bool compositionAvailable{}, voConfigured{};

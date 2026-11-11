@@ -1,6 +1,7 @@
 #pragma once
 // History recency and preference defaults adapted from IINA HistoryController.swift
 // (Copyright © 2017 lhc) and Preference.swift. GPL-3.0; references/iina/LICENSE.
+#include "../Playback/PlaybackSettings.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
@@ -14,7 +15,24 @@ struct UserSettings {
     double speed{1};
     bool recordHistory{true};
     bool resumePosition{true};
+    bool pauseWhenOpen{false};
+    bool autoPlayNext{true};
+    bool muted{false};
+    bool subtitlesVisible{true};
+    double maxVolume{100}; // mpv volume-max range: 100..1000; default IINA 100.
+    double audioDelay{0}; // Seconds; positive delays audio. Finite, immediate.
+    double subtitleDelay{0}; // Seconds; positive delays subtitles. Finite, immediate.
+    RepeatMode repeatMode{RepeatMode::Off};
+    ScreenshotMode screenshotMode{ScreenshotMode::Subtitles};
 };
+inline bool ValidUserSettings(UserSettings const& s) {
+    return std::isfinite(s.maxVolume) && s.maxVolume>=100 && s.maxVolume<=1000 &&
+        std::isfinite(s.volume) && s.volume>=0 && s.volume<=s.maxVolume &&
+        std::isfinite(s.speed) && s.speed>=0.01 && s.speed<=100 &&
+        std::isfinite(s.audioDelay) && std::isfinite(s.subtitleDelay) &&
+        (s.repeatMode==RepeatMode::Off || s.repeatMode==RepeatMode::File || s.repeatMode==RepeatMode::Playlist) &&
+        (s.screenshotMode==ScreenshotMode::Subtitles || s.screenshotMode==ScreenshotMode::Video || s.screenshotMode==ScreenshotMode::Window);
+}
 struct HistoryEntry {
     std::string path;
     double position{};

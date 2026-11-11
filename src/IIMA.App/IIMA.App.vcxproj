@@ -60,6 +60,15 @@
     <ClCompile Include="MainWindow.Playback.cpp" />
     <ClCompile Include="MainWindow.UserData.cpp" />
     <ClCompile Include="MainWindow.Files.cpp" />
+    <ClCompile Include="MainWindow.Settings.cpp" />
+    <ClCompile Include="MainWindow.System.cpp" />
+    <ClCompile Include="Platform\FileAssociations.cpp" />
+    <ClInclude Include="Platform\FileAssociations.h" />
+    <ClCompile Include="Platform\InstanceRouter.cpp" />
+    <ClInclude Include="Platform\InstanceRouter.h" />
+    <ClInclude Include="Platform\InstanceProtocol.h" />
+    <ClCompile Include="Platform\LocalInputResolver.cpp" />
+    <ClInclude Include="Platform\LocalInputResolver.h" />
     <ClCompile Include="Platform\MediaIntegration.cpp" />
     <ClInclude Include="Platform\MediaIntegration.h" />
     <ClCompile Include="Platform\UserDataStore.cpp" />

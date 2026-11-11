@@ -34,6 +34,7 @@ void MainWindow::LoadUserData()
                 self->RefreshHistory();
                 self->ApplyUserData(self->session_->Snapshot());
                 self->OpenPendingFiles();
+                self->FlushActivation();
                 if (!self->userData_.warning.empty()) self->ShowError(to_hstring(self->userData_.warning));
                 if (self->closing_) {
                     if (!self->userData_.writable && !self->discardUserData_) self->ConfirmUnsavedClose();
@@ -73,8 +74,7 @@ void MainWindow::ApplyUserData(iima::PlaybackSnapshot const& state)
     if (!userDataLoaded_) return;
     if (!settingsApplied_ && state.session == iima::SessionState::Ready && !closing_) {
         settingsApplied_ = true;
-        session_->SetVolume(userData_.settings.volume);
-        session_->SetSpeed(userData_.settings.speed);
+        session_->ApplySettings(userData_.settings);
     }
     if (state.media == iima::MediaState::Loading || state.media == iima::MediaState::Empty ||
         (lastMedia_ && (lastMedia_->entryId != state.entryId || lastMedia_->path != state.path))) {
@@ -165,7 +165,7 @@ winrt::fire_and_forget MainWindow::ConfirmUnsavedClose()
 }
 void MainWindow::FinishClose()
 {
-    if (closing_ && coreClosed_ && userDataLoaded_ && !saving_ && (discardUserData_ || (!saveDirty_ && !saveFailed_ && userData_.writable))) {
+    if (closing_ && coreClosed_ && diagnosticsClosed_ && userDataLoaded_ && !saving_ && (discardUserData_ || (!saveDirty_ && !saveFailed_ && userData_.writable))) {
         closeComplete_ = true; Close();
     }
 }
