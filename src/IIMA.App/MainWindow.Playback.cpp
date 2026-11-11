@@ -94,10 +94,8 @@ void MainWindow::MoveSelected(int delta)
 void MainWindow::ApplyCollections(iima::PlaybackSnapshot const& state)
 {
     // Called under updating_: property projections must never issue commands.
-    auto samePlaylist = [](auto const& a, auto const& b) {
-        return std::tie(a.id,a.path,a.title,a.current) == std::tie(b.id,b.path,b.title,b.current);
-    };
-    if (!std::equal(playlist_.begin(), playlist_.end(), state.playlist.begin(), state.playlist.end(), samePlaylist)) {
+    if (playlistRevision_ != state.playlistRevision) {
+        playlistRevision_ = state.playlistRevision;
         std::optional<int64_t> selected;
         auto index = PlaylistView().SelectedIndex();
         if (index >= 0 && index < static_cast<int>(playlist_.size())) selected = playlist_[index].id;
@@ -112,11 +110,8 @@ void MainWindow::ApplyCollections(iima::PlaybackSnapshot const& state)
         }
         PlaylistView().SelectedIndex(nextSelection);
     }
-    auto sameTrack = [](auto const& a, auto const& b) {
-        return std::tie(a.id,a.type,a.title,a.lang,a.externalPath,a.selected,a.external) ==
-               std::tie(b.id,b.type,b.title,b.lang,b.externalPath,b.selected,b.external);
-    };
-    if (!std::equal(tracks_.begin(), tracks_.end(), state.tracks.begin(), state.tracks.end(), sameTrack)) {
+    if (tracksRevision_ != state.tracksRevision) {
+        tracksRevision_ = state.tracksRevision;
         tracks_ = state.tracks;
         auto populate = [this](Controls::ComboBox const& box, std::string const& type) {
             box.Items().Clear();
@@ -133,8 +128,8 @@ void MainWindow::ApplyCollections(iima::PlaybackSnapshot const& state)
         };
         populate(AudioBox(), "audio"); populate(SubtitleBox(), "sub");
     }
-    auto sameChapter = [](auto const& a, auto const& b) { return std::tie(a.index,a.time,a.title) == std::tie(b.index,b.time,b.title); };
-    if (!std::equal(chapters_.begin(), chapters_.end(), state.chapters.begin(), state.chapters.end(), sameChapter)) {
+    if (chaptersRevision_ != state.chaptersRevision) {
+        chaptersRevision_ = state.chaptersRevision;
         chapters_ = state.chapters;
         ChapterBox().Items().Clear();
         for (auto const& chapter : chapters_)

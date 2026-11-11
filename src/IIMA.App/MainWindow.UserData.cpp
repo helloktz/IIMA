@@ -86,9 +86,8 @@ void MainWindow::ApplyUserData(iima::PlaybackSnapshot const& state)
             resumedEntry_ = state.entryId;
             if (auto position = iima::ResumePosition(userData_, state.path)) session_->Seek(*position);
         }
-        lastMedia_ = state;
-        // History needs scalar state only, never retain a retired GPU resource.
-        lastMedia_->swapChain.reset();
+        // Retain only history fields, not an entire playlist or GPU ownership.
+        lastMedia_ = HistorySample{state.entryId, state.path, state.position, state.duration};
     }
 }
 void MainWindow::RecordLastMedia()

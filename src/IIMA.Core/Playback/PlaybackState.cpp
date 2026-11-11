@@ -29,7 +29,7 @@ void ApplyPlaybackEvent(PlaybackSnapshot& s, MpvEvent const& e) {
         s.media=MediaState::Loading; s.entryId=e.entryId; s.swapChain.reset();
         s.position.reset(); s.duration.reset(); s.path.clear();
         s.seeking=false; s.buffering=false; s.error.clear();
-        s.tracks.clear(); s.chapters.clear(); s.chapterIndex.reset();
+        s.tracks.clear(); ++s.tracksRevision; s.chapters.clear(); ++s.chaptersRevision; s.chapterIndex.reset();
         s.videoCodec.clear(); s.hwdecCurrent.clear(); s.currentVo.clear(); s.voConfigured=false; break;
     case MpvEvent::Kind::Loaded:
         if(s.media==MediaState::Loading) s.media=MediaState::Loaded;
@@ -48,9 +48,9 @@ void ApplyPlaybackEvent(PlaybackSnapshot& s, MpvEvent const& e) {
     case MpvEvent::Kind::Seek: s.seeking=true; break;
     case MpvEvent::Kind::Restart: s.seeking=false; break;
     case MpvEvent::Kind::Property:
-        if(e.name=="playlist") s.playlist=e.playlist;
-        else if(e.name=="track-list") s.tracks=e.tracks;
-        else if(e.name=="chapter-list") s.chapters=e.chapters;
+        if(e.name=="playlist") { s.playlist=e.playlist; ++s.playlistRevision; }
+        else if(e.name=="track-list") { s.tracks=e.tracks; ++s.tracksRevision; }
+        else if(e.name=="chapter-list") { s.chapters=e.chapters; ++s.chaptersRevision; }
         else if(e.name=="chapter") s.chapterIndex=e.integer;
         else if(e.name=="time-pos") s.position=e.number && std::isfinite(*e.number) ? e.number : std::nullopt;
         else if(e.name=="duration") s.duration=e.number && std::isfinite(*e.number) && *e.number>=0 ? e.number : std::nullopt;

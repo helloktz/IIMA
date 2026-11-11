@@ -49,6 +49,7 @@ private:
     void ShowError(winrt::hstring const& message);
     std::shared_ptr<iima::PlayerSession> session_;
     std::unique_ptr<iima::VideoPresenter> presenter_;
+    std::optional<uint64_t> playlistRevision_, tracksRevision_, chaptersRevision_;
     std::vector<iima::PlaylistItem> playlist_;
     std::vector<iima::MediaTrack> tracks_;
     std::vector<iima::Chapter> chapters_;
@@ -66,7 +67,8 @@ private:
     std::string lastDiagnostics_;
     bool diagnosticsClosed_{};
     iima::UserData userData_;
-    std::optional<iima::PlaybackSnapshot> lastMedia_;
+    struct HistorySample { std::int64_t entryId; std::string path; std::optional<double> position, duration; };
+    std::optional<HistorySample> lastMedia_;
     std::optional<int64_t> resumedEntry_;
     bool discardUserData_{}, saveDialogOpen_{}, userDataLoaded_{}, settingsApplied_{}, saving_{}, saveDirty_{}, saveFailed_{}, coreClosed_{};
     bool updating_{}, closing_{}, closeComplete_{}, pickerOpen_{}, fullscreen_{};

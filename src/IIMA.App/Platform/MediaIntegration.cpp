@@ -33,6 +33,8 @@ struct MediaIntegration::State {
     winrt::hstring title;
     MediaPlaybackType type{MediaPlaybackType::Unknown};
     bool metadataPublished{};
+    std::optional<std::uint64_t> playlistRevision;
+    bool previousAvailable{}, nextAvailable{};
 
     void SetPower(bool playing) noexcept {
         if (!playing) {
@@ -133,10 +135,15 @@ void MediaIntegration::Update(PlaybackSnapshot const& snapshot) noexcept {
         controls.IsEnabled(active);
         controls.IsPlayEnabled(active && snapshot.paused);
         controls.IsPauseEnabled(playing);
-        auto current = std::find_if(snapshot.playlist.begin(), snapshot.playlist.end(),
-            [](auto const& item) { return item.current; });
-        controls.IsPreviousEnabled(active && current != snapshot.playlist.end() && current != snapshot.playlist.begin());
-        controls.IsNextEnabled(active && current != snapshot.playlist.end() && std::next(current) != snapshot.playlist.end());
+        if (state_->playlistRevision != snapshot.playlistRevision) {
+            state_->playlistRevision = snapshot.playlistRevision;
+            auto current = std::find_if(snapshot.playlist.begin(), snapshot.playlist.end(),
+                [](auto const& item) { return item.current; });
+            state_->previousAvailable = current != snapshot.playlist.end() && current != snapshot.playlist.begin();
+            state_->nextAvailable = current != snapshot.playlist.end() && std::next(current) != snapshot.playlist.end();
+        }
+        controls.IsPreviousEnabled(active && state_->previousAvailable);
+        controls.IsNextEnabled(active && state_->nextAvailable);
         controls.PlaybackStatus(!active ? MediaPlaybackStatus::Closed :
             snapshot.paused ? MediaPlaybackStatus::Paused : MediaPlaybackStatus::Playing);
         auto updater = controls.DisplayUpdater();

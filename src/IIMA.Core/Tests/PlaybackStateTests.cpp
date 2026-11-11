@@ -38,6 +38,13 @@ int main() {
     property.name="audio-delay"; property.number=-1.25; ApplyPlaybackEvent(s,property); assert(s.audioDelay==-1.25);
     property.number=std::numeric_limits<double>::infinity(); ApplyPlaybackEvent(s,property); assert(s.audioDelay==-1.25);
     property.name="volume-max"; property.number=200; ApplyPlaybackEvent(s,property); assert(s.maxVolume==200);
+    auto revision=s.playlistRevision;
+    MpvEvent list{MpvEvent::Kind::Property}; list.name="playlist";
+    list.playlist={{1,"one","",true}};
+    ApplyPlaybackEvent(s,list); assert(s.playlistRevision==revision+1);
+    ApplyPlaybackEvent(s,duration); assert(s.playlistRevision==revision+1);
+    auto tracksRevision=s.tracksRevision;
+    ApplyPlaybackEvent(s,start); assert(s.tracksRevision==tracksRevision+1);
     s.session=SessionState::Closing;
     ApplyPlaybackEvent(s,{MpvEvent::Kind::Loaded}); assert(s.media==MediaState::Loading);
     ApplyPlaybackEvent(s,{MpvEvent::Kind::Ready}); assert(s.session==SessionState::Closing);

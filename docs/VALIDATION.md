@@ -102,3 +102,7 @@ Windows 新增验收步骤：
 完整源码覆盖和仍缺的具体证据见 COVERAGE.md。远程构建配置见 WINDOWS-RUNNER.md；没有注册runner或发起构建。
 
 本批收拢时已实际重跑 `scripts/test-portable.py` 七组全部通过：playback-state、mpv-nodes、player-session、user-data、diagnostic-log、local-input、instance-protocol。单实例纯协议覆盖 Unicode/emoji/UNC、每个截断点、错误头/长度/尾垃圾、NUL/引号/ADS/设备路径、非法代理对及各资源上限；不等同于命名管道在 Windows 上经过测试。`check-source.py` 与 `git diff --check` 通过；手动workflow仅做YAML解析，官方actions tag SHA已从远端核对，未运行Actions。
+
+## 大列表进度投影收尾
+
+源级审阅发现每次 time-pos 更新会比较整个列表，历史采样还复制完整 PlaybackSnapshot。现改为集合 revision 驱动 UI/SMTC 更新，历史只保留 entryId/path/position/duration 标量；纯归约测试确认无关进度/时长事件不改变列表 revision。七组 portable tests 再次通过。此项消除可见的 O(n) 高频比较/拷贝，不代替真实大列表 WinUI 性能测试；列表本身改变时仍需重建对应 UI 项。
