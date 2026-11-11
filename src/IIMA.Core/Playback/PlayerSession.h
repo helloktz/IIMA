@@ -9,8 +9,18 @@ public:
     static std::shared_ptr<PlayerSession> Create(Dispatch dispatch, Changed changed);
     void Start(std::wstring dllPath);
     // Only a presenter with a verified owned swapchain lifetime may grant this.
-    void SetPresentationReady(bool ready) noexcept { presentationReady_ = ready; }
+    void SetPresentationReady(bool ready);
     void Open(std::string utf8Path);
+    void OpenMultiple(std::vector<std::string> paths, bool append = false);
+    void PlaylistNext();
+    void PlaylistPrevious();
+    void PlaylistPlay(std::size_t index);
+    void PlaylistRemove(std::size_t index);
+    void PlaylistMove(std::size_t from, std::size_t finalIndex);
+    void SelectTrack(std::string type, std::int64_t id);
+    void SelectChapter(std::size_t index);
+    void AddSubtitle(std::string path);
+    void ScreenshotToFile(std::string path);
     void Pause(bool paused);
     void TogglePause();
     void Seek(double seconds);
@@ -25,12 +35,17 @@ private:
     PlayerSession(Dispatch dispatch, Changed changed);
     void OnEvent(MpvEvent event);
     void Notify();
+    bool CanOpen();
+    void MaybeResume();
+    void PausedCommand(std::vector<std::string> command);
     Dispatch dispatch_;
     Changed changed_;
     std::unique_ptr<MpvClient> client_;
     PlaybackSnapshot snapshot_;
     bool presentationReady_{};
-    std::uint64_t pauseRequest_{};
-    std::string pendingPath_;
+    std::uint64_t pauseRequest_{}, loadRequest_{};
+    std::int64_t expectedEntry_{-1};
+    bool resumePending_{};
+    std::vector<std::vector<std::string>> pendingCommands_;
 };
 }

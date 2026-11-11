@@ -21,6 +21,9 @@
   <ItemGroup><ClInclude Include="BuildInfo.h" /><ClCompile Include="BuildInfo.cpp" /></ItemGroup>
   <ItemGroup>
     <ClInclude Include="Mpv\MpvClient.h" />
+    <ClInclude Include="Mpv\include\mpv\client.h" />
+    <ClInclude Include="Mpv\MpvNodes.h" />
+    <ClCompile Include="Mpv\MpvNodes.cpp" />
     <ClInclude Include="Playback\PlaybackState.h" />
     <ClInclude Include="Playback\PlayerSession.h" />
     <ClCompile Include="Mpv\MpvClient.cpp" />

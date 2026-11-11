@@ -9,6 +9,7 @@
 #include <winrt/Windows.Storage.h>
 #include <winrt/Windows.Storage.Pickers.h>
 #include <winrt/Windows.System.h>
+#include <winrt/Windows.Graphics.h>
 #include <filesystem>
 #include <cmath>
 #include <iomanip>
@@ -31,6 +32,7 @@ namespace winrt::IIMA::implementation {
 MainWindow::MainWindow()
 {
     InitializeComponent();
+    Root().IsEnabled(false);
     Title(L"IIMA " + to_hstring(iima::version()));
     auto weak = get_weak();
     auto dispatcher = DispatcherQueue();
@@ -44,7 +46,7 @@ MainWindow::MainWindow()
     std::weak_ptr<iima::PlayerSession> session = session_;
     presenter_ = std::make_unique<iima::VideoPresenter>(VideoPanel(), [session](unsigned w, unsigned h) {
         if (auto current = session.lock()) current->SetCompositionSize(w, h);
-    });
+    }, [weak](hstring const& error) { if (auto self = weak.get(); self && !self->closing_) self->ShowError(error); });
     OpenButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->OpenFile(); });
     PauseButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->session_->TogglePause(); });
     FullscreenButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->ToggleFullscreen(); });
@@ -66,6 +68,25 @@ MainWindow::MainWindow()
            [weak] { if (auto self = weak.get()) self->ToggleFullscreen(); });
     addKey(Windows::System::VirtualKey::Escape, Windows::System::VirtualKeyModifiers::None,
            [weak] { if (auto self = weak.get(); self && self->fullscreen_) self->ToggleFullscreen(); });
+    WirePlaybackControls();
+    WireUserDataControls();
+    WireFileActions();
+    try {
+        HWND hwnd{};
+        check_hresult(this->as<::IWindowNative>()->get_WindowHandle(&hwnd));
+        mediaIntegration_ = std::make_unique<iima::MediaIntegration>(hwnd, dispatcher, [weak](iima::SystemMediaCommand command) {
+            if (auto self = weak.get(); self && !self->closing_) {
+                switch (command) {
+                case iima::SystemMediaCommand::Play: self->session_->Pause(false); break;
+                case iima::SystemMediaCommand::Pause: self->session_->Pause(true); break;
+                case iima::SystemMediaCommand::Previous: self->session_->PlaylistPrevious(); break;
+                case iima::SystemMediaCommand::Next: self->session_->PlaylistNext(); break;
+                }
+            }
+        });
+    } catch (hresult_error const& error) { ShowError(error.message()); }
+    LoadUserData();
+    AppWindow().Resize({1100, 720});
     AppWindow().Closing([weak](auto const&, Microsoft::UI::Windowing::AppWindowClosingEventArgs const& args) {
         if (auto self = weak.get(); self && !self->closeComplete_) {
             args.Cancel(true);
@@ -81,7 +102,29 @@ MainWindow::MainWindow()
     session_->Start((std::filesystem::path{executable}.parent_path() / L"libmpv-2.dll").wstring());
 }
 void MainWindow::ShowError(hstring const& message) { StatusText().Text(message); }
-winrt::fire_and_forget MainWindow::OpenFile()
+winrt::fire_and_forget MainWindow::OpenFile(bool append)
+{
+    auto lifetime = get_strong();
+    if (closing_ || pickerOpen_) co_return;
+    pickerOpen_ = true;
+    try {
+        Windows::Storage::Pickers::FileOpenPicker picker;
+        HWND hwnd{};
+        check_hresult(this->as<::IWindowNative>()->get_WindowHandle(&hwnd));
+        check_hresult(picker.as<::IInitializeWithWindow>()->Initialize(hwnd));
+        picker.FileTypeFilter().Append(L"*");
+        auto files = co_await picker.PickMultipleFilesAsync();
+        if (files.Size() && !closing_) {
+            std::vector<std::string> paths;
+            for (auto const& file : files) paths.push_back(to_string(file.Path()));
+            if (append && session_->Snapshot().session == iima::SessionState::Ready)
+                session_->OpenMultiple(std::move(paths), true);
+            else QueueFiles(std::move(paths));
+        }
+    } catch (hresult_error const& error) { if (!closing_) ShowError(error.message()); }
+    pickerOpen_ = false;
+}
+winrt::fire_and_forget MainWindow::OpenSubtitle()
 {
     auto lifetime = get_strong();
     if (closing_ || pickerOpen_) co_return;
@@ -93,19 +136,36 @@ winrt::fire_and_forget MainWindow::OpenFile()
         check_hresult(picker.as<::IInitializeWithWindow>()->Initialize(hwnd));
         picker.FileTypeFilter().Append(L"*");
         auto file = co_await picker.PickSingleFileAsync();
-        if (file && !closing_) {
-            if (!presenter_->IsBound()) {
-                ShowError(L"暂未开启播放：当前 libmpv 的交换链地址没有安全的生命周期交接协议。视频呈现通过 Windows 验证前，不启动无画面播放。");
-            } else {
-                session_->Open(to_string(file.Path()));
-            }
-        }
+        if (file && !closing_) session_->AddSubtitle(to_string(file.Path()));
     } catch (hresult_error const& error) { if (!closing_) ShowError(error.message()); }
     pickerOpen_ = false;
 }
 void MainWindow::Apply(iima::PlaybackSnapshot const& state)
 {
     updating_ = true;
+    hstring presentationError;
+    if (state.swapChain != swapChain_) {
+        try {
+            if (state.swapChain) {
+                winrt::com_ptr<IDXGISwapChain> chain;
+                check_hresult(static_cast<IDXGISwapChain*>(state.swapChain.get())->QueryInterface(__uuidof(IDXGISwapChain), chain.put_void()));
+                presenter_->Bind(std::move(chain));
+                swapChain_ = state.swapChain;
+            } else {
+                presenter_->Detach();
+                swapChain_.reset();
+            }
+        } catch (hresult_error const& error) {
+            presentationError = error.message();
+            presenter_->Detach();
+            swapChain_.reset();
+        }
+    }
+    session_->SetPresentationReady(state.swapChain && presenter_->IsBound() && presentationError.empty());
+    ApplyCollections(state);
+    ApplyUserData(state);
+    OpenPendingFiles();
+    if (mediaIntegration_) mediaIntegration_->Update(state);
     bool loaded = state.media == iima::MediaState::Loaded || state.media == iima::MediaState::Ended;
     PauseButton().IsEnabled(loaded && presenter_->IsBound());
     PauseButton().Content(box_value(state.paused ? L"播放" : L"暂停"));
@@ -115,9 +175,10 @@ void MainWindow::Apply(iima::PlaybackSnapshot const& state)
     PositionSlider().Value(state.position.value_or(0));
     TimeLabel().Text(Clock(state.position) + L" / " + Clock(state.duration));
     EmptyLabel().Visibility(loaded ? Visibility::Collapsed : Visibility::Visible);
-    if (!state.error.empty()) ShowError(to_hstring(state.error));
-    else if (state.session == iima::SessionState::Ready && !presenter_->IsBound())
-        ShowError(L"播放内核已初始化，视频合成桥接尚待完成。可选择文件；暂不启动播放。");
+    if (!presentationError.empty()) ShowError(presentationError);
+    else if (!state.error.empty()) ShowError(to_hstring(state.error));
+    else if (state.session == iima::SessionState::Ready && !state.compositionAvailable)
+        ShowError(L"当前 libmpv 缺少安全的视频合成接口，请安装配套构建。");
     else if (state.media == iima::MediaState::Loading) StatusText().Text(L"正在打开…");
     else if (loaded) StatusText().Text(state.buffering ? L"正在缓冲…" : L"");
     updating_ = false;
@@ -134,13 +195,20 @@ void MainWindow::ToggleFullscreen()
 }
 void MainWindow::BeginClose()
 {
-    if (closing_) return;
+    if (userDataLoaded_ && !discardUserData_ && (!userData_.writable || saveFailed_)) {
+        ConfirmUnsavedClose(); return;
+    }
+    if (closing_) { FinishClose(); return; }
     closing_ = true;
+    if (mediaIntegration_) mediaIntegration_->Close();
+    RecordLastMedia();
     Root().IsEnabled(false);
+    if (userDataLoaded_) { saveDirty_ = true; saveFailed_ = false; PumpSave(); }
     presenter_.reset(); // UI detach before event consumer stop / mpv destruction.
+    swapChain_.reset();
     auto weak = get_weak();
     session_->CloseAsync([weak] {
-        if (auto self = weak.get()) { self->closeComplete_ = true; self->Close(); }
+        if (auto self = weak.get()) { self->coreClosed_ = true; self->FinishClose(); }
     });
 }
 }

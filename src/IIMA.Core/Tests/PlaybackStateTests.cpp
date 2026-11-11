@@ -22,7 +22,9 @@ int main() {
     ApplyPlaybackEvent(s,oldEnd); assert(s.media==MediaState::Loaded);
     oldEnd.entryId=17; oldEnd.text="bad file";
     ApplyPlaybackEvent(s,oldEnd); assert(s.media==MediaState::Error && s.error=="bad file");
+    s.swapChain=std::make_shared<int>(1);
     start.entryId=18; ApplyPlaybackEvent(s,start);
+    assert(!s.swapChain);
     assert(s.media==MediaState::Loading && s.error.empty() && !s.position && !s.duration);
     MpvEvent reply{MpvEvent::Kind::CommandReply}; reply.error=0;
     ApplyPlaybackEvent(s,reply); assert(s.media==MediaState::Loading);

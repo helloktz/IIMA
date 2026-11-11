@@ -14,7 +14,7 @@ IIMA 是面向 Windows 的原生桌面播放器项目，以 IINA 源码为移植
 - [研发交接](docs/HANDOFF.md)：当前状态、阶段任务、完成条件及接手入口。
 - [开发约定](AGENTS.md)：源码移植、工具链和验证要求。
 
-开发分支已加入 XAML 页面、播放核心、依赖准备脚本和状态测试。当前尚不是可播放交付物：Windows 构建及运行未验证，安全交换链获取仍待完成，详见 [移植记录](docs/PORTING.md)。构建和打包方法见 [BUILD.md](docs/BUILD.md)。
+开发分支已加入 XAML 页面、播放核心、依赖准备脚本和状态测试。当前尚不是已验证的可播放交付物：Windows 构建及运行未验证，安全交换链需要配套私有补丁版 libmpv，详见 [移植记录](docs/PORTING.md)。构建和打包方法见 [BUILD.md](docs/BUILD.md)。
 
 ## 交付平台
 

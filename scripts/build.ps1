@@ -34,6 +34,9 @@ Write-Host "Built: artifacts/bin/x64/$Configuration/IIMA.App/IIMA.exe"
 # Source-only development remains buildable without a media SDK; never silently package it.
 $mpvRoot = Join-Path $RepoRoot '.deps/libmpv'
 if (Test-Path -LiteralPath $mpvRoot) {
+    $mpvManifest = Get-Content -LiteralPath (Join-Path $mpvRoot 'manifest.json') -Raw | ConvertFrom-Json
+    $patchHash = (Get-FileHash -LiteralPath (Join-Path $RepoRoot 'build/patches/mpv-iima-owned-swapchain-v1.patch') -Algorithm SHA256).Hash
+    if ($mpvManifest.sourcePatch -ne 'mpv-iima-owned-swapchain-v1' -or $mpvManifest.patchSha256 -ne $patchHash) { throw 'SDK owned-swapchain patch is out of date; rebuild and re-stage.' }
     $hashes = Get-Content -LiteralPath (Join-Path $mpvRoot 'verified-binaries.json') -Raw | ConvertFrom-Json
     $actualNames = @(Get-ChildItem -LiteralPath (Join-Path $mpvRoot 'bin') -File -Filter '*.dll' | ForEach-Object Name)
     $recordedNames = @($hashes | ForEach-Object file)

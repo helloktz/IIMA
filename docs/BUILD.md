@@ -1,6 +1,6 @@
 # 构建与最小打包
 
-当前开发分支包含 WinUI XAML 播放页面、原生播放核心及 libmpv staging 入口。Windows 编译和真实播放尚未验证；默认视频呈现仍受安全交换链获取协议限制，不能视为可用播放器。没有安装器、签名、自动更新或文件关联。
+当前开发分支包含 WinUI XAML 播放页面、原生播放核心及 libmpv staging 入口。Windows 编译和真实播放尚未验证；视频呈现需要固定源码加 owned-swapchain 私有补丁的 libmpv，不能视为可用播放器。没有安装器、签名、自动更新或文件关联。
 
 ## Windows 构建环境
 

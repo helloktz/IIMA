@@ -38,6 +38,13 @@ changed = subprocess.check_output(
     ['git', 'diff', '--name-only', 'f5f649b', '--', 'references'], cwd=ROOT, text=True)
 if changed.strip():
     errors.append('Reference snapshots changed: ' + changed.strip())
+# The application dynamically loads symbols; it must not export mpv declarations.
+upstream = (ROOT / 'references/mpv/include/mpv/client.h').read_text()
+consumer = ROOT / 'src/IIMA.Core/Mpv/include/mpv/client.h'
+if consumer.exists():
+    expected = upstream.replace('#define MPV_EXPORT __declspec(dllexport)', '#define MPV_EXPORT /* IIMA dynamically loads exports; this header consumes the DLL. */')
+    if consumer.read_text() != expected:
+        errors.append('Consumer mpv header differs beyond the documented MPV_EXPORT adaptation')
 if errors:
     print('\n'.join(errors), file=sys.stderr)
     sys.exit(1)

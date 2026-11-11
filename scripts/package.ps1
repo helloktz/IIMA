@@ -32,6 +32,7 @@ foreach ($required in @('IIMA.exe','Microsoft.ui.xaml.dll','Microsoft.WindowsApp
 $licensesRoot = Join-Path $stage 'licenses'
 New-Item -ItemType Directory -Force $licensesRoot | Out-Null
 Copy-Item -LiteralPath (Join-Path $mpvRoot 'licenses') -Destination (Join-Path $licensesRoot 'libmpv') -Recurse
+Copy-Item -LiteralPath (Join-Path $RepoRoot 'build/patches/mpv-iima-owned-swapchain-v1.patch') -Destination (Join-Path $licensesRoot 'libmpv')
 Copy-Item -LiteralPath (Join-Path $mpvRoot 'manifest.json') -Destination (Join-Path $stage 'libmpv-manifest.json')
 Copy-Item -LiteralPath (Join-Path $mpvRoot 'verified-binaries.json') -Destination $stage
 Copy-Item -LiteralPath (Join-Path $RepoRoot 'references/iina/LICENSE') -Destination (Join-Path $licensesRoot 'IINA-LICENSE')

@@ -12,6 +12,14 @@ struct PlaybackSnapshot {
     double volume{100}, speed{1};
     std::int64_t entryId{-1};
     std::string path, error;
+    bool compositionAvailable{}, voConfigured{};
+    std::uint64_t clientApiVersion{};
+    std::string mpvVersion, videoCodec, hwdecCurrent, currentVo;
+    std::shared_ptr<void> swapChain;
+    std::vector<PlaylistItem> playlist;
+    std::vector<MediaTrack> tracks;
+    std::vector<Chapter> chapters;
+    std::optional<std::int64_t> chapterIndex;
 };
 // Ordered event reduction. Command acceptance never asserts successful playback.
 void ApplyPlaybackEvent(PlaybackSnapshot& state, MpvEvent const& event);

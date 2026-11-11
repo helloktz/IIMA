@@ -1,6 +1,6 @@
 # IIMA 基础架构
 
-状态：开发分支已实现 XAML 页面、MpvClient、PlayerSession 与拥有型呈现适配；Windows 编译/运行未验证，安全交换链获取仍阻断真实播放。日期：2026-11-11。
+状态：开发分支已实现 XAML 页面、MpvClient、PlayerSession 与拥有型呈现适配；Windows 编译/运行未验证，已写入安全交换链生产补丁与绑定握手，但尚无实际 Windows 播放证据。日期：2026-11-11。
 
 本文定义模块职责与实现约束。当前实际入口见 [BUILD.md](BUILD.md)；模块以实际代码为准；本批已接入 XAML 编译配置，但生成链未在 Windows 运行。开发约定见 [AGENTS.md](../AGENTS.md)，执行顺序见 [HANDOFF.md](HANDOFF.md)。
 
@@ -171,7 +171,7 @@ mpv 阅读入口：`include/mpv/client.h`、`include/mpv/render.h`、`include/mp
 
 已确定：平台、主程序工具链、源码移植方式、参考快照管理、模块职责、单会话起步、事件驱动状态、依赖与参考分离。
 
-待实现验证：`gpu-next` 合成路径、交换链重建协议、HDR/跨屏表现、干净 Windows 环境的部署验证。
+已实现待运行验证：`gpu-next` 合成路径、私有 owned-swapchain 协议、控制/播放列表/轨道/历史及系统媒体集成。仍待专项验证：设备重建、HDR/跨屏表现、干净 Windows 环境部署。
 
 当前工具链和原生包版本已经固定，见 BUILD.md；libmpv 版本、JSON 库、测试框架、后续 API 的最低系统要求、正式安装与签名方案由接手研发者在对应阶段落实。不能把未确定事项写成当前已有能力。
 

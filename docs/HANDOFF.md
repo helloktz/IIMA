@@ -1,5 +1,9 @@
 # 研发交接
 
+## 当前开发分支状态（2026-11-11）
+
+`dev/native-playback` 已加入 XAML、异步 libmpv 核心、拥有型交换链桥接、播放列表/轨道/字幕/章节/截图、设置历史、文件打开与 SMTC/防休眠代码。Linux 纯逻辑与静态检查通过，Windows/MSVC/XAML/真实播放均未验证。必须使用固定源加私有补丁构建的 libmpv，不能下载普通 DLL 即声称完整可用。详见 PORTING.md 与 VALIDATION.md。以下初始化状态是历史基线，阶段完成条件仍须实际验收。
+
 ## 接手入口
 
 先读根目录 [AGENTS.md](../AGENTS.md)，再读 [ARCHITECTURE.md](ARCHITECTURE.md)。以当前检出目录为仓库根目录，远程为 `https://github.com/helloktz/IIMA`。

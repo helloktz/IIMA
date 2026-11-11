@@ -42,7 +42,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <PreprocessorDefinitions>DISABLE_XAML_GENERATED_MAIN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -57,6 +57,13 @@
     <ClCompile Include="App.xaml.cpp"><DependentUpon>App.xaml</DependentUpon></ClCompile>
     <ClCompile Include="MainWindow.xaml.cpp"><DependentUpon>MainWindow.xaml</DependentUpon></ClCompile>
     <ClCompile Include="Presentation\VideoPresenter.cpp" />
+    <ClCompile Include="MainWindow.Playback.cpp" />
+    <ClCompile Include="MainWindow.UserData.cpp" />
+    <ClCompile Include="MainWindow.Files.cpp" />
+    <ClCompile Include="Platform\MediaIntegration.cpp" />
+    <ClInclude Include="Platform\MediaIntegration.h" />
+    <ClCompile Include="Platform\UserDataStore.cpp" />
+    <ClInclude Include="Platform\UserDataStore.h" />
     <ClInclude Include="App.xaml.h"><DependentUpon>App.xaml</DependentUpon></ClInclude>
     <ClInclude Include="MainWindow.xaml.h"><DependentUpon>MainWindow.xaml</DependentUpon></ClInclude>
     <ClInclude Include="Presentation\VideoPresenter.h" />

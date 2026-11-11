@@ -28,6 +28,7 @@ public static class IimaMpvProbe {
  [DllImport("kernel32", CharSet=CharSet.Ansi, ExactSpelling=true)] static extern IntPtr GetProcAddress(IntPtr dll, string symbol);
  [DllImport("kernel32")] static extern bool FreeLibrary(IntPtr dll);
  [UnmanagedFunctionPointer(CallingConvention.Cdecl)] delegate uint Version();
+ [UnmanagedFunctionPointer(CallingConvention.Cdecl)] delegate int Acquire(IntPtr handle, out IntPtr chain);
  [UnmanagedFunctionPointer(CallingConvention.Cdecl)] delegate IntPtr Create();
  [UnmanagedFunctionPointer(CallingConvention.Cdecl)] delegate void Destroy(IntPtr handle);
  [UnmanagedFunctionPointer(CallingConvention.Cdecl)] delegate int Initialize(IntPtr handle);
@@ -43,7 +44,7 @@ public static class IimaMpvProbe {
    if(dll==IntPtr.Zero) throw new Exception("LoadLibraryEx failed: "+Marshal.GetLastWin32Error()+". Stage all companion DLLs.");
    IntPtr handle=IntPtr.Zero;
    try {
-     foreach(var symbol in new[]{"mpv_terminate_destroy","mpv_command_async","mpv_set_property_async","mpv_get_property","mpv_observe_property","mpv_wait_event","mpv_wakeup","mpv_error_string","mpv_free","mpv_free_node_contents","mpv_request_log_messages"})
+     foreach(var symbol in new[]{"mpv_iima_acquire_d3d11_swapchain_v1","mpv_terminate_destroy","mpv_command_async","mpv_set_property_async","mpv_get_property","mpv_observe_property","mpv_wait_event","mpv_wakeup","mpv_error_string","mpv_free","mpv_free_node_contents","mpv_request_log_messages"})
        if(GetProcAddress(dll,symbol)==IntPtr.Zero) throw new Exception("Missing C ABI export: "+symbol);
      uint api=Function<Version>(dll,"mpv_client_api_version")();
      if((api>>16)!=2 || (api&0xffff)<6) throw new Exception("Need libmpv client API 2.6 or compatible newer 2.x; got "+api);
@@ -57,6 +58,11 @@ public static class IimaMpvProbe {
      }
      int initialized=Function<Initialize>(dll,"mpv_initialize")(handle);
      if(initialized<0) throw new Exception("mpv_initialize failed: "+initialized);
+     IntPtr chain;
+     int acquired=Function<Acquire>(dll,"mpv_iima_acquire_d3d11_swapchain_v1")(handle,out chain);
+     if(chain!=IntPtr.Zero) Marshal.Release(chain);
+     if((acquired!=0 && acquired!=-10) || (acquired==0 && chain==IntPtr.Zero) || (acquired<0 && chain!=IntPtr.Zero))
+       throw new Exception("Invalid owned-swapchain extension result: "+acquired);
      return api;
    } finally {
      if(handle!=IntPtr.Zero) Function<Destroy>(dll,"mpv_terminate_destroy")(handle);

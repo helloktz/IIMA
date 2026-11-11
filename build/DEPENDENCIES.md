@@ -11,7 +11,7 @@ IIMA 版本由 `Directory.Build.props` 的 `IimaVersion` 定义。当前为 `0.1
 | C++/WinRT | 3.0.260818.1 | src/IIMA.App/packages.config |
 | NuGet CLI | 8.0.0 | Directory.Build.props |
 | SDK 构建工具、WebView2 等传递依赖 | 完整精确版本见 packages.config | src/IIMA.App/packages.config |
-| libmpv | 源码固定 bcde6b93cca4d128d84e1a60d1a6db2cd81c889e；C ABI 2.6；x64 动态加载 libmpv-2.dll | docs/LIBMPV.md；具体构建工具与传递依赖由 SDK manifest.json 记录 |
+| libmpv | 源码固定 bcde6b93cca4d128d84e1a60d1a6db2cd81c889e；C ABI 2.6 + IIMA owned-swapchain v1 私有补丁；x64 动态加载 libmpv-2.dll | docs/LIBMPV.md；具体构建工具与传递依赖由 SDK manifest.json 记录 |
 
 仅使用需要的 Windows App SDK 组件包，未引入完整聚合包的 AI/ML 等组件。WebView2 是 WinUI 的上游传递依赖；IIMA 没有 WebView 界面或浏览器业务，也不安装 WebView2 浏览器运行时。
 

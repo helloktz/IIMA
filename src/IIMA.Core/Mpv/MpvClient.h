@@ -7,6 +7,24 @@
 #include <vector>
 
 namespace iima {
+struct PlaylistItem {
+    std::int64_t id{};
+    std::string path, title;
+    bool current{};
+    bool operator==(PlaylistItem const&) const = default;
+};
+struct MediaTrack {
+    std::int64_t id{};
+    std::string type, title, lang, externalPath;
+    bool selected{}, external{};
+    bool operator==(MediaTrack const&) const = default;
+};
+struct Chapter {
+    int index{};
+    double time{};
+    std::string title;
+    bool operator==(Chapter const&) const = default;
+};
 // Owns all payloads; never exports mpv's borrowed event memory.
 struct MpvEvent {
     enum class Kind { Ready, Failure, StartFile, Loaded, EndFile, Seek, Restart,
@@ -17,6 +35,12 @@ struct MpvEvent {
     std::int64_t entryId{-1};
     std::uint64_t requestId{};
     int error{}, reason{};
+    std::optional<std::int64_t> integer;
+    std::vector<PlaylistItem> playlist;
+    std::vector<MediaTrack> tracks;
+    std::vector<Chapter> chapters;
+    // Exact IDXGISwapChain interface, owning one reference; never a borrowed address.
+    std::shared_ptr<void> swapChain;
 };
 class MpvClient final {
 public:

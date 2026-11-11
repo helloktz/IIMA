@@ -18,32 +18,111 @@ std::shared_ptr<PlayerSession> PlayerSession::Create(Dispatch dispatch, Changed 
 }
 void PlayerSession::Start(std::wstring path) { client_->Start(std::move(path)); }
 void PlayerSession::Notify() { if(changed_) changed_(snapshot_); }
-void PlayerSession::Open(std::string path) {
-    if(snapshot_.session!=SessionState::Ready) return;
-    if(path.empty() || path.find('\0')!=std::string::npos) {
-        snapshot_.error="The media path is empty or contains a NUL character"; Notify(); return;
+void PlayerSession::SetPresentationReady(bool ready) {
+    ready=ready && static_cast<bool>(snapshot_.swapChain);
+    if(presentationReady_==ready) return;
+    presentationReady_=ready;
+    MaybeResume();
+}
+void PlayerSession::MaybeResume() {
+    if(resumePending_ && presentationReady_ && snapshot_.media==MediaState::Loaded &&
+       !pauseRequest_ && expectedEntry_>=0 && expectedEntry_==snapshot_.entryId) {
+        resumePending_=false; Pause(false);
     }
-    if(!presentationReady_) {
-        snapshot_.error="Video output is unavailable: the pinned libmpv display-swapchain property exposes a borrowed pointer without a safe acquisition contract. Playback is blocked until the presenter can bind an owned swapchain.";
-        Notify(); return;
+}
+bool PlayerSession::CanOpen() {
+    if(snapshot_.session!=SessionState::Ready) return false;
+    if(!snapshot_.compositionAvailable) {
+        snapshot_.error="Video output is unavailable: install the pinned libmpv build with the IIMA owned-swapchain extension. The borrowed display-swapchain property cannot be used safely.";
+        Notify(); return false;
     }
-    // IINA openMainWindow pauses before loadfile. Wait for the asynchronous pause
-    // reply before loading, rather than relying on unrelated async command order.
-    pendingPath_=std::move(path);
+    return true;
+}
+void PlayerSession::Open(std::string path) { OpenMultiple({std::move(path)}); }
+void PlayerSession::OpenMultiple(std::vector<std::string> paths,bool append) {
+    if(paths.empty() || !CanOpen()) return;
+    if(std::any_of(paths.begin(),paths.end(),[](auto const& p) { return p.empty() || p.find('\0')!=std::string::npos; })) {
+        snapshot_.error="A media path is empty or contains a NUL character"; Notify(); return;
+    }
+    // No shell or command string parsing: UTF-8 paths remain individual API arguments.
+    if(append) {
+        for(auto& path:paths) client_->Command({"loadfile",std::move(path),"append"});
+        return;
+    }
+    presentationReady_=false; resumePending_=true; expectedEntry_=-1; loadRequest_=0;
+    pendingCommands_.clear();
+    // Match IINA openMainWindow: create VO even for audio-only media, but only
+    // once opening, not during app initialization. Composition still owns output.
+    pendingCommands_.push_back({"set","force-window","yes"});
+    for(std::size_t i=0;i<paths.size();++i)
+        pendingCommands_.push_back({"loadfile",std::move(paths[i]),i==0 ? "replace" : "append"});
     pauseRequest_=client_->Command({"set","pause","yes"});
-    if(!pauseRequest_) { pendingPath_.clear(); snapshot_.error="Player is closing"; Notify(); }
+    if(!pauseRequest_) { pendingCommands_.clear(); snapshot_.error="Player is closing"; Notify(); }
+}
+void PlayerSession::PausedCommand(std::vector<std::string> command) {
+    if(!CanOpen()) return;
+    presentationReady_=false; resumePending_=true; loadRequest_=0;
+    pendingCommands_={std::move(command)};
+    pauseRequest_=client_->Command({"set","pause","yes"});
+}
+void PlayerSession::PlaylistNext() {
+    auto current=std::find_if(snapshot_.playlist.begin(),snapshot_.playlist.end(),[](auto const& p){return p.current;});
+    if(current!=snapshot_.playlist.end() && std::next(current)==snapshot_.playlist.end()) return;
+    expectedEntry_=current!=snapshot_.playlist.end() ? std::next(current)->id : -1;
+    PausedCommand({"playlist-next","weak"});
+}
+void PlayerSession::PlaylistPrevious() {
+    if(!snapshot_.playlist.empty() && snapshot_.playlist.front().current) { Seek(0); return; }
+    auto current=std::find_if(snapshot_.playlist.begin(),snapshot_.playlist.end(),[](auto const& p){return p.current;});
+    expectedEntry_=current!=snapshot_.playlist.end() && current!=snapshot_.playlist.begin() ? std::prev(current)->id : -1;
+    PausedCommand({"playlist-prev","weak"});
+}
+void PlayerSession::PlaylistPlay(std::size_t index) {
+    if(index<snapshot_.playlist.size()) { expectedEntry_=snapshot_.playlist[index].id; PausedCommand({"playlist-play-index",std::to_string(index)}); }
+}
+void PlayerSession::PlaylistRemove(std::size_t index) {
+    if(snapshot_.session==SessionState::Ready && index<snapshot_.playlist.size())
+        client_->Command({"playlist-remove",std::to_string(index)});
+}
+void PlayerSession::PlaylistMove(std::size_t from,std::size_t finalIndex) {
+    if(snapshot_.session!=SessionState::Ready || from>=snapshot_.playlist.size() || finalIndex>=snapshot_.playlist.size() || from==finalIndex) return;
+    // mpv takes an insertion-before target, not the post-removal final index.
+    client_->Command({"playlist-move",std::to_string(from),std::to_string(finalIndex+(from<finalIndex ? 1 : 0))});
+}
+void PlayerSession::SelectTrack(std::string type,std::int64_t id) {
+    if(snapshot_.session!=SessionState::Ready || id<0) return;
+    std::string property=type=="audio" ? "aid" : type=="sub" ? "sid" : type=="video" ? "vid" : "";
+    if(property.empty()) return;
+    if(id && std::none_of(snapshot_.tracks.begin(),snapshot_.tracks.end(),[&](auto const& track){return track.type==type && track.id==id;})) return;
+    client_->Command({"set",property,id ? std::to_string(id) : "no"});
+}
+void PlayerSession::SelectChapter(std::size_t index) {
+    if(snapshot_.session!=SessionState::Ready || index>=snapshot_.chapters.size()) return;
+    client_->Command({"seek",std::to_string(snapshot_.chapters[index].time),"absolute"});
+    Pause(false);
+}
+void PlayerSession::ScreenshotToFile(std::string path) {
+    if(snapshot_.session!=SessionState::Ready || snapshot_.media!=MediaState::Loaded || path.empty() || path.find('\0')!=std::string::npos) return;
+    client_->Command({"screenshot-to-file",std::move(path),"video"});
+}
+void PlayerSession::AddSubtitle(std::string path) {
+    if(snapshot_.session!=SessionState::Ready || path.empty() || path.find('\0')!=std::string::npos) return;
+    auto found=std::find_if(snapshot_.tracks.begin(),snapshot_.tracks.end(),[&](auto const& t){return t.type=="sub" && t.externalPath==path;});
+    if(found!=snapshot_.tracks.end()) client_->Command({"sub-reload",std::to_string(found->id)});
+    else client_->Command({"sub-add",std::move(path),"select"});
 }
 void PlayerSession::Pause(bool value) {
-    if(snapshot_.session==SessionState::Ready) client_->Command({"set","pause",value ? "yes" : "no"});
+    if(value) resumePending_=false; // A user pause cancels deferred auto-resume.
+    if(snapshot_.session==SessionState::Ready && (value || (presentationReady_ && snapshot_.media==MediaState::Loaded))) client_->Command({"set","pause",value ? "yes" : "no"});
 }
-void PlayerSession::TogglePause() { Pause(!snapshot_.paused); }
+void PlayerSession::TogglePause() { if(snapshot_.session==SessionState::Ready && presentationReady_ && snapshot_.media==MediaState::Loaded) client_->Command({"cycle","pause"}); }
 void PlayerSession::Seek(double seconds) {
     if(snapshot_.session!=SessionState::Ready || snapshot_.media!=MediaState::Loaded ||
        !snapshot_.duration || *snapshot_.duration<=0 || !std::isfinite(seconds)) return;
     client_->Command({"seek",std::to_string(std::clamp(seconds,0.0,*snapshot_.duration)),"absolute+exact"});
 }
 void PlayerSession::Stop() {
-    pendingPath_.clear(); pauseRequest_=0;
+    pendingCommands_.clear(); pauseRequest_=0; resumePending_=false; loadRequest_=0;
     if(snapshot_.session==SessionState::Ready) client_->Command({"stop"});
 }
 void PlayerSession::SetVolume(double value) {
@@ -62,20 +141,37 @@ void PlayerSession::OnEvent(MpvEvent e) {
     if(snapshot_.session==SessionState::Closing || snapshot_.session==SessionState::Closed) return;
     if(e.kind==MpvEvent::Kind::CommandReply && e.requestId==pauseRequest_) {
         pauseRequest_=0;
-        if(e.error>=0 && !pendingPath_.empty()) {
-            client_->Command({"loadfile",std::move(pendingPath_),"replace"});
+        if(e.error>=0) for(auto& command:pendingCommands_) {
+            const bool firstLoad=command.size()>2 && command[0]=="loadfile" && command[2]=="replace";
+            const auto id=client_->Command(std::move(command));
+            if(firstLoad) loadRequest_=id;
         }
-        pendingPath_.clear();
+        else resumePending_=false;
+        pendingCommands_.clear();
     }
+    if(e.kind==MpvEvent::Kind::CommandReply && loadRequest_ && e.requestId==loadRequest_) {
+        loadRequest_=0;
+        if(e.error<0) resumePending_=false;
+        else expectedEntry_=e.entryId;
+    }
+    const auto previousChain=snapshot_.swapChain;
+    const bool wasPlaying=!snapshot_.paused;
     ApplyPlaybackEvent(snapshot_,e);
-    if(e.kind==MpvEvent::Kind::Loaded && presentationReady_ && !pauseRequest_)
-        Pause(false);
-    Notify();
+    if(e.kind==MpvEvent::Kind::VideoReconfig && previousChain && !snapshot_.swapChain && wasPlaying && snapshot_.media==MediaState::Loaded) {
+        // Device/output loss: don't leave invisible audio playing. A later user
+        // Pause(true) cancels this deferred recovery, preserving manual intent.
+        resumePending_=true; expectedEntry_=snapshot_.entryId;
+        client_->Command({"set","pause","yes"});
+    }
+    if(previousChain!=snapshot_.swapChain || e.kind==MpvEvent::Kind::Loaded || e.kind==MpvEvent::Kind::VideoReconfig)
+        presentationReady_=false;
+    Notify(); // Presenter must acknowledge this current owned chain, not an older binding.
+    MaybeResume();
     if(e.kind==MpvEvent::Kind::Shutdown) CloseAsync();
 }
 void PlayerSession::CloseAsync(std::function<void()> completion) {
     if(snapshot_.session!=SessionState::Closed) snapshot_.session=SessionState::Closing;
-    pendingPath_.clear(); pauseRequest_=0; presentationReady_=false; Notify();
+    pendingCommands_.clear(); pauseRequest_=0; presentationReady_=false; resumePending_=false; snapshot_.swapChain.reset(); Notify();
     auto weak=weak_from_this();
     client_->CloseAsync([weak, dispatch=dispatch_, completion=std::move(completion)] {
         dispatch([weak,completion] {
