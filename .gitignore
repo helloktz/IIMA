@@ -1,5 +1,6 @@
 /.deps/
 /artifacts/
 /.vs/
+/.openidea/
 **/*.vcxproj.user
 **/Generated Files/
