@@ -1,0 +1,5 @@
+Upstream: https://github.com/iina/iina
+Branch: develop
+Commit: 685a40ee1d4165107182f7236751ad9d5873f267
+Imported as a source reference snapshot; upstream Git metadata removed.
+License: see iina/LICENSE.
