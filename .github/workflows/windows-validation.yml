@@ -1,0 +1,43 @@
+name: Windows native validation
+# Deliberately manual: a self-hosted Windows runner with the pinned toolchain
+# and staged, locally built libmpv SDK must be provisioned by the repository owner.
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: windows-native-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  native:
+    runs-on: [self-hosted, Windows, X64, iima-msvc-v145]
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Checkout selected development ref
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          clean: true
+      - name: Stage runner-managed libmpv SDK
+        env:
+          IIMA_LIBMPV_SDK: ${{ vars.IIMA_LIBMPV_SDK }}
+        run: |
+          if (-not $env:IIMA_LIBMPV_SDK) { throw 'Set repository variable IIMA_LIBMPV_SDK to the runner-local SDK directory.' }
+          ./scripts/stage-libmpv.ps1 -SdkDirectory $env:IIMA_LIBMPV_SDK
+      - name: Build Debug x64
+        run: ./scripts/build.ps1 -Configuration Debug -Rebuild
+      - name: Build and package Release x64
+        run: ./scripts/package.ps1
+      - name: Preserve build diagnostics and unsigned validation ZIP
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: IIMA-windows-validation-${{ github.run_id }}
+          path: |
+            artifacts/logs/
+            artifacts/dist/
+          if-no-files-found: warn
+          retention-days: 7
