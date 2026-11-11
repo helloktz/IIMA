@@ -1,0 +1,5 @@
+Upstream: https://github.com/mpv-player/mpv
+Branch: master
+Commit: bcde6b93cca4d128d84e1a60d1a6db2cd81c889e
+Imported as a source reference snapshot; upstream .git and .github removed.
+Licensing: see mpv/Copyright and license files in the source tree.
