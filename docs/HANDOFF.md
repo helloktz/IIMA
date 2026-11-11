@@ -6,6 +6,8 @@
 
 当前已有 WinUI 3 空白窗口、IIMA.Core 静态库和构建、打包、启动关闭检查脚本，详见 [BUILD.md](BUILD.md)。依赖版本已固定；尚无 XAML 业务页面、libmpv 运行依赖、播放业务或已通过的播放测试。参考源码不是子模块，已移除嵌套 `.git` 和 `.github`。后续开发无需重新克隆这些参考源码。
 
+IIMA 是基于 IINA 开源源码的 Windows 移植。`references/iina/` 是设计与实现的直接依据，适用的上游逻辑可以直接复用或转写。首次接入 libmpv 时就按这个方式工作，沿用 IINA 的播放协调、状态和事件语义，并用 Windows 原生接口替换平台部分。
+
 ## 实施顺序与完成条件
 
 ### 阶段 A：复用初始化工程并补齐页面编译链
@@ -20,6 +22,7 @@
 ### 阶段 B：打通 libmpv 与视频合成
 
 - 获取或按上游支持的方式构建明确版本的 x64 libmpv，记录来源、构建选项、头文件及导入库配套关系。
+- 从 IINA 的 `PlayerCore.openURLs`、`MPVController.handleEvent` 和 `PlaybackInfo` 入手，追踪打开文件、异步事件、状态更新与关闭释放。用实际调用链确定最小移植范围，并标出需适配 Windows 的窗口和渲染职责。
 - 实现 MpvClient、最小 PlayerSession、VideoPresenter 与一个简单控制栏。
 - 实际验证 gpu-next + D3D11 composition + SwapChainPanel；选项存在、交换链创建、尺寸更新、失效和解绑均需确认。
 - 完成打开文件、暂停/继续、seek、换片、错误提示和关闭释放链路。
@@ -30,7 +33,7 @@
 
 ### 阶段 C：按 IINA 功能链迁移
 
-逐项阅读、移植和验证，不做全仓机械语言转换：
+逐项从 IINA 的入口追踪到实现，读清正常路径、默认值和边界行为。优先转写可复用的逻辑，按 Windows 的窗口、输入和系统能力适配平台部分。验收时对照源代码确认可观察行为，并说明每处有意差异。
 
 - 播放列表：加入、移除、排序、上一项/下一项及当前项同步。
 - 音轨、字幕、章节、倍速、音量与截图。
@@ -68,4 +71,4 @@
 
 ## 可直接给接手研发者的任务
 
-> 在本仓库执行后续研发。先阅读 AGENTS.md、docs/ARCHITECTURE.md 和 docs/HANDOFF.md，按阶段推进。充分参考 references/iina 和 references/mpv 中的真实实现，将适用的 Swift 逻辑转写为 C++，以 WinUI 3 实现 Windows 原生交互。IIMA 自有代码采用 C++23，主程序使用 MSVC + MSBuild，libmpv 按上游支持方式构建，交付目标为 Windows 11 x64。先完成可构建运行的工程与真实播放合成链路，再迁移完整功能。保持参考快照不变，记录实际验证结果，不把计划写成已完成，也不要擅自提交、推送或发布。
+> 在本仓库执行后续研发。先阅读 AGENTS.md、docs/ARCHITECTURE.md 和 docs/HANDOFF.md，按阶段推进。这是以 IINA 源码为直接依据的跨平台移植。从第一条播放链路开始，每项功能都先追踪 references/iina 中的对应调用链、状态与边界行为，优先复用或转写适用的 Swift 实现。用 WinUI 3 和 Windows 原生接口适配平台部分，以 references/mpv 核对播放接口。记录上游符号、移植结果、有意差异和实际验证。IIMA 自有代码采用 C++23，主程序使用 MSVC + MSBuild，libmpv 按上游支持方式构建，交付目标为 Windows 11 x64。先完成可构建运行的工程与真实播放合成链路，再迁移完整功能。保持参考快照不变，按用户授权提交、推送或发布。
