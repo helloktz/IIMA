@@ -1,6 +1,6 @@
 # 初始化构建依赖
 
-IIMA 版本由 `Directory.Build.props` 的 `IimaVersion` 定义。当前为 `0.1.0`，属于空白窗口开发验证产物。
+IIMA 版本由 `Directory.Build.props` 的 `IimaVersion` 定义。当前为 `0.1.0`，属于播放集成研发产物，尚未完成 Windows 播放验证。
 
 | 项目 | 固定版本 / 选择 | 记录位置 |
 |---|---|---|
@@ -11,7 +11,7 @@ IIMA 版本由 `Directory.Build.props` 的 `IimaVersion` 定义。当前为 `0.1
 | C++/WinRT | 3.0.260818.1 | src/IIMA.App/packages.config |
 | NuGet CLI | 8.0.0 | Directory.Build.props |
 | SDK 构建工具、WebView2 等传递依赖 | 完整精确版本见 packages.config | src/IIMA.App/packages.config |
-| libmpv | 尚未引入运行依赖，不参与本次构建和打包 | 后续播放集成阶段落实 |
+| libmpv | 源码固定 bcde6b93cca4d128d84e1a60d1a6db2cd81c889e；C ABI 2.6；x64 动态加载 libmpv-2.dll | docs/LIBMPV.md；具体构建工具与传递依赖由 SDK manifest.json 记录 |
 
 仅使用需要的 Windows App SDK 组件包，未引入完整聚合包的 AI/ML 等组件。WebView2 是 WinUI 的上游传递依赖；IIMA 没有 WebView 界面或浏览器业务，也不安装 WebView2 浏览器运行时。
 
@@ -25,3 +25,5 @@ NuGet 包来自 https://api.nuget.org/v3/index.json，NuGet CLI 来自微软的 
 - [MSVC 语言标准开关](https://learn.microsoft.com/en-us/cpp/build/reference/std-specify-language-standard-version)
 - [Windows App SDK 部署](https://learn.microsoft.com/en-us/windows/apps/package-and-deploy/deploy-overview)
 - [VC++ 本地部署](https://learn.microsoft.com/en-us/cpp/windows/walkthrough-deploying-a-visual-cpp-application-to-an-application-local-folder)
+
+libmpv SDK 未随源码提供，当前云端没有可运行的 Windows DLL。scripts/stage-libmpv.ps1 对人工准备的上游构建产物执行 PE、导出、API 与选项探针，并保存 DLL 哈希防止打包前被替换。build.ps1 在 SDK 可用时复制运行 DLL；package.ps1 缺 SDK 时明确失败。动态调用只跨 C ABI，主程序无 MinGW 导入库依赖。探针不证明 D3D11 呈现成功。

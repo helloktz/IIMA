@@ -1,0 +1,144 @@
+#include "MpvClient.h"
+#include <Windows.h>
+#include "../../../references/mpv/include/mpv/client.h"
+#include <atomic>
+#include <deque>
+#include <mutex>
+#include <thread>
+#include <stdexcept>
+#include <filesystem>
+
+namespace iima {
+namespace {
+struct Api {
+    HMODULE module{};
+#define API(name) decltype(&mpv_##name) name{};
+    API(client_api_version) API(create) API(initialize) API(terminate_destroy)
+    API(set_option_string) API(command_async) API(observe_property) API(wait_event)
+    API(error_string)
+#undef API
+    ~Api() { if (module) FreeLibrary(module); }
+    void Load(std::wstring const& path) {
+        if (!std::filesystem::path(path).is_absolute()) throw std::runtime_error("libmpv path must be absolute");
+        module = LoadLibraryExW(path.c_str(), nullptr, LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR | LOAD_LIBRARY_SEARCH_SYSTEM32);
+        if (!module) throw std::runtime_error("Cannot load app-local libmpv-2.dll or its dependencies (Win32 " + std::to_string(GetLastError()) + ")");
+#define API(name) name = reinterpret_cast<decltype(name)>(GetProcAddress(module, "mpv_" #name)); if (!name) throw std::runtime_error("Missing libmpv export: mpv_" #name);
+        API(client_api_version) API(create) API(initialize) API(terminate_destroy)
+        API(set_option_string) API(command_async) API(observe_property) API(wait_event) API(error_string)
+#undef API
+        const auto version = client_api_version();
+        if ((version >> 16) != (MPV_CLIENT_API_VERSION >> 16) || version < MPV_CLIENT_API_VERSION)
+            throw std::runtime_error("libmpv C API is incompatible with pinned headers");
+    }
+};
+}
+struct MpvClient::State {
+    explicit State(Sink s) : sink(std::move(s)) {}
+    Sink sink;
+    std::mutex mutex;
+    std::deque<std::pair<std::uint64_t, std::vector<std::string>>> commands;
+    std::vector<std::function<void()>> closedCallbacks;
+    bool started{}, closing{}, closed{};
+    std::uint64_t nextId{1};
+    void Emit(MpvEvent e) noexcept { try { sink(std::move(e)); } catch (...) {} }
+    void Run(std::wstring const& path) noexcept {
+        Api api;
+        mpv_handle* handle{};
+        try {
+            api.Load(path);
+            handle = api.create();
+            if (!handle) throw std::runtime_error("mpv_create failed");
+            auto check = [&](int code, char const* operation) {
+                if (code < 0) throw std::runtime_error(std::string(operation) + ": " + api.error_string(code));
+            };
+            // No global config/scripts/watch-later. mpv remains the state authority.
+            for (auto const& [name, value] : std::vector<std::pair<char const*,char const*>>{
+                {"config","no"}, {"load-scripts","no"}, {"idle","yes"}, {"terminal","no"},
+                {"input-default-bindings","no"}, {"input-vo-keyboard","no"}, {"osc","no"},
+                {"vo","gpu-next"}, {"gpu-api","d3d11"}, {"gpu-context","d3d11"},
+                {"d3d11-output-mode","composition"}, {"d3d11-composition-size","1280x720"},
+                {"pause","yes"}, {"keep-open","yes"}, {"save-position-on-quit","no"}})
+                check(api.set_option_string(handle, name, value), name);
+            check(api.initialize(handle), "mpv_initialize");
+            std::uint64_t id = 1;
+            for (auto const* name : {"time-pos", "duration", "volume", "speed"})
+                check(api.observe_property(handle, id++, name, MPV_FORMAT_DOUBLE), name);
+            for (auto const* name : {"pause", "paused-for-cache"})
+                check(api.observe_property(handle, id++, name, MPV_FORMAT_FLAG), name);
+            check(api.observe_property(handle, id++, "path", MPV_FORMAT_STRING), "path");
+            Emit({MpvEvent::Kind::Ready});
+            bool done = false;
+            while (!done) {
+                std::deque<std::pair<std::uint64_t,std::vector<std::string>>> pending;
+                { std::lock_guard lock(mutex); if (closing) break; pending.swap(commands); }
+                for (auto const& [request, args] : pending) {
+                    std::vector<char const*> argv;
+                    for (auto const& arg : args) argv.push_back(arg.c_str());
+                    argv.push_back(nullptr);
+                    int error = api.command_async(handle, request, argv.data());
+                    if (error < 0) { MpvEvent e{MpvEvent::Kind::CommandReply}; e.requestId=request; e.error=error; e.text=api.error_string(error); Emit(std::move(e)); }
+                }
+                // Bounded wait permits shutdown without calling the handle concurrently.
+                auto const* raw = api.wait_event(handle, 0.05);
+                MpvEvent e{MpvEvent::Kind::Property};
+                e.requestId = raw->reply_userdata; e.error = raw->error;
+                if (e.error < 0) e.text = api.error_string(e.error);
+                switch (raw->event_id) {
+                case MPV_EVENT_NONE: continue;
+                case MPV_EVENT_START_FILE: e.kind=MpvEvent::Kind::StartFile; if(raw->data) e.entryId=static_cast<mpv_event_start_file*>(raw->data)->playlist_entry_id; break;
+                case MPV_EVENT_FILE_LOADED: e.kind=MpvEvent::Kind::Loaded; break;
+                case MPV_EVENT_END_FILE: {
+                    e.kind=MpvEvent::Kind::EndFile;
+                    auto const& end=*static_cast<mpv_event_end_file*>(raw->data);
+                    e.entryId=end.playlist_entry_id; e.reason=end.reason; e.error=end.error;
+                    if(end.error<0) e.text=api.error_string(end.error); break;
+                }
+                case MPV_EVENT_SEEK: e.kind=MpvEvent::Kind::Seek; break;
+                case MPV_EVENT_PLAYBACK_RESTART: e.kind=MpvEvent::Kind::Restart; break;
+                case MPV_EVENT_VIDEO_RECONFIG: e.kind=MpvEvent::Kind::VideoReconfig; break;
+                case MPV_EVENT_COMMAND_REPLY: e.kind=MpvEvent::Kind::CommandReply; break;
+                case MPV_EVENT_SHUTDOWN: e.kind=MpvEvent::Kind::Shutdown; done=true; break;
+                case MPV_EVENT_QUEUE_OVERFLOW: e.kind=MpvEvent::Kind::Failure; e.text="libmpv event queue overflow; playback state cannot be trusted"; done=true; break;
+                case MPV_EVENT_PROPERTY_CHANGE: {
+                    auto const& p=*static_cast<mpv_event_property*>(raw->data);
+                    e.name=p.name ? p.name : "";
+                    if(p.data && p.format==MPV_FORMAT_DOUBLE) e.number=*static_cast<double*>(p.data);
+                    if(p.data && p.format==MPV_FORMAT_FLAG) e.flag=*static_cast<int*>(p.data)!=0;
+                    if(p.data && p.format==MPV_FORMAT_STRING) { auto s=*static_cast<char**>(p.data); if(s) e.text=s; }
+                    break;
+                }
+                default: continue;
+                }
+                Emit(std::move(e));
+            }
+        } catch (std::exception const& error) { MpvEvent e{MpvEvent::Kind::Failure}; e.text=error.what(); Emit(std::move(e)); }
+        catch (...) { MpvEvent e{MpvEvent::Kind::Failure}; e.text="Unexpected libmpv worker failure"; Emit(std::move(e)); }
+        if(handle) api.terminate_destroy(handle);
+        // Release DLL before signaling shutdown completion.
+        if(api.module) { FreeLibrary(api.module); api.module=nullptr; }
+        std::vector<std::function<void()>> callbacks;
+        { std::lock_guard lock(mutex); closed=true; closing=true; commands.clear(); callbacks.swap(closedCallbacks); }
+        for(auto& callback : callbacks) { try { callback(); } catch(...) {} }
+    }
+};
+MpvClient::MpvClient(Sink sink) : state_(std::make_shared<State>(std::move(sink))) {}
+MpvClient::~MpvClient() { CloseAsync(); }
+void MpvClient::Start(std::wstring path) {
+    std::lock_guard lock(state_->mutex);
+    if(state_->started || state_->closing) return;
+    state_->started=true;
+    std::thread([state=state_, path=std::move(path)] { state->Run(path); }).detach();
+}
+std::uint64_t MpvClient::Command(std::vector<std::string> args) {
+    std::lock_guard lock(state_->mutex);
+    if(state_->closing || !state_->started || args.empty()) return 0;
+    auto id=state_->nextId++; state_->commands.emplace_back(id,std::move(args)); return id;
+}
+void MpvClient::CloseAsync(std::function<void()> completion) {
+    bool immediate{};
+    { std::lock_guard lock(state_->mutex); state_->closing=true;
+      immediate=state_->closed || !state_->started;
+      if(!immediate && completion) state_->closedCallbacks.push_back(completion); }
+    if(immediate && completion) completion();
+}
+}

@@ -30,3 +30,22 @@ New-Item -ItemType Directory -Force $logRoot | Out-Null
     "/bl:$logRoot/$Configuration.binlog" /fl "/flp:logfile=$logRoot/$Configuration.log;verbosity=normal"
 if ($LASTEXITCODE -ne 0) { throw "MSBuild failed ($LASTEXITCODE). See artifacts/logs/$Configuration.log." }
 Write-Host "Built: artifacts/bin/x64/$Configuration/IIMA.App/IIMA.exe"
+
+# Source-only development remains buildable without a media SDK; never silently package it.
+$mpvRoot = Join-Path $RepoRoot '.deps/libmpv'
+if (Test-Path -LiteralPath $mpvRoot) {
+    $hashes = Get-Content -LiteralPath (Join-Path $mpvRoot 'verified-binaries.json') -Raw | ConvertFrom-Json
+    $actualNames = @(Get-ChildItem -LiteralPath (Join-Path $mpvRoot 'bin') -File -Filter '*.dll' | ForEach-Object Name)
+    $recordedNames = @($hashes | ForEach-Object file)
+    if (-not $recordedNames.Count -or (Compare-Object $actualNames $recordedNames)) { throw 'Staged DLL inventory changed; re-stage the SDK.' }
+    foreach ($entry in $hashes) {
+        if ([IO.Path]::GetFileName($entry.file) -ne $entry.file) { throw 'Invalid staged binary filename.' }
+        $binary = Join-Path $mpvRoot "bin/$($entry.file)"
+        if ((Get-FileHash -LiteralPath $binary -Algorithm SHA256).Hash -ne $entry.sha256) { throw "Staged DLL changed: $binary. Re-run SDK staging." }
+    }
+    & (Join-Path $PSScriptRoot 'test-libmpv.ps1') -BinDirectory (Join-Path $mpvRoot 'bin')
+    Get-ChildItem -LiteralPath (Join-Path $mpvRoot 'bin') -File -Filter '*.dll' |
+        Copy-Item -Destination (Join-Path $RepoRoot "artifacts/bin/x64/$Configuration/IIMA.App") -Force
+} else {
+    Write-Warning 'libmpv SDK is absent: application compilation only. Playback and packaging require scripts/stage-libmpv.ps1.'
+}

@@ -19,5 +19,13 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <Import Project="..\..\build\Compiler.props" />
   <ItemGroup><ClInclude Include="BuildInfo.h" /><ClCompile Include="BuildInfo.cpp" /></ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Mpv\MpvClient.h" />
+    <ClInclude Include="Playback\PlaybackState.h" />
+    <ClInclude Include="Playback\PlayerSession.h" />
+    <ClCompile Include="Mpv\MpvClient.cpp" />
+    <ClCompile Include="Playback\PlaybackState.cpp" />
+    <ClCompile Include="Playback\PlayerSession.cpp" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

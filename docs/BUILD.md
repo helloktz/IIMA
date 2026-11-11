@@ -1,6 +1,6 @@
 # 构建与最小打包
 
-当前产物是空白 WinUI 3 窗口，包含一个应用工程与一个原生静态库。没有播放业务、libmpv 运行库、安装器、签名、自动更新或文件关联。
+当前开发分支包含 WinUI XAML 播放页面、原生播放核心及 libmpv staging 入口。Windows 编译和真实播放尚未验证；默认视频呈现仍受安全交换链获取协议限制，不能视为可用播放器。没有安装器、签名、自动更新或文件关联。
 
 ## Windows 构建环境
 
@@ -60,10 +60,10 @@ Windows 云端 worker 使用相同构建和打包命令，并预装上述固定�
 
 Linux 云端研发环境可以编辑源码、检查脚本与项目文件；最终构建仍需 Windows MSVC worker。当前没有绑定特定 CI 提供商或自动创建云端机器，也没有执行远程 CI。
 
-## XAML 与后续研发边界
+## XAML 与 libmpv 边界
 
-初始化入口为 `src/IIMA.App/Main.cpp`，直接用 C++/WinRT 创建 WinUI Application、Window 和空 Grid。它不是 Win32 控件替代品，也不是网页窗口。
+`App.xaml` / `MainWindow.xaml`、MIDL 与生成代码已加入原应用工程；保留显式 Main.cpp 入口，禁用 XAML 自动 main。云端只做了 XML 和输入路径检查，尚未执行 XAML 生成、MSVC 编译或 Windows 启动。
 
-本次没有 `.xaml` / IDL 自定义页面，也没有验证 XAML 编译链。后续引入业务页面时，在 Windows worker 上安装相应 C++ WinUI/XAML 构建组件，按官方模板补充页面、IDL 和生成代码配置；保留现有核心库边界及构建、打包入口。不要仅添加 XAML 文件就宣称其已接入工程。
+依赖准备与 probe 见 [LIBMPV.md](LIBMPV.md)。缺少 SDK 时可编译源码并显示依赖错误，但打包会拒绝缺失 libmpv 的目录。依赖 probe 不证明真实视频输出；当前公开交换链属性的所有权问题见 [PORTING.md](PORTING.md)。
 
-libmpv 仍在下一阶段引入。`references/mpv/` 是参考快照，本工程没有把它当成生产依赖或复制进 ZIP。
+现有初始化版本的成功构建记录只适用于该历史版本，不延伸为本批 XAML/播放实现已经构建成功。

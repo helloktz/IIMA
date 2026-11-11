@@ -1,0 +1,114 @@
+--- a/include/mpv/client.h
++++ b/include/mpv/client.h
+@@ -265,6 +265,7 @@
+  */
+ MPV_EXPORT unsigned long mpv_client_api_version(void);
+ 
++
+ /**
+  * Client context used by the client API. Every client has its own private
+  * handle.
+@@ -501,6 +502,19 @@
+  * @return error code
+  */
+ MPV_EXPORT int mpv_initialize(mpv_handle *ctx);
++/**
++ * IIMA private extension v1 (not an upstream mpv API).
++ * Acquire the current D3D11 composition IDXGISwapChain on its owning VO thread.
++ * On success, *out receives one owned COM reference; caller MUST Release it.
++ * On failure, *out is NULL. Never call concurrently with handle destruction.
++ * This synchronous call may wait for the VO; do not call from the UI thread.
++ * An acquired chain can become obsolete; ownership protects memory, not liveness.
++ * Reacquire after video reconfiguration and detach the old chain on end/shutdown.
++ * Returns 0, MPV_ERROR_UNINITIALIZED, MPV_ERROR_INVALID_PARAMETER, or
++ * MPV_ERROR_PROPERTY_UNAVAILABLE (no composition chain / unsupported backend).
++ */
++MPV_EXPORT int mpv_iima_acquire_d3d11_swapchain_v1(mpv_handle *ctx, void **out);
++
+ 
+ /**
+  * Disconnect and destroy the mpv_handle. ctx will be deallocated with this
+--- a/video/out/vo.h
++++ b/video/out/vo.h
+@@ -119,6 +119,9 @@
+     VOCTRL_GET_HIDPI_SCALE,             // double*
+     VOCTRL_GET_DISPLAY_RES,             // int[2]
+     VOCTRL_GET_WINDOW_ID,               // int64_t*
++
++    // IIMA private: void **; success transfers one owned IDXGISwapChain ref.
++    VOCTRL_IIMA_ACQUIRE_D3D11_SWAPCHAIN,
+ 
+     /* private to vo_gpu and vo_gpu_next */
+     VOCTRL_EXTERNAL_RESIZE,
+--- a/video/out/d3d11/context.c
++++ b/video/out/d3d11/context.c
+@@ -440,6 +440,15 @@
+     bool fullscreen_switch_needed = false;
+ 
+     switch (request) {
++    case VOCTRL_IIMA_ACQUIRE_D3D11_SWAPCHAIN:
++        // vo_control dispatches synchronously to this VO thread. Creation,
++        // resize and teardown cannot race this AddRef. The caller owns +1.
++        *(void **)arg = NULL;
++        if (!ctx->opts.composition || !p->swapchain)
++            return VO_FALSE;
++        IDXGISwapChain_AddRef(p->swapchain);
++        *(void **)arg = p->swapchain;
++        return VO_TRUE;
+     case VOCTRL_VO_OPTS_CHANGED: {
+         void *changed_option;
+ 
+--- a/player/client.c
++++ b/player/client.c
+@@ -42,6 +42,7 @@
+ #include "osdep/timer.h"
+ #include "osdep/io.h"
+ #include "stream/stream.h"
++#include "video/out/vo.h"
+ 
+ #include "command.h"
+ #include "core.h"
+@@ -1081,6 +1082,43 @@
+     mp_dispatch_lock(ctx->mpctx->dispatch);
+     fn(fn_data);
+     mp_dispatch_unlock(ctx->mpctx->dispatch);
++}
++
++// IIMA private extension. Keep the playback core locked until the synchronous
++// VO request completes: the selected VO cannot be replaced/destroyed meanwhile.
++struct iima_swapchain_request {
++    struct MPContext *mpctx;
++    void *chain;
++    int status;
++};
++
++static void iima_acquire_swapchain(void *opaque)
++{
++    struct iima_swapchain_request *req = opaque;
++    if (!req->mpctx->initialized) {
++        req->status = MPV_ERROR_UNINITIALIZED;
++        return;
++    }
++    struct vo *vo = req->mpctx->video_out;
++    if (vo && vo_control(vo, VOCTRL_IIMA_ACQUIRE_D3D11_SWAPCHAIN,
++                         &req->chain) == VO_TRUE && req->chain)
++        req->status = 0;
++}
++
++int mpv_iima_acquire_d3d11_swapchain_v1(mpv_handle *ctx, void **out)
++{
++    if (!out)
++        return MPV_ERROR_INVALID_PARAMETER;
++    *out = NULL;
++    if (!ctx)
++        return MPV_ERROR_INVALID_PARAMETER;
++    struct iima_swapchain_request req = {
++        .mpctx = ctx->mpctx,
++        .status = MPV_ERROR_PROPERTY_UNAVAILABLE,
++    };
++    run_locked(ctx, iima_acquire_swapchain, &req);
++    *out = req.chain;
++    return req.status;
+ }
+ 
+ // Run a command asynchronously. It's the responsibility of the caller to

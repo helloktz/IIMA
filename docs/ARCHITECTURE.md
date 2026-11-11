@@ -1,8 +1,8 @@
 # IIMA 基础架构
 
-状态：研发基线；空白窗口、核心库工程及最小构建打包入口已实现，播放模块尚未实现。日期：2026-11-11。
+状态：开发分支已实现 XAML 页面、MpvClient、PlayerSession 与拥有型呈现适配；Windows 编译/运行未验证，安全交换链获取仍阻断真实播放。日期：2026-11-11。
 
-本文定义模块职责与实现约束。当前实际入口见 [BUILD.md](BUILD.md)；下列业务模块和 XAML 页面仍是计划。初始化窗口由 Main.cpp 直接创建，后续再接入 XAML 编译链。开发约定见 [AGENTS.md](../AGENTS.md)，执行顺序见 [HANDOFF.md](HANDOFF.md)。
+本文定义模块职责与实现约束。当前实际入口见 [BUILD.md](BUILD.md)；模块以实际代码为准；本批已接入 XAML 编译配置，但生成链未在 Windows 运行。开发约定见 [AGENTS.md](../AGENTS.md)，执行顺序见 [HANDOFF.md](HANDOFF.md)。
 
 ## 目标与边界
 

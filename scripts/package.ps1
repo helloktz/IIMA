@@ -3,6 +3,9 @@
 param()
 . (Join-Path $PSScriptRoot 'Common.ps1')
 
+$mpvRoot = Join-Path $RepoRoot '.deps/libmpv'
+if (-not (Test-Path -LiteralPath (Join-Path $mpvRoot 'verified-binaries.json'))) { throw 'Stage the libmpv SDK before packaging; see docs/LIBMPV.md.' }
+
 # Always package a fresh Release build; do not ship stale files from earlier experiments.
 & (Join-Path $PSScriptRoot 'build.ps1') -Configuration Release -Rebuild
 $toolchain = Get-IimaToolchain
@@ -22,12 +25,16 @@ Get-ChildItem -LiteralPath $binaryRoot -Force |
 $crtRoot = Join-Path $toolchain.Root "VC/Redist/MSVC/$($toolchain.ToolVersion)/x64/Microsoft.VC145.CRT"
 if (-not (Test-Path -LiteralPath $crtRoot)) { throw "Missing app-local VC++ Release runtime: $crtRoot" }
 Get-ChildItem -LiteralPath $crtRoot -Filter '*.dll' | Copy-Item -Destination $stage
-foreach ($required in @('IIMA.exe','Microsoft.ui.xaml.dll','Microsoft.WindowsAppRuntime.dll','vcruntime140.dll','msvcp140.dll')) {
+foreach ($required in @('IIMA.exe','Microsoft.ui.xaml.dll','Microsoft.WindowsAppRuntime.dll','vcruntime140.dll','msvcp140.dll','libmpv-2.dll')) {
     if (-not (Test-Path -LiteralPath (Join-Path $stage $required))) { throw "Incomplete package: missing $required" }
 }
 
 $licensesRoot = Join-Path $stage 'licenses'
 New-Item -ItemType Directory -Force $licensesRoot | Out-Null
+Copy-Item -LiteralPath (Join-Path $mpvRoot 'licenses') -Destination (Join-Path $licensesRoot 'libmpv') -Recurse
+Copy-Item -LiteralPath (Join-Path $mpvRoot 'manifest.json') -Destination (Join-Path $stage 'libmpv-manifest.json')
+Copy-Item -LiteralPath (Join-Path $mpvRoot 'verified-binaries.json') -Destination $stage
+Copy-Item -LiteralPath (Join-Path $RepoRoot 'references/iina/LICENSE') -Destination (Join-Path $licensesRoot 'IINA-LICENSE')
 [xml]$packages = Get-Content -LiteralPath (Join-Path $RepoRoot 'src/IIMA.App/packages.config') -Raw
 foreach ($package in $packages.packages.package) {
     $folder = "$($package.id).$($package.version)"
