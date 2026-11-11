@@ -1,0 +1,5 @@
+/.deps/
+/artifacts/
+/.vs/
+**/*.vcxproj.user
+**/Generated Files/
