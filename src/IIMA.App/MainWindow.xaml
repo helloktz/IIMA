@@ -223,10 +223,11 @@
                         <Button x:Name="MatchSubtitleButton" Content="匹配同目录字幕"/>
                         <Expander x:Name="OnlineSubtitleExpander" Header="在线字幕" HorizontalAlignment="Stretch">
                             <StackPanel Spacing="6">
-                                <TextBlock Text="搜索把查询词、语言和凭据发送给选中的服务。可选影片哈希也会发送。不上传媒体文件；凭据不保存，下载只访问服务域名下的 HTTPS 链接。" TextWrapping="Wrap"/>
+                                <TextBlock Text="搜索把查询词、语言和凭据发送给选中的服务。OpenSubtitles可选影片哈希；Shooter必须发送当前本地影片的四段MD5指纹和查询词，不发送完整路径。不上传媒体文件；凭据不保存，下载只访问服务域名下的 HTTPS 链接。" TextWrapping="Wrap"/>
                                 <ComboBox x:Name="OnlineSubtitleProviderBox" Header="服务" SelectedIndex="0">
                                     <ComboBoxItem Content="Assrt (api.assrt.net)"/>
                                     <ComboBoxItem Content="OpenSubtitles (api.opensubtitles.com)"/>
+                                    <ComboBoxItem Content="Shooter (www.shooter.cn)"/>
                                 </ComboBox>
                                 <PasswordBox x:Name="OnlineSubtitleApiKeyBox" Header="OpenSubtitles 个人 API Key" MaxLength="512"/>
                                 <PasswordBox x:Name="OnlineSubtitleTokenBox" Header="Assrt 令牌 / OpenSubtitles JWT（可选）" MaxLength="8192"/>

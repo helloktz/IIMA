@@ -784,3 +784,19 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 MpvClient为首次自动请求标记测量窗口，在worker用steady_clock记录SEEK→RESTART，排除UI调度延迟。成功command reply与完整事件对同时到齐后才上报请求ID/间隔，支持reply先于或晚于restart；失败、第二次SEEK、无SEEK的RESTART、超过10秒样本、其他写命令/滤镜修改、换片/结束/关闭都会放弃样本。只读查询不使样本失效。会话仅接收自己的待测request，放弃样本时保留原决策且本文件不反复试验。新文件可再次试验。
 
 **限制：mpv的SEEK/RESTART没有命令因果ID。这里的request只是本机相关窗口，无法证明与外部客户端、内部自动循环或尚未消费事件的绝对因果关系；不能称为精确性能测量。**相比上游加了重叠/失败拒绝，但没有屏蔽其他客户端。50ms阈值沿用上游，不代表Windows上的最佳阈值；没有执行性能或播放验证。未编译测试运行。
+
+## 第七十四批：Shooter指纹搜索、选择下载与加载链
+
+### 源码依据
+
+`ShooterSubtitle.swift`的`Fetcher.hash`读取至少12288字节的本地影片四段4096字节，MD5用分号连接；`FileInfo.dictionary`向固定`https://www.shooter.cn/api/subapi.php`提交filehash/pathinfo/format=json。`request`读取Desc、Delay、Files中的Ext/Link；`Subtitle.download`只下载files[0]。本批实际接通此前已有的`ReadShooterMovieHash`，并沿用在线字幕搜索/下载媒体票据、暂存直到mpv释放、加载请求与另存链。
+
+### 实现与有意差异
+
+新增服务选择，无令牌。点击发送查询后在后台读取稳定本地影片指纹，向固定API提交四段哈希及用户可编辑查询词。**pathinfo使用查询词而非上游完整本地路径**；界面明确说明哈希必发、不上传影片、不发送完整路径。该差异可能降低服务匹配效果，但避免泄露目录。前置条件失败不发网络请求。
+
+新`ShooterClient`使用独立WinHTTP句柄、正常TLS验证、禁用自动认证/cookies/重定向，固定POST和无凭据GET。单次30秒协作期限、各阻塞阶段5秒超时；取消/期限在网络调用间检查，不能声称能瞬时打断当前调用。JSON上限2MiB、下载8MiB、200组/每组8文件/总400选择；非法字段/数值/超过预算拒绝，不使用上游强制类型转换。服务返回负数而非数组时报告协议错误，不凭猜测当作无结果。
+
+每个受支持文本文件成为独立选择，不静默取files[0]；支持srt/ass/ssa/vtt，不解压归档。生成固定安全叶文件名，不信任响应文件名。下载只允许443端口HTTPS shooter.cn及其子域，拒绝含认证/fragment的链接，外部CDN/HTTP不支持；空结果提示也可能是全部链接/格式不支持。Delay显示供参考，不自动设置字幕延迟，与上游记录但未应用一致。
+
+取消/换片/窗口关闭丢弃旧结果，既有暂存预算和媒体身份保护不变。凭据框在Shooter禁用，不传其他服务token/key。没有联网请求或验证Shooter当前服务可用性；未编译测试运行。

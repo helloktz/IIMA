@@ -181,6 +181,8 @@
     <ClCompile Include="MainWindow.OnlineSubtitles.cpp" />
     <ClCompile Include="Platform\AssrtClient.cpp" />
     <ClInclude Include="Platform\AssrtClient.h" />
+    <ClCompile Include="Platform\ShooterClient.cpp" />
+    <ClInclude Include="Platform\ShooterClient.h" />
     <ClCompile Include="Platform\SubtitleStaging.cpp" />
     <ClInclude Include="Platform\SubtitleStaging.h" />
   </ItemGroup>

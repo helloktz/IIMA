@@ -19,6 +19,7 @@
 #include "Platform/ThumbnailExtractor.h"
 #include "Platform/AssrtClient.h"
 #include "Platform/OpenSubClient.h"
+#include "Platform/ShooterClient.h"
 #include "Platform/SubtitleMediaHash.h"
 #include "Platform/SubtitleStaging.h"
 #include "../IIMA.Core/OnlineSubtitles/SearchTransaction.h"
@@ -241,6 +242,7 @@ private:
     std::stop_source onlineSubtitleStop_;
     bool onlineSubtitleWorkerActive_{};
     std::vector<iima::assrt::SearchResult> onlineSubtitleResults_;
+    std::vector<iima::shooter::SearchResult> onlineShooterResults_;
     int onlineSubtitleProvider_{};
     std::string onlineSubtitleApiKey_;
     std::string onlineSubtitleToken_; // memory-only, never persisted or logged

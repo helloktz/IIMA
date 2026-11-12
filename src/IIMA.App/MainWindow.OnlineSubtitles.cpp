@@ -56,7 +56,7 @@ void MainWindow::RefreshOnlineSubtitleButtons() {
     OnlineSubtitleSearchButton().IsEnabled(loaded && !onlineSubtitleWorkerActive_);
     OnlineSubtitleUseTitleButton().IsEnabled(loaded && !onlineSubtitleWorkerActive_);
     OnlineSubtitleQueryBox().IsEnabled(!onlineSubtitleWorkerActive_ && !closing_);
-    OnlineSubtitleTokenBox().IsEnabled(!onlineSubtitleWorkerActive_ && !closing_);
+    OnlineSubtitleTokenBox().IsEnabled(OnlineSubtitleProviderBox().SelectedIndex() != 2 && !onlineSubtitleWorkerActive_ && !closing_);
     OnlineSubtitleProviderBox().IsEnabled(!onlineSubtitleWorkerActive_ && !closing_);
     const bool openSub = OnlineSubtitleProviderBox().SelectedIndex() == 1;
     OnlineSubtitleApiKeyBox().IsEnabled(openSub && !onlineSubtitleWorkerActive_ && !closing_);
@@ -71,7 +71,7 @@ void MainWindow::RefreshOnlineSubtitleButtons() {
 void MainWindow::CancelOnlineSubtitles() {
     onlineSubtitleStop_.request_stop();
     onlineSubtitleTransaction_.Cancel();
-    onlineSubtitleResults_.clear();
+    onlineSubtitleResults_.clear(); onlineShooterResults_.clear();
     onlineSubtitleToken_.clear();
     onlineSubtitleApiKey_.clear();
     OnlineSubtitleApiKeyBox().Password(L"");
@@ -97,8 +97,9 @@ void MainWindow::SearchOnlineSubtitles() {
     const bool openSub = OnlineSubtitleProviderBox().SelectedIndex() == 1;
     auto apiKey = to_string(OnlineSubtitleApiKeyBox().Password());
     auto language = to_string(OnlineSubtitleLanguageBox().Text());
+    const bool shooter = OnlineSubtitleProviderBox().SelectedIndex() == 2;
     const bool useHash = openSub && OnlineSubtitleHashCheck().IsChecked().Value();
-    if ((!openSub && token.size() != 32) || (openSub && apiKey.empty()) || query.empty() || query.size() > 1024) {
+    if ((!openSub && !shooter && token.size() != 32) || (openSub && apiKey.empty()) || query.empty() || query.size() > 1024) {
         OnlineSubtitleStatusText().Text(L"请输入搜索词，以及服务所需的个人令牌或 API Key。"); return;
     }
     // Do not accidentally send a file path/URL when the user copied one into
@@ -112,9 +113,10 @@ void MainWindow::SearchOnlineSubtitles() {
     const auto stop = onlineSubtitleStop_.get_token();
     const auto& state = session_->Snapshot();
     const auto ticket = onlineSubtitleTransaction_.Search({state.entryId, state.path});
-    onlineSubtitleResults_.clear();
+    onlineSubtitleResults_.clear(); onlineShooterResults_.clear();
     OnlineSubtitleResultsView().Items().Clear();
-    onlineSubtitleProvider_ = openSub ? 1 : 0;
+    onlineSubtitleProvider_ = shooter ? 2 : openSub ? 1 : 0;
+    if (shooter) { token.clear(); apiKey.clear(); }
     onlineSubtitleToken_ = token;
     onlineSubtitleApiKey_ = apiKey;
     OnlineSubtitleApiKeyBox().Password(L"");
@@ -125,11 +127,26 @@ void MainWindow::SearchOnlineSubtitles() {
     auto weak = get_weak();
     auto queue = DispatcherQueue();
     try {
-        std::thread([weak, queue, stop, ticket, openSub, useHash, language = std::move(language),
+        std::thread([weak, queue, stop, ticket, openSub, shooter, useHash, language = std::move(language),
             apiKey = std::move(apiKey), token = std::move(token), query = std::move(query)] {
             iima::assrt::Result<std::vector<iima::assrt::SearchResult>> result;
             std::int64_t totalPages = 1;
-            if (!openSub) result = iima::assrt::Search(token, query, stop);
+            std::vector<iima::shooter::SearchResult> shooterResults;
+            if (shooter) {
+                try {
+                    auto hash = iima::ReadShooterMovieHash(
+                        std::filesystem::path(to_hstring(ticket.media.path).c_str()),stop);
+                    auto response = iima::shooter::Search(hash.hash,query,stop);
+                    if (!response) { result.error = response.error; result.message = response.message; }
+                    else {
+                        shooterResults = std::move(response.value);
+                        for (auto const& row : shooterResults) result.value.push_back(row.row);
+                    }
+                } catch (...) {
+                    result.error = iima::assrt::ErrorCode::InvalidInput;
+                    result.message = "Shooter requires a stable readable local movie of at least 12 KiB.";
+                }
+            } else if (!openSub) result = iima::assrt::Search(token, query, stop);
             else try {
                 std::string hash;
                 if (useHash) hash = iima::ReadOpenSubMovieHash(
@@ -145,7 +162,7 @@ void MainWindow::SearchOnlineSubtitles() {
                 result.error = iima::assrt::ErrorCode::InvalidInput;
                 result.message = "Could not read a stable local movie hash. Disable hash matching to search by title.";
             }
-            try { queue.TryEnqueue([weak, stop, ticket, totalPages, result = std::move(result)]() mutable {
+            try { queue.TryEnqueue([weak, stop, ticket, totalPages, shooterResults = std::move(shooterResults), result = std::move(result)]() mutable {
                 auto self = weak.get();
                 if (!self || self->closing_) return;
                 self->onlineSubtitleWorkerActive_ = false;
@@ -158,6 +175,7 @@ void MainWindow::SearchOnlineSubtitles() {
                     self->OnlineSubtitleStatusText().Text(to_hstring(result.message));
                 } else if (self->onlineSubtitleTransaction_.SearchFinished(ticket, !result.value.empty())) {
                     self->onlineSubtitleResults_ = std::move(result.value);
+                    self->onlineShooterResults_ = std::move(shooterResults);
                     for (auto const& row : self->onlineSubtitleResults_) {
                         Controls::TextBlock text;
                         text.Text(to_hstring(row.title + "\n" + row.type + "  " + row.language + "  " + row.uploadTime));
@@ -166,7 +184,8 @@ void MainWindow::SearchOnlineSubtitles() {
                     }
                     if (self->onlineSubtitleResults_.empty()) {
                         self->onlineSubtitleToken_.clear(); self->onlineSubtitleApiKey_.clear();
-                        self->OnlineSubtitleStatusText().Text(L"未找到字幕。");
+                        self->OnlineSubtitleStatusText().Text(self->onlineSubtitleProvider_ == 2
+                            ? L"未找到受支持的HTTPS文本字幕；服务可能返回了不支持的格式或下载域名。" : L"未找到字幕。");
                     } else {
                         self->OnlineSubtitleStatusText().Text(totalPages > 1 ? L"已显示第一页，请缩小搜索词以找到目标。选择结果后下载文本字幕。" : L"请选择一个结果，再下载。只支持文本字幕，不解压归档。");
                         self->OnlineSubtitleResultsView().SelectedIndex(0);
@@ -201,6 +220,18 @@ void MainWindow::DownloadOnlineSubtitle() {
     auto token = std::move(onlineSubtitleToken_);
     auto apiKey = std::move(onlineSubtitleApiKey_);
     const bool openSub = onlineSubtitleProvider_ == 1;
+    const bool shooter = onlineSubtitleProvider_ == 2;
+    std::optional<iima::assrt::DownloadFile> shooterFile;
+    if (shooter) {
+        auto id = onlineSubtitleResults_[static_cast<std::size_t>(selected)].id;
+        auto found = std::find_if(onlineShooterResults_.begin(),onlineShooterResults_.end(),
+            [id](auto const& row) { return row.row.id == id; });
+        if (found == onlineShooterResults_.end()) {
+            onlineSubtitleTransaction_.Fail(*ticket);
+            OnlineSubtitleStatusText().Text(L"Shooter选择已失效，请重新搜索。"); RefreshOnlineSubtitleButtons(); return;
+        }
+        shooterFile = found->file;
+    }
     auto id = onlineSubtitleResults_[static_cast<std::size_t>(selected)].id;
     auto budget = sessionBudget - onlineSubtitleBytes_;
     auto weak = get_weak();
@@ -209,7 +240,7 @@ void MainWindow::DownloadOnlineSubtitle() {
     OnlineSubtitleStatusText().Text(L"正在下载字幕…");
     RefreshOnlineSubtitleButtons();
     try {
-        std::thread([weak, queue, stop, ticket = *ticket, openSub, apiKey = std::move(apiKey), token = std::move(token), id, budget] {
+        std::thread([weak, queue, stop, ticket = *ticket, openSub, shooter, shooterFile = std::move(shooterFile), apiKey = std::move(apiKey), token = std::move(token), id, budget] {
             struct Completed {
                 std::shared_ptr<iima::SubtitleStaging> staging;
                 std::vector<std::filesystem::path> files;
@@ -219,7 +250,8 @@ void MainWindow::DownloadOnlineSubtitle() {
             } completed;
             try {
                 iima::assrt::Result<std::vector<iima::assrt::DownloadFile>> details;
-                if (!openSub) details = iima::assrt::Details(token, id, stop);
+                if (shooter && shooterFile) details.value.push_back(*shooterFile);
+                else if (!openSub) details = iima::assrt::Details(token, id, stop);
                 else {
                     auto response = iima::opensub::RequestDownload(apiKey, token, id, stop);
                     if (!response) {
@@ -239,7 +271,8 @@ void MainWindow::DownloadOnlineSubtitle() {
                     for (auto const& file : details.value) {
                         if (stop.stop_requested()) break;
                         iima::assrt::Result<std::vector<std::uint8_t>> data;
-                        if (!openSub) data = iima::assrt::Download(file.url, stop);
+                        if (shooter) data = iima::shooter::Download(file.url, stop);
+                        else if (!openSub) data = iima::assrt::Download(file.url, stop);
                         else {
                             auto response = iima::opensub::Download(file.url, stop);
                             data.value = std::move(response.value);
