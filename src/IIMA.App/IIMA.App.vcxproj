@@ -85,6 +85,9 @@
       <Project>{2606A908-2F50-423B-98AE-B1127E302101}</Project>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="MainWindow.Video.cpp" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Import Project="..\..\build\NuGet.targets" />
 </Project>

@@ -117,3 +117,15 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 - 修复：PlayerSession 原先只跟踪 `loadfile` 回复，未跟踪播放列表切换回复；重选当前项时旧 Loaded 状态和旧交换链可能满足恢复条件。现在同时等待暂停成功、切换成功、新 START_FILE、目标 Loaded 与当前呈现绑定；回复和生命周期事件可先后互换。图形恢复分支不能覆盖正在进行的手动切换事务。失败、被更新请求取代、用户暂停、Stop、Close 不再由旧成功回复恢复。
 - Windows 差异：将 IINA 的同步命令与窗口尺寸回调转为异步命令 ID、生命周期门闩和拥有型交换链绑定确认，不用 macOS display link。此处只验证纯 C++ 会话协议，不证明真实 libmpv/WinUI 事件集成。
 - 回归覆盖：当前项重播、事件先于回复、回复先于事件、暂停/加载/切换失败、提交被拒绝、A→B→C 快速替换、过期暂停回复、用户暂停/Stop/Close 取消。新测试对修复前源码能稳定触发提前恢复断言，修复后通过。
+
+## 2026-11-12 静态扩展批次：滤镜、输入与媒体值模型
+
+本批按用户要求不编译、不运行测试或应用。以下“实现”仅指源码已写入与调用接线，不代表原生产品验收。
+
+- `MPVFilter.swift` → `Filters/MPVFilter.*`：type、命名/位置参数、原始格式、lavfi、crop、flip、mirror、unsharp、相等判定。`%n%` 引用按 UTF-8 字节计数而非 Swift grapheme，解析可跨内嵌冒号/等号，避免位置参数越界。`FilterPresets.swift` / `SavedFilter.swift` → 同名 C++ 模块：11 视频/2 音频预设、参数 schema、默认值、校验、保存字典与快捷键显示；不把未知/坏值 force unwrap。Windows LUT 路径的 FFmpeg 多层 escaping 未完整解决。
+- `PlayerCore.setVideoAspect/setVideoRotate/toggleDeinterlace/setVideoEqualizer/addVideoFilter/removeVideoFilter` → `PlayerSession.Video.cpp`：白名单视频参数、滤镜添加/标签删除；比例、旋转和滤镜接入 `MainWindow.Video.cpp`。操作反馈走已有 mpv 异步错误路径；不提前将请求值标为已确认状态。现阶段 UI 是显式提交操作表单，不是完整滤镜属性投影器。
+- `KeyMapping.swift`、`KeyCodeHelper.swift`、`PlayerCore.setKeyBindings/filterSectionBindings` → `Input/KeyMapping.*`：input.conf、@iina、section、注释、修饰键规范、last-wins、默认 section。支持 UTF-8 BOM/CRLF，安全跳过空动作；Windows 显示 Win 而非 macOS glyph。非 ASCII 不做 Foundation 全 Unicode 大小写折叠。尚未接入真实按键路由和设置编辑界面，不宣称快捷键完整移植。
+- `VideoTime.swift`、`Extensions.roundedHalfDown`、`MPVChapter.swift` 与 `SidebarChaptersPane` → `Media/VideoTime.*`、`MediaChapter.*`：宽松冒号解析、毫秒截断比较、半舍下与小数进位、End、区间；已接入时间栏及章节标签。非有限/超范围值显示未知，而非整数溢出。
+- `Aspect.swift`、`GeometryDef.swift`、`MainWindowController.windowFrameFromGeometry` → `Geometry/*`：保留 width 优先、百分比、边缘偏移、尺寸居中；Windows 使用顶左坐标并保留未指定轴的绝对位置，防重复叠加显示器原点。拒绝零分母/非有限比例。Geometry 尚未连接窗口初始布局。
+
+来源均为固定 IINA 快照 `685a40ee1d4165107182f7236751ad9d5873f267`，GPL 与作者信息保留。完整移植范围和数量口径见 STATIC_PORT.md；达到数量也不能独立证明行为完整。

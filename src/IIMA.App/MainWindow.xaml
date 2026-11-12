@@ -54,6 +54,20 @@
                         <ComboBox x:Name="ChapterBox" Header="章节" HorizontalAlignment="Stretch" AutomationProperties.Name="章节"/>
                         <ComboBox x:Name="SpeedBox" Header="播放速度" HorizontalAlignment="Stretch" AutomationProperties.Name="播放速度"/>
                         <Slider x:Name="VolumeSlider" Header="音量" Minimum="0" Maximum="100" Value="100" AutomationProperties.Name="音量"/>
+                        <TextBox x:Name="AspectText" Header="视频比例（例如 16:9）"/>
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <Button x:Name="ApplyAspectButton" Content="应用比例"/>
+                            <Button x:Name="ResetAspectButton" Content="原始比例"/>
+                        </StackPanel>
+                        <ComboBox x:Name="RotationBox" Header="旋转角度" SelectedIndex="0">
+                            <ComboBoxItem Content="0°"/><ComboBoxItem Content="90°"/>
+                            <ComboBoxItem Content="180°"/><ComboBoxItem Content="270°"/>
+                        </ComboBox>
+                        <Button x:Name="ApplyRotationButton" Content="应用旋转"/>
+                        <TextBox x:Name="VideoFilterText" Header="视频滤镜" PlaceholderText="@iima_flip:flip"/>
+                        <Button x:Name="ApplyFilterButton" Content="添加或替换滤镜"/>
+                        <TextBox x:Name="VideoFilterLabelText" Header="要移除的滤镜标签" PlaceholderText="iima_flip"/>
+                        <Button x:Name="RemoveFilterButton" Content="移除滤镜"/>
                         <CheckBox x:Name="PauseWhenOpenCheck" Content="打开后暂停"/>
                         <CheckBox x:Name="AutoPlayNextCheck" Content="自动播放下一项" IsChecked="True"/>
                         <CheckBox x:Name="MuteCheck" Content="静音"/>

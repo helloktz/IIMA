@@ -2,6 +2,7 @@
 // Copyright © 2016 lhc. Adapted logic: GPL-3.0; references/iina/LICENSE.
 #include "pch.h"
 #include "MainWindow.xaml.h"
+#include "../IIMA.Core/Media/MediaChapter.h"
 #include <algorithm>
 #include <cmath>
 #include <tuple>
@@ -132,8 +133,14 @@ void MainWindow::ApplyCollections(iima::PlaybackSnapshot const& state)
         chaptersRevision_ = state.chaptersRevision;
         chapters_ = state.chapters;
         ChapterBox().Items().Clear();
-        for (auto const& chapter : chapters_)
-            ChapterBox().Items().Append(box_value(to_hstring(chapter.index + 1) + L". " + to_hstring(chapter.title)));
+        for (std::size_t row = 0; row < chapters_.size(); ++row) {
+            auto const& chapter = chapters_[row];
+            iima::MediaChapter model(chapter.title, chapter.time, chapter.index);
+            auto next = row + 1 < chapters_.size()
+                ? iima::VideoTime(chapters_[row + 1].time) : iima::VideoTime::Infinite();
+            ChapterBox().Items().Append(box_value(to_hstring(model.RowTitle(row, "章节")) +
+                L"  " + to_hstring(model.IntervalLabel(next))));
+        }
     }
     ChapterBox().SelectedIndex(state.chapterIndex ? static_cast<int>(*state.chapterIndex) : -1);
     int speedIndex = -1;

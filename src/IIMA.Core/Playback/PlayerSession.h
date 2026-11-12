@@ -28,6 +28,12 @@ public:
     void Stop();
     void SetVolume(double value);
     void SetSpeed(double value);
+    void SetVideoAspect(std::string aspect);
+    void SetVideoRotation(int degrees);
+    void SetDeinterlace(bool enabled);
+    void SetVideoEqualizer(std::string property, int value);
+    void AddVideoFilter(std::string filter);
+    void RemoveVideoFilter(std::string label);
     void SetCompositionSize(unsigned width, unsigned height);
     // Local preferences never overwrite observed playback fields. Call on UI thread.
     void ApplySettings(UserSettings const& settings);

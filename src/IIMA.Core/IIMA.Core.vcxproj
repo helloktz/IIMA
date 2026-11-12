@@ -37,5 +37,25 @@
     <ClInclude Include="Input\LocalInputPolicy.h" />
     <ClCompile Include="Input\LocalInputPolicy.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Filters\FilterPresets.cpp" />
+    <ClInclude Include="Filters\FilterPresets.h" />
+    <ClCompile Include="Filters\MPVFilter.cpp" />
+    <ClInclude Include="Filters\MPVFilter.h" />
+    <ClCompile Include="Filters\SavedFilter.cpp" />
+    <ClInclude Include="Filters\SavedFilter.h" />
+    <ClCompile Include="Geometry\Aspect.cpp" />
+    <ClInclude Include="Geometry\Aspect.h" />
+    <ClCompile Include="Geometry\WindowGeometry.cpp" />
+    <ClInclude Include="Geometry\WindowGeometry.h" />
+    <ClCompile Include="Input\KeyMapping.cpp" />
+    <ClInclude Include="Input\KeyMapping.h" />
+    <ClCompile Include="Media\MediaChapter.cpp" />
+    <ClInclude Include="Media\MediaChapter.h" />
+    <ClCompile Include="Media\VideoTime.cpp" />
+    <ClInclude Include="Media\VideoTime.h" />
+    <ClInclude Include="Persistence\UserData.h" />
+    <ClCompile Include="Playback\PlayerSession.Video.cpp" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

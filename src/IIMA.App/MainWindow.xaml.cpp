@@ -2,6 +2,7 @@
 #include "MainWindow.xaml.h"
 #include "MainWindow.g.cpp"
 #include "../IIMA.Core/BuildInfo.h"
+#include "../IIMA.Core/Media/VideoTime.h"
 #include <ShObjIdl_core.h>
 #include <microsoft.ui.xaml.window.h>
 #include <winrt/Microsoft.UI.Dispatching.h>
@@ -21,11 +22,7 @@ namespace {
 hstring Clock(std::optional<double> seconds)
 {
     if (!seconds || !std::isfinite(*seconds) || *seconds < 0) return L"--:--";
-    auto n = static_cast<long long>(*seconds);
-    std::wostringstream text;
-    if (n >= 3600) text << n / 3600 << L":" << std::setfill(L'0') << std::setw(2);
-    text << (n / 60) % 60 << L":" << std::setfill(L'0') << std::setw(2) << n % 60;
-    return hstring{text.str()};
+    return to_hstring(iima::VideoTime(*seconds).StringRepresentation());
 }
 }
 namespace winrt::IIMA::implementation {
@@ -70,6 +67,7 @@ MainWindow::MainWindow()
     addKey(Windows::System::VirtualKey::Escape, Windows::System::VirtualKeyModifiers::None,
            [weak] { if (auto self = weak.get(); self && self->fullscreen_) self->ToggleFullscreen(); });
     WirePlaybackControls();
+    WireVideoControls();
     WireUserDataControls();
     WireSettingsControls();
     WireAssociationControls();

@@ -20,6 +20,7 @@ private:
     winrt::fire_and_forget OpenFile(bool append = false);
     winrt::fire_and_forget OpenSubtitle();
     void WirePlaybackControls();
+    void WireVideoControls();
     void ApplyCollections(iima::PlaybackSnapshot const& state);
     void PlaySelected();
     void MoveSelected(int delta);
