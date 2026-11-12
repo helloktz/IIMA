@@ -46,13 +46,15 @@ void MainWindow::DragOverFiles(DragEventArgs const& args) {
         if (SupportedDrop(args.DataView())) args.AcceptedOperation(DataPackageOperation::Copy);
     } catch (...) { /* A malformed data provider cannot authorize a drop. */ }
 }
-fire_and_forget MainWindow::DropFiles(DragEventArgs args) {
+fire_and_forget MainWindow::DropFiles(DragEventArgs args, std::optional<std::size_t> playlistRow) {
     auto lifetime = get_strong();
     if (args.Handled()) co_return;
     args.Handled(true);
     args.AcceptedOperation(DataPackageOperation::None);
     if (closing_ || !userDataLoaded_ || pickerOpen_ || interactiveCrop_.Active() || cropOriginal_ ||
         session_->PlaylistEditBusy()) co_return;
+    if (playlistRow && (session_->Snapshot().session!=iima::SessionState::Ready ||
+        inputResolving_ || !pendingFiles_.empty() || !activationInputs_.empty())) co_return;
     // RAII completes the native drop even on cancellation, provider exceptions,
     // or a failure to dispatch back to a closing window.
     decltype(args.GetDeferral()) deferral{nullptr};
@@ -62,8 +64,30 @@ fire_and_forget MainWindow::DropFiles(DragEventArgs args) {
     const auto inputRevision = inputGeneration_;
     const auto generation = session_->Snapshot().mediaGeneration;
     const auto intent = session_->Snapshot().mediaOpenIntentRevision;
-    auto current = [this, operation, inputRevision, generation, intent] {
+    const auto revision=session_->Snapshot().playlistRevision;
+    const auto editIntent=session_->PlaylistEditIntentRevision();
+    std::vector<std::int64_t> ids;
+    if (playlistRow) {
+        auto const& items=session_->Snapshot().playlist;
+        if (*playlistRow>items.size() || playlist_.size()!=items.size()) co_return;
+        for (std::size_t i=0;i<items.size();++i) {
+            if (items[i].id<0 || playlist_[i].id!=items[i].id) co_return;
+            ids.push_back(items[i].id);
+        }
+        // An accepted insertion gesture supersedes background auto expansion
+        // before the provider/resolver yields; it must not race for this row.
+        CancelAutomaticFiles();
+    }
+    auto current = [this, operation, inputRevision, generation, intent, playlistRow, revision, editIntent, ids] {
         auto const& state = session_->Snapshot();
+        if (playlistRow) {
+            if (state.session!=iima::SessionState::Ready || inputResolving_ || !pendingFiles_.empty() ||
+                !activationInputs_.empty() || state.playlistRevision!=revision ||
+                session_->PlaylistEditIntentRevision()!=editIntent || state.playlist.size()!=ids.size() ||
+                playlist_.size()!=ids.size()) return false;
+            for (std::size_t i=0;i<ids.size();++i)
+                if (state.playlist[i].id!=ids[i] || playlist_[i].id!=ids[i]) return false;
+        }
         return !closing_ && userDataLoaded_ && !pickerOpen_ && !interactiveCrop_.Active() && !cropOriginal_ &&
             !session_->PlaylistEditBusy() && dropReadGeneration_ == operation && inputGeneration_ == inputRevision &&
             state.mediaGeneration == generation && state.mediaOpenIntentRevision == intent;
@@ -101,7 +125,10 @@ fire_and_forget MainWindow::DropFiles(DragEventArgs args) {
                 if (!prepared) throw hresult_invalid_argument(L"拖放的网络URL无效。");
                 Windows::Foundation::Uri uri(to_hstring(prepared->value));
                 if (uri.Host().empty()) throw hresult_invalid_argument(L"拖放的网络URL缺少主机名。");
-                ReceiveResolvedInput({to_string(uri.AbsoluteUri())});
+                if (playlistRow) {
+                    CancelAutomaticFiles();
+                    session_->InsertPlaylist({to_string(uri.AbsoluteUri())},playlistRow);
+                } else ReceiveResolvedInput({to_string(uri.AbsoluteUri())});
                 args.AcceptedOperation(DataPackageOperation::Copy);
                 co_return;
             }
@@ -111,7 +138,7 @@ fire_and_forget MainWindow::DropFiles(DragEventArgs args) {
         }
         std::vector<std::wstring> media;
         std::vector<std::string> subtitles;
-        bool skippedLut{}, invalidSubtitle{};
+        bool skippedLut{}, invalidSubtitle{}, rejectedPlaylist{};
         apartment_context ui;
         std::exception_ptr classificationFailure;
         co_await resume_background();
@@ -121,6 +148,7 @@ fire_and_forget MainWindow::DropFiles(DragEventArgs args) {
         for (auto const& path : inputs) {
             auto attributes = GetFileAttributesW(path.c_str());
             if (attributes != INVALID_FILE_ATTRIBUTES && (attributes & FILE_ATTRIBUTE_DIRECTORY)) media.push_back(path);
+            else if (playlistRow && iima::IsPlaylistPath(path)) rejectedPlaylist = true;
             else if (LutPath(path)) skippedLut = true;
             else if (!iima::AcceptExplicitFile(path) && !iima::IsPlaylistPath(path)) {
                 if (attributes == INVALID_FILE_ATTRIBUTES || (attributes & FILE_ATTRIBUTE_REPARSE_POINT)) invalidSubtitle = true;
@@ -131,17 +159,39 @@ fire_and_forget MainWindow::DropFiles(DragEventArgs args) {
         try { co_await ui; } catch (...) { co_return; }
         if (classificationFailure) std::rethrow_exception(classificationFailure);
         if (!current()) co_return;
+        if (rejectedPlaylist) {
+            ShowError(L"行插入不支持播放列表文件的异步展开，请先打开该列表；本次未插入任何项。");
+            co_return;
+        }
         auto weak = get_weak();
         auto finish = [weak, operation, inputRevision, generation, intent,
-            subtitles = std::move(subtitles), skippedLut, invalidSubtitle, singleSource = inputs.size() == 1](iima::LocalInputResult result) {
+            current, playlistRow, subtitles = std::move(subtitles), skippedLut, invalidSubtitle, singleSource = inputs.size() == 1](iima::LocalInputResult result) {
             auto self = weak.get();
             if (!self || self->closing_ || result.cancelled || !self->userDataLoaded_ || self->pickerOpen_ ||
                 self->interactiveCrop_.Active() || self->cropOriginal_ || self->session_->PlaylistEditBusy() ||
                 self->dropReadGeneration_ != operation || self->inputGeneration_ != inputRevision) return;
+            // current captures this without ownership. The successful weak.get()
+            // above holds self strongly for this entire callback before invoking it.
             auto const& state = self->session_->Snapshot();
-            if (state.mediaGeneration != generation || state.mediaOpenIntentRevision != intent) return;
+            if (state.mediaGeneration != generation || state.mediaOpenIntentRevision != intent || !current()) return;
             if (!result.paths.empty()) {
-                self->ReceiveResolvedInput(std::move(result.paths), singleSource && result.singleExplicitMedia);
+                if (playlistRow) {
+                    if (result.paths.size()>1000) {
+                        self->ShowError(L"展开文件夹后超过1000项，未插入；请减少选择。"); return;
+                    }
+                    std::size_t bytes{};
+                    for (auto const& path:result.paths) {
+                        if (path.size()>1024*1024-bytes) {
+                            self->ShowError(L"展开后的UTF-8路径超过1MiB，未插入。"); return;
+                        }
+                        bytes+=path.size();
+                    }
+                    self->CancelAutomaticFiles();
+                    self->session_->InsertPlaylist(std::move(result.paths),playlistRow);
+                } else self->ReceiveResolvedInput(std::move(result.paths), singleSource && result.singleExplicitMedia);
+            } else if (!subtitles.empty() && playlistRow) {
+                self->ShowError(L"播放列表行只接收媒体；字幕请拖到播放区域或使用添加字幕。");
+                return;
             } else if (!subtitles.empty()) {
                 if (self->inputResolving_ || !self->pendingFiles_.empty() || !self->activationInputs_.empty()) {
                     self->ShowError(L"另一次媒体打开尚未完成，请等待后重新拖放字幕。"); return;
@@ -158,6 +208,7 @@ fire_and_forget MainWindow::DropFiles(DragEventArgs args) {
             } else self->ShowError(L"拖放内容中没有可打开的媒体或字幕。");
             std::wstring warning;
             for (auto const& line : result.warnings) { if (!warning.empty()) warning += L"\n"; warning += line; }
+            if (playlistRow && !subtitles.empty()) warning += L"\n已跳过字幕；播放列表插入不会给当前媒体附加字幕。";
             if (skippedLut) warning += L"\n尚不支持拖放3D LUT，已跳过。";
             if (invalidSubtitle) warning += L"\n无法读取字幕或字幕为链接文件，已跳过。";
             if (!warning.empty()) self->ShowError(hstring{warning});

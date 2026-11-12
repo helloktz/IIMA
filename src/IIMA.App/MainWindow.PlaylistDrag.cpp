@@ -36,6 +36,7 @@ std::optional<std::size_t> MainWindow::PlaylistDropRow(DragEventArgs const& args
     auto point = args.GetPosition(PlaylistView());
     if (point.X < 0 || point.Y < 0 || point.X > PlaylistView().ActualWidth() ||
         point.Y > PlaylistView().ActualHeight()) return {};
+    if (playlist_.empty() && session_->Snapshot().playlist.empty()) return 0;
     std::optional<std::size_t> lastRealized, nextRealized;
     auto panel = PlaylistView().ItemsPanelRoot();
     if (!panel) return {};
@@ -95,7 +96,22 @@ void MainWindow::WirePlaylistDrag() {
         }
     });
     PlaylistView().DragOver([weak](auto const&, DragEventArgs const& args) {
-        if (!HasPlaylistDrag(args)) return; // External files retain the existing root drop behavior.
+        if (!HasPlaylistDrag(args)) {
+            args.AcceptedOperation(DataPackageOperation::None);
+            if (auto self=weak.get()) try {
+                if (self->session_->Snapshot().session==iima::SessionState::Ready &&
+                    !self->inputResolving_ && self->pendingFiles_.empty() && self->activationInputs_.empty()) {
+                    self->DragOverFiles(args);
+                    if (auto row=self->PlaylistDropRow(args); row && args.AcceptedOperation()==DataPackageOperation::Copy) {
+                        args.DragUIOverride().Caption(*row==self->playlist_.size() ? L"插入到列表末尾（不播放）" :
+                            L"插入到第 " + to_hstring(*row+1) + L" 项之前（不播放）");
+                        args.DragUIOverride().IsCaptionVisible(true);
+                    } else args.AcceptedOperation(DataPackageOperation::None);
+                }
+            } catch (...) { args.AcceptedOperation(DataPackageOperation::None); }
+            args.Handled(true); // Never fall back to opening/replacing from Root.
+            return;
+        }
         args.Handled(true); args.AcceptedOperation(DataPackageOperation::None);
         if (auto self = weak.get(); self && self->PlaylistDragCurrent(args)) {
             if (auto row = self->PlaylistDropRow(args)) {
@@ -107,7 +123,15 @@ void MainWindow::WirePlaylistDrag() {
         }
     });
     PlaylistView().Drop([weak](auto const&, DragEventArgs const& args) {
-        if (!HasPlaylistDrag(args)) return;
+        if (!HasPlaylistDrag(args)) {
+            try {
+                if (auto self=weak.get()) {
+                    if (auto row=self->PlaylistDropRow(args)) { self->DropFiles(args,*row); return; }
+                }
+            } catch (...) {}
+            args.Handled(true); args.AcceptedOperation(DataPackageOperation::None);
+            return;
+        }
         args.Handled(true); args.AcceptedOperation(DataPackageOperation::None);
         if (auto self = weak.get()) {
             try {
