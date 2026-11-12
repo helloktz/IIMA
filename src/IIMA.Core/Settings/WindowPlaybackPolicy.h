@@ -20,6 +20,8 @@ class WindowPlaybackPolicy {
 public:
     void MediaChanged(std::uint64_t generation, bool paused);
     void ObservePaused(bool paused) noexcept { observedPaused_=paused; }
+    std::optional<WindowPauseDirective> SetWindowState(bool inactive, bool minimized,
+        PreferenceStore const& preferences);
     std::optional<WindowPauseDirective> SetReason(WindowPauseReason reason,
         bool active, PreferenceStore const& preferences);
     std::optional<WindowPauseDirective> Complete(WindowPauseDirective const&, bool success);

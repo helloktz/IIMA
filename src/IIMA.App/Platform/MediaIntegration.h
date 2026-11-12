@@ -15,7 +15,8 @@ public:
     // Construct, update and close on the owning UI thread. Native callbacks are
     // dispatched there; they never invoke a session from the SMTC worker thread.
     MediaIntegration(HWND window, winrt::Microsoft::UI::Dispatching::DispatcherQueue const& dispatcher,
-                     std::function<void(SystemMediaCommand)> command);
+                     std::function<void(SystemMediaCommand)> command,
+                     std::function<void(double)> seek = {});
     ~MediaIntegration();
     MediaIntegration(MediaIntegration const&) = delete;
     MediaIntegration& operator=(MediaIntegration const&) = delete;

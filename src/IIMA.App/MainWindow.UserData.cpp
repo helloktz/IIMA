@@ -60,18 +60,7 @@ void MainWindow::WireUserDataControls()
     };
     RecordHistoryCheck().Checked(changed); RecordHistoryCheck().Unchecked(changed);
     ResumeCheck().Checked(changed); ResumeCheck().Unchecked(changed);
-    OpenHistoryButton().Click([weak](auto const&, auto const&) {
-        if (auto self = weak.get(); self && !self->closing_) {
-            auto index = self->HistoryView().SelectedIndex();
-            if (index >= 0 && index < static_cast<int>(self->userData_.history.size()))
-                self->QueueFiles({self->userData_.history[index].path});
-        }
-    });
-    ClearHistoryButton().Click([weak](auto const&, auto const&) {
-        if (auto self = weak.get(); self && self->userDataLoaded_ && !self->closing_) {
-            self->userData_.history.clear(); self->RefreshHistory(); self->MarkUserDataDirty();
-        }
-    });
+    WireHistoryControls();
 }
 void MainWindow::ApplyUserData(iima::PlaybackSnapshot const& state)
 {
@@ -105,11 +94,6 @@ void MainWindow::RecordLastMedia()
     auto timestamp = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
     iima::RecordHistory(userData_, {lastMedia_->path, *lastMedia_->position, lastMedia_->duration, timestamp});
     RefreshHistory(); MarkUserDataDirty();
-}
-void MainWindow::RefreshHistory()
-{
-    HistoryView().Items().Clear();
-    for (auto const& entry : userData_.history) HistoryView().Items().Append(box_value(to_hstring(entry.path)));
 }
 void MainWindow::MarkUserDataDirty()
 {

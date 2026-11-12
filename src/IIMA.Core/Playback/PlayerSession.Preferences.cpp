@@ -26,6 +26,7 @@ void PlayerSession::ApplyAdvancedPreferences(settings::PreferenceStore const& pr
             break;
         }
     }
+    RefreshWindowPausePolicy();
     // NextMedia values remain in advancedPreferences_. Do not set them here:
     // e.g. changing audio language must not switch the still-playing old media.
 }

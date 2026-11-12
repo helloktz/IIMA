@@ -114,5 +114,14 @@
     <ClCompile Include="Settings\WindowPlaybackPolicy.cpp" />
     <ClInclude Include="Settings\WindowPlaybackPolicy.h" />
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="History\HistoryBrowser.cpp" />
+    <ClInclude Include="History\HistoryBrowser.h" />
+    <ClCompile Include="Media\MediaInformation.cpp" />
+    <ClInclude Include="Media\MediaInformation.h" />
+    <ClCompile Include="Media\SystemMediaInfo.cpp" />
+    <ClInclude Include="Media\SystemMediaInfo.h" />
+    <ClCompile Include="Playback\PlayerSession.WindowPolicy.cpp" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

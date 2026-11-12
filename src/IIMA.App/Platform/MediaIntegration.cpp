@@ -1,36 +1,40 @@
+// Windows adaptation of IINA NowPlayingInfoManager and RemoteCommandController.
+// Copyright (c) 2016-2025 lhc and IINA contributors. GPL-3.0, references/iina/LICENSE.
 #include "pch.h"
 #include "MediaIntegration.h"
+#include "../../IIMA.Core/Media/SystemMediaInfo.h"
 #include <SystemMediaTransportControlsInterop.h>
 #include <winrt/Windows.Media.h>
 #include <atomic>
 #include <algorithm>
 #include <iterator>
+#include <cmath>
+#include <cstdlib>
 
 namespace iima {
 namespace {
 using namespace winrt::Windows::Media;
 void Report(wchar_t const* message) noexcept { OutputDebugStringW(message); }
-winrt::hstring SafeTitle(PlaybackSnapshot const& snapshot) {
-    // Local playback only. Publish a filename, never a full filesystem path or URL.
-    auto title = snapshot.path;
-    const bool isUrl = title.find("://") != std::string::npos;
-    auto slash = title.find_last_of("/\\");
-    if (slash != std::string::npos) title.erase(0, slash + 1);
-    if (isUrl) {
-        if (auto query = title.find_first_of("?#"); query != std::string::npos) title.resize(query);
-    }
-    return title.empty() ? winrt::hstring{L"IIMA"} : winrt::to_hstring(title);
-}
+
 }
 struct MediaIntegration::State {
     SystemMediaTransportControls controls{nullptr};
-    winrt::event_token buttonToken{};
-    bool subscribed{};
+    winrt::event_token buttonToken{}, positionToken{};
+    bool subscribed{}, positionSubscribed{};
     std::atomic<bool> alive{true};
     std::function<void(SystemMediaCommand)> command;
+    std::function<void(double)> seek;
+    // UI state is accessed only on the dispatcher. Epoch is the sole field
+    // sampled by an SMTC worker callback and compared again after dispatch.
+    std::atomic<std::uint64_t> epoch{1};
+    bool active{}, canSeek{};
+    std::int64_t entryId{-1};
+    std::string path;
+    double duration{};
+    std::optional<SystemMediaInfo> previousInfo;
     HANDLE power{INVALID_HANDLE_VALUE};
     bool systemHeld{}, displayHeld{};
-    winrt::hstring title;
+    winrt::hstring title, album, artist;
     MediaPlaybackType type{MediaPlaybackType::Unknown};
     bool metadataPublished{};
     std::optional<std::uint64_t> playlistRevision;
@@ -67,15 +71,28 @@ struct MediaIntegration::State {
     void Close() noexcept {
         if (!alive.exchange(false)) return;
         SetPower(false);
-        try {
-            if (controls) {
-                if (subscribed) { controls.ButtonPressed(buttonToken); subscribed = false; }
+        ++epoch;
+        active = canSeek = false;
+        command = {}; seek = {};
+        if (controls) {
+            // Revoke independently: failure of one cleanup must not leave the
+            // other handler retaining a dispatcher or receiving new events.
+            if (subscribed) {
+                try { controls.ButtonPressed(buttonToken); } catch (...) {}
+                subscribed = false;
+            }
+            if (positionSubscribed) {
+                try { controls.PlaybackPositionChangeRequested(positionToken); } catch (...) {}
+                positionSubscribed = false;
+            }
+            try {
                 controls.IsEnabled(false);
                 controls.PlaybackStatus(MediaPlaybackStatus::Closed);
+                controls.UpdateTimelineProperties(SystemMediaTransportControlsTimelineProperties{});
                 controls.DisplayUpdater().ClearAll();
                 controls.DisplayUpdater().Update();
-            }
-        } catch (...) { Report(L"IIMA: SMTC cleanup failed.\n"); }
+            } catch (...) { Report(L"IIMA: SMTC cleanup failed.\n"); }
+        }
         controls = nullptr;
     }
     ~State() { Close(); }
@@ -83,10 +100,12 @@ struct MediaIntegration::State {
 
 MediaIntegration::MediaIntegration(HWND window,
     winrt::Microsoft::UI::Dispatching::DispatcherQueue const& dispatcher,
-    std::function<void(SystemMediaCommand)> command) : state_(std::make_shared<State>()) {
+    std::function<void(SystemMediaCommand)> command,
+    std::function<void(double)> seek) : state_(std::make_shared<State>()) {
     if (!window || !dispatcher || !dispatcher.HasThreadAccess())
         throw winrt::hresult_invalid_argument(L"SMTC requires its owning window UI thread");
     state_->command = std::move(command);
+    state_->seek = std::move(seek);
     auto interop = winrt::get_activation_factory<SystemMediaTransportControls, ISystemMediaTransportControlsInterop>();
     winrt::check_hresult(interop->GetForWindow(window, winrt::guid_of<SystemMediaTransportControls>(),
                                               winrt::put_abi(state_->controls)));
@@ -109,15 +128,36 @@ MediaIntegration::MediaIntegration(HWND window,
             default: return;
             }
             // A failed enqueue drops the command. Never block shutdown or retain the window.
-            dispatcher.TryEnqueue([weak, requested = *command] {
+            const auto epoch = state->epoch.load();
+            dispatcher.TryEnqueue([weak, requested = *command, epoch] {
                 auto current = weak.lock();
                 try {
-                    if (current && current->alive.load() && current->command) current->command(requested);
+                    if (current && current->alive.load() && current->active &&
+                        current->epoch.load() == epoch && current->command) current->command(requested);
                 } catch (...) { Report(L"IIMA: SMTC command failed.\n"); }
             });
         } catch (...) { Report(L"IIMA: SMTC command delivery failed.\n"); }
     });
     state_->subscribed = true;
+    state_->positionToken = state_->controls.PlaybackPositionChangeRequested(
+        [weak, dispatcher](auto const&, PlaybackPositionChangeRequestedEventArgs const& args) {
+            try {
+                auto state = weak.lock();
+                if (!state || !state->alive.load()) return;
+                const auto ticks = args.RequestedPlaybackPosition().count();
+                if (ticks < 0) return;
+                const double seconds = static_cast<double>(ticks) / 10000000.0;
+                const auto epoch = state->epoch.load();
+                dispatcher.TryEnqueue([weak, seconds, epoch] {
+                    auto current = weak.lock();
+                    if (!current || !current->alive.load() || !current->active ||
+                        !current->canSeek || current->epoch.load() != epoch || !current->seek) return;
+                    try { current->seek(std::clamp(seconds, 0.0, current->duration)); }
+                    catch (...) { Report(L"IIMA: SMTC seek failed.\n"); }
+                });
+            } catch (...) { Report(L"IIMA: SMTC seek delivery failed.\n"); }
+        });
+    state_->positionSubscribed = true;
 }
 
 MediaIntegration::~MediaIntegration() { Close(); }
@@ -127,10 +167,20 @@ void MediaIntegration::Update(PlaybackSnapshot const& snapshot) noexcept {
     if (!state_ || !state_->alive.load()) return;
     const bool active = snapshot.session == SessionState::Ready && snapshot.media == MediaState::Loaded;
     const bool playing = active && !snapshot.paused;
-    // IINA defaults preventScreenSaver=true, allowScreenSaverForAudio=false:
-    // both audio and video prevent system/display idle while actively playing.
+    // Set even if Windows metadata publication fails: queued commands must not
+    // act against a stale item while a different item is opening or closing.
+    if (active != state_->active || snapshot.entryId != state_->entryId || snapshot.path != state_->path) {
+        ++state_->epoch;
+        state_->active = active;
+        state_->entryId = snapshot.entryId;
+        try { state_->path = snapshot.path; } catch (...) { state_->path.clear(); }
+        state_->previousInfo.reset();
+    }
+    state_->canSeek = false;
+    // IINA defaults preventScreenSaver=true, allowScreenSaverForAudio=false.
     state_->SetPower(playing);
     try {
+        auto info = MakeSystemMediaInfo(snapshot);
         auto controls = state_->controls;
         controls.IsEnabled(active);
         controls.IsPlayEnabled(active && snapshot.paused);
@@ -146,23 +196,51 @@ void MediaIntegration::Update(PlaybackSnapshot const& snapshot) noexcept {
         controls.IsNextEnabled(active && state_->nextAvailable);
         controls.PlaybackStatus(!active ? MediaPlaybackStatus::Closed :
             snapshot.paused ? MediaPlaybackStatus::Paused : MediaPlaybackStatus::Playing);
+        // Windows represents pause via PlaybackStatus, not a zero PlaybackRate.
+        controls.PlaybackRate(info.rate);
+        state_->duration = static_cast<double>(info.durationTicks) / 10000000.0;
+        state_->canSeek = info.canSeek && static_cast<bool>(state_->seek);
+        const auto& previous = state_->previousInfo;
+        bool updateTimeline = !previous || previous->active != info.active ||
+            previous->durationTicks != info.durationTicks || previous->canSeek != info.canSeek ||
+            previous->paused != info.paused || previous->rate != info.rate;
+        // Coalesce high frequency position notifications, but publish seeks and
+        // every paused position exactly. Never advance the UI by wall clock.
+        if (previous && (info.paused || std::abs(info.positionTicks - previous->positionTicks) >= 2500000))
+            updateTimeline = updateTimeline || info.positionTicks != previous->positionTicks;
+        if (updateTimeline) {
+            SystemMediaTransportControlsTimelineProperties timeline;
+            using winrt::Windows::Foundation::TimeSpan;
+            timeline.StartTime(TimeSpan{0});
+            timeline.EndTime(TimeSpan{info.durationTicks});
+            timeline.Position(TimeSpan{info.positionTicks});
+            timeline.MinSeekTime(TimeSpan{state_->canSeek ? 0 : info.positionTicks});
+            timeline.MaxSeekTime(TimeSpan{state_->canSeek ? info.durationTicks : info.positionTicks});
+            controls.UpdateTimelineProperties(timeline);
+            state_->previousInfo = info;
+        }
         auto updater = controls.DisplayUpdater();
         if (!active) {
             if (state_->metadataPublished) { updater.ClearAll(); updater.Update(); }
             state_->metadataPublished = false;
             return;
         }
-        const auto title = SafeTitle(snapshot);
-        const bool hasVideo = std::any_of(snapshot.tracks.begin(), snapshot.tracks.end(),
-            [](auto const& track) { return track.type == "video" && track.selected; });
-        const auto type = hasVideo ? MediaPlaybackType::Video : MediaPlaybackType::Music;
-        if (!state_->metadataPublished || title != state_->title || type != state_->type) {
+        const auto title = winrt::to_hstring(info.title);
+        const auto album = winrt::to_hstring(info.album);
+        const auto artist = winrt::to_hstring(info.artist);
+        const auto type = info.video ? MediaPlaybackType::Video : MediaPlaybackType::Music;
+        if (!state_->metadataPublished || title != state_->title || album != state_->album ||
+            artist != state_->artist || type != state_->type) {
             updater.ClearAll();
             updater.Type(type);
-            if (hasVideo) updater.VideoProperties().Title(title);
-            else updater.MusicProperties().Title(title);
+            if (info.video) updater.VideoProperties().Title(title);
+            else {
+                updater.MusicProperties().Title(title);
+                updater.MusicProperties().AlbumTitle(album);
+                updater.MusicProperties().Artist(artist);
+            }
             updater.Update();
-            state_->title = title;
+            state_->title = title; state_->album = album; state_->artist = artist;
             state_->type = type;
             state_->metadataPublished = true;
         }

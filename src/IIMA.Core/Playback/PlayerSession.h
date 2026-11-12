@@ -5,6 +5,7 @@
 #include "../Persistence/UserData.h"
 #include "../Playlist/PlaylistPlan.h"
 #include "../Settings/PreferenceSchema.h"
+#include "../Settings/WindowPlaybackPolicy.h"
 
 namespace iima {
 class PlayerSession final : public std::enable_shared_from_this<PlayerSession> {
@@ -51,6 +52,8 @@ public:
     void ScreenshotToFile(std::string path, ScreenshotCompleted completion = {});
     void Pause(bool paused);
     void TogglePause();
+    // UI-thread notification; owned dialogs are filtered by the Windows adapter.
+    void WindowLifecycleChanged(bool inactive, bool minimized);
     void Seek(double seconds);
     void SeekRelative(double seconds, bool exact = true);
     void StepFrame(bool backwards = false);
@@ -95,6 +98,10 @@ private:
     void MaybeResume();
     void ApplyAdvancedPreferencesOnReady();
     void PrependNextMediaPreferences();
+    void RefreshWindowPausePolicy();
+    void CancelWindowPausePolicy();
+    void SubmitWindowPauseDirective(std::optional<settings::WindowPauseDirective> directive);
+    void HandleWindowPauseReply(MpvEvent const& event);
     void PausedCommand(std::vector<std::string> command);
     void BeginPlaylistEdit(PlaylistEditPlan plan, std::optional<bool> shuffledAfter = {});
     void AdvancePlaylistEdit(std::span<const PlaylistItem> refreshed);
@@ -108,6 +115,10 @@ private:
     bool applySettingsOnReady_{};
     settings::PreferenceStore advancedPreferences_;
     bool hasAdvancedPreferences_{}, applyAdvancedOnReady_{};
+    settings::WindowPlaybackPolicy windowPausePolicy_;
+    bool windowInactive_{}, windowMinimized_{};
+    std::uint64_t windowMediaGeneration_{}, windowPauseRequest_{};
+    std::optional<settings::WindowPauseDirective> windowPauseDirective_;
     bool presentationReady_{};
     std::uint64_t pauseRequest_{}, loadRequest_{};
     std::int64_t expectedEntry_{-1};

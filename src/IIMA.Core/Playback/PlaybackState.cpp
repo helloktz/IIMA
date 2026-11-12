@@ -28,6 +28,9 @@ void ApplyPlaybackEvent(PlaybackSnapshot& s, MpvEvent const& e) {
     case MpvEvent::Kind::StartFile:
         s.media=MediaState::Loading; s.entryId=e.entryId; s.swapChain.reset();
         s.position.reset(); s.duration.reset(); s.path.clear();
+        s.seekable=false; s.mediaTitle.clear(); s.metadataTitle.clear(); s.metadataAlbum.clear(); s.metadataArtist.clear();
+        s.metadata.clear(); s.videoParameters.clear(); s.audioParameters.clear();
+        s.videoBitrate.reset(); s.audioBitrate.reset(); s.fileSize.reset(); ++s.informationRevision;
         s.seeking=false; s.buffering=false; s.error.clear();
         s.tracks.clear(); ++s.tracksRevision; s.chapters.clear(); ++s.chaptersRevision; s.chapterIndex.reset();
         s.videoCodec.clear(); s.hwdecCurrent.clear(); s.currentVo.clear(); s.voConfigured=false; break;
@@ -48,7 +51,23 @@ void ApplyPlaybackEvent(PlaybackSnapshot& s, MpvEvent const& e) {
     case MpvEvent::Kind::Seek: s.seeking=true; break;
     case MpvEvent::Kind::Restart: s.seeking=false; break;
     case MpvEvent::Kind::Property:
-        if(e.name=="playlist") { s.playlist=e.playlist; ++s.playlistRevision; }
+        if(e.name=="metadata") {
+            s.metadata=e.properties;
+            s.metadataTitle=MetadataValue(s.metadata,"title");
+            s.metadataAlbum=MetadataValue(s.metadata,"album");
+            s.metadataArtist=MetadataValue(s.metadata,"artist");
+            ++s.informationRevision;
+        }
+        else if(e.name=="video-params") { s.videoParameters=e.properties; ++s.informationRevision; }
+        else if(e.name=="audio-params") { s.audioParameters=e.properties; ++s.informationRevision; }
+        else if(e.name=="audio-device-list") { s.audioDevices=e.audioDevices; ++s.audioDevicesRevision; }
+        else if(e.name=="audio-device") s.audioDevice=e.text;
+        else if(e.name=="media-title") { s.mediaTitle=e.text; ++s.informationRevision; }
+        else if(e.name=="seekable") s.seekable=e.flag.value_or(false);
+        else if(e.name=="video-bitrate") { s.videoBitrate=e.number; ++s.informationRevision; }
+        else if(e.name=="audio-bitrate") { s.audioBitrate=e.number; ++s.informationRevision; }
+        else if(e.name=="file-size") { s.fileSize=e.number; ++s.informationRevision; }
+        else if(e.name=="playlist") { s.playlist=e.playlist; ++s.playlistRevision; }
         else if(e.name=="track-list") { s.tracks=e.tracks; ++s.tracksRevision; }
         else if(e.name=="chapter-list") { s.chapters=e.chapters; ++s.chaptersRevision; }
         else if(e.name=="chapter") s.chapterIndex=e.integer;
@@ -71,10 +90,10 @@ void ApplyPlaybackEvent(PlaybackSnapshot& s, MpvEvent const& e) {
             s.repeatMode=LoopEnabled(s.loopFile) ? RepeatMode::File : LoopEnabled(s.loopPlaylist) ? RepeatMode::Playlist : RepeatMode::Off;
         }
         else if(e.name=="keep-open") s.keepOpen=e.text;
-        else if(e.name=="path") s.path=e.text;
+        else if(e.name=="path") { s.path=e.text; ++s.informationRevision; }
         else if(e.name=="mpv-version") s.mpvVersion=e.text;
-        else if(e.name=="current-tracks/video/codec-desc") s.videoCodec=e.text;
-        else if(e.name=="hwdec-current") s.hwdecCurrent=e.text;
+        else if(e.name=="current-tracks/video/codec-desc") { s.videoCodec=e.text; ++s.informationRevision; }
+        else if(e.name=="hwdec-current") { s.hwdecCurrent=e.text; ++s.informationRevision; }
         else if(e.name=="current-vo") s.currentVo=e.text;
         else if(e.name=="vo-configured") s.voConfigured=e.flag.value_or(false);
         break;

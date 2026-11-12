@@ -23,6 +23,16 @@ std::optional<WindowPauseDirective> WindowPlaybackPolicy::Issue(bool paused) {
     pending_=WindowPauseDirective{++serial_,generation_,paused};
     return pending_;
 }
+std::optional<WindowPauseDirective> WindowPlaybackPolicy::SetWindowState(
+    bool inactive, bool minimized, PreferenceStore const& preferences) {
+    const auto previous=reasons_;
+    reasons_=(inactive && preferences.Boolean("pauseWhenInactive")
+        ?static_cast<unsigned>(WindowPauseReason::Inactive):0) |
+        (minimized && preferences.Boolean("pauseWhenMinimized")
+        ?static_cast<unsigned>(WindowPauseReason::Minimized):0);
+    if(!previous && reasons_) cancelled_=false;
+    return Reconcile();
+}
 std::optional<WindowPauseDirective> WindowPlaybackPolicy::SetReason(
     WindowPauseReason reason, bool active, PreferenceStore const& preferences) {
     const auto mask=static_cast<unsigned>(reason);
@@ -59,6 +69,7 @@ std::optional<WindowPauseDirective> WindowPlaybackPolicy::Complete(
         return {};
     }
     ownsPause_=reply.paused;
+    observedPaused_=reply.paused; // Internal command ordering only; not UI projection.
     // Successful serialized setter establishes ordering for an inverse setter;
     // it does not overwrite the observed state that the host projects to UI.
     if(reply.paused && !reasons_) return Issue(false);

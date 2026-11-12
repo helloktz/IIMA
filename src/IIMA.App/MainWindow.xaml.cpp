@@ -58,6 +58,7 @@ MainWindow::MainWindow()
     });
     WireKeyboardControls();
     WirePlaybackControls();
+    WireMediaInformation();
     WireVideoControls();
     WireSubtitleControls();
     WireAudioControls();
@@ -77,8 +78,13 @@ MainWindow::MainWindow()
                 case iima::SystemMediaCommand::Next: self->session_->PlaylistNext(); break;
                 }
             }
+        }, [weak](double seconds) {
+            if (auto self = weak.get(); self && !self->closing_ && self->session_->Snapshot().seekable)
+                self->session_->Seek(seconds);
         });
     } catch (hresult_error const& error) { ShowError(error.message()); }
+    try { WireWindowPlaybackPolicy(); }
+    catch(hresult_error const& error) { ShowError(error.message()); }
     LoadUserData();
     AppWindow().Resize({1100, 720});
     AppWindow().Closing([weak](auto const&, Microsoft::UI::Windowing::AppWindowClosingEventArgs const& args) {
@@ -163,6 +169,7 @@ void MainWindow::Apply(iima::PlaybackSnapshot const& state)
         if (userDataLoaded_ && preferences_.Boolean("fullScreenWhenOpen") && !fullscreen_) ToggleFullscreen();
     }
     ApplyCollections(state);
+    UpdateMediaInformation(state);
     ApplySettingsSnapshot(state);
     UpdateDiagnostics(state);
     UpdateOSD(state);
@@ -173,7 +180,7 @@ void MainWindow::Apply(iima::PlaybackSnapshot const& state)
     bool loaded = state.media == iima::MediaState::Loaded || state.media == iima::MediaState::Ended;
     PauseButton().IsEnabled(loaded && presenter_->IsBound());
     PauseButton().Content(box_value(state.paused ? L"播放" : L"暂停"));
-    auto seekable = loaded && state.duration && *state.duration > 0;
+    auto seekable = loaded && state.seekable && state.duration && *state.duration > 0;
     PositionSlider().IsEnabled(seekable && presenter_->IsBound());
     PositionSlider().Maximum(seekable ? *state.duration : 1.0);
     PositionSlider().Value(state.position.value_or(0));
@@ -209,6 +216,7 @@ void MainWindow::BeginClose()
     }
     if (closing_) { FinishClose(); return; }
     closing_ = true;
+    if(windowLifecycle_) windowLifecycle_->Close();
     inputStop_.request_stop(); ++inputGeneration_;
     subtitleMatchStop_.request_stop(); ++subtitleMatchGeneration_;
     if (osdTimer_) osdTimer_.Stop();

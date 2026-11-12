@@ -12,6 +12,7 @@ void PlayerSession::SeekRelative(double seconds, bool exact) {
     if (plan) client_->Command(std::move(plan->command));
 }
 void PlayerSession::StepFrame(bool backwards) {
+    CancelWindowPausePolicy();
     if (snapshot_.session == SessionState::Ready && snapshot_.media == MediaState::Loaded && presentationReady_)
         client_->Command(PlaybackActions::FrameStep(backwards));
 }

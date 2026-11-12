@@ -4,8 +4,10 @@
 #include "../IIMA.Core/Commands/ApplicationCommand.h"
 #include "Presentation/VideoPresenter.h"
 #include "Platform/MediaIntegration.h"
+#include "Platform/WindowLifecycle.h"
 #include "Platform/LocalInputResolver.h"
 #include "Platform/ScreenshotStaging.h"
+#include "../IIMA.Core/History/HistoryBrowser.h"
 #include "../IIMA.Core/Diagnostics/DiagnosticLog.h"
 #include <winrt/Microsoft.UI.Dispatching.h>
 #include <winrt/Microsoft.UI.Xaml.Input.h>
@@ -24,6 +26,9 @@ private:
     winrt::fire_and_forget OpenSubtitle();
     winrt::fire_and_forget OpenNetworkUrl();
     void WirePlaybackControls();
+    void WireMediaInformation();
+    void UpdateMediaInformation(iima::PlaybackSnapshot const& state);
+    std::optional<std::uint64_t> informationRevision_, audioDevicesRevision_;
     void WireKeyboardControls();
     void ApplyKeyboardConfiguration();
     bool DispatchKeyBinding(iima::KeyMapping const& binding);
@@ -52,6 +57,8 @@ private:
     void PopulateAdvancedSettings();
     void ApplyAdvancedSetting(std::string const& key, iima::settings::PreferenceValue value);
     void ApplyWindowPreferences();
+    void WireWindowPlaybackPolicy();
+    std::unique_ptr<iima::WindowLifecycle> windowLifecycle_;
     iima::settings::PreferenceStore preferences_;
     void ApplySettingsSnapshot(iima::PlaybackSnapshot const& state);
     void WireAssociationControls();
@@ -70,6 +77,9 @@ private:
     void ApplyUserData(iima::PlaybackSnapshot const& state);
     void RecordLastMedia();
     void RefreshHistory();
+    void WireHistoryControls();
+    iima::HistoryView historyProjection_;
+    std::optional<iima::HistoryRemoval> historyUndo_;
     void MarkUserDataDirty();
     void PumpSave();
     void FinishClose();

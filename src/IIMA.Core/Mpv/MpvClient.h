@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include "../Media/MediaInformation.h"
 #include <functional>
 #include <memory>
 #include <optional>
@@ -43,6 +44,8 @@ struct MpvEvent {
     std::vector<PlaylistItem> playlist;
     std::vector<MediaTrack> tracks;
     std::vector<Chapter> chapters;
+    MediaProperties properties;
+    std::vector<AudioDevice> audioDevices;
     // Exact IDXGISwapChain interface, owning one reference; never a borrowed address.
     std::shared_ptr<void> swapChain;
 };

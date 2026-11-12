@@ -173,3 +173,12 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 - `PlayerCore.screenshot/createImage/screenshotCallback` / `Preference.ScreenshotFormat` → `Screenshots/ScreenshotOptions.*`、`ScreenshotImage`、`ScreenshotStaging`：截图命令成功回复是文件写完的屏障，精确关联请求，不按“最新文件”猜测；关闭/故障等待 worker 结束后回调。PNG SaveFilePicker 通过唯一临时目录再原子替换目标，独立复制截图按钮经 WIC 有界解码再向 CF_DIBV5 交付所有权。无视频轨道拒绝截图。剪贴板锁失败保留原内容；清空成功后 SetClipboardData 失败无法恢复原剪贴板，明确报错。更多格式/模板的策略模型不表示 UI 已支持任意格式；没有 HDR/ICC 保真或截图浮动预览的运行证据。
 
 快捷键编辑和高级偏好为新增可选 JSON 字段，沿用 schemaVersion=1；旧文件缺字段使用默认值，不需要破坏性迁移。未知高级项不执行，保留问题提示。英文上游 key 作为高级设置标签，完整本地化仍待完成。
+
+### 第六批：窗口暂停恢复、系统进度、历史与媒体信息
+
+- `MainWindowController.windowDidResignKey/windowDidBecomeKey/windowWillMiniaturize/windowDidDeminiaturize` → `WindowLifecycle`、`MainWindow.WindowPolicy`、`PlayerSession.WindowPolicy`：Win32 subclass 观察与 UI 弱引用投递；同时计算失焦/最小化原因，mpv 请求 ID 与媒体代次关联，成功暂停回复才获得恢复权。用户操作、换片、关闭取消旧权利，恢复要求当前 Loaded 且呈现绑定。同主窗拥有的对话框不算离开播放器。默认两项均 false。不是对硬件睡眠恢复的支持承诺。
+- `NowPlayingInfoManager.updateInfo` / `RemoteCommandController` → `SystemMediaInfo`、`MediaIntegration`：SMTC 位置/时长/播放速率发布、系统 seek 回调、未知时长/不可 seek 门控、跨媒体代次丢弃迟到系统请求；音乐章节标题/专辑/艺术家、真实视频和封面轨区分。系统共享面板不发布完整路径、URL或形似路径的标签；不沿用 macOS 的暂停速率0做法，Windows 用 PlaybackStatus。未实现封面/专辑图片、chapter performer、远程变速/循环。
+- `HistoryWindowController.prepareData/searchFieldAction/selectedEntries` / `HistoryController.remove/removeAll` / `PlaybackHistory` → `HistoryBrowser`、`HistoryLocale`、`MainWindow.History`：搜索文件名或完整路径、最近日期/文件位置分组，过滤后的选中行为按原始身份打开；只删除历史、支持当前会话内撤销，撤销不覆盖同路径新记录。Win32 当前时区与本地化日期/NLS比较替代 Cocoa，本地转换失败显示未知日期；不在 UI 线程探测文件/网络存在性，故记录存在不代表媒体还可访问。
+- `InspectorWindowController.GeneralVC/FileVC` / `PlayerCore.getMusicMetadata` / mpv `metadata/video-params/audio-params/audio-device-list/seekable` → `MediaInformation`、有界节点拷贝、快照与 WinUI 信息折叠面板：媒体标签、码率、格式、像素/色彩参数、音频参数、真实输出设备列表与选用。节点数据在下一 mpv event 前复制，metadata限1024项/256KiB，超大项跳过。只展示内核报告，不据此宣称 HDR 或硬件功能正确。面板未覆盖上游全部 inspector 状态字段或任意属性观察编辑。
+
+仍只完成静态代码/接线。没有编译、自动化测试、Windows 运行或系统交互验证；前批和既往验证记录不覆盖本批。完整移植及文件/行数硬指标仍未达到。

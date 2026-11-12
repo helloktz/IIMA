@@ -246,14 +246,18 @@
       "physicalLines": 150,
       "coverage": "partial-static-unverified",
       "reviewTargets": [
-        "src/IIMA.Core/Persistence/UserData.h"
+        "src/IIMA.Core/Persistence/UserData.h",
+        "src/IIMA.Core/History/HistoryBrowser.cpp"
       ]
     },
     {
       "source": "references/iina/iina/HistoryWindowController.swift",
       "physicalLines": 805,
-      "coverage": "not-mapped",
-      "reviewTargets": []
+      "coverage": "partial-static-unverified",
+      "reviewTargets": [
+        "src/IIMA.Core/History/HistoryBrowser.cpp",
+        "src/IIMA.App/MainWindow.History.cpp"
+      ]
     },
     {
       "source": "references/iina/iina/IINACommand.swift",
@@ -286,8 +290,11 @@
     {
       "source": "references/iina/iina/InspectorWindowController.swift",
       "physicalLines": 915,
-      "coverage": "not-mapped",
-      "reviewTargets": []
+      "coverage": "partial-static-unverified",
+      "reviewTargets": [
+        "src/IIMA.Core/Media/MediaInformation.cpp",
+        "src/IIMA.App/MainWindow.Information.cpp"
+      ]
     },
     {
       "source": "references/iina/iina/InteractiveMode.swift",
@@ -825,8 +832,10 @@
     {
       "source": "references/iina/iina/PlaybackHistory.swift",
       "physicalLines": 102,
-      "coverage": "not-mapped",
-      "reviewTargets": []
+      "coverage": "partial-static-unverified",
+      "reviewTargets": [
+        "src/IIMA.Core/History/HistoryBrowser.cpp"
+      ]
     },
     {
       "source": "references/iina/iina/PlaybackInfo.swift",

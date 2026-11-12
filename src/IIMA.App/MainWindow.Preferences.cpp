@@ -12,6 +12,7 @@ using namespace Microsoft::UI::Xaml;
 namespace {
 bool HasApplicationAdapter(std::string_view key) {
     static const std::set<std::string_view> keys{
+        "pauseWhenInactive", "pauseWhenMinimized",
         "alwaysFloatOnTop", "fullScreenWhenOpen", "playWhenEnteringFullScreen", "pauseWhenLeavingFullScreen",
         "enableOSD", "disableOSDPauseResumeMsgs", "disableOSDSpeedMsg", "osdAutoHideTimeout", "osdTextSize"
     };

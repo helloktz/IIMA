@@ -79,13 +79,13 @@ struct MpvClient::State {
                 check(api.set_option_string(handle, name, value), name);
             check(api.initialize(handle), "mpv_initialize");
             std::uint64_t id = 1;
-            for (auto const* name : {"time-pos", "duration", "volume", "speed", "volume-max", "audio-delay", "sub-delay", "ab-loop-a", "ab-loop-b"})
+            for (auto const* name : {"time-pos", "duration", "volume", "speed", "volume-max", "audio-delay", "sub-delay", "ab-loop-a", "ab-loop-b", "video-bitrate", "audio-bitrate", "file-size"})
                 check(api.observe_property(handle, id++, name, MPV_FORMAT_DOUBLE), name);
-            for (auto const* name : {"pause", "paused-for-cache", "vo-configured", "mute", "sub-visibility"})
+            for (auto const* name : {"pause", "paused-for-cache", "vo-configured", "mute", "sub-visibility", "seekable"})
                 check(api.observe_property(handle, id++, name, MPV_FORMAT_FLAG), name);
-            for(auto const* name : {"path", "mpv-version", "current-tracks/video/codec-desc", "hwdec-current", "current-vo", "loop-file", "loop-playlist", "keep-open", "ab-loop-count"})
+            for(auto const* name : {"path", "mpv-version", "current-tracks/video/codec-desc", "hwdec-current", "current-vo", "loop-file", "loop-playlist", "keep-open", "ab-loop-count", "media-title", "audio-device"})
                 check(api.observe_property(handle,id++,name,MPV_FORMAT_STRING),name);
-            for(auto const* name : {"playlist", "track-list", "chapter-list"})
+            for(auto const* name : {"playlist", "track-list", "chapter-list", "metadata", "video-params", "audio-params", "audio-device-list"})
                 check(api.observe_property(handle,id++,name,MPV_FORMAT_NODE),name);
             check(api.observe_property(handle,id++,"chapter",MPV_FORMAT_INT64),"chapter");
             MpvEvent ready{MpvEvent::Kind::Ready}; ready.flag=api.acquireSwapChain!=nullptr; ready.integer=api.client_api_version(); Emit(std::move(ready));
@@ -176,7 +176,18 @@ struct MpvClient::State {
                     if(p.data && p.format==MPV_FORMAT_INT64) e.integer=*static_cast<std::int64_t*>(p.data);
                     if(p.data && p.format==MPV_FORMAT_DOUBLE) e.number=*static_cast<double*>(p.data);
                     if(p.data && p.format==MPV_FORMAT_FLAG) e.flag=*static_cast<int*>(p.data)!=0;
-                    if(p.data && p.format==MPV_FORMAT_STRING) { auto s=*static_cast<char**>(p.data); if(s) e.text=s; }
+                    if(p.data && p.format==MPV_FORMAT_STRING) {
+                        auto text=*static_cast<char**>(p.data);
+                        if(text) {
+                            // New metadata-bearing properties are bounded before
+                            // allocation, not by resizing an already huge copy.
+                            const std::size_t limit=e.name=="media-title" ? 16384 :
+                                e.name=="audio-device" ? 4096 : 256*1024;
+                            std::size_t length{};
+                            while(length<=limit && text[length]) ++length;
+                            if(length<=limit) e.text.assign(text,length);
+                        }
+                    }
                     break;
                 }
                 default: continue;

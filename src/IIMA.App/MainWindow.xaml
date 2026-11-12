@@ -97,6 +97,7 @@
                         <Button x:Name="ScreenshotButton" Content="保存截图…"/>
                         <Button x:Name="CopyScreenshotButton" Content="复制视频截图"/>
                         <ComboBox x:Name="ChapterBox" Header="章节" HorizontalAlignment="Stretch" AutomationProperties.Name="章节"/>
+                        <ComboBox x:Name="AudioDeviceBox" Header="音频输出设备" HorizontalAlignment="Stretch"/>
                         <ComboBox x:Name="SpeedBox" Header="播放速度" HorizontalAlignment="Stretch" AutomationProperties.Name="播放速度"/>
                         <Slider x:Name="VolumeSlider" Header="音量" Minimum="0" Maximum="100" Value="100" AutomationProperties.Name="音量"/>
                         <TextBox x:Name="AspectText" Header="视频比例（例如 16:9）"/>
@@ -122,6 +123,9 @@
                         <NumberBox x:Name="SubtitleDelayBox" Header="字幕延迟（秒，正数延后）" Value="0" SmallChange="0.1" LargeChange="1" SpinButtonPlacementMode="Compact"/>
                         <ComboBox x:Name="RepeatModeBox" Header="播放循环" HorizontalAlignment="Stretch"/>
                         <ComboBox x:Name="ScreenshotModeBox" Header="截图内容" HorizontalAlignment="Stretch"/>
+                        <Expander x:Name="MediaInformationExpander" Header="媒体信息" HorizontalAlignment="Stretch">
+                            <TextBlock x:Name="MediaInformationText" TextWrapping="Wrap" IsTextSelectionEnabled="True"/>
+                        </Expander>
                         <Expander Header="高级播放与窗口偏好" HorizontalAlignment="Stretch">
                             <StackPanel x:Name="AdvancedSettingsPanel" Spacing="8"/>
                         </Expander>
@@ -144,10 +148,22 @@
                         <Button x:Name="UnregisterAssociationsButton" Content="移除此副本的文件关联注册"/>
                         <TextBlock Text="注册不会更改默认应用；移动播放器目录后需重新注册。" TextWrapping="Wrap"/>
                         <TextBlock Text="历史记录"/>
+                        <TextBox x:Name="HistorySearchText" PlaceholderText="搜索历史记录"/>
+                        <ComboBox x:Name="HistoryGroupingBox" Header="历史分组" SelectedIndex="0">
+                            <ComboBoxItem Content="最近播放日期"/><ComboBoxItem Content="文件所在位置"/>
+                        </ComboBox>
+                        <ComboBox x:Name="HistorySearchScopeBox" Header="搜索范围" SelectedIndex="0">
+                            <ComboBoxItem Content="完整路径"/><ComboBoxItem Content="文件名"/>
+                        </ComboBox>
+                        <TextBlock x:Name="HistoryCountText"/>
                         <ListView x:Name="HistoryView" MaxHeight="160" SelectionMode="Single" AutomationProperties.Name="播放历史"/>
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <Button x:Name="OpenHistoryButton" Content="打开历史"/>
                             <Button x:Name="ClearHistoryButton" Content="清空历史"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <Button x:Name="RemoveHistoryButton" Content="移除所选"/>
+                            <Button x:Name="UndoHistoryButton" Content="撤销移除" IsEnabled="False"/>
                         </StackPanel>
                     </StackPanel>
                 </ScrollViewer>

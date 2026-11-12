@@ -17,6 +17,13 @@ struct PlaybackSnapshot {
     std::string loopFile{"no"}, loopPlaylist{"no"}, keepOpen{"yes"};
     std::int64_t entryId{-1};
     std::string path, error;
+    bool seekable{};
+    std::string mediaTitle, metadataTitle, metadataAlbum, metadataArtist;
+    MediaProperties metadata, videoParameters, audioParameters;
+    std::optional<double> videoBitrate, audioBitrate, fileSize;
+    std::vector<AudioDevice> audioDevices;
+    std::string audioDevice{"auto"};
+    std::uint64_t informationRevision{}, audioDevicesRevision{};
     bool compositionAvailable{}, voConfigured{};
     std::uint64_t clientApiVersion{};
     std::string mpvVersion, videoCodec, hwdecCurrent, currentVo;

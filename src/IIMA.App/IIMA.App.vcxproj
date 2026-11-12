@@ -118,6 +118,15 @@
     <ClCompile Include="Settings\PreferenceJson.cpp" />
     <ClInclude Include="Settings\PreferenceJson.h" />
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="MainWindow.History.cpp" />
+    <ClCompile Include="MainWindow.Information.cpp" />
+    <ClCompile Include="MainWindow.WindowPolicy.cpp" />
+    <ClCompile Include="Platform\HistoryLocale.cpp" />
+    <ClInclude Include="Platform\HistoryLocale.h" />
+    <ClCompile Include="Platform\WindowLifecycle.cpp" />
+    <ClInclude Include="Platform\WindowLifecycle.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Import Project="..\..\build\NuGet.targets" />
 </Project>

@@ -23,11 +23,14 @@ void PlayerSession::SetPresentationReady(bool ready) {
     if(presentationReady_==ready) return;
     presentationReady_=ready;
     MaybeResume();
+    if(ready) RefreshWindowPausePolicy();
 }
 void PlayerSession::MaybeResume() {
     if(resumePending_ && presentationReady_ && snapshot_.media==MediaState::Loaded &&
        !pauseRequest_ && !loadRequest_ && !waitingForStart_ && expectedEntry_>=0 && expectedEntry_==snapshot_.entryId) {
-        resumePending_=false; Pause(false);
+        resumePending_=false;
+        // Automatic transition recovery is not explicit user pause intent.
+        client_->Command({"set","pause","no"});
     }
 }
 bool PlayerSession::CanOpen() {
@@ -44,6 +47,7 @@ void PlayerSession::OpenMultiple(std::vector<std::string> paths,bool append) {
     if(std::any_of(paths.begin(),paths.end(),[](auto const& p) { return p.empty() || p.find('\0')!=std::string::npos; })) {
         snapshot_.error="A media path is empty or contains a NUL character"; Notify(); return;
     }
+    if(!append) CancelWindowPausePolicy();
     CancelPlaylistEdits();
     playlistShuffled_=false;
     // No shell or command string parsing: UTF-8 paths remain individual API arguments.
@@ -65,6 +69,7 @@ void PlayerSession::OpenMultiple(std::vector<std::string> paths,bool append) {
 }
 void PlayerSession::PausedCommand(std::vector<std::string> command) {
     if(!CanOpen()) return;
+    CancelWindowPausePolicy();
     CancelPlaylistEdits();
     presentationReady_=false; resumePending_=!settings_.pauseWhenOpen; loadRequest_=0;
     transitionIssued_=false; waitingForStart_=true; loadReturnsEntry_=false;
@@ -128,16 +133,18 @@ void PlayerSession::AddSubtitle(std::string path) {
     else client_->Command({"sub-add",std::move(path),"select"});
 }
 void PlayerSession::Pause(bool value) {
+    CancelWindowPausePolicy();
     if(value) resumePending_=false; // A user pause cancels deferred auto-resume.
     if(snapshot_.session==SessionState::Ready && (value || (presentationReady_ && snapshot_.media==MediaState::Loaded))) client_->Command({"set","pause",value ? "yes" : "no"});
 }
-void PlayerSession::TogglePause() { if(snapshot_.session==SessionState::Ready && presentationReady_ && snapshot_.media==MediaState::Loaded) client_->Command({"cycle","pause"}); }
+void PlayerSession::TogglePause() { CancelWindowPausePolicy(); resumePending_=false; if(snapshot_.session==SessionState::Ready && presentationReady_ && snapshot_.media==MediaState::Loaded) client_->Command({"cycle","pause"}); }
 void PlayerSession::Seek(double seconds) {
     if(snapshot_.session!=SessionState::Ready || snapshot_.media!=MediaState::Loaded ||
        !snapshot_.duration || *snapshot_.duration<=0 || !std::isfinite(seconds)) return;
     client_->Command({"seek",std::to_string(std::clamp(seconds,0.0,*snapshot_.duration)),"absolute+exact"});
 }
 void PlayerSession::Stop() {
+    CancelWindowPausePolicy();
     CancelPlaylistEdits();
     pendingCommands_.clear(); pauseRequest_=0; resumePending_=false; loadRequest_=0;
     transitionIssued_=false; waitingForStart_=false; expectedEntry_=-1;
@@ -227,6 +234,8 @@ void PlayerSession::SetScreenshotMode(ScreenshotMode mode) {
 }
 void PlayerSession::OnEvent(MpvEvent e) {
     if(snapshot_.session==SessionState::Closing || snapshot_.session==SessionState::Closed) return;
+    if(e.kind==MpvEvent::Kind::Failure || e.kind==MpvEvent::Kind::Shutdown || e.kind==MpvEvent::Kind::EndFile) CancelWindowPausePolicy();
+    HandleWindowPauseReply(e);
     if(e.kind==MpvEvent::Kind::Failure || e.kind==MpvEvent::Kind::Shutdown) CancelPlaylistEdits();
     if(e.kind==MpvEvent::Kind::Failure && screenshotRequest_) {
         screenshotRequest_=0;
@@ -277,6 +286,15 @@ void PlayerSession::OnEvent(MpvEvent e) {
     const auto previousChain=snapshot_.swapChain;
     const bool wasPlaying=!snapshot_.paused;
     ApplyPlaybackEvent(snapshot_,e);
+    if(e.kind==MpvEvent::Kind::StartFile) {
+        CancelWindowPausePolicy();
+        windowPausePolicy_.MediaChanged(++windowMediaGeneration_,snapshot_.paused);
+    }
+    if(e.kind==MpvEvent::Kind::Property && e.name=="pause" && e.flag) {
+        windowPausePolicy_.ObservePaused(*e.flag);
+        RefreshWindowPausePolicy();
+    }
+    if(e.kind==MpvEvent::Kind::Loaded) RefreshWindowPausePolicy();
     if(e.kind==MpvEvent::Kind::Ready) ApplyAdvancedPreferencesOnReady();
     if(e.kind==MpvEvent::Kind::Ready && applySettingsOnReady_) { applySettingsOnReady_=false; ApplySettings(settings_); }
     if(!pauseRequest_ && !loadRequest_ && !waitingForStart_ &&
@@ -293,6 +311,7 @@ void PlayerSession::OnEvent(MpvEvent e) {
     if(e.kind==MpvEvent::Kind::Shutdown) CloseAsync();
 }
 void PlayerSession::CloseAsync(std::function<void()> completion) {
+    CancelWindowPausePolicy();
     CancelPlaylistEdits();
     if(snapshot_.session!=SessionState::Closed) snapshot_.session=SessionState::Closing;
     pendingCommands_.clear(); pauseRequest_=0; loadRequest_=0; transitionIssued_=false; waitingForStart_=false; presentationReady_=false; resumePending_=false; snapshot_.swapChain.reset(); Notify();
