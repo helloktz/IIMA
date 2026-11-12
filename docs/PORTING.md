@@ -282,3 +282,12 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 - 原生磁盘 I/O 不可被 QuickJS 中断；输入有界、锁等待有界，但系统存储阻塞仍可延迟 worker 关闭。偏好并非加密凭据存储，也不是不同同标识插件之间的安全隔离。锁保护使用同一存储实现的进程；外部编辑器未遵循锁协议时不承诺跨进程事务，也没有实时跨窗口偏好广播。
 
 本批只静态编写和人工阅读，未编译、自动测试、运行 Windows 或执行插件。插件菜单、输入、HTML、文件/网络等其余 API 仍未完成，数量与完整移植目标仍未达到。
+
+### 第十八批：插件菜单对象与原生点击回调
+
+- `JavascriptAPIMenu.item/separator/addItem/items/removeAt/removeAllItems/forceUpdate`、`JavascriptPluginMenuItem` → QuickJS 菜单对象及回调生命周期；`MenuController.updatePluginMenu/add(menuItemDef:)` → `MainWindow.PluginMenu.cpp` 原生 MenuFlyout。插件菜单位于当前窗口的“插件菜单”按钮，不注册系统级菜单或跨窗口命令。保留默认 enabled=true/selected=false、可变标题与状态、嵌套菜单和点击回调收到自身 item 的规则。
+- JS 对象与原生控件不共享裸指针：worker发布有界纯JSON快照，UI创建完整菜单后一次替换；点击携带实例generation、菜单revision和item ID，worker重新检查最新树中可达、启用及祖先状态，旧菜单点击不能作用于已移除或被停用的项。原生选中标记不自行改变插件值，只有脚本更新后的快照是权威。
+- 每个JS执行回合后合并发布变更，不逐个setter同步调用UI；forceUpdate同样经过线程隔离。不支持非空keyBinding时明确拒绝，不绘制虚假的可用快捷键。最大128可达节点、8层、64KiB JSON；环路、非法对象或过量数据拒绝。不复制IINA超过5个顶层项合并“更多”的布局，也没有全局插件与开发工具菜单；重复引用同一个菜单项会被拒绝，子菜单只展开、不调用自身action，更新快照会关闭旧flyout再替换。标题限制1024 UTF-16单位/4096 UTF-8字节。这些平台和当前单插件范围差异保留。
+- 停止、异常或关闭清空菜单并使旧callback代次失效；JS callback只在引擎worker调用，沿既有时间/内存/消息预算处理异常。无法投递或解析快照会停止插件并反馈，不继续展示可能失真的半更新菜单。
+
+仅静态源码编写和人工阅读，未编译、测试、运行WinUI或执行脚本。菜单快捷键、菜单多插件汇总、插件安装/更新、HTML及其他未覆盖API仍非已完成功能。

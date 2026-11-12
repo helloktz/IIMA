@@ -259,6 +259,7 @@
                         <Button x:Name="InspectPluginButton" Content="检查本地插件目录…"/>
                         <TextBlock x:Name="PluginInspectionText" Text="检查不会执行脚本。受限运行需要单独确认。" TextWrapping="Wrap" IsTextSelectionEnabled="True"/>
                         <Button x:Name="StartPluginButton" Content="运行受信任的本地插件…"/>
+                        <DropDownButton x:Name="PluginMenuButton" Content="插件菜单" IsEnabled="False"/>
                         <Button x:Name="StopPluginButton" Content="停止此窗口插件" IsEnabled="False"/>
                         <TextBlock x:Name="PluginRuntimeStatus" Text="仅支持部分播放 API、事件与定时器；无网络、文件访问或 HTML。" TextWrapping="Wrap"/>
                         <TextBox x:Name="PluginRuntimeLog" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" MaxHeight="180"/>

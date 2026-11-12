@@ -51,6 +51,8 @@ private:
     winrt::fire_and_forget StartLocalPlugin();
     void StopLocalPlugin();
     winrt::fire_and_forget RetirePlugin(std::unique_ptr<iima::plugins::PluginRuntime> runtime);
+    void ApplyPluginMenu(std::string const& json);
+    void ClearPluginMenu();
     void UpdatePlugin(iima::PlaybackSnapshot const& state);
     void DispatchPluginCommand(iima::plugins::PluginCommand command);
     std::unique_ptr<iima::plugins::PluginRuntime> pluginRuntime_;

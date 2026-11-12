@@ -1,5 +1,6 @@
 // Derived from IINA JavascriptPluginInstance.createJSContext,
-// JavascriptAPICore.extraSetup, JavascriptAPIPreferences and JavascriptPolyfill.register.
+// JavascriptAPICore.extraSetup, JavascriptAPIPreferences, JavascriptAPIMenu,
+// JavascriptPluginMenuItem and JavascriptPolyfill.register.
 // Copyright (c) 2018-2020 lhc and IINA contributors. GPL-3.0.
 #pragma once
 namespace iima::plugins {
@@ -251,8 +252,157 @@ inline constexpr char PluginBootstrap[] = R"IIMAJS(
     },
     sync() { host.preferenceSync(preferenceDocument()); }
   });
+  // JavascriptAPIMenu/JavascriptPluginMenuItem. Keep callbacks in the worker's
+  // JS heap; only immutable JSON crosses to native UI. A WeakMap does not keep
+  // detached menu objects alive when the plugin releases them.
+  const menuRecords = new WeakMap();
+  const weakGet = Function.prototype.call.bind(WeakMap.prototype.get);
+  const weakSet = Function.prototype.call.bind(WeakMap.prototype.set);
+  const define = Object.defineProperty;
+  const preventExtensions = Object.preventExtensions;
+  let menuRoots = [], menuSerial = 0, menuRevision = 0;
+  let menuReachable = create(null);
+  function recordOf(item) {
+    const record = weakGet(menuRecords, item);
+    if (!record) throw new TypeError('Expected a menu item created by this plugin');
+    return record;
+  }
+  function menuTitle(value) {
+    if (typeof value !== 'string' || value.length > 1024 || utf8Bytes(value) > 4096 || includes(value, '\0'))
+      throw new TypeError('Menu title must be a string up to 1024 UTF-16 units without NUL');
+    return value;
+  }
+  function menuKey(value) {
+    if (value === null || value === undefined || value === '') return null;
+    throw new TypeError('Plugin menu keyBinding is not implemented in IIMA');
+  }
+  function menuBoolean(value) {
+    if (typeof value !== 'boolean') throw new TypeError('Menu flag must be boolean');
+    return value;
+  }
+  function menuSnapshot(roots) {
+    const reachable = create(null);
+    let count = 0, text = '', bytes = 0;
+    function append(part) {
+      bytes += utf8Bytes(part);
+      if (bytes > 64000) throw new RangeError('Plugin menu snapshot exceeds its size budget');
+      text += part;
+    }
+    function list(items, depth, ancestorsEnabled) {
+      if (depth > 8) throw new RangeError('Plugin menu depth exceeds eight levels');
+      append('[');
+      for (let index = 0; index < items.length; ++index) {
+        const item = items[index], record = recordOf(item);
+        if (++count > 128) throw new RangeError('Plugin menu exceeds 128 items');
+        if (hasOwn(reachable, record.id)) throw new TypeError('Duplicate or circular plugin menu item');
+        const enabled = ancestorsEnabled && record.enabled && !record.separator;
+        reachable[record.id] = {item, enabled, leaf: record.children.length === 0};
+        if (index) append(',');
+        append('{"id":' + stringify(record.id) + ',"title":' + stringify(record.title) +
+          ',"enabled":' + (record.enabled ? 'true' : 'false') +
+          ',"selected":' + (record.selected ? 'true' : 'false') +
+          ',"separator":' + (record.separator ? 'true' : 'false') + ',"keyBinding":null,"items":');
+        if (record.children.length) list(record.children, depth + 1, enabled);
+        else append('[]');
+        append('}');
+      }
+      append(']');
+    }
+    list(roots, 1, true);
+    return {text, reachable};
+  }
+  function publishMenu() {
+    const snapshot = menuSnapshot(menuRoots);
+    if (menuRevision >= 9007199254740991) throw new RangeError('Menu revision counter exhausted');
+    const revision = toString(menuRevision + 1);
+    host.menuPublish('{"revision":' + stringify(revision) + ',"items":' + snapshot.text + '}', revision);
+    ++menuRevision;
+    menuReachable = snapshot.reachable;
+  }
+  function changeMenu(apply, rollback, localItem) {
+    apply();
+    try {
+      // Validate unattached subtrees too. They may be attached in a later turn.
+      if (localItem !== undefined) menuSnapshot([localItem]);
+      publishMenu();
+    } catch (error) { rollback(); throw error; }
+  }
+  function makeMenuItem(title, action, options, separator) {
+    title = menuTitle(title);
+    if (action !== null && action !== undefined && typeof action !== 'function')
+      throw new TypeError('Menu action must be a function, null or undefined');
+    if (options !== undefined && options !== null && typeof options !== 'object')
+      throw new TypeError('Menu options must be an object');
+    const readOption = (name, fallback) => {
+      if (options === undefined || options === null) return fallback;
+      const value = options[name]; return value === undefined ? fallback : value;
+    };
+    const enabled = menuBoolean(readOption('enabled', !separator));
+    const selected = menuBoolean(readOption('selected', false));
+    const keyBinding = menuKey(readOption('keyBinding', null));
+    if (menuSerial >= 9007199254740991) throw new RangeError('Menu identity counter exhausted');
+    const record = {id: 'menu-' + toString(++menuSerial), title, action, enabled, selected,
+      keyBinding, separator, children: []};
+    const item = create(null);
+    weakSet(menuRecords, item, record);
+    const fields = ['title', 'enabled', 'selected', 'keyBinding'];
+    for (let index = 0; index < fields.length; ++index) {
+      const name = fields[index];
+      define(item, name, {enumerable: true, configurable: false,
+        get: () => record[name],
+        set: value => {
+          value = name === 'title' ? menuTitle(value) : name === 'keyBinding' ? menuKey(value) : menuBoolean(value);
+          const previous = record[name];
+          changeMenu(() => { record[name] = value; }, () => { record[name] = previous; }, item);
+        }
+      });
+    }
+    define(item, 'items', {enumerable: true, get: () => slice(record.children)});
+    define(item, 'addSubMenuItem', {value: child => {
+      recordOf(child);
+      if (record.separator) throw new TypeError('A separator cannot contain submenus');
+      const previous = record.children;
+      const next = slice(previous); next[next.length] = child;
+      changeMenu(() => { record.children = next; }, () => { record.children = previous; }, item);
+      return item;
+    }});
+    return preventExtensions(item);
+  }
+  const menu = namespace('menu', {
+    item: (title, action = null, options = {}) => makeMenuItem(title, action, options, false),
+    separator: () => makeMenuItem('', null, {enabled: false}, true),
+    addItem(item) {
+      recordOf(item); const previous = menuRoots, next = slice(previous); next[next.length] = item;
+      changeMenu(() => { menuRoots = next; }, () => { menuRoots = previous; });
+    },
+    items: () => slice(menuRoots),
+    removeAt(index) {
+      if (typeof index !== 'number' || !finite(index) || index < 0 || index % 1 || index >= menuRoots.length) return false;
+      const previous = menuRoots, next = [];
+      for (let position = 0; position < previous.length; ++position)
+        if (position !== index) next[next.length] = previous[position];
+      changeMenu(() => { menuRoots = next; }, () => { menuRoots = previous; });
+      return true;
+    },
+    removeAllItems() {
+      const previous = menuRoots;
+      changeMenu(() => { menuRoots = []; }, () => { menuRoots = previous; });
+    },
+    forceUpdate: () => publishMenu()
+  });
+  host.menuInstall((id, revision) => {
+    if (revision !== toString(menuRevision) || !hasOwn(menuReachable, id)) return;
+    const entry = menuReachable[id];
+    if (!entry.enabled || !entry.leaf) return;
+    const record = recordOf(entry.item);
+    if (typeof record.action === 'function') {
+      // An item with children opens a submenu rather than invoking its action.
+      // selected is script-owned: do not auto-toggle it on a native click.
+      const action = record.action; action(entry.item);
+    }
+  });
   Object.defineProperty(globalThis, 'iina', {
-    value: namespace('iina', {core, console: consoleApi, event, preferences}),
+    value: namespace('iina', {core, console: consoleApi, event, preferences, menu}),
     writable: false, configurable: false
   });
   Object.defineProperty(globalThis, 'console', {value: consoleApi, configurable: false});

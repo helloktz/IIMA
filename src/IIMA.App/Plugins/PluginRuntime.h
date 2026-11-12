@@ -1,5 +1,5 @@
 // IINA JavascriptPluginInstance / JavascriptPolyfill / JavascriptAPICore /
-// JavascriptAPIEvent / JavascriptAPIConsole Windows adaptation.
+// JavascriptAPIEvent / JavascriptAPIConsole / JavascriptAPIMenu Windows adaptation.
 // Copyright (c) 2018-2020 lhc and IINA contributors. GPL-3.0; references/iina/LICENSE.
 #pragma once
 #include <functional>
@@ -35,6 +35,9 @@ public:
         // worker, never UI; return means durable host save succeeded. Throw to
         // report failure to JavaScript. Do not wait for UI or reenter runtime.
         std::function<void(std::string json)> preferencesSync;
+        // Immutable tree snapshot {revision,items}; coalesced once per JS turn.
+        // Enqueue UI work and return promptly; do not invoke native UI here.
+        std::function<void(std::string json)> menuChanged;
     };
     // Modules use canonical package-relative keys, exact filenames, no automatic
     // extensions; at most 128 modules, 1 MiB each and 8 MiB including the entry.
@@ -55,6 +58,9 @@ public:
     // (false), never silently presented as a reliable event delivery.
     bool Update(std::string statusJson, std::string eventName = {},
         std::string eventArgumentJson = "null");
+    // Queue a click from the exact rendered menu revision. Worker rechecks
+    // revision, reachability, enabled ancestors and callback identity.
+    bool InvokeMenu(std::string id, std::string revision);
     // Nonblocking cancellation; deadline handler interrupts active JS. Destructor
     // joins worker; worker never waits for UI. Native caller callbacks must obey
     // the above contract for shutdown to remain bounded.

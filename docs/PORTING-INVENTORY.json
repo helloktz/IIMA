@@ -367,8 +367,12 @@
     {
       "source": "references/iina/iina/JavascriptAPIMenu.swift",
       "physicalLines": 86,
-      "coverage": "not-mapped",
-      "reviewTargets": []
+      "coverage": "partial-static-unverified",
+      "reviewTargets": [
+        "src/IIMA.App/Plugins/PluginRuntime.cpp",
+        "src/IIMA.App/Plugins/PluginBootstrap.h",
+        "src/IIMA.App/MainWindow.PluginMenu.cpp"
+      ]
     },
     {
       "source": "references/iina/iina/JavascriptAPIMpv.swift",
@@ -462,8 +466,11 @@
     {
       "source": "references/iina/iina/JavascriptPluginMenuItem.swift",
       "physicalLines": 94,
-      "coverage": "not-mapped",
-      "reviewTargets": []
+      "coverage": "partial-static-unverified",
+      "reviewTargets": [
+        "src/IIMA.App/Plugins/PluginBootstrap.h",
+        "src/IIMA.App/MainWindow.PluginMenu.cpp"
+      ]
     },
     {
       "source": "references/iina/iina/JavascriptPluginSubtitle.swift",

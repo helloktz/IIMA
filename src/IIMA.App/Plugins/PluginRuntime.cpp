@@ -1,5 +1,5 @@
 // IINA JavascriptPluginInstance / JavascriptPolyfill / JavascriptAPIEvent /
-// JavascriptAPICore / JavascriptAPIConsole / JavascriptAPIPreferences adaptation,
+// JavascriptAPICore / JavascriptAPIConsole / JavascriptAPIPreferences / JavascriptAPIMenu adaptation,
 // not full API compatibility.
 // Copyright (c) 2018-2020 lhc and IINA contributors. GPL-3.0.
 #include "pch.h"
@@ -76,6 +76,9 @@ struct PluginRuntime::Impl {
         std::string status;
         std::string event;
         std::string argument;
+        bool menuClick{};
+        // For a click, event carries its item ID and argument its revision;
+        // there is no stale media snapshot to overwrite current player status.
         std::size_t Bytes() const noexcept { return status.size() + event.size() + argument.size(); }
     };
     std::atomic_bool stop{}, running{};
@@ -129,7 +132,7 @@ struct PluginRuntime::Impl {
             Pause, Resume, StopPlayback, Seek, SeekTo, Speed, Osd,
             Log, Warn, Error, Status, On, Off, Timeout, Interval, ClearTimer, Require,
             PlayChapter, AudioVolume, AudioMuted, AudioDelay, AudioId, SubtitleDelay, SubtitleId, VideoId,
-            PreferenceDefaults, PreferenceStored, PreferenceSync
+            PreferenceDefaults, PreferenceStored, PreferenceSync, MenuInstall, MenuPublish
         };
         Impl& owner;
         JSRuntime* runtime{};
@@ -140,6 +143,8 @@ struct PluginRuntime::Impl {
         std::vector<std::string> moduleStack;
         std::uint64_t nextIdentity{1};
         std::string status;
+        JSValue menuDispatch{JS_UNDEFINED};
+        std::string menuRevision, pendingMenu;
         Clock::time_point deadline{Clock::now()};
         Clock::time_point rateWindow{Clock::now()};
         Clock::time_point lastPreferenceSync{};
@@ -161,6 +166,7 @@ struct PluginRuntime::Impl {
             JS_SetHostPromiseRejectionTracker(runtime, Rejected, this);
         }
         ~Worker() {
+            JS_FreeValue(context, menuDispatch);
             for (auto const& [path, exports] : moduleCache) JS_FreeValue(context, exports);
             for (auto const& [id, item] : timers) JS_FreeValue(context, item.callback);
             for (auto const& [id, item] : listeners) JS_FreeValue(context, item.callback);
@@ -245,6 +251,13 @@ struct PluginRuntime::Impl {
                 JSContext* jobContext{};
                 auto result = JS_ExecutePendingJob(runtime, &jobContext);
                 if (result < 0) { Fail(ExceptionText()); return false; }
+            }
+            if (!failed && !owner.stop.load() && !pendingMenu.empty()) {
+                if (!TakeOutbound()) { Fail("Plugin menu publication rate exceeded."); return false; }
+                if (!owner.callbacks.menuChanged) { Fail("Plugin native menu host is unavailable."); return false; }
+                // One UI publication after all same-turn menu mutations/jobs.
+                // Callback must not block or reenter this runtime.
+                owner.callbacks.menuChanged(std::exchange(pendingMenu, {}));
             }
             return !failed && !owner.stop.load();
         }
@@ -342,6 +355,22 @@ struct PluginRuntime::Impl {
                 if (index >= argc) throw std::invalid_argument("Missing API argument.");
                 return argv[index];
             };
+            if (function == MenuInstall) {
+                if (!JS_IsUndefined(menuDispatch)) throw std::invalid_argument("Plugin menu dispatcher is already installed.");
+                if (!JS_IsFunction(context, argument(0))) throw std::invalid_argument("Menu dispatcher must be a function.");
+                menuDispatch = JS_DupValue(context, argv[0]);
+                return JS_UNDEFINED;
+            }
+            if (function == MenuPublish) {
+                auto json = String(context, argument(0), MaxJson);
+                auto revision = String(context, argument(1), 128);
+                if (revision.empty() || revision.find_first_not_of("0123456789") != revision.npos)
+                    throw std::invalid_argument("Invalid plugin menu revision.");
+                if (!owner.callbacks.menuChanged) throw std::runtime_error("Plugin native menu host is unavailable.");
+                menuRevision = std::move(revision);
+                pendingMenu = std::move(json);
+                return JS_UNDEFINED;
+            }
             if (function == PreferenceDefaults || function == PreferenceStored) {
                 auto const& json = function == PreferenceDefaults ? owner.defaultsJson : owner.storedJson;
                 return JS_ParseJSON(context, json.data(), json.size(), "iima-plugin-preferences");
@@ -492,7 +521,7 @@ struct PluginRuntime::Impl {
             Value global(context, JS_GetGlobalObject(context));
             Value host(context, JS_NewObject(context));
             if (JS_IsException(host.value)) { Fail(ExceptionText()); return false; }
-            constexpr std::array<std::tuple<char const*, int, Function>, 28> definitions{{
+            constexpr std::array<std::tuple<char const*, int, Function>, 30> definitions{{
                 {"pause", 0, Pause}, {"resume", 0, Resume}, {"stop", 0, StopPlayback},
                 {"seek", 2, Seek}, {"seekTo", 1, SeekTo}, {"setSpeed", 1, Speed}, {"osd", 1, Osd},
                 {"log", 1, Log}, {"warn", 1, Warn}, {"error", 1, Error}, {"status", 0, Status},
@@ -503,7 +532,7 @@ struct PluginRuntime::Impl {
                 {"audioId", 1, AudioId}, {"subtitleDelay", 1, SubtitleDelay},
                 {"subtitleId", 1, SubtitleId}, {"videoId", 1, VideoId},
                 {"preferenceDefaults", 0, PreferenceDefaults}, {"preferenceStored", 0, PreferenceStored},
-                {"preferenceSync", 1, PreferenceSync}
+                {"preferenceSync", 1, PreferenceSync}, {"menuInstall", 1, MenuInstall}, {"menuPublish", 2, MenuPublish}
             }};
             for (auto const& [name, arity, function] : definitions) {
                 if (!SetFunction(host.value, name, arity, function)) return false;
@@ -552,6 +581,16 @@ struct PluginRuntime::Impl {
             }
             if (!failed) Jobs();
         }
+        void MenuClicked(UpdateItem const& click) {
+            if (click.argument != menuRevision || JS_IsUndefined(menuDispatch) || !BeginTurn()) return;
+            Value id(context, JS_NewStringLen(context, click.event.data(), click.event.size()));
+            Value revision(context, JS_NewStringLen(context, click.argument.data(), click.argument.size()));
+            if (JS_IsException(id.value) || JS_IsException(revision.value)) { Fail(ExceptionText()); return; }
+            JSValueConst arguments[]{id.value, revision.value};
+            // The private JS dispatcher checks reachability and enabled parents
+            // against live model state, and passes the retained item to action.
+            if (Result(JS_Call(context, menuDispatch, JS_UNDEFINED, 2, arguments))) Jobs();
+        }
         void TimerFired(std::string const& id) {
             auto found = timers.find(id);
             if (found == timers.end() || !BeginTurn()) return;
@@ -591,7 +630,10 @@ struct PluginRuntime::Impl {
                         update.status = owner.latestStatus; observedRevision = owner.statusRevision; hasStatus = true;
                     }
                 }
-                if (hasEvent) Event(update);
+                if (hasEvent) {
+                    if (update.menuClick) MenuClicked(update);
+                    else Event(update);
+                }
                 else if (hasStatus) { status = std::move(update.status); }
                 // Process at most one due timer per iteration so a flood of
                 // inbound status updates cannot permanently starve timers.
@@ -652,6 +694,17 @@ std::unique_ptr<PluginRuntime> PluginRuntime::Start(std::string source, std::str
 PluginRuntime::~PluginRuntime() = default;
 void PluginRuntime::Stop() noexcept { impl_->stop.store(true); impl_->changed.notify_all(); }
 bool PluginRuntime::Running() const noexcept { return impl_->running.load(); }
+bool PluginRuntime::InvokeMenu(std::string id, std::string revision) {
+    if (impl_->stop.load() || id.empty() || id.size() > 128 || revision.empty() || revision.size() > 128 ||
+        id.find('\0') != id.npos || revision.find_first_not_of("0123456789") != revision.npos) return false;
+    std::lock_guard lock(impl_->mutex);
+    auto bytes = id.size() + revision.size();
+    if (impl_->stop.load() || impl_->events.size() >= MaxEvents || bytes > MaxEventBytes - impl_->queuedBytes) return false;
+    impl_->events.push_back({{}, std::move(id), std::move(revision), true});
+    impl_->queuedBytes += bytes;
+    impl_->changed.notify_one();
+    return true;
+}
 bool PluginRuntime::Update(std::string statusJson, std::string eventName, std::string eventArgumentJson) {
     if (impl_->stop.load() || statusJson.empty() || statusJson.size() > MaxJson ||
         eventArgumentJson.size() > MaxJson || (!eventName.empty() && !SupportsEvent(eventName))) return false;
