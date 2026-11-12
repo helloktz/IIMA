@@ -106,6 +106,7 @@ private:
     std::uint64_t musicGeneration_{};
     iima::MediaState lastMusicMediaState_{iima::MediaState::Empty};
     std::optional<Windows::Graphics::RectInt32> beforeMusicBounds_;
+    bool beforeMusicMaximized_{};
     void WirePlaybackControls();
     void WireMediaInformation();
     void WireInspectorWatch();
@@ -177,6 +178,13 @@ private:
     enum class VideoResizeResult { Applied, Retry, Unsupported };
     VideoResizeResult TryResizeToVideo(std::optional<double> scale, bool automatic);
     void UpdateAutomaticVideoSize(bool layoutChanged = false);
+    void AcceptExternalWindowScale(iima::PlaybackSnapshot const& state);
+    void QueueWindowScaleFeedback();
+    void PublishWindowScale();
+    std::uint64_t externalWindowScaleRevision_{};
+    bool automaticResizeExternal_{}, windowScaleFeedbackQueued_{};
+    double automaticResizeExternalScale_{1};
+    std::optional<double> windowScaleExpectedPanelWidth_;
     void CancelAutomaticVideoSize(bool discardInitial = true);
     static std::optional<iima::GeometrySize> VideoDisplaySize(iima::MediaProperties const& output);
     std::optional<iima::GeometrySize> automaticResizeVideo_;
@@ -501,6 +509,15 @@ private:
     bool screenshotPreviewHovered_{}, screenshotPreviewFocused_{};
     void HideScreenshotPreview();
     Microsoft::UI::Dispatching::DispatcherQueueTimer screenshotPreviewTimer_{nullptr};
+    struct FullscreenRestoreState {
+        Microsoft::UI::Windowing::AppWindowPresenter presenter{nullptr};
+        std::optional<iima::WindowPlacementSnapshot> geometry;
+        iima::GeometrySize chrome;
+        bool maximized{}, videoSizingEligible{};
+    };
+    std::optional<FullscreenRestoreState> fullscreenRestore_;
+    bool fullscreenTransition_{};
+    bool ExitFullscreen(bool restoreGeometry = true);
     bool updating_{}, closing_{}, closeComplete_{}, pickerOpen_{}, fullscreen_{};
 };
 }

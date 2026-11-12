@@ -56,12 +56,17 @@ void MainWindow::ApplyMusicTransition(iima::MusicModePolicy::Transition const& t
 {
     if (closing_) return;
     CancelAutomaticVideoSize();
+    if (!ExitFullscreen()) { musicMode_.CancelPending(); return; }
     musicTransition_ = true;
     try {
         auto window = AppWindow();
         if (transition.music) {
+            beforeMusicBounds_.reset();
+            beforeMusicMaximized_ = false;
             auto presenter = window.Presenter().try_as<Microsoft::UI::Windowing::OverlappedPresenter>();
-            if (presenter && presenter.State() == Microsoft::UI::Windowing::OverlappedPresenterState::Restored) {
+            if (presenter) {
+                beforeMusicMaximized_ = presenter.State() == Microsoft::UI::Windowing::OverlappedPresenterState::Maximized;
+                if (presenter.State() != Microsoft::UI::Windowing::OverlappedPresenterState::Restored) presenter.Restore();
                 auto p = window.Position(); auto s = window.Size();
                 beforeMusicBounds_ = Windows::Graphics::RectInt32{p.X, p.Y, s.Width, s.Height};
             }
@@ -73,6 +78,7 @@ void MainWindow::ApplyMusicTransition(iima::MusicModePolicy::Transition const& t
         } else if (beforeMusicBounds_) {
             window.SetPresenter(Microsoft::UI::Windowing::AppWindowPresenterKind::Overlapped);
             window.MoveAndResize(*beforeMusicBounds_);
+            if (beforeMusicMaximized_) window.Presenter().as<Microsoft::UI::Windowing::OverlappedPresenter>().Maximize();
         }
         musicTransition_ = false;
         if (!musicMode_.Commit(transition)) return;

@@ -51,6 +51,7 @@ void MainWindow::WireApplicationCommands() {
             self->CancelAutomaticVideoSize();
             auto window = self->AppWindow();
             auto overlay = window.Presenter().Kind() == Microsoft::UI::Windowing::AppWindowPresenterKind::CompactOverlay;
+            if (!self->ExitFullscreen()) return;
             window.SetPresenter(overlay ? Microsoft::UI::Windowing::AppWindowPresenterKind::Default :
                 Microsoft::UI::Windowing::AppWindowPresenterKind::CompactOverlay);
             self->fullscreen_ = false;
@@ -74,7 +75,9 @@ void MainWindow::WireApplicationCommands() {
             auto display = Microsoft::UI::Windowing::DisplayArea::GetFromWindowId(window.Id(),
                 Microsoft::UI::Windowing::DisplayAreaFallback::Nearest);
             if (display) {
+                if (!self->ExitFullscreen(false)) return;
                 window.SetPresenter(Microsoft::UI::Windowing::AppWindowPresenterKind::Default);
+                if (auto normal = window.Presenter().try_as<Microsoft::UI::Windowing::OverlappedPresenter>()) normal.Restore();
                 self->fullscreen_ = false;
                 self->FullscreenButton().Content(box_value(L"全屏"));
                 window.MoveAndResize(display.WorkArea());

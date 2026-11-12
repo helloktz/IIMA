@@ -13,7 +13,7 @@ void MainWindow::WireWindowPlacement()
     auto weak = get_weak();
     AppWindow().Changed([weak](auto const&, auto const& args) {
         if (auto self = weak.get(); self && !self->closing_ && !self->restoringPlacement_ &&
-            !self->musicTransition_ && (args.DidPositionChange() || args.DidSizeChange())) {
+            !self->musicTransition_ && !self->fullscreenTransition_ && !self->fullscreen_ && (args.DidPositionChange() || args.DidSizeChange())) {
             if (self->placementProgrammaticBounds_) {
                 auto expected = *self->placementProgrammaticBounds_;
                 auto current = self->AppWindow(); auto point = current.Position(); auto size = current.Size();

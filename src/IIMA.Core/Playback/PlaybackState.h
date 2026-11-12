@@ -54,6 +54,9 @@ struct PlaybackSnapshot {
     MediaProperties metadata, videoParameters, audioParameters;
     MediaProperties videoOutputParameters, osdDimensions;
     std::uint64_t videoOutputRevision{};
+    // Confirmed external window-scale changes only, never application writes.
+    std::optional<double> externalWindowScale;
+    std::uint64_t externalWindowScaleRevision{};
     std::optional<std::int64_t> videoRotation;
     std::optional<double> videoBitrate, audioBitrate, fileSize;
     std::vector<AudioDevice> audioDevices;

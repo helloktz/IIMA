@@ -101,6 +101,8 @@ public:
     using FilterEditCompleted = std::function<void(bool, FilterChainSnapshot, std::string)>;
     bool EditFiltersWithCompletion(bool audio, FilterEditPlan plan, FilterEditCompleted completion);
     void SetCompositionSize(unsigned width, unsigned height);
+    // UI supplies actual video viewport scale, not desired outer-frame scale.
+    void SetWindowScaleFromWindow(double scale);
     // Local preferences never overwrite observed playback fields. Call on UI thread.
     void ApplySettings(UserSettings const& settings);
     // Immediate values are submitted now (or at Ready). NextMedia values are
@@ -129,6 +131,13 @@ private:
     std::uint64_t subtitleEncodingRequest_{}, subtitleEncodingGeneration_{};
     std::vector<std::pair<std::int64_t, std::string>> subtitleEncodingTracks_;
     void Notify();
+    void PumpWindowScale();
+    void BlockWindowScaleRetry();
+    bool HandleWindowScaleEvent(MpvEvent const& event);
+    void PublishExternalWindowScale(double scale);
+    std::optional<double> pendingWindowScale_, confirmedWindowScale_, windowScaleEcho_, blockedWindowScale_;
+    bool windowScaleWriteSucceeded_{};
+    std::uint64_t windowScaleWrite_{}, windowScaleRead_{}, windowScaleGeneration_{}, windowScaleIntent_{};
     void BeginMediaOriginIntent(bool explicitOpen);
     void ObserveMediaOrigin(MpvEvent const& event);
     void ResolveMediaOrigin();

@@ -241,21 +241,7 @@ void MainWindow::Apply(iima::PlaybackSnapshot const& state)
     else if (loaded) StatusText().Text(state.buffering ? L"正在缓冲…" : L"");
     updating_ = false;
     UpdateAutomaticVideoSize();
-}
-void MainWindow::ToggleFullscreen()
-{
-    if (closing_) return;
-    CancelAutomaticVideoSize();
-    try {
-        fullscreen_ = !fullscreen_;
-        AppWindow().SetPresenter(fullscreen_ ? Microsoft::UI::Windowing::AppWindowPresenterKind::FullScreen
-                                           : Microsoft::UI::Windowing::AppWindowPresenterKind::Overlapped);
-        FullscreenButton().Content(box_value(fullscreen_ ? L"退出全屏" : L"全屏"));
-        if (fullscreen_ && preferences_.Boolean("playWhenEnteringFullScreen")) session_->Pause(false);
-        if (!fullscreen_ && preferences_.Boolean("pauseWhenLeavingFullScreen") &&
-            session_->Snapshot().media == iima::MediaState::Loaded && !session_->Snapshot().paused) session_->Pause(true);
-        ApplyWindowPreferences();
-    } catch (hresult_error const& error) { fullscreen_ = !fullscreen_; ShowError(error.message()); }
+    QueueWindowScaleFeedback();
 }
 void MainWindow::BeginClose()
 {

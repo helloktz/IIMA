@@ -45,7 +45,7 @@ std::optional<iima::GeometrySize> MainWindow::VideoDisplaySize(iima::MediaProper
 void MainWindow::WireVideoSize() {
     auto weak = get_weak();
     VideoPanel().SizeChanged([weak](auto const&, auto const&) {
-        if (auto self = weak.get()) self->UpdateAutomaticVideoSize(true);
+        if (auto self = weak.get()) { self->UpdateAutomaticVideoSize(true); self->QueueWindowScaleFeedback(); }
     });
     auto wire = [weak](Microsoft::UI::Xaml::Controls::Button const& button, std::optional<double> scale) {
         button.Click([weak, scale](auto const&, auto const&) {
@@ -66,7 +66,9 @@ MainWindow::VideoResizeResult MainWindow::TryResizeToVideo(std::optional<double>
     try {
         auto window = AppWindow();
         auto presenter = window.Presenter().try_as<Microsoft::UI::Windowing::OverlappedPresenter>();
-        if (!presenter || presenter.State() != Microsoft::UI::Windowing::OverlappedPresenterState::Restored) {
+        const bool deferredFullscreen = automatic && !automaticResizeExternal_ && fullscreen_ && fullscreenRestore_ &&
+            fullscreenRestore_->geometry && fullscreenRestore_->videoSizingEligible;
+        if (!deferredFullscreen && (!presenter || presenter.State() != Microsoft::UI::Windowing::OverlappedPresenterState::Restored)) {
             report(L"请先返回普通窗口模式，再按视频尺寸缩放。"); return VideoResizeResult::Unsupported;
         }
         auto const& state = session_->Snapshot();
@@ -86,18 +88,29 @@ MainWindow::VideoResizeResult MainWindow::TryResizeToVideo(std::optional<double>
         const auto panelWidth = VideoPanel().ActualWidth() * VideoPanel().CompositionScaleX();
         const auto panelHeight = VideoPanel().ActualHeight() * VideoPanel().CompositionScaleY();
         const auto size = window.Size(); const auto position = window.Position(); const auto work = display.WorkArea();
-        const auto extraWidth = size.Width - panelWidth, extraHeight = size.Height - panelHeight;
-        if (panelWidth <= 0 || panelHeight <= 0 || extraWidth < 0 || extraHeight < 0) {
+        auto extraWidth = size.Width - panelWidth, extraHeight = size.Height - panelHeight;
+        iima::GeometryRect current{double(position.X), double(position.Y), double(size.Width), double(size.Height)};
+        if (deferredFullscreen) {
+            auto const& saved = *fullscreenRestore_->geometry;
+            auto restored = iima::RestoreWindowPlacement(saved,
+                {double(work.X), double(work.Y), double(work.Width), double(work.Height)}, dpi * 96,
+                {640 * dpi, 360 * dpi});
+            if (!restored) return VideoResizeResult::Unsupported;
+            current = *restored;
+            extraWidth = fullscreenRestore_->chrome.width * dpi * 96 / saved.dpi;
+            extraHeight = fullscreenRestore_->chrome.height * dpi * 96 / saved.dpi;
+        }
+        if ((!deferredFullscreen && (panelWidth <= 0 || panelHeight <= 0)) || extraWidth < 0 || extraHeight < 0) {
             report(L"窗口布局仍在变化，请稍后重试视频尺寸缩放。"); return VideoResizeResult::Retry;
         }
         auto bounds = iima::ScaledVideoWindow(*video,
-            {double(position.X), double(position.Y), double(size.Width), double(size.Height)},
+            current,
             {double(work.X), double(work.Y), double(work.Width), double(work.Height)},
             {extraWidth, extraHeight}, {640 * dpi, 360 * dpi}, scale,
             automatic ? automaticResizePhysical_ : preferences_.Boolean("usePhysicalResolution"), dpi);
         if (automatic && automaticResizeKeepArea_) {
             bounds = iima::AreaPreservingVideoWindow(*video,
-                {double(position.X), double(position.Y), double(size.Width), double(size.Height)},
+                current,
                 {double(work.X), double(work.Y), double(work.Width), double(work.Height)},
                 {extraWidth, extraHeight}, {640 * dpi, 360 * dpi});
         }
@@ -121,11 +134,21 @@ MainWindow::VideoResizeResult MainWindow::TryResizeToVideo(std::optional<double>
             bounds->x = work.X + (work.Width - bounds->width) / 2;
             bounds->y = work.Y + (work.Height - bounds->height) / 2;
         }
+        if (deferredFullscreen) {
+            fullscreenRestore_->geometry = iima::WindowPlacementSnapshot{*bounds,
+                {double(work.X), double(work.Y), double(work.Width), double(work.Height)}, dpi * 96};
+            fullscreenRestore_->chrome = {extraWidth, extraHeight};
+            return VideoResizeResult::Applied;
+        }
+        windowScaleExpectedPanelWidth_ = std::floor(bounds->width) - extraWidth;
         // Round dimensions down so rounding cannot spill over the work area.
-        window.MoveAndResize({static_cast<int>(std::ceil(bounds->x)), static_cast<int>(std::ceil(bounds->y)),
-            static_cast<int>(std::floor(bounds->width)), static_cast<int>(std::floor(bounds->height))});
+        placementProgrammaticBounds_ = Windows::Graphics::RectInt32{
+            static_cast<int>(std::ceil(bounds->x)), static_cast<int>(std::ceil(bounds->y)),
+            static_cast<int>(std::floor(bounds->width)), static_cast<int>(std::floor(bounds->height))};
+        window.MoveAndResize(*placementProgrammaticBounds_);
         CapturePlacement();
+        QueueWindowScaleFeedback();
         return VideoResizeResult::Applied;
-    } catch (hresult_error const& error) { report(error.message()); return VideoResizeResult::Unsupported; }
+    } catch (hresult_error const& error) { windowScaleExpectedPanelWidth_.reset(); placementProgrammaticBounds_.reset(); report(error.message()); return VideoResizeResult::Unsupported; }
 }
 }

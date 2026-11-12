@@ -26,6 +26,8 @@ void PlayerSession::Notify() { if(changed_) changed_(snapshot_); }
 // distinction across queued old events. Pinned mpv cmd_loadfile creates a new,
 // monotonically allocated playlist entry and returns playlist_entry_id.
 void PlayerSession::BeginMediaOriginIntent(bool explicitOpen) {
+    pendingWindowScale_.reset(); blockedWindowScale_.reset();
+    snapshot_.externalWindowScale.reset();
     videoGeometryRequest_ = 0;
     snapshot_.mediaVideoGeometryReady = false;
     ++snapshot_.mediaOpenIntentRevision;
@@ -353,6 +355,131 @@ void PlayerSession::SetSpeed(double value) {
     if(snapshot_.session==SessionState::Ready && std::isfinite(value) && value>=0.01 && value<=100)
         client_->Command({"set","speed",std::to_string(value)});
 }
+// IINA windowScaleChanged/updateWindowParametersForMPV use a cached scale to
+// suppress self-echoes. Async mpv needs a reply/readback barrier instead of an
+// optimistic cache, plus one coalesced latest UI value during that barrier.
+namespace {
+bool ValidWindowScale(double value) { return std::isfinite(value) && value > 0 && value <= 16; }
+bool SameWindowScale(double a, double b) { return std::abs(a-b) <= 1e-9; }
+}
+void PlayerSession::SetWindowScaleFromWindow(double scale) {
+    if (!ValidWindowScale(scale) || snapshot_.session != SessionState::Ready ||
+        snapshot_.media != MediaState::Loaded || !snapshot_.mediaVideoGeometryReady ||
+        waitingForStart_) return;
+    // Repeated snapshots must not retry a rejected/uncertain target forever.
+    // Only a different actual viewport target (or media reset) releases it.
+    if (blockedWindowScale_) {
+        if (SameWindowScale(scale, *blockedWindowScale_)) return;
+        blockedWindowScale_.reset();
+    }
+    pendingWindowScale_ = scale;
+    PumpWindowScale();
+}
+void PlayerSession::PumpWindowScale() {
+    if (windowScaleWrite_ || windowScaleRead_ || !pendingWindowScale_) return;
+    const auto scale = *pendingWindowScale_;
+    pendingWindowScale_.reset();
+    if (blockedWindowScale_ && !SameWindowScale(scale, *blockedWindowScale_))
+        blockedWindowScale_.reset(); // Newer target was coalesced before failure arrived.
+    if (snapshot_.session != SessionState::Ready || snapshot_.media != MediaState::Loaded ||
+        !snapshot_.mediaVideoGeometryReady || waitingForStart_ ||
+        (blockedWindowScale_ && SameWindowScale(scale, *blockedWindowScale_))) return;
+    if (confirmedWindowScale_ && SameWindowScale(scale, *confirmedWindowScale_)) {
+        // No write is needed, but the actual viewport has now settled at this
+        // confirmed value. Retire the older target's echo guard after the
+        // barrier drained, so an external 1 -> 2 -> 1 remains actionable.
+        windowScaleEcho_ = scale;
+        return;
+    }
+    char text[64];
+    auto [end, error] = std::to_chars(text, text+sizeof(text), scale, std::chars_format::general, 17);
+    if (error != std::errc{}) { blockedWindowScale_=scale; return; }
+    windowScaleWrite_ = client_->Command({"set", "window-scale", std::string(text,end)});
+    if (!windowScaleWrite_) { blockedWindowScale_=scale; return; }
+    windowScaleWriteSucceeded_ = false;
+    windowScaleEcho_ = scale; // Echo guard only; never an observed value.
+    windowScaleGeneration_ = snapshot_.mediaGeneration;
+    windowScaleIntent_ = snapshot_.mediaOpenIntentRevision;
+}
+void PlayerSession::BlockWindowScaleRetry() {
+    // A failed older-media write must not block a new generation's target.
+    if (windowScaleGeneration_==snapshot_.mediaGeneration &&
+        windowScaleIntent_==snapshot_.mediaOpenIntentRevision)
+        blockedWindowScale_=windowScaleEcho_;
+}
+void PlayerSession::PublishExternalWindowScale(double scale) {
+    if (!ValidWindowScale(scale)) return;
+    const bool changed = !confirmedWindowScale_ || !SameWindowScale(scale, *confirmedWindowScale_);
+    confirmedWindowScale_ = scale;
+    if (!changed || snapshot_.session != SessionState::Ready || snapshot_.media != MediaState::Loaded ||
+        !snapshot_.mediaVideoGeometryReady || waitingForStart_) return;
+    snapshot_.externalWindowScale = scale;
+    ++snapshot_.externalWindowScaleRevision;
+}
+bool PlayerSession::HandleWindowScaleEvent(MpvEvent const& event) {
+    if (event.kind == MpvEvent::Kind::Failure || event.kind == MpvEvent::Kind::Shutdown) {
+        pendingWindowScale_.reset(); windowScaleWrite_=0; windowScaleRead_=0;
+        snapshot_.externalWindowScale.reset();
+        return false;
+    }
+    if (event.kind == MpvEvent::Kind::StartFile ||
+        (event.kind == MpvEvent::Kind::EndFile && event.entryId == snapshot_.entryId)) {
+        // Do not discard in-flight IDs: those writes still execute in mpv and
+        // must be drained without publishing their late echoes in a new media.
+        pendingWindowScale_.reset(); snapshot_.externalWindowScale.reset();
+        if (event.kind == MpvEvent::Kind::StartFile) blockedWindowScale_.reset();
+        return false;
+    }
+    if (event.kind == MpvEvent::Kind::CommandReply && windowScaleWrite_ &&
+        event.requestId == windowScaleWrite_) {
+        windowScaleWrite_=0;
+        windowScaleWriteSucceeded_=event.error>=0;
+        if (!windowScaleWriteSucceeded_) BlockWindowScaleRetry();
+        // Even failure needs readback: an independent external setter may have
+        // changed the value while observer notifications were suppressed.
+        windowScaleRead_=client_->GetWindowScaleAsync();
+        if (!windowScaleRead_) { BlockWindowScaleRetry(); PumpWindowScale(); }
+        return true;
+    }
+    if (event.kind == MpvEvent::Kind::WindowScaleReply) {
+        if (!windowScaleRead_ || event.requestId != windowScaleRead_) return true;
+        windowScaleRead_=0;
+        const auto revision = snapshot_.externalWindowScaleRevision;
+        if (event.error>=0 && event.number && ValidWindowScale(*event.number)) {
+            const bool current = windowScaleGeneration_==snapshot_.mediaGeneration &&
+                windowScaleIntent_==snapshot_.mediaOpenIntentRevision;
+            const bool echo = windowScaleEcho_ && SameWindowScale(*event.number,*windowScaleEcho_);
+            // With a known pre-write baseline, even a failed setter can reveal
+            // an independent external change. An unchanged old value dedups.
+            // Without any baseline, failed-set readback is ambiguous, not proof
+            // of an external request to resize the window back.
+            if (current && (windowScaleWriteSucceeded_ || confirmedWindowScale_) &&
+                !pendingWindowScale_ && !echo)
+                PublishExternalWindowScale(*event.number);
+            else confirmedWindowScale_=*event.number;
+            // A clamped or externally superseded target should not be written
+            // again on every unchanged viewport notification either.
+            if (!echo) BlockWindowScaleRetry();
+        } else BlockWindowScaleRetry();
+        // Retain the last local target as a bounded ambiguous-echo guard even
+        // after readback: delayed/coalesced equal observations cannot resize
+        // the UI. A genuine external write of that same value is conservatively
+        // ignored until a different actual local target replaces this guard,
+        // including a settled target already equal to confirmed readback.
+        PumpWindowScale();
+        if (snapshot_.externalWindowScaleRevision != revision) Notify();
+        return true;
+    }
+    if (event.kind == MpvEvent::Kind::Property && event.name=="window-scale") {
+        if (windowScaleWrite_ || windowScaleRead_ || !event.number || !ValidWindowScale(*event.number)) return true;
+        if (windowScaleEcho_ && SameWindowScale(*event.number,*windowScaleEcho_)) return true;
+        const auto revision = snapshot_.externalWindowScaleRevision;
+        PublishExternalWindowScale(*event.number);
+        if (snapshot_.externalWindowScaleRevision != revision) Notify();
+        return true;
+    }
+    return false;
+}
 void PlayerSession::SetCompositionSize(unsigned width,unsigned height) {
     if(snapshot_.session==SessionState::Ready && width && height && width<=16384 && height<=16384)
         client_->Command({"set","d3d11-composition-size",std::to_string(width)+"x"+std::to_string(height)});
@@ -455,6 +582,7 @@ void PlayerSession::CancelWatchedProperties() {
 }
 void PlayerSession::OnEvent(MpvEvent e) {
     if(snapshot_.session==SessionState::Closing || snapshot_.session==SessionState::Closed) return;
+    if (HandleWindowScaleEvent(e)) return;
     if (e.kind == MpvEvent::Kind::VideoGeometryReply) {
         if (!videoGeometryRequest_ || e.requestId != videoGeometryRequest_) return;
         videoGeometryRequest_ = 0;

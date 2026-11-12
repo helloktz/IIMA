@@ -60,6 +60,7 @@ struct MpvClient::State {
         std::string filterPath;
         bool measureSeek{};
         bool videoGeometryQuery{};
+        bool windowScaleQuery{};
     };
     std::deque<Request> commands;
     std::vector<std::function<void()>> closedCallbacks;
@@ -89,7 +90,7 @@ struct MpvClient::State {
                 check(api.set_option_string(handle, name, value), name);
             check(api.initialize(handle), "mpv_initialize");
             std::uint64_t id = 1;
-            for (auto const* name : {"time-pos", "duration", "time-remaining", "playtime-remaining", "volume", "speed", "volume-max", "audio-delay", "sub-delay", "secondary-sub-delay", "sub-pos", "secondary-sub-pos", "sub-scale", "secondary-sub-scale", "ab-loop-a", "ab-loop-b", "video-bitrate", "audio-bitrate", "file-size"})
+            for (auto const* name : {"time-pos", "duration", "time-remaining", "playtime-remaining", "volume", "speed", "volume-max", "audio-delay", "sub-delay", "secondary-sub-delay", "sub-pos", "secondary-sub-pos", "sub-scale", "secondary-sub-scale", "ab-loop-a", "ab-loop-b", "video-bitrate", "audio-bitrate", "file-size", "window-scale"})
                 check(api.observe_property(handle, id++, name, MPV_FORMAT_DOUBLE), name);
             for (auto const* name : {"pause", "paused-for-cache", "demuxer-via-network", "vo-configured", "mute", "sub-visibility", "secondary-sub-visibility", "seekable"})
                 check(api.observe_property(handle, id++, name, MPV_FORMAT_FLAG), name);
@@ -105,6 +106,7 @@ struct MpvClient::State {
             MpvEvent ready{MpvEvent::Kind::Ready}; ready.flag=api.acquireSwapChain!=nullptr; ready.integer=api.client_api_version(); Emit(std::move(ready));
             std::uint64_t inFlight{};
             bool inFlightVideoGeometry{};
+            bool inFlightWindowScale{};
             SeekLatency seekLatency;
             auto reportSeek = [&](std::optional<SeekLatencyResult> sample) {
                 if (!sample) return;
@@ -139,12 +141,13 @@ struct MpvClient::State {
                 // client.h explicitly permits async command reordering. Serialize at replies.
                 if(pending) {
                     const auto request=pending->id;
-                    if (!pending->playlistQuery && !pending->watchedPropertiesQuery && !pending->videoGeometryQuery) {
+                    if (!pending->playlistQuery && !pending->watchedPropertiesQuery && !pending->videoGeometryQuery && !pending->windowScaleQuery) {
                         reportSeek(seekLatency.Cancel());
                         if (pending->measureSeek) seekLatency.Begin(request);
                     }
                     inFlightFilter.clear();
                     inFlightVideoGeometry = pending->videoGeometryQuery;
+                    inFlightWindowScale = pending->windowScaleQuery;
                     int error{};
                     if (pending->watchedPropertiesQuery) {
                         MpvEvent result{MpvEvent::Kind::WatchedPropertiesReply};
@@ -205,6 +208,8 @@ struct MpvClient::State {
                                 error = api.set_property_async(handle, request, name, MPV_FORMAT_NODE, &node);
                             }
                         }
+                    } else if (pending->windowScaleQuery) {
+                        error=api.get_property_async(handle,request,"window-scale",MPV_FORMAT_DOUBLE);
                     } else if (pending->videoGeometryQuery) {
                         error=api.get_property_async(handle,request,"video-out-params",MPV_FORMAT_NODE);
                     } else if(pending->playlistQuery) {
@@ -217,11 +222,13 @@ struct MpvClient::State {
                     }
                     if(error<0) {
                         reportSeek(seekLatency.Reply(request,false));
-                        MpvEvent e{pending->videoGeometryQuery ? MpvEvent::Kind::VideoGeometryReply :
+                        MpvEvent e{pending->windowScaleQuery ? MpvEvent::Kind::WindowScaleReply :
+                            pending->videoGeometryQuery ? MpvEvent::Kind::VideoGeometryReply :
                             pending->playlistQuery ? MpvEvent::Kind::PlaylistReply : MpvEvent::Kind::CommandReply};
                         e.requestId=request; e.error=error; e.text=api.error_string(error);
                         if(pending->playlistQuery) e.name="playlist";
                         if(pending->videoGeometryQuery) e.name="video-out-params";
+                        if(pending->windowScaleQuery) e.name="window-scale";
                         if (!inFlightFilter.empty()) { readFilterResult(e,inFlightFilter); inFlightFilter.clear(); }
                         Emit(std::move(e));
                     } else inFlight=request;
@@ -265,6 +272,19 @@ struct MpvClient::State {
                 }
                 case MPV_EVENT_GET_PROPERTY_REPLY: {
                     auto property = static_cast<mpv_event_property const*>(raw->data);
+                    const bool windowScale = (property && property->name &&
+                        std::string_view(property->name)=="window-scale") ||
+                        (e.requestId==inFlight && inFlightWindowScale);
+                    if (windowScale) {
+                        e.kind=MpvEvent::Kind::WindowScaleReply; e.name="window-scale";
+                        if(e.requestId==inFlight) { inFlight=0; inFlightWindowScale=false; }
+                        if (e.error>=0 && property && property->name &&
+                            std::string_view(property->name)=="window-scale" &&
+                            property->format==MPV_FORMAT_DOUBLE && property->data)
+                            e.number=*static_cast<double const*>(property->data);
+                        else if(e.error>=0) e.error=MPV_ERROR_PROPERTY_FORMAT;
+                        break;
+                    }
                     const bool videoGeometry = (property && property->name &&
                         std::string_view(property->name)=="video-out-params") ||
                         (e.requestId==inFlight && inFlightVideoGeometry);
@@ -418,6 +438,15 @@ std::uint64_t MpvClient::GetVideoGeometryAsync() {
     if(state_->closing || !state_->started || state_->commands.size() >= 256) return 0;
     State::Request request{state_->nextId++, {}, false};
     request.videoGeometryQuery = true;
+    const auto id = request.id;
+    state_->commands.push_back(std::move(request));
+    return id;
+}
+std::uint64_t MpvClient::GetWindowScaleAsync() {
+    std::lock_guard lock(state_->mutex);
+    if(state_->closing || !state_->started || state_->commands.size() >= 256) return 0;
+    State::Request request{state_->nextId++, {}, false};
+    request.windowScaleQuery = true;
     const auto id = request.id;
     state_->commands.push_back(std::move(request));
     return id;

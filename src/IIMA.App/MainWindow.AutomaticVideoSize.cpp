@@ -8,7 +8,7 @@ namespace winrt::IIMA::implementation {
 void MainWindow::CancelAutomaticVideoSize(bool discardInitial) {
     if (automaticResizeAttempting_) return; // Our own MoveAndResize is not user input.
     automaticResizeConsumed_ = true;
-    if (discardInitial) initialVideoSizePending_ = false;
+    if (discardInitial) { initialVideoSizePending_ = false; windowScaleExpectedPanelWidth_.reset(); }
     if (session_) {
         auto const& state = session_->Snapshot();
         if (automaticResizeGeneration_ != state.mediaGeneration) automaticReconfigArmed_ = false;
@@ -18,7 +18,7 @@ void MainWindow::CancelAutomaticVideoSize(bool discardInitial) {
     }
 }
 void MainWindow::UpdateAutomaticVideoSize(bool layoutChanged) {
-    if (closing_ || !session_ || automaticResizeAttempting_) return;
+    if (closing_ || !session_ || automaticResizeAttempting_ || fullscreenTransition_) return;
     auto const& state = session_->Snapshot();
     if (state.mediaGeneration != automaticResizeGeneration_) {
         automaticResizeGeneration_ = state.mediaGeneration;
@@ -26,6 +26,7 @@ void MainWindow::UpdateAutomaticVideoSize(bool layoutChanged) {
         automaticResizeConsumed_ = !state.mediaGeneration;
         automaticResizeAwaitingStart_ = false;
         automaticResizeStart_ = true;
+        automaticResizeExternal_ = false;
         automaticResizeLoaded_ = false;
         automaticResizeAttempts_ = 0;
         automaticResizeInformation_ = 0;
@@ -38,6 +39,7 @@ void MainWindow::UpdateAutomaticVideoSize(bool layoutChanged) {
         return; // A command intent is not a START_FILE generation.
     }
     if (automaticResizeAwaitingStart_) return;
+    AcceptExternalWindowScale(state);
     auto video = VideoDisplaySize(state.videoOutputParameters);
     const bool changedSize = video && automaticResizeVideo_ &&
         (video->width != automaticResizeVideo_->width || video->height != automaticResizeVideo_->height);
@@ -50,6 +52,7 @@ void MainWindow::UpdateAutomaticVideoSize(bool layoutChanged) {
         !state.mediaOriginPending) {
         automaticResizeConsumed_ = false;
         automaticResizeStart_ = false;
+        automaticResizeExternal_ = false;
         automaticResizeLoaded_ = false;
         automaticResizeAttempts_ = 0;
         automaticResizeInformation_ = 0;
@@ -59,10 +62,13 @@ void MainWindow::UpdateAutomaticVideoSize(bool layoutChanged) {
         state.media == iima::MediaState::Ended || state.media == iima::MediaState::Error) {
         CancelAutomaticVideoSize(false); return;
     }
-    // Non-normal modes and user sizing are skipped, never deferred until later.
+    // Fullscreen updates only its captured normal restore target. Other modes
+    // and user sizing are skipped, never applied late after a mode change.
     auto presenter = AppWindow().Presenter().try_as<Microsoft::UI::Windowing::OverlappedPresenter>();
-    if (!presenter || presenter.State() != Microsoft::UI::Windowing::OverlappedPresenterState::Restored ||
-        fullscreen_ || musicMode_.IsMusic() || musicTransition_ || interactiveCrop_.Active() || cropOriginal_ || pickerOpen_ ||
+    const bool deferredFullscreen = !automaticResizeExternal_ && fullscreen_ && fullscreenRestore_ && fullscreenRestore_->geometry &&
+        fullscreenRestore_->videoSizingEligible;
+    if ((!deferredFullscreen && (!presenter || presenter.State() != Microsoft::UI::Windowing::OverlappedPresenterState::Restored)) ||
+        musicMode_.IsMusic() || musicTransition_ || interactiveCrop_.Active() || cropOriginal_ || pickerOpen_ ||
         (windowLifecycle_ && windowLifecycle_->Current().sizing)) {
         CancelAutomaticVideoSize(); return;
     }
@@ -90,7 +96,7 @@ void MainWindow::UpdateAutomaticVideoSize(bool layoutChanged) {
     static constexpr double scales[]{1.0, 0.5, 1.0, 1.5, 2.0};
     if (automaticResizeOption_ < 0 || automaticResizeOption_ > 4) { CancelAutomaticVideoSize(); return; }
     automaticResizeAttempting_ = true;
-    const auto result = TryResizeToVideo(scales[automaticResizeOption_], true);
+    const auto result = TryResizeToVideo(automaticResizeExternal_ ? automaticResizeExternalScale_ : scales[automaticResizeOption_], true);
     automaticResizeAttempting_ = false;
     if (result != VideoResizeResult::Retry) {
         automaticResizeConsumed_ = true;
