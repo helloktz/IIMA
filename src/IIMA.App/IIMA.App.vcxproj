@@ -119,6 +119,7 @@
     <ClCompile Include="MainWindow.Commands.cpp" />
     <ClCompile Include="MainWindow.Network.cpp" />
     <ClCompile Include="MainWindow.OSD.cpp" />
+    <ClCompile Include="MainWindow.Buffering.cpp" />
     <ClCompile Include="MainWindow.Playlist.cpp" />
     <ClCompile Include="MainWindow.MouseWheel.cpp" />
     <ClCompile Include="MainWindow.InteractiveCrop.cpp" />

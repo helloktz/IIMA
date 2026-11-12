@@ -19,7 +19,7 @@ bool HasApplicationAdapter(std::string_view key) {
         "singleClickAction", "doubleClickAction", "rightClickAction", "verticalScrollAction", "horizontalScrollAction",
         "relativeSeekAmount", "playbackSpeedScrollAmount", "wheelExactSeek", "enableControlBarAutoHide", "controlBarAutoHideTimeout",
         "showRemainingTime", "scaleRemainingTime", "timeDisplayPrecision", "disableOSDFileStartMsg", "disableOSDSeekMsg",
-        "useExactSeek", "screenshotShowPreview", "enableOSD", "disableOSDPauseResumeMsgs", "disableOSDSpeedMsg", "osdAutoHideTimeout", "osdTextSize"
+        "showBufferingThrobber", "showSeekingThrobber", "useExactSeek", "screenshotShowPreview", "enableOSD", "disableOSDPauseResumeMsgs", "disableOSDSpeedMsg", "osdAutoHideTimeout", "osdTextSize"
     };
     return keys.contains(key);
 }
@@ -115,6 +115,7 @@ void MainWindow::ApplyAdvancedSetting(std::string const& key, iima::settings::Pr
     userData_.settings.advancedPreferences = preferences_.Overrides();
     session_->ApplyAdvancedPreferences(preferences_);
     UpdateControlBarPolicy();
+    UpdateBufferingIndicator(session_->Snapshot());
     UpdateTimeDisplay(session_->Snapshot());
     CancelMouseClick();
     ApplyWindowPreferences();

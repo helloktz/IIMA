@@ -26,6 +26,8 @@
     <ClInclude Include="Mpv\MpvNodes.h" />
     <ClCompile Include="Mpv\MpvNodes.cpp" />
     <ClInclude Include="Playback\PlaybackState.h" />
+    <ClCompile Include="Playback\BufferingIndicator.cpp" />
+    <ClInclude Include="Playback\BufferingIndicator.h" />
     <ClInclude Include="Playback\PlaybackSettings.h" />
     <ClInclude Include="Playback\PlayerSession.h" />
     <ClCompile Include="Mpv\MpvClient.cpp" />

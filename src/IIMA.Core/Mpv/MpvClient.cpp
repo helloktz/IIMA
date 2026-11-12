@@ -88,7 +88,7 @@ struct MpvClient::State {
             std::uint64_t id = 1;
             for (auto const* name : {"time-pos", "duration", "time-remaining", "playtime-remaining", "volume", "speed", "volume-max", "audio-delay", "sub-delay", "secondary-sub-delay", "sub-pos", "secondary-sub-pos", "sub-scale", "secondary-sub-scale", "ab-loop-a", "ab-loop-b", "video-bitrate", "audio-bitrate", "file-size"})
                 check(api.observe_property(handle, id++, name, MPV_FORMAT_DOUBLE), name);
-            for (auto const* name : {"pause", "paused-for-cache", "vo-configured", "mute", "sub-visibility", "secondary-sub-visibility", "seekable"})
+            for (auto const* name : {"pause", "paused-for-cache", "demuxer-via-network", "vo-configured", "mute", "sub-visibility", "secondary-sub-visibility", "seekable"})
                 check(api.observe_property(handle, id++, name, MPV_FORMAT_FLAG), name);
             for(auto const* name : {"path", "mpv-version", "current-tracks/video/codec-desc", "hwdec", "hwdec-current", "current-vo", "loop-file", "loop-playlist", "keep-open", "ab-loop-count", "media-title", "audio-device", "deinterlace", "sub-codepage", "sub-font", "sub-font-size", "sub-bold", "sub-italic", "sub-color", "sub-outline-color", "sub-outline-size", "sub-back-color"})
                 check(api.observe_property(handle,id++,name,MPV_FORMAT_STRING),name);
@@ -97,7 +97,7 @@ struct MpvClient::State {
             // IINA MPVController observes selection/chapter/equalizers as
             // INT64. Selection has mpv's -2=no/-1=auto sentinels; equalizers
             // use -100..100. Unavailable observations remain unknown.
-            for (auto const* name : {"video-rotate", "chapter", "vid", "aid", "sid", "secondary-sid", "brightness", "contrast", "saturation", "gamma", "hue"})
+            for (auto const* name : {"cache-speed", "cache-buffering-state", "demuxer-cache-state/fw-bytes", "video-rotate", "chapter", "vid", "aid", "sid", "secondary-sid", "brightness", "contrast", "saturation", "gamma", "hue"})
                 check(api.observe_property(handle, id++, name, MPV_FORMAT_INT64), name);
             MpvEvent ready{MpvEvent::Kind::Ready}; ready.flag=api.acquireSwapChain!=nullptr; ready.integer=api.client_api_version(); Emit(std::move(ready));
             std::uint64_t inFlight{};

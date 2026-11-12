@@ -133,6 +133,8 @@ std::span<PreferenceDescriptor const> PreferenceSchema() {
         I("playbackSpeedScrollAmount",Area::Interface,3,1,4),
         B("wheelExactSeek",Area::Interface,false),
         E("useExactSeek",Area::Interface,0,seekModes),
+        B("showBufferingThrobber",Area::Interface,true),
+        B("showSeekingThrobber",Area::Interface,true),
         B("enableOSD",Area::Interface,true),
         B("disableOSDFileStartMsg",Area::Interface,false),
         B("disableOSDPauseResumeMsgs",Area::Interface,false),

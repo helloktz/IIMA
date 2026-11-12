@@ -4,6 +4,17 @@
     <Grid x:Name="Root" Background="Black" RequestedTheme="Dark" AllowDrop="True">
         <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="300"/></Grid.ColumnDefinitions>
         <SwapChainPanel x:Name="VideoPanel" />
+        <Border x:Name="BufferingOverlay" Grid.Column="0" Visibility="Collapsed" Canvas.ZIndex="7"
+                HorizontalAlignment="Center" VerticalAlignment="Center" MinWidth="180" MaxWidth="300"
+                Background="#E6202020" CornerRadius="8" Padding="16" IsHitTestVisible="False">
+            <StackPanel Spacing="6">
+                <ProgressRing x:Name="BufferingSpinner" IsActive="False" Width="32" Height="32"/>
+                <TextBlock x:Name="BufferingTitleText" TextAlignment="Center" AutomationProperties.LiveSetting="Polite"/>
+                <ProgressBar x:Name="BufferingProgress" Minimum="0" Maximum="100" Visibility="Collapsed" AutomationProperties.Name="缓存填充百分比"/>
+                <TextBlock x:Name="BufferingProgressText" TextAlignment="Center"/>
+                <TextBlock x:Name="BufferingDetailsText" TextAlignment="Center" TextWrapping="Wrap"/>
+            </StackPanel>
+        </Border>
         <Canvas x:Name="InteractiveCropCanvas" Background="Transparent" Visibility="Collapsed" Canvas.ZIndex="20">
             <Border x:Name="InteractiveCropRectangle" BorderBrush="Yellow" BorderThickness="2" IsHitTestVisible="False"/>
         </Canvas>

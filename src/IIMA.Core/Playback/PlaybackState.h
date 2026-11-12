@@ -10,6 +10,8 @@ struct PlaybackSnapshot {
     SessionState session{SessionState::Initializing};
     MediaState media{MediaState::Empty};
     bool paused{true}, seeking{}, buffering{};
+    std::optional<bool> demuxerViaNetwork;
+    std::optional<std::int64_t> cacheForwardBytes, cacheBytesPerSecond, cacheBufferingPercent;
     std::optional<double> position, duration, abLoopA, abLoopB;
     std::optional<double> timeRemaining, playtimeRemaining;
     std::string abLoopCount{"inf"};

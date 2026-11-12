@@ -276,6 +276,7 @@ private:
     std::array<Microsoft::UI::Xaml::Controls::NumberBox, iima::EQProfile::BandCount> equalizerBands_;
     std::vector<std::string> equalizerNames_;
     void WireApplicationCommands();
+    void UpdateBufferingIndicator(iima::PlaybackSnapshot const& state);
     void WireOSD();
     void WireAdvancedPlayback();
     bool KeyboardPlaybackAllowed() const;

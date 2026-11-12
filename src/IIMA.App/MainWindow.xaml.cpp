@@ -210,6 +210,7 @@ void MainWindow::Apply(iima::PlaybackSnapshot const& state)
     ApplySettingsSnapshot(state);
     UpdateDiagnostics(state);
     UpdateOSD(state);
+    UpdateBufferingIndicator(state);
     UpdateControlBarPolicy();
     UpdateInteractiveCrop(state);
     UpdatePlugin(state);
@@ -259,6 +260,7 @@ void MainWindow::BeginClose()
     SaveWindowPlacement();
     FinishInteractiveCrop(false, false);
     closing_ = true;
+    BufferingSpinner().IsActive(false); BufferingOverlay().Visibility(Visibility::Collapsed);
     recordingBindingKey_ = false;
     if (jumpDialog_) jumpDialog_.Hide();
     fontCatalogStop_.request_stop();

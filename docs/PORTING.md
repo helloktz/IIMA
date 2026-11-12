@@ -836,3 +836,15 @@ MpvClient为首次自动请求标记测量窗口，在worker用steady_clock记�
 静态审阅同时修正旧批次可配置入口缺口：单/双/右击、横纵滚轮、步幅/倍速滚轮、wheelExactSeek、控制栏隐藏及超时、剩余时间/速度缩放/时间精度、文件/seek OSD禁用选项此前虽被实际代码读取，但漏在高级偏好可见键清单。现在这些已接线键进入编辑器与搜索索引；未接线schema项仍不展示，不能把所有描述符视为实现完成。
 
 差异：少量schema项采用线性有界匹配，不复制Swift后缀Trie内存结构；只有已接通的高级偏好，不是全应用/所有SwiftUI页面搜索。尚无完整本地化标题、所有父子锚点或搜索词高亮。未编译测试运行。
+
+## 第七十七批：网络打开/缓冲/定位指示与真实缓存遥测
+
+`BufferIndicatorView.update`显示打开网络流，`updateNetworkState`依据pausedForCache/showBufferingThrobber或isSeeking/showSeekingThrobber显示；只有paused-for-cache时cache-buffering-state才有百分比意义。`PlayerCore.syncUI(.time)`读取demuxer-cache-state的fw-bytes/raw-input-rate；`FloatingPointByteCountFormatter`分别以二进制缓存量、十进制速率展示。mpv固定源码`player/command.c`核实fw-bytes为INT64、cache-buffering-state为整数；手册明确cache-speed是raw-input-rate的等价INT64每秒字节数。
+
+本批增加demuxer-via-network、cache-speed、cache-buffering-state和demuxer-cache-state/fw-bytes观察及有类型快照；开始/结束清缓存遥测，不可用/负数/无效百分比保持未知。缓冲状态切换清旧百分比，只有buffering=true之后的新百分比才接收，避免把上一段缓冲的100%当成新进度。
+
+新增纯投影模型与WinUI视频区域非交互浮层：打开网络流、正在缓冲、正在定位三阶段，spinner加可选缓存百分比与用量/速率。定位不复用缓存百分比，不猜测ETA或未知速度。缓冲量KiB/MiB/GiB、速率KB/MB/GB每秒，最多两位小数，未知不补零。只阶段文本为低打扰辅助技术live region，百分比更新不反复语音播报。
+
+两个上游默认true偏好进入高级编辑/搜索；showBufferingThrobber在Windows也控制打开阶段。结束/失败/关闭、CompactOverlay及交互区域编辑隐藏浮层并停动画；正常播放不持续占位。以demuxer-via-network观察为准，未知时才按路径分类；网络路径未公布时不猜测打开状态。与上游一样不为本地普通seek显示该网络指示。未复现Cocoa模糊材质或全部区域排版，数值采用稳定小数点而非系统数值区域格式。
+
+未编译测试运行，缓存事件顺序、观察子属性支持及真实网络缓冲行为仍待Windows验证。

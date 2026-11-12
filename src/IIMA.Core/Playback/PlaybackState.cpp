@@ -34,6 +34,8 @@ void ApplyPlaybackEvent(PlaybackSnapshot& s, MpvEvent const& e) {
         s.metadata.clear(); s.videoParameters.clear(); s.audioParameters.clear();
         s.videoOutputParameters.clear(); s.osdDimensions.clear();
         s.videoBitrate.reset(); s.audioBitrate.reset(); s.fileSize.reset(); ++s.informationRevision;
+        s.demuxerViaNetwork.reset(); s.cacheForwardBytes.reset();
+        s.cacheBytesPerSecond.reset(); s.cacheBufferingPercent.reset();
         s.seeking=false; s.buffering=false; s.error.clear();
         s.subtitleId.reset(); s.secondarySubtitleId.reset();
         s.videoId.reset(); s.audioId.reset();
@@ -49,6 +51,8 @@ void ApplyPlaybackEvent(PlaybackSnapshot& s, MpvEvent const& e) {
         // END_FILE IDs belong to the entry being ended, not the latest UI request.
         if(e.entryId!=s.entryId) break;
         s.swapChain.reset();
+        s.demuxerViaNetwork.reset(); s.cacheForwardBytes.reset();
+        s.cacheBytesPerSecond.reset(); s.cacheBufferingPercent.reset();
         s.seeking=false; s.buffering=false;
         s.subtitleId.reset(); s.secondarySubtitleId.reset();
         s.videoId.reset(); s.audioId.reset();
@@ -116,7 +120,19 @@ void ApplyPlaybackEvent(PlaybackSnapshot& s, MpvEvent const& e) {
             remaining = e.error>=0 && e.number && std::isfinite(*e.number) && *e.number>=0 ? e.number : std::nullopt;
         }
         else if(e.name=="pause" && e.flag) s.paused=*e.flag;
-        else if(e.name=="paused-for-cache" && e.flag) s.buffering=*e.flag;
+        else if(e.name=="paused-for-cache") {
+            const bool buffering=e.error>=0 && e.flag.value_or(false);
+            if (buffering!=s.buffering || !buffering) s.cacheBufferingPercent.reset();
+            s.buffering=buffering;
+        }
+        else if(e.name=="demuxer-via-network") s.demuxerViaNetwork=e.error>=0 ? e.flag : std::nullopt;
+        else if(e.name=="cache-speed" || e.name=="demuxer-cache-state/fw-bytes" || e.name=="cache-buffering-state") {
+            auto& target=e.name=="cache-speed" ? s.cacheBytesPerSecond :
+                e.name=="cache-buffering-state" ? s.cacheBufferingPercent : s.cacheForwardBytes;
+            if (e.error>=0 && e.integer && *e.integer>=0 &&
+                (e.name!="cache-buffering-state" || (s.buffering && *e.integer<=100))) target=e.integer;
+            else target.reset();
+        }
         else if(e.name=="volume" && e.number && std::isfinite(*e.number)) s.volume=*e.number;
         else if(e.name=="speed" && e.number && std::isfinite(*e.number)) s.speed=*e.number;
         else if(e.name=="mute" && e.flag) s.muted=*e.flag;
