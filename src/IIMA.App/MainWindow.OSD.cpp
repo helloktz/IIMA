@@ -4,6 +4,7 @@
 #include "MainWindow.xaml.h"
 #include "../IIMA.Core/OSD/OSDMessage.h"
 #include <chrono>
+#include <algorithm>
 using namespace winrt;
 using namespace Microsoft::UI::Xaml;
 namespace winrt::IIMA::implementation {
@@ -38,7 +39,10 @@ void MainWindow::UpdateOSD(iima::PlaybackSnapshot const& state) {
     }
     osdHaveState_ = true; osdPaused_ = state.paused; osdVolume_ = state.volume;
     osdSpeed_ = state.speed; osdMuted_ = state.muted;
-    if (!changed) return;
+    if (!changed || !preferences_.Boolean("enableOSD")) return;
+    if ((message.kind == iima::OSDKind::Pause || message.kind == iima::OSDKind::Resume) &&
+        preferences_.Boolean("disableOSDPauseResumeMsgs")) return;
+    if (message.kind == iima::OSDKind::Speed && preferences_.Boolean("disableOSDSpeedMsg")) return;
     iima::OSDPreferences preferences;
     preferences.maximumVolume = state.maxVolume;
     iima::OSDDispatchContext dispatch;
@@ -58,6 +62,9 @@ void MainWindow::UpdateOSD(iima::PlaybackSnapshot const& state) {
     OSDProgress().Visibility(progress ? Visibility::Visible : Visibility::Collapsed);
     OSDProgress().Value(presentation->progress);
     OSDBorder().Visibility(Visibility::Visible);
-    osdTimer_.Stop(); osdTimer_.Start();
+    osdTimer_.Stop();
+    auto timeout = preferences_.Number("osdAutoHideTimeout");
+    osdTimer_.Interval(std::chrono::milliseconds(static_cast<long long>(std::max(0.001, timeout) * 1000)));
+    osdTimer_.Start();
 }
 }

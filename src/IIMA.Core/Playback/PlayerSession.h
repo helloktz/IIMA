@@ -4,6 +4,7 @@
 #include "../Audio/Equalizations.h"
 #include "../Persistence/UserData.h"
 #include "../Playlist/PlaylistPlan.h"
+#include "../Settings/PreferenceSchema.h"
 
 namespace iima {
 class PlayerSession final : public std::enable_shared_from_this<PlayerSession> {
@@ -44,7 +45,10 @@ public:
     void SetSecondarySubtitlesVisible(bool visible);
     void ReloadSubtitles();
     void SeekSubtitle(int direction);
-    void ScreenshotToFile(std::string path);
+    // Completion runs on the UI dispatcher, including immediate rejection.
+    // Close cancellation is delivered only after mpv has released its file writes.
+    using ScreenshotCompleted = std::function<void(bool, std::string)>;
+    void ScreenshotToFile(std::string path, ScreenshotCompleted completion = {});
     void Pause(bool paused);
     void TogglePause();
     void Seek(double seconds);
@@ -64,6 +68,10 @@ public:
     void SetCompositionSize(unsigned width, unsigned height);
     // Local preferences never overwrite observed playback fields. Call on UI thread.
     void ApplySettings(UserSettings const& settings);
+    // Immediate values are submitted now (or at Ready). NextMedia values are
+    // submitted before the next explicit Open/Playlist switch, not at START_FILE.
+    // This method does not claim that asynchronous commands succeeded.
+    void ApplyAdvancedPreferences(settings::PreferenceStore const& preferences);
     void SetPauseWhenOpen(bool value);
     void SetAutoPlayNext(bool value);
     void SetMuted(bool value);
@@ -85,6 +93,8 @@ private:
     void Notify();
     bool CanOpen();
     void MaybeResume();
+    void ApplyAdvancedPreferencesOnReady();
+    void PrependNextMediaPreferences();
     void PausedCommand(std::vector<std::string> command);
     void BeginPlaylistEdit(PlaylistEditPlan plan, std::optional<bool> shuffledAfter = {});
     void AdvancePlaylistEdit(std::span<const PlaylistItem> refreshed);
@@ -96,6 +106,8 @@ private:
     PlaybackSnapshot snapshot_;
     UserSettings settings_;
     bool applySettingsOnReady_{};
+    settings::PreferenceStore advancedPreferences_;
+    bool hasAdvancedPreferences_{}, applyAdvancedOnReady_{};
     bool presentationReady_{};
     std::uint64_t pauseRequest_{}, loadRequest_{};
     std::int64_t expectedEntry_{-1};
@@ -106,5 +118,7 @@ private:
     std::uint64_t playlistEditCommand_{}, playlistEditQuery_{}, playlistEditRevision_{};
     std::optional<bool> playlistShuffleAfter_;
     bool playlistShuffled_{};
+    std::uint64_t screenshotRequest_{};
+    ScreenshotCompleted screenshotCompleted_;
 };
 }

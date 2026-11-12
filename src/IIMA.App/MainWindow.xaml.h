@@ -5,10 +5,12 @@
 #include "Presentation/VideoPresenter.h"
 #include "Platform/MediaIntegration.h"
 #include "Platform/LocalInputResolver.h"
+#include "Platform/ScreenshotStaging.h"
 #include "../IIMA.Core/Diagnostics/DiagnosticLog.h"
 #include <winrt/Microsoft.UI.Dispatching.h>
 #include <winrt/Microsoft.UI.Xaml.Input.h>
 #include "../IIMA.Core/Persistence/UserData.h"
+#include "../IIMA.Core/Input/KeyMapping.h"
 #include <winrt/Microsoft.UI.Windowing.h>
 
 namespace winrt::IIMA::implementation {
@@ -22,6 +24,12 @@ private:
     winrt::fire_and_forget OpenSubtitle();
     winrt::fire_and_forget OpenNetworkUrl();
     void WirePlaybackControls();
+    void WireKeyboardControls();
+    void ApplyKeyboardConfiguration();
+    bool DispatchKeyBinding(iima::KeyMapping const& binding);
+    winrt::fire_and_forget ImportKeyBindings();
+    winrt::fire_and_forget ExportKeyBindings();
+    std::unique_ptr<iima::KeyBindingSet> keyBindings_;
     void WireVideoControls();
     void WireSubtitleControls();
     void FindLocalSubtitle();
@@ -41,6 +49,10 @@ private:
     void BeginClose();
     void WireFileActions();
     void WireSettingsControls();
+    void PopulateAdvancedSettings();
+    void ApplyAdvancedSetting(std::string const& key, iima::settings::PreferenceValue value);
+    void ApplyWindowPreferences();
+    iima::settings::PreferenceStore preferences_;
     void ApplySettingsSnapshot(iima::PlaybackSnapshot const& state);
     void WireAssociationControls();
     void FlushActivation();
@@ -49,7 +61,9 @@ private:
     void CloseDiagnostics();
     void OpenPendingFiles();
     winrt::fire_and_forget DropFiles(Microsoft::UI::Xaml::DragEventArgs args);
-    winrt::fire_and_forget SaveScreenshot();
+    winrt::fire_and_forget SaveScreenshot(bool clipboardOnly = false);
+    winrt::fire_and_forget FinishScreenshot(std::shared_ptr<iima::ScreenshotStaging> staging,
+        std::optional<std::filesystem::path> destination, bool copyToClipboard);
     winrt::fire_and_forget SavePlaylist();
     void LoadUserData();
     void WireUserDataControls();
@@ -90,7 +104,9 @@ private:
     struct HistorySample { std::int64_t entryId; std::string path; std::optional<double> position, duration; };
     std::optional<HistorySample> lastMedia_;
     std::optional<int64_t> resumedEntry_;
+    std::optional<int64_t> fullscreenPreferenceEntry_;
     bool discardUserData_{}, saveDialogOpen_{}, userDataLoaded_{}, settingsApplied_{}, saving_{}, saveDirty_{}, saveFailed_{}, coreClosed_{};
+    bool screenshotPostProcessing_{};
     bool updating_{}, closing_{}, closeComplete_{}, pickerOpen_{}, fullscreen_{};
 };
 }

@@ -1,5 +1,7 @@
 #include "pch.h"
 #include "MainWindow.xaml.h"
+#include "Platform/ScreenshotImage.h"
+#include "../IIMA.Core/Screenshots/ScreenshotOptions.h"
 #include <ShObjIdl_core.h>
 #include <microsoft.ui.xaml.window.h>
 #include <winrt/Windows.ApplicationModel.DataTransfer.h>
@@ -18,15 +20,9 @@ void MainWindow::WireFileActions()
             args.AcceptedOperation(Windows::ApplicationModel::DataTransfer::DataPackageOperation::Copy);
     });
     Root().Drop([weak](auto const&, DragEventArgs const& args) { if (auto self = weak.get()) self->DropFiles(args); });
+    CopyScreenshotButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->SaveScreenshot(true); });
     ScreenshotButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->SaveScreenshot(); });
-    Input::KeyboardAccelerator screenshot;
-    screenshot.Key(Windows::System::VirtualKey::S);
-    screenshot.Modifiers(Windows::System::VirtualKeyModifiers::Control | Windows::System::VirtualKeyModifiers::Shift);
-    screenshot.Invoked([weak](auto const&, auto const& args) {
-        if (auto self = weak.get()) self->SaveScreenshot();
-        args.Handled(true);
-    });
-    Root().KeyboardAccelerators().Append(screenshot);
+
 }
 void MainWindow::QueueFiles(std::vector<std::string> paths, bool append)
 {
@@ -81,26 +77,72 @@ winrt::fire_and_forget MainWindow::DropFiles(DragEventArgs args)
     } catch (hresult_error const& error) { if (!closing_) ShowError(error.message()); }
     deferral.Complete();
 }
-winrt::fire_and_forget MainWindow::SaveScreenshot()
+winrt::fire_and_forget MainWindow::SaveScreenshot(bool clipboardOnly)
 {
     auto lifetime = get_strong();
-    if (closing_ || pickerOpen_ || session_->Snapshot().media != iima::MediaState::Loaded) co_return;
+    if (closing_ || pickerOpen_ || screenshotPostProcessing_ || session_->Snapshot().media != iima::MediaState::Loaded) co_return;
     pickerOpen_ = true;
-    // Do not take a different file's screenshot if media changes while the dialog is open.
     auto entry = session_->Snapshot().entryId;
     try {
-        Windows::Storage::Pickers::FileSavePicker picker;
-        HWND hwnd{};
-        check_hresult(this->as<::IWindowNative>()->get_WindowHandle(&hwnd));
-        check_hresult(picker.as<::IInitializeWithWindow>()->Initialize(hwnd));
-        picker.SuggestedFileName(L"IIMA-screenshot");
-        picker.FileTypeChoices().Insert(L"PNG 图像", single_threaded_vector<hstring>({L".png"}));
-        auto file = co_await picker.PickSaveFileAsync();
-        if (file && !closing_) {
-            if (session_->Snapshot().entryId == entry) session_->ScreenshotToFile(to_string(file.Path()));
-            else ShowError(L"媒体已切换，未保存截图，请重新截图。");
+        std::optional<std::filesystem::path> destination;
+        if (!clipboardOnly) {
+            Windows::Storage::Pickers::FileSavePicker picker;
+            HWND hwnd{};
+            check_hresult(this->as<::IWindowNative>()->get_WindowHandle(&hwnd));
+            check_hresult(picker.as<::IInitializeWithWindow>()->Initialize(hwnd));
+            picker.SuggestedFileName(to_hstring(iima::SuggestedScreenshotFilename(
+                session_->Snapshot().path, GetTickCount64(), iima::ScreenshotFormat::Png)));
+            picker.FileTypeChoices().Insert(L"PNG 图像", single_threaded_vector<hstring>({L".png"}));
+            auto file = co_await picker.PickSaveFileAsync();
+            if (!file || closing_) { pickerOpen_ = false; co_return; }
+            destination = std::filesystem::path(file.Path().c_str());
         }
+        if (!closing_ && session_->Snapshot().entryId == entry) {
+            auto staging = std::make_shared<iima::ScreenshotStaging>(iima::ScreenshotStaging::Create());
+            auto weak = get_weak();
+            session_->ScreenshotToFile(to_string(staging->Path().wstring()),
+                [weak, staging, destination, clipboardOnly](bool success, std::string error) {
+                    if (auto self = weak.get(); self && !self->closing_) {
+                        if (success) self->FinishScreenshot(staging, destination, clipboardOnly);
+                        else self->ShowError(to_hstring(error));
+                    }
+                    // staging cannot be destroyed before the actual mpv reply
+                    // (or completed shutdown), even if the window has closed.
+                });
+        } else if (!closing_) ShowError(L"媒体已切换，未保存截图，请重新截图。");
     } catch (hresult_error const& error) { if (!closing_) ShowError(error.message()); }
+      catch (std::exception const& error) { if (!closing_) ShowError(to_hstring(error.what())); }
     pickerOpen_ = false;
+}
+winrt::fire_and_forget MainWindow::FinishScreenshot(std::shared_ptr<iima::ScreenshotStaging> staging,
+    std::optional<std::filesystem::path> destination, bool copyToClipboard) {
+    auto lifetime = get_strong();
+    screenshotPostProcessing_ = true;
+    apartment_context ui;
+    std::optional<iima::ScreenshotPixels> pixels;
+    std::exception_ptr failure;
+    co_await resume_background();
+    auto initialized = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+    try {
+        if (destination) staging->Publish(*destination);
+        if (copyToClipboard) {
+            check_hresult(initialized);
+            pixels = iima::DecodeScreenshot(staging->Path());
+        }
+    } catch (...) { failure = std::current_exception(); }
+    if (SUCCEEDED(initialized)) CoUninitialize();
+    co_await ui;
+    screenshotPostProcessing_ = false;
+    if (closing_) { FinishClose(); co_return; }
+    try {
+        if (failure) std::rethrow_exception(failure);
+        if (pixels) {
+            HWND hwnd{};
+            check_hresult(this->as<::IWindowNative>()->get_WindowHandle(&hwnd));
+            iima::CopyScreenshotToClipboard(hwnd, *pixels);
+        }
+        ShowError(copyToClipboard ? L"截图已复制到剪贴板。" : L"截图已保存。");
+    } catch (hresult_error const& error) { ShowError(error.message()); }
+      catch (std::exception const& error) { ShowError(to_hstring(error.what())); }
 }
 }

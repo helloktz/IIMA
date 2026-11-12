@@ -32,6 +32,10 @@ void MainWindow::LoadUserData()
                 self->ResumeCheck().IsChecked(self->userData_.settings.resumePosition);
                 self->updating_ = false;
                 self->RefreshHistory();
+                self->ApplyKeyboardConfiguration();
+                self->preferences_.Restore(self->userData_.settings.advancedPreferences);
+                self->PopulateAdvancedSettings();
+                self->ApplyWindowPreferences();
                 self->ApplyUserData(self->session_->Snapshot());
                 self->OpenPendingFiles();
                 self->FlushActivation();
@@ -72,9 +76,14 @@ void MainWindow::WireUserDataControls()
 void MainWindow::ApplyUserData(iima::PlaybackSnapshot const& state)
 {
     if (!userDataLoaded_) return;
+    // Reloading the same playlist entry is a new open even though its ID is
+    // unchanged. Re-arm the fullscreen preference at the loading boundary.
+    if (state.media == iima::MediaState::Loading || state.media == iima::MediaState::Empty)
+        fullscreenPreferenceEntry_.reset();
     if (!settingsApplied_ && state.session == iima::SessionState::Ready && !closing_) {
         settingsApplied_ = true;
         session_->ApplySettings(userData_.settings);
+        session_->ApplyAdvancedPreferences(preferences_);
     }
     if (state.media == iima::MediaState::Loading || state.media == iima::MediaState::Empty ||
         (lastMedia_ && (lastMedia_->entryId != state.entryId || lastMedia_->path != state.path))) {
@@ -164,7 +173,7 @@ winrt::fire_and_forget MainWindow::ConfirmUnsavedClose()
 }
 void MainWindow::FinishClose()
 {
-    if (closing_ && coreClosed_ && diagnosticsClosed_ && userDataLoaded_ && !saving_ && (discardUserData_ || (!saveDirty_ && !saveFailed_ && userData_.writable))) {
+    if (closing_ && !screenshotPostProcessing_ && coreClosed_ && diagnosticsClosed_ && userDataLoaded_ && !saving_ && (discardUserData_ || (!saveDirty_ && !saveFailed_ && userData_.writable))) {
         closeComplete_ = true; Close();
     }
 }

@@ -88,15 +88,7 @@ void MainWindow::WirePlaybackControls()
             self->userData_.settings.volume = args.NewValue(); self->MarkUserDataDirty();
         }
     });
-    auto addKey = [this](Windows::System::VirtualKey key, std::function<void()> action) {
-        Input::KeyboardAccelerator accelerator;
-        accelerator.Key(key); accelerator.Modifiers(Windows::System::VirtualKeyModifiers::Control);
-        accelerator.Invoked([action](auto const&, auto const& args) { action(); args.Handled(true); });
-        Root().KeyboardAccelerators().Append(accelerator);
-    };
-    addKey(Windows::System::VirtualKey::Right, [weak] { if (auto self = weak.get()) self->session_->PlaylistNext(); });
-    addKey(Windows::System::VirtualKey::Left, [weak] { if (auto self = weak.get()) self->session_->PlaylistPrevious(); });
-    addKey(Windows::System::VirtualKey::L, [weak] { if (auto self = weak.get()) self->OpenFile(true); });
+
 }
 void MainWindow::PlaySelected()
 {

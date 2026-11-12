@@ -59,6 +59,7 @@ void PlayerSession::OpenMultiple(std::vector<std::string> paths,bool append) {
     pendingCommands_.push_back({"set","force-window","yes"});
     for(std::size_t i=0;i<paths.size();++i)
         pendingCommands_.push_back({"loadfile",std::move(paths[i]),i==0 ? "replace" : "append"});
+    PrependNextMediaPreferences();
     pauseRequest_=client_->Command({"set","pause","yes"});
     if(!pauseRequest_) { pendingCommands_.clear(); resumePending_=false; snapshot_.error="Player is closing"; Notify(); }
 }
@@ -68,6 +69,7 @@ void PlayerSession::PausedCommand(std::vector<std::string> command) {
     presentationReady_=false; resumePending_=!settings_.pauseWhenOpen; loadRequest_=0;
     transitionIssued_=false; waitingForStart_=true; loadReturnsEntry_=false;
     pendingCommands_={std::move(command)};
+    PrependNextMediaPreferences();
     pauseRequest_=client_->Command({"set","pause","yes"});
     if(!pauseRequest_) { pendingCommands_.clear(); resumePending_=false; snapshot_.error="Player is closing"; Notify(); }
 }
@@ -98,14 +100,26 @@ void PlayerSession::SelectChapter(std::size_t index) {
     client_->Command({"seek",std::to_string(snapshot_.chapters[index].time),"absolute"});
     Pause(false);
 }
-void PlayerSession::ScreenshotToFile(std::string path) {
-    if(snapshot_.session!=SessionState::Ready || snapshot_.media!=MediaState::Loaded || path.empty() || path.find('\0')!=std::string::npos) return;
-    if(std::none_of(snapshot_.tracks.begin(),snapshot_.tracks.end(),[](auto const& track) { return track.type=="video" && track.selected; })) {
-        snapshot_.error="Screenshots require an active video track"; Notify(); return;
+void PlayerSession::ScreenshotToFile(std::string path, ScreenshotCompleted completion) {
+    auto reject = [&](std::string error) {
+        snapshot_.error=error; Notify();
+        if(completion) completion(false,std::move(error));
+    };
+    if(screenshotRequest_) { reject("A screenshot is already in progress"); return; }
+    if(snapshot_.session!=SessionState::Ready || snapshot_.media!=MediaState::Loaded) {
+        reject("Screenshots require loaded media"); return;
     }
+    if(path.empty() || path.find('\0')!=std::string::npos) {
+        reject("Invalid screenshot destination"); return;
+    }
+    if(std::none_of(snapshot_.tracks.begin(),snapshot_.tracks.end(),[](auto const& track) {
+        return track.type=="video" && track.selected;
+    })) { reject("Screenshots require an active video track"); return; }
     const char* mode=settings_.screenshotMode==ScreenshotMode::Subtitles ? "subtitles" :
         settings_.screenshotMode==ScreenshotMode::Window ? "window" : "video";
-    client_->Command({"screenshot-to-file",std::move(path),mode});
+    screenshotRequest_=client_->Command({"screenshot-to-file",std::move(path),mode});
+    if(!screenshotRequest_) { reject("Player is closing"); return; }
+    screenshotCompleted_=std::move(completion);
 }
 void PlayerSession::AddSubtitle(std::string path) {
     if(snapshot_.session!=SessionState::Ready || path.empty() || path.find('\0')!=std::string::npos) return;
@@ -214,13 +228,34 @@ void PlayerSession::SetScreenshotMode(ScreenshotMode mode) {
 void PlayerSession::OnEvent(MpvEvent e) {
     if(snapshot_.session==SessionState::Closing || snapshot_.session==SessionState::Closed) return;
     if(e.kind==MpvEvent::Kind::Failure || e.kind==MpvEvent::Kind::Shutdown) CancelPlaylistEdits();
+    if(e.kind==MpvEvent::Kind::Failure && screenshotRequest_) {
+        screenshotRequest_=0;
+        auto completion=std::move(screenshotCompleted_);
+        screenshotCompleted_={};
+        // The worker may still be terminating. Wait for its write barrier
+        // before the UI callback can dispose the screenshot staging owner.
+        if(completion) client_->CloseAsync([dispatch=dispatch_,completion=std::move(completion)] {
+            dispatch([completion] { completion(false,"Playback worker failed during screenshot"); });
+        });
+    }
+    if(e.kind==MpvEvent::Kind::CommandReply && screenshotRequest_ && e.requestId==screenshotRequest_) {
+        screenshotRequest_=0;
+        auto completion=std::move(screenshotCompleted_);
+        screenshotCompleted_={};
+        // The reply is the file-write completion barrier. A change of media
+        // after this submitted request does not invalidate its captured file.
+        if(completion) completion(e.error>=0,e.error>=0 ? std::string{} :
+            (e.text.empty() ? "mpv could not save the screenshot" : e.text));
+    }
     if(HandlePlaylistEditEvent(e)) return;
     if(e.kind==MpvEvent::Kind::CommandReply && e.requestId==pauseRequest_) {
         pauseRequest_=0;
         if(e.error>=0) for(auto& command:pendingCommands_) {
             const bool firstLoad=command.size()>2 && command[0]=="loadfile" && command[2]=="replace";
+            const bool playlistSwitch=!command.empty() &&
+                (command[0]=="playlist-next" || command[0]=="playlist-prev" || command[0]=="playlist-play-index");
             const auto id=client_->Command(std::move(command));
-            if(firstLoad || !loadReturnsEntry_) {
+            if(firstLoad || playlistSwitch) {
                 loadRequest_=id;
                 transitionIssued_=id!=0;
                 if(!id) resumePending_=false;
@@ -242,6 +277,7 @@ void PlayerSession::OnEvent(MpvEvent e) {
     const auto previousChain=snapshot_.swapChain;
     const bool wasPlaying=!snapshot_.paused;
     ApplyPlaybackEvent(snapshot_,e);
+    if(e.kind==MpvEvent::Kind::Ready) ApplyAdvancedPreferencesOnReady();
     if(e.kind==MpvEvent::Kind::Ready && applySettingsOnReady_) { applySettingsOnReady_=false; ApplySettings(settings_); }
     if(!pauseRequest_ && !loadRequest_ && !waitingForStart_ &&
        e.kind==MpvEvent::Kind::VideoReconfig && previousChain && !snapshot_.swapChain && wasPlaying && snapshot_.media==MediaState::Loaded) {
@@ -261,9 +297,13 @@ void PlayerSession::CloseAsync(std::function<void()> completion) {
     if(snapshot_.session!=SessionState::Closed) snapshot_.session=SessionState::Closing;
     pendingCommands_.clear(); pauseRequest_=0; loadRequest_=0; transitionIssued_=false; waitingForStart_=false; presentationReady_=false; resumePending_=false; snapshot_.swapChain.reset(); Notify();
     auto weak=weak_from_this();
-    client_->CloseAsync([weak, dispatch=dispatch_, completion=std::move(completion)] {
-        dispatch([weak,completion] {
+    auto screenshotCompletion=std::move(screenshotCompleted_);
+    screenshotCompleted_={}; screenshotRequest_=0;
+    client_->CloseAsync([weak, dispatch=dispatch_, completion=std::move(completion),
+                         screenshotCompletion=std::move(screenshotCompletion)] {
+        dispatch([weak,completion,screenshotCompletion] {
             if(auto self=weak.lock()) { self->snapshot_.session=SessionState::Closed; self->Notify(); }
+            if(screenshotCompletion) screenshotCompletion(false,"Player closed before screenshot completion");
             if(completion) completion();
         });
     });

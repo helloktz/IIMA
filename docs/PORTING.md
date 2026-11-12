@@ -162,3 +162,14 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 - 增加全部208个Swift文件的保守覆盖清单与生成脚本，映射不自动视为完整移植。
 
 本批未编译/测试/运行。旧portable测试stub和依赖列表仅随异步查询契约静态更新，不能据此报告通过。
+
+### 第五批：可编辑快捷键、高级偏好与截图后处理
+
+本批仍按最新要求仅静态编写，不编译、测试或运行。
+
+- `SettingsPageKeyBindings.ConfigEditor` / `KeyMapping` / `PlayerCore.setKeyBindings` → `Input/BindingConfiguration.*`：只读/复制、增删改排序、搜索、规范键冲突、最后绑定胜出、带 revision 的保存确认和一次 fallback。`MainWindow.Keyboard.cpp` 实际连接 UTF-8 input.conf 导入/导出、文本编辑、保存与恢复默认，存入现有 settings.json 可选字段，空字符串表示主动取消全部绑定。多个命名配置目录模型尚未接多配置切换 UI，不称全套配置管理完成。
+- `PlayerWindowController.handleKeyBinding/keyDown` / `KeyCodeHelper` → Windows `PreviewKeyDown` 与 `Platform/KeyboardInput`；移除旧硬编码 accelerators 避免自定义键不能覆盖。键盘布局字符通过不改写死键状态的 ToUnicodeEx 获取，跳过 IME/AltGr/Windows 系统快捷键，文本输入与原生选择器不截获。按键重复只用于连续播放器动作。应用命令走既有路由；普通命令只接受已实现 typed session 动作，不执行 input.conf 中的 run/script、命令链、变量展开或任意 mpv 字符串。这是明确兼容性差异，不宣称任意 mpv 配置兼容。
+- `Preference.swift` / `MPVController.mpvInit/setUserOption` → `Settings/PreferenceSchema.*`：65 项真实默认值与枚举、严格类型校验、恢复时逐项回退、仅存覆盖值、显式 mpv 属性与时机。`PreferenceJson`/现有存储和 WinUI schema 控件接入可用映射，Immediate 经异步队列提交；NextMedia 在明确打开/切换时捕获、暂停成功后先设置再加载，自动 EOF advance 不套用尚未提交的新值。界面显示的是偏好而非内核已确认值，失败沿现有错误渠道反馈，不承诺事务回滚。已接置顶/打开全屏/进出全屏暂停偏好与 OSD 开关/隐藏时间/字号；窗口失焦/最小化的异步恢复政策模型已写但尚未接线。
+- `PlayerCore.screenshot/createImage/screenshotCallback` / `Preference.ScreenshotFormat` → `Screenshots/ScreenshotOptions.*`、`ScreenshotImage`、`ScreenshotStaging`：截图命令成功回复是文件写完的屏障，精确关联请求，不按“最新文件”猜测；关闭/故障等待 worker 结束后回调。PNG SaveFilePicker 通过唯一临时目录再原子替换目标，独立复制截图按钮经 WIC 有界解码再向 CF_DIBV5 交付所有权。无视频轨道拒绝截图。剪贴板锁失败保留原内容；清空成功后 SetClipboardData 失败无法恢复原剪贴板，明确报错。更多格式/模板的策略模型不表示 UI 已支持任意格式；没有 HDR/ICC 保真或截图浮动预览的运行证据。
+
+快捷键编辑和高级偏好为新增可选 JSON 字段，沿用 schemaVersion=1；旧文件缺字段使用默认值，不需要破坏性迁移。未知高级项不执行，保留问题提示。英文上游 key 作为高级设置标签，完整本地化仍待完成。

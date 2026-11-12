@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "UserDataStore.h"
+#include "../Settings/PreferenceJson.h"
 #include <winrt/Windows.Data.Json.h>
 #include <ShlObj.h>
 #pragma comment(lib, "shell32.lib")
@@ -72,6 +73,13 @@ UserData UserDataStore::Load() {
     auto root=Root();
     try {
         if(auto json=Read(root/L"settings.json")) {
+            if (json->HasKey(L"advancedPreferences")) {
+                std::vector<settings::PreferenceIssue> issues;
+                auto preferences = ReadPreferenceJson(json->GetNamedObject(L"advancedPreferences"), issues);
+                data.settings.advancedPreferences = preferences.Overrides();
+                if (!issues.empty()) data.warning = "部分高级偏好无效，已分别恢复默认值。";
+            }
+            if (json->HasKey(L"inputConf")) data.settings.inputConf = to_string(json->GetNamedString(L"inputConf"));
             data.settings.volume=json->GetNamedNumber(L"volume",100);
             data.settings.speed=json->GetNamedNumber(L"speed",1);
             data.settings.recordHistory=json->GetNamedBoolean(L"recordHistory",true);
@@ -129,6 +137,8 @@ void UserDataStore::Save(UserData const& data) {
     auto root=Root();
     if(!ValidUserSettings(data.settings)) throw std::runtime_error("Invalid settings range");
     auto settings=Document();
+    settings.Insert(L"advancedPreferences", WritePreferenceJson(data.settings.advancedPreferences));
+    if (data.settings.inputConf) settings.Insert(L"inputConf", JsonValue::CreateStringValue(to_hstring(*data.settings.inputConf)));
     settings.Insert(L"volume",JsonValue::CreateNumberValue(data.settings.volume));
     settings.Insert(L"speed",JsonValue::CreateNumberValue(data.settings.speed));
     settings.Insert(L"recordHistory",JsonValue::CreateBooleanValue(data.settings.recordHistory));

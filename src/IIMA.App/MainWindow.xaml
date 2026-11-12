@@ -95,6 +95,7 @@
                         <NumberBox x:Name="SubtitlePositionBox" Header="字幕位置（0顶部，100底部）" Value="100" Minimum="0" Maximum="100"/>
                         <Button x:Name="ApplySubtitleLayoutButton" Content="应用字幕位置与缩放"/>
                         <Button x:Name="ScreenshotButton" Content="保存截图…"/>
+                        <Button x:Name="CopyScreenshotButton" Content="复制视频截图"/>
                         <ComboBox x:Name="ChapterBox" Header="章节" HorizontalAlignment="Stretch" AutomationProperties.Name="章节"/>
                         <ComboBox x:Name="SpeedBox" Header="播放速度" HorizontalAlignment="Stretch" AutomationProperties.Name="播放速度"/>
                         <Slider x:Name="VolumeSlider" Header="音量" Minimum="0" Maximum="100" Value="100" AutomationProperties.Name="音量"/>
@@ -121,6 +122,20 @@
                         <NumberBox x:Name="SubtitleDelayBox" Header="字幕延迟（秒，正数延后）" Value="0" SmallChange="0.1" LargeChange="1" SpinButtonPlacementMode="Compact"/>
                         <ComboBox x:Name="RepeatModeBox" Header="播放循环" HorizontalAlignment="Stretch"/>
                         <ComboBox x:Name="ScreenshotModeBox" Header="截图内容" HorizontalAlignment="Stretch"/>
+                        <Expander Header="高级播放与窗口偏好" HorizontalAlignment="Stretch">
+                            <StackPanel x:Name="AdvancedSettingsPanel" Spacing="8"/>
+                        </Expander>
+                        <Expander Header="快捷键配置" HorizontalAlignment="Stretch">
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="input.conf 格式。保存后立即生效；留空可取消全部快捷键。" TextWrapping="Wrap"/>
+                                <TextBox x:Name="KeyBindingsEditor" AcceptsReturn="True" MinHeight="160" MaxHeight="320" TextWrapping="NoWrap" FontFamily="Consolas"/>
+                                <Button x:Name="SaveKeyBindingsButton" Content="保存并应用"/>
+                                <Button x:Name="ResetKeyBindingsButton" Content="恢复 Windows 默认快捷键"/>
+                                <Button x:Name="ImportKeyBindingsButton" Content="导入 input.conf"/>
+                                <Button x:Name="ExportKeyBindingsButton" Content="导出 input.conf"/>
+                                <TextBlock x:Name="KeyBindingsStatus" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Expander>
                         <CheckBox x:Name="RecordHistoryCheck" Content="记录播放历史" IsChecked="True"/>
                         <CheckBox x:Name="ResumeCheck" Content="从上次位置继续" IsChecked="True"/>
                         <TextBlock Text="Windows 文件关联"/>

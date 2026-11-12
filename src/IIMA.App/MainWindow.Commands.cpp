@@ -69,6 +69,7 @@ void MainWindow::WireApplicationCommands() {
     }, available);
 }
 void MainWindow::UpdatePresentationLayout() {
+    ApplyWindowPreferences();
     auto compact = AppWindow().Presenter().Kind() == Microsoft::UI::Windowing::AppWindowPresenterKind::CompactOverlay;
     PlayerSidebar().Visibility(compact ? Visibility::Collapsed : Visibility::Visible);
     TopStatusBorder().Visibility(compact ? Visibility::Collapsed : Visibility::Visible);

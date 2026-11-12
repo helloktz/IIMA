@@ -103,5 +103,16 @@
     <ClCompile Include="Thumbnails\ThumbnailCacheManager.cpp" />
     <ClInclude Include="Thumbnails\ThumbnailCacheManager.h" />
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Input\BindingConfiguration.cpp" />
+    <ClInclude Include="Input\BindingConfiguration.h" />
+    <ClCompile Include="Playback\PlayerSession.Preferences.cpp" />
+    <ClCompile Include="Screenshots\ScreenshotOptions.cpp" />
+    <ClInclude Include="Screenshots\ScreenshotOptions.h" />
+    <ClCompile Include="Settings\PreferenceSchema.cpp" />
+    <ClInclude Include="Settings\PreferenceSchema.h" />
+    <ClCompile Include="Settings\WindowPlaybackPolicy.cpp" />
+    <ClInclude Include="Settings\WindowPlaybackPolicy.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

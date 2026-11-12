@@ -494,7 +494,8 @@
       "physicalLines": 582,
       "coverage": "partial-static-unverified",
       "reviewTargets": [
-        "src/IIMA.Core/Input/KeyMapping.cpp"
+        "src/IIMA.Core/Input/KeyMapping.cpp",
+        "src/IIMA.App/Platform/KeyboardInput.cpp"
       ]
     },
     {
@@ -854,7 +855,8 @@
       "physicalLines": 755,
       "coverage": "partial-static-unverified",
       "reviewTargets": [
-        "src/IIMA.App/MainWindow.Commands.cpp"
+        "src/IIMA.App/MainWindow.Commands.cpp",
+        "src/IIMA.App/MainWindow.Keyboard.cpp"
       ]
     },
     {
@@ -941,7 +943,9 @@
       "coverage": "partial-static-unverified",
       "reviewTargets": [
         "src/IIMA.Core/Persistence/UserData.h",
-        "src/IIMA.Core/Subtitles/SubtitleStyle.h"
+        "src/IIMA.Core/Subtitles/SubtitleStyle.h",
+        "src/IIMA.Core/Settings/PreferenceSchema.cpp",
+        "src/IIMA.App/MainWindow.Preferences.cpp"
       ]
     },
     {
@@ -1051,8 +1055,11 @@
     {
       "source": "references/iina/iina/SettingsPageKeyBindings.swift",
       "physicalLines": 645,
-      "coverage": "not-mapped",
-      "reviewTargets": []
+      "coverage": "partial-static-unverified",
+      "reviewTargets": [
+        "src/IIMA.Core/Input/BindingConfiguration.cpp",
+        "src/IIMA.App/MainWindow.Keyboard.cpp"
+      ]
     },
     {
       "source": "references/iina/iina/SettingsPageNetwork.swift",
