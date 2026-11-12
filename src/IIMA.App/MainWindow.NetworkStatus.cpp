@@ -40,6 +40,7 @@ void MainWindow::BindNetworkOpenAttempt(std::vector<std::string> const& paths,bo
 }
 void MainWindow::UpdateNetworkOpen(iima::PlaybackSnapshot const& state) {
     if(trackInspectorRevision_ && trackInspectorInput_!=inputGeneration_) ClearTrackInspector();
+    UpdateScrubbing();
     UpdateInitialWindow();
     using Phase=iima::OpenAttemptPhase;
     if (closing_ || inputGeneration_!=networkOpenInputRevision_) networkOpenUrl_.clear();

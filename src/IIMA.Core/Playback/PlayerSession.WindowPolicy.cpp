@@ -14,6 +14,7 @@ void PlayerSession::SystemWillSuspend() {
     Pause(true);
 }
 void PlayerSession::WindowLifecycleChanged(bool inactive,bool minimized) {
+    if(inactive || minimized) CancelScrub();
     windowInactive_=inactive;
     windowMinimized_=minimized;
     RefreshWindowPausePolicy();
@@ -30,6 +31,7 @@ void PlayerSession::RefreshWindowPausePolicy() {
 }
 void PlayerSession::SubmitWindowPauseDirective(std::optional<settings::WindowPauseDirective> directive) {
     if(!directive) return;
+    CancelScrub();
     if(snapshot_.session!=SessionState::Ready || snapshot_.media!=MediaState::Loaded ||
        (!directive->paused && !presentationReady_)) {
         // A failed resume retains ownership and can be retried when its current

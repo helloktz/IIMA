@@ -95,6 +95,12 @@ public:
     // UI-thread suspend notification: never wakes/pauses an idle or closing core.
     // Caller applies pauseWhenGoesToSleep. No automatic resume on wake.
     void SystemWillSuspend();
+    // UI-thread scrub transaction. Only normal End may restore prior playback.
+    std::uint64_t BeginScrub();
+    bool UpdateScrub(std::uint64_t token,double seconds);
+    void EndScrub(std::uint64_t token);
+    void CancelScrub(); // Does not undo submitted seek/pause; never resumes.
+    std::uint64_t ActiveScrubToken() const noexcept { return scrubToken_; }
     void Seek(double seconds);
     void SeekRelative(double seconds, bool exact = true);
     void SeekRelativeWithMode(double seconds, RelativeSeekMode mode);
@@ -201,6 +207,15 @@ private:
     void HandleFilterEditReply(MpvEvent const& event);
     void CancelFilterEditCallbacks();
     std::map<std::uint64_t, FilterEditCompleted> filterEditCallbacks_;
+    enum class ScrubStage { Baseline, Pause, PauseCheck, Seek, ResumeCheck, Resume };
+    void HandleScrubEvent(MpvEvent const& event);
+    void PumpScrub();
+    void FailScrub(std::string error);
+    bool ScrubMediaCurrent() const;
+    std::uint64_t scrubSerial_{},scrubToken_{},scrubGeneration_{},scrubIntent_{},scrubRequest_{};
+    ScrubStage scrubStage_{ScrubStage::Baseline};
+    bool scrubEnding_{},scrubPausedReady_{},scrubResumeWanted_{};
+    std::optional<double> scrubLatest_,scrubSubmitted_;
     void PausedCommand(std::vector<std::string> command);
     AutoPlaylistExpansionState autoPlaylistExpansion_;
     void InvalidateAutoPlaylistExpansion();

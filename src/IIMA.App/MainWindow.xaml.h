@@ -270,6 +270,16 @@ private:
     std::vector<std::pair<iima::settings::ToolbarAction, Microsoft::UI::Xaml::Controls::Button>> toolbarButtons_;
     std::string toolbarBaseline_, toolbarApplied_;
     bool toolbarDraftReady_{}, toolbarDraftDirty_{}, toolbarProjecting_{}, toolbarBuilt_{};
+    void WireScrubbing();
+    void BeginScrubbing();
+    void UpdateScrubbing();
+    void FinishScrubbing(bool cancelled);
+    void CancelScrubbing();
+    void PositionSliderChanged(double value);
+    std::uint64_t scrubToken_{}, scrubGeneration_{}, scrubIntent_{}, scrubInput_{}, scrubSuppressEpoch_{};
+    double scrubDuration_{};
+    std::int64_t scrubPresenter_{};
+    bool scrubStarting_{}, scrubSuppress_{}, scrubFullscreen_{}, scrubMusic_{};
     void WireSliderWheels();
     void WireTrackInspector();
     void UpdateTrackInspector(bool force = false);

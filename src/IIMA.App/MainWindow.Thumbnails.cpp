@@ -25,7 +25,7 @@ void MainWindow::WireThumbnailPreview() {
     });
     PositionSlider().PointerMoved([weak](auto const& sender, Input::PointerRoutedEventArgs const& args) {
         auto self = weak.get();
-        if (!self || self->closing_ || !self->preferences_.Boolean("enableThumbnailPreview")) return;
+        if (!self || self->closing_ || self->scrubToken_ || self->scrubStarting_ || !self->preferences_.Boolean("enableThumbnailPreview")) return;
         auto const& state = self->session_->Snapshot();
         if (state.media != iima::MediaState::Loaded || !state.duration || *state.duration <= 0) return;
         auto slider = sender.as<Controls::Slider>();

@@ -77,6 +77,7 @@ void PlayerSession::ReloadSubtitles() {
             client_->Command({"sub-reload", std::to_string(track.id)});
 }
 void PlayerSession::SeekSubtitle(int direction, bool primary) {
+    CancelScrub();
     if (snapshot_.session != SessionState::Ready || snapshot_.media != MediaState::Loaded ||
         !snapshot_.seekable || waitingForStart_ || playlistEdit_ || direction < -1 || direction > 1) return;
     auto id = primary ? snapshot_.subtitleId : snapshot_.secondarySubtitleId;

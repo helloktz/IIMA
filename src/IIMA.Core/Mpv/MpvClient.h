@@ -50,7 +50,7 @@ struct Chapter {
 // Owns all payloads; never exports mpv's borrowed event memory.
 struct MpvEvent {
     enum class Kind { Ready, Failure, StartFile, Loaded, EndFile, Seek, Restart, SeekMeasurement,
-                      Property, CommandReply, PlaylistReply, VideoGeometryReply, WindowScaleReply, WatchedPropertiesReply, VideoReconfig, Shutdown } kind;
+                      Property, CommandReply, PlaylistReply, PauseReply, VideoGeometryReply, WindowScaleReply, WatchedPropertiesReply, VideoReconfig, Shutdown } kind;
     std::string name, text;
     std::optional<double> number;
     std::optional<bool> flag;
@@ -91,6 +91,7 @@ public:
     // Genuine async GET reply through mpv's event queue, not cached observation.
     std::uint64_t GetVideoGeometryAsync();
     std::uint64_t GetWindowScaleAsync();
+    std::uint64_t GetPauseAsync(); // Genuine event-queue FLAG reply for scrub ownership.
     // Serialized compare-before-set: recover only this still-missing selection.
     std::uint64_t RecoverAudioDeviceAsync(std::string expectedDevice);
     // Read-only, serialized with commands. Does not install persistent observers.

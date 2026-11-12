@@ -5,5 +5,10 @@ namespace IIMA
     {
         WheelSlider();
         event Windows.Foundation.EventHandler<Microsoft.UI.Xaml.Input.PointerRoutedEventArgs> WheelInput;
+        void SetTrackingEnabled(Boolean enabled);
+        Boolean Tracking{ get; };
+        void CancelTracking();
+        event Windows.Foundation.EventHandler<Boolean> TrackingStarted;
+        event Windows.Foundation.EventHandler<Boolean> TrackingEnded;
     }
 }

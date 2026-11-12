@@ -64,8 +64,9 @@ MainWindow::MainWindow()
     CompactOverlayButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->ExecuteApplicationCommand(iima::ApplicationCommand::TogglePictureInPicture); });
     PauseButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->session_->TogglePause(); });
     FullscreenButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->ToggleFullscreen(); });
+    WireScrubbing();
     PositionSlider().ValueChanged([weak](auto const&, auto const& args) {
-        if (auto self = weak.get(); self && !self->updating_ && !self->closing_) self->session_->Seek(args.NewValue());
+        if (auto self = weak.get()) self->PositionSliderChanged(args.NewValue());
     });
     WireKeyboardControls();
     WirePlaybackControls();
@@ -237,8 +238,11 @@ void MainWindow::Apply(iima::PlaybackSnapshot const& state)
     PauseButton().Content(box_value(state.paused ? L"播放" : L"暂停"));
     auto seekable = loaded && state.seekable && state.duration && *state.duration > 0;
     PositionSlider().IsEnabled(seekable && outputReady);
-    PositionSlider().Maximum(seekable ? *state.duration : 1.0);
-    PositionSlider().Value(state.position.value_or(0));
+    UpdateScrubbing();
+    if(!scrubStarting_ && !scrubToken_) {
+        PositionSlider().Maximum(seekable ? *state.duration : 1.0);
+        PositionSlider().Value(state.position.value_or(0));
+    }
     UpdateTimeDisplay(state);
     ABLoopLabel().Text(L"A: " + Clock(state.abLoopA) + L"  B: " + Clock(state.abLoopB));
     EmptyLabel().Visibility(loaded ? Visibility::Collapsed : Visibility::Visible);
@@ -268,6 +272,7 @@ void MainWindow::BeginClose()
     SaveWindowPlacement();
     FinishInteractiveCrop(false, false);
     CancelControlBarDrag();
+    CancelScrubbing();
     closing_ = true;
     UpdateInitialWindow(true);
     ApplicationMenuBar().IsEnabled(false);

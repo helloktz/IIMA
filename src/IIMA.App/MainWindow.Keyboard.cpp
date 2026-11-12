@@ -88,6 +88,9 @@ void MainWindow::WireKeyboardControls() {
     // actually replace defaults. Text entry and modal pickers retain all keys.
     Root().PreviewKeyDown([weak](auto const&, Input::KeyRoutedEventArgs const& args) {
         auto self = weak.get();
+        if(self && (self->scrubToken_ || self->scrubStarting_) && args.Key()==Windows::System::VirtualKey::Escape) {
+            self->CancelScrubbing();args.Handled(true);return;
+        }
         if(self && self->oscDragging_ && args.Key()==Windows::System::VirtualKey::Escape) {
             self->CancelControlBarDrag();args.Handled(true);return;
         }

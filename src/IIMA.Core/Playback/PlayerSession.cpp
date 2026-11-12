@@ -27,6 +27,7 @@ void PlayerSession::Notify() { if(changed_) changed_(snapshot_); }
 // distinction across queued old events. Pinned mpv cmd_loadfile creates a new,
 // monotonically allocated playlist entry and returns playlist_entry_id.
 void PlayerSession::BeginMediaOriginIntent(bool explicitOpen) {
+    CancelScrub();
     if (snapshot_.networkOpenAttempt.phase != OpenAttemptPhase::None &&
         snapshot_.networkOpenAttempt.phase != OpenAttemptPhase::Cancelled)
         snapshot_.networkOpenAttempt.phase = OpenAttemptPhase::Superseded;
@@ -99,6 +100,7 @@ void PlayerSession::SetPresentationReady(bool ready) {
         (snapshot_.media==MediaState::Loaded && AudioOnlyPlaybackEligible(snapshot_.tracks, !snapshot_.tracks.empty())));
     if(presentationReady_==ready) return;
     presentationReady_=ready;
+    if(!ready) CancelScrub();
     MaybeResume();
     if(ready) RefreshWindowPausePolicy();
 }
@@ -204,6 +206,7 @@ void PlayerSession::CycleTrack(std::string type) {
     client_->Command({"cycle", std::move(type)});
 }
 void PlayerSession::SelectChapter(std::size_t index) {
+    CancelScrub();
     if(snapshot_.session!=SessionState::Ready || snapshot_.media!=MediaState::Loaded ||
         waitingForStart_ || playlistEdit_ || !snapshot_.seekable || index>=snapshot_.chapters.size()) return;
     client_->Command({"seek",std::to_string(snapshot_.chapters[index].time),"absolute"});
@@ -212,6 +215,7 @@ void PlayerSession::SelectChapter(std::size_t index) {
 // IINA MainMenuActions.menuNextChapter/menuPreviousChapter use add, not a
 // computed chapter index: mpv owns chapter-seek-threshold and end behavior.
 void PlayerSession::StepChapter(int direction) {
+    CancelScrub();
     if (snapshot_.session != SessionState::Ready || snapshot_.media != MediaState::Loaded ||
         !snapshot_.seekable || snapshot_.chapters.empty() || waitingForStart_ || playlistEdit_) return;
     if (direction != -1 && direction != 1) return;
@@ -268,13 +272,15 @@ bool PlayerSession::LoadExternalAudio(std::string path) {
     return client_->Command({"audio-add",std::move(path),"select"}) != 0;
 }
 void PlayerSession::Pause(bool value) {
+    CancelScrub();
     if(!value) sleepPauseHeld_=false;
     CancelWindowPausePolicy();
     if(value) resumePending_=false; // A user pause cancels deferred auto-resume.
     if(snapshot_.session==SessionState::Ready && (value || (presentationReady_ && snapshot_.media==MediaState::Loaded))) client_->Command({"set","pause",value ? "yes" : "no"});
 }
-void PlayerSession::TogglePause() { sleepPauseHeld_=false; CancelWindowPausePolicy(); resumePending_=false; if(snapshot_.session==SessionState::Ready && presentationReady_ && snapshot_.media==MediaState::Loaded) client_->Command({"cycle","pause"}); }
+void PlayerSession::TogglePause() { CancelScrub(); sleepPauseHeld_=false; CancelWindowPausePolicy(); resumePending_=false; if(snapshot_.session==SessionState::Ready && presentationReady_ && snapshot_.media==MediaState::Loaded) client_->Command({"cycle","pause"}); }
 void PlayerSession::Seek(double seconds) {
+    CancelScrub();
     if(snapshot_.session!=SessionState::Ready || snapshot_.media!=MediaState::Loaded ||
        !snapshot_.duration || *snapshot_.duration<=0 || !std::isfinite(seconds)) return;
     client_->Command({"seek",std::to_string(std::clamp(seconds,0.0,*snapshot_.duration)),"absolute+exact"});
@@ -607,6 +613,10 @@ void PlayerSession::OnEvent(MpvEvent e) {
         e.requestId==audioDeviceRecovery_ && audioDeviceRecoveryIntent_!=audioDeviceIntent_) {
         e.error=0; e.text.clear();
     }
+    // The worker may apply pauseWhenOpen directly on Loaded/EndFile, even
+    // before the UI reducer checks an EndFile entry identity. Revoke ownership.
+    if(e.kind==MpvEvent::Kind::Loaded || e.kind==MpvEvent::Kind::EndFile) CancelScrub();
+    if(e.kind==MpvEvent::Kind::PauseReply) { HandleScrubEvent(e); Notify(); return; }
     if (HandleWindowScaleEvent(e)) return;
     if (e.kind == MpvEvent::Kind::VideoGeometryReply) {
         if (!videoGeometryRequest_ || e.requestId != videoGeometryRequest_) return;
@@ -749,6 +759,8 @@ void PlayerSession::OnEvent(MpvEvent e) {
     const bool wasPlaying=!snapshot_.paused;
     ApplyPlaybackEvent(snapshot_,e);
     ObserveMediaOrigin(e);
+    if(previousChain && !snapshot_.swapChain) CancelScrub();
+    HandleScrubEvent(e);
     UpdateAudioDeviceRecovery(e);
     const bool geometryWake = e.kind == MpvEvent::Kind::Restart ||
         (snapshot_.mediaPlaybackRestarted && (e.kind == MpvEvent::Kind::VideoReconfig ||

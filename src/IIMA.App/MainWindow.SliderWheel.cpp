@@ -17,7 +17,7 @@ void MainWindow::WireSliderWheels() {
             // WheelSlider has already swallowed the native wheel operation,
             // including disabled/modified input. Never mutate Slider.Value here.
             auto self=weak.get();if(!self) return;
-            if(self->closing_ || !self->userDataLoaded_ || self->pickerOpen_ || self->oscDragging_ ||
+            if(self->closing_ || !self->userDataLoaded_ || self->pickerOpen_ || (!volume && (self->scrubStarting_ || self->PositionSlider().Tracking())) || self->oscDragging_ ||
                 self->interactiveCrop_.Active() || self->cropOriginal_ || self->inputResolving_ ||
                 !self->pendingFiles_.empty() || !self->activationInputs_.empty() || self->session_->PlaylistEditBusy()) return;
             if(self->preferences_.Boolean(volume ? "disableVolumeSliderScrolling" : "disablePlaySliderScrolling") ||
@@ -38,6 +38,11 @@ void MainWindow::WireSliderWheels() {
             try {
                 if(volume) self->session_->AdjustVolumeByWheel(amount);
                 else {
+                    if(self->scrubToken_) {
+                        const auto generation=state.mediaGeneration,intent=state.mediaOpenIntentRevision;
+                        self->CancelScrubbing();
+                        if(self->closing_ || state.mediaGeneration!=generation || state.mediaOpenIntentRevision!=intent) return;
+                    }
                     if(!state.seekable || !state.duration || !std::isfinite(*state.duration) || *state.duration<=0) return;
                     const auto choice=self->preferences_.Integer("useExactSeek");
                     const auto mode=self->preferences_.Boolean("wheelExactSeek") || choice==1 ? iima::RelativeSeekMode::Exact :

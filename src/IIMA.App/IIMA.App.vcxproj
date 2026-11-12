@@ -104,6 +104,7 @@
     <ClInclude Include="WheelSlider.h" />
     <ClCompile Include="WheelSlider.cpp" />
     <ClCompile Include="MainWindow.SliderWheel.cpp" />
+    <ClCompile Include="MainWindow.Scrubbing.cpp" />
     <ClInclude Include="VideoSurface.h" />
     <ClCompile Include="VideoSurface.cpp" />
     <ClCompile Include="MainWindow.VideoCursor.cpp" />
