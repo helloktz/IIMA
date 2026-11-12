@@ -191,6 +191,7 @@
                             <Button x:Name="NextSubtitleButton" Content="下一句"/>
                         </StackPanel>
                         <TextBox x:Name="SubtitleFontText" Header="字幕字体" Text="sans-serif"/>
+                        <Button x:Name="ChooseSubtitleFontButton" Content="选择本地字体…"/>
                         <NumberBox x:Name="SubtitleFontSizeBox" Header="字幕字号" Value="55" Minimum="1" Maximum="9000"/>
                         <CheckBox x:Name="SubtitleBoldCheck" Content="粗体字幕" IsChecked="False"/>
                         <CheckBox x:Name="SubtitleItalicCheck" Content="斜体字幕" IsChecked="False"/>

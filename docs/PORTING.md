@@ -472,3 +472,12 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 - 打开时捕获媒体代次、条目、路径和双字幕ID，在按钮和await返回后两次校验；换片/字幕选择变化拒绝过期提交。关闭窗口Hide对话框，取消不改mpv或草稿，选择器结束释放互斥并继续待处理打开请求。尚未实现字体枚举选择器、全局样式持久化或完整系统颜色管理。
 
 仅静态编写、人工源码审阅、数量统计与Git核验，未编译、测试或运行。
+
+### 第三十九批：字幕字体家族选择器
+
+- `PlayerCore.chooseSubFont/setSubFont`、`Utility.quickFontPickerWindow`、`FontPickerWindowController.windowDidLoad/controlTextDidChange/okBtnPressed/cancelBtnPressed` → `FontCatalog` 和 `MainWindow.SubtitleFontPicker.cpp`。后台 DirectWrite 枚举本机已安装字体家族，优先英文家族名作为 mpv 输入，用户区域名作为显示，按 ordinal 忽略大小写排序与搜索。隐藏点前缀/空名、非法 UTF-16 和超长名称排除；最多8192家族，超限整体失败而非隐藏截断。逐项坏数据跳过；不触发云字体下载或强制字体集合刷新。
+- 界面提供家族搜索、手动名称、预览和应用/取消。初值来自当前 `sub-font` 观察值，未知时回退草稿并明确提示；枚举失败仍允许手动输入。空名称沿 IINA 使用 sans-serif；仅提交 `sub-font`，不改变字号、粗斜体或其他样式。草稿不冒充命令成功，最终属性以 mpv 观察为准。只允许枚举中的家族名进入 XAML FontFamily，任意手动文本不作为字体文件/URI源加载。
+- 原生预览使用Windows字体回退，与 libass 实际解析/字体替代不保证一致。当前选择的是family而非上游PostScript/typeface成员，不提供字体面列表、变体轴或完整NSFont行为；手动输入可交由mpv识别，但本批不保证名称存在。搜索使用Windows ordinal规则，不是Cocoa区域折叠。字体资源在窗口间不缓存，枚举的同步原生调用只能在边界检查取消，不能保证立即终止。
+- 枚举期间与对话框打开后均核对媒体/双字幕代次；换片或切换字幕拒绝过期提交，关闭取消枚举并Hide对话框。整个操作持有窗口到回调结束，恢复后只在UI线程访问控件；取消不写字幕草稿或mpv，结束后恢复待打开文件流程。位图字幕不可编辑、ASS覆盖及主副共享提示沿现有规则。
+
+仅静态编写、人工阅读、数量统计和Git核验；未编译、测试、运行或确认字体渲染效果。

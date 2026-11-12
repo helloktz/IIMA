@@ -223,8 +223,11 @@
     {
       "source": "references/iina/iina/FontPickerWindowController.swift",
       "physicalLines": 212,
-      "coverage": "not-mapped",
-      "reviewTargets": []
+      "coverage": "partial-static-unverified",
+      "reviewTargets": [
+        "src/IIMA.App/Platform/FontCatalog.cpp",
+        "src/IIMA.App/MainWindow.SubtitleFontPicker.cpp"
+      ]
     },
     {
       "source": "references/iina/iina/GeometryDef.swift",

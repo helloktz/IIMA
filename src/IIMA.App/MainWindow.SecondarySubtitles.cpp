@@ -131,6 +131,7 @@ void MainWindow::UpdateSecondarySubtitles(iima::PlaybackSnapshot const& state) {
         L"ASS字幕的内置排版可能覆盖样式；缩放或位置调整可能破坏排版。" : L"");
     const bool canStyle = active && (!selectedAny || !imageOnly);
     ApplySubtitleStyleButton().IsEnabled(canStyle);
+    ChooseSubtitleFontButton().IsEnabled(canStyle);
     ApplySubtitleColorButton().IsEnabled(canStyle);
     ChooseSubtitleColorButton().IsEnabled(canStyle);
     ChooseSubtitleOutlineColorButton().IsEnabled(canStyle);

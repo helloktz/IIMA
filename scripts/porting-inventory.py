@@ -8,6 +8,7 @@ import json
 from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 MAPPING = {
+    'FontPickerWindowController.swift': ['src/IIMA.App/Platform/FontCatalog.cpp', 'src/IIMA.App/MainWindow.SubtitleFontPicker.cpp'],
     'OpenURLWindowController.swift': ['src/IIMA.App/MainWindow.Network.cpp', 'src/IIMA.Core/Network/MediaUrl.cpp'],
     'PlaySliderLoopKnob.swift': ['src/IIMA.App/MainWindow.ABLoop.cpp', 'src/IIMA.Core/Playback/PlayerSession.Actions.cpp'],
     'JavascriptAPIPlaylist.swift': ['src/IIMA.App/Plugins/PluginRuntime.cpp', 'src/IIMA.App/Plugins/PluginBootstrap.h', 'src/IIMA.App/MainWindow.PluginPlaylist.cpp'],
