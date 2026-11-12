@@ -76,6 +76,15 @@ private:
     winrt::fire_and_forget RetirePlugin(std::unique_ptr<iima::plugins::PluginRuntime> runtime);
     void ApplyPluginMenu(std::string const& json);
     void ClearPluginMenu();
+    void WireNativePluginMenu(Microsoft::UI::Xaml::Controls::MenuBarItem const&);
+    bool PluginMenuVisible() const noexcept;
+    void QueuePluginMenuRefresh();
+    void FlushPluginMenuRefresh();
+    Microsoft::UI::Xaml::Controls::MenuFlyoutSubItem nativePluginMenu_{nullptr};
+    std::size_t pluginMenuVisibleCount_{};
+    bool pluginMenuRefreshQueued_{}, pluginMenuClearPending_{};
+    std::optional<std::string> pendingPluginMenuJson_;
+    std::uint64_t pendingPluginMenuGeneration_{};
     bool InvokePluginMenuShortcut(std::string const& key, bool repeated);
     std::map<std::string, std::pair<std::string, std::string>, std::less<>> pluginMenuShortcuts_;
     std::string PluginKeyBindingsJson() const;
@@ -178,6 +187,8 @@ private:
     void FillTrackMenu(Microsoft::UI::Xaml::Controls::MenuFlyoutSubItem const&, std::string type, bool secondary = false);
     void FillChapterMenu(Microsoft::UI::Xaml::Controls::MenuFlyoutSubItem const&);
     void FillRecentMenu(Microsoft::UI::Xaml::Controls::MenuFlyoutSubItem const&);
+    void FillAudioDeviceMenu(Microsoft::UI::Xaml::Controls::MenuFlyoutSubItem const&);
+    void FillSavedFilterMenu(Microsoft::UI::Xaml::Controls::MenuFlyoutSubItem const&, bool audio);
     struct PlayerMenuAction {
         Microsoft::UI::Xaml::Controls::MenuFlyoutItem item{nullptr};
         std::function<winrt::hstring()> title;
@@ -190,7 +201,8 @@ private:
     };
     std::vector<PlayerMenuAction> playerMenuActions_;
     Microsoft::UI::Xaml::Controls::MenuFlyoutSubItem recentMenu_{nullptr}, videoTrackMenu_{nullptr},
-        audioTrackMenu_{nullptr}, subtitleTrackMenu_{nullptr}, secondaryTrackMenu_{nullptr}, chapterMenu_{nullptr};
+        audioTrackMenu_{nullptr}, subtitleTrackMenu_{nullptr}, secondaryTrackMenu_{nullptr}, chapterMenu_{nullptr},
+        audioDeviceMenu_{nullptr}, savedVideoFilterMenu_{nullptr}, savedAudioFilterMenu_{nullptr};
     bool playerMenusReady_{}, playerMenuRefreshQueued_{}, playerRecentMenuDirty_{true}, playerMenuShortcutsDirty_{};
     std::set<std::size_t> playerMenuVisibleItems_;
     std::string playerMenuDynamicKey_, playerRecentMenuStateKey_;

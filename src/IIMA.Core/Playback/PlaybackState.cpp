@@ -104,7 +104,10 @@ void ApplyPlaybackEvent(PlaybackSnapshot& s, MpvEvent const& e) {
         else if(e.name=="video-rotate") s.videoRotation=e.error>=0 ? e.integer : std::nullopt;
         else if(e.name=="audio-params") { s.audioParameters=e.properties; ++s.informationRevision; }
         else if(e.name=="audio-device-list") { s.audioDevices=e.audioDevices; ++s.audioDevicesRevision; }
-        else if(e.name=="audio-device") s.audioDevice=e.text;
+        else if(e.name=="audio-device") {
+            s.audioDevice=e.text;
+            s.audioDeviceObserved=e.error>=0 && !e.text.empty();
+        }
         else if(e.name=="media-title") { s.mediaTitle=e.text; ++s.informationRevision; }
         else if(e.name=="seekable") s.seekable=e.flag.value_or(false);
         else if(e.name=="video-bitrate") { s.videoBitrate=e.number; ++s.informationRevision; }

@@ -35,6 +35,7 @@ winrt::fire_and_forget MainWindow::StartLocalPlugin() {
     if (closing_ || pickerOpen_ || pluginStarting_ || pluginStopPending_ || pluginRuntime_) co_return;
     pluginStarting_ = true; pickerOpen_ = true;
     StartPluginButton().IsEnabled(false);
+    RefreshPlayerMenus();
     auto apartment = apartment_context();
     try {
         Windows::Storage::Pickers::FolderPicker picker;
@@ -191,17 +192,19 @@ winrt::fire_and_forget MainWindow::StartLocalPlugin() {
       catch (...) { if (!closing_) PluginRuntimeStatus().Text(L"无法启动插件。"); }
     pluginStarting_ = false; pickerOpen_ = false;
     if (!closing_) StartPluginButton().IsEnabled(!pluginRuntime_ && !pluginStopPending_);
+    RefreshPlayerMenus(); // Includes picker/consent cancellation and startup errors.
     FinishClose();
 }
 void MainWindow::StopLocalPlugin() {
     pluginPointer_.Reset();
     ++pluginGeneration_; // queued actions cannot affect a later plugin/window state
     ClearPluginMenu();
-    if (!pluginRuntime_) return;
+    if (!pluginRuntime_) { RefreshPlayerMenus(); return; }
     pluginRuntime_->Stop();
     pluginStopPending_ = true;
     if (!closing_) { StopPluginButton().IsEnabled(false); StartPluginButton().IsEnabled(false); PluginRuntimeStatus().Text(L"正在停止插件…"); }
     RetirePlugin(std::move(pluginRuntime_));
+    RefreshPlayerMenus();
 }
 winrt::fire_and_forget MainWindow::RetirePlugin(std::unique_ptr<iima::plugins::PluginRuntime> runtime) {
     auto lifetime = get_strong();
@@ -215,6 +218,7 @@ winrt::fire_and_forget MainWindow::RetirePlugin(std::unique_ptr<iima::plugins::P
         // Keep the final error/state report, do not replace it with false success.
         if (PluginRuntimeStatus().Text() == L"正在停止插件…") PluginRuntimeStatus().Text(L"插件已停止。");
     }
+    RefreshPlayerMenus();
     FinishClose();
 }
 void MainWindow::UpdatePlugin(iima::PlaybackSnapshot const& state) {

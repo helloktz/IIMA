@@ -785,6 +785,8 @@
       "reviewTargets": [
         "src/IIMA.App/MainWindow.Menus.cpp",
         "src/IIMA.App/MainWindow.Menus.Dynamic.cpp",
+        "src/IIMA.App/MainWindow.Menus.Media.cpp",
+        "src/IIMA.App/MainWindow.PluginMenu.cpp",
         "src/IIMA.Core/Input/MenuKeyBinding.cpp"
       ]
     },

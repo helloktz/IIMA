@@ -77,6 +77,7 @@ void MainWindow::RefreshSavedFilters() {
     // selection before structural edits or a category change.
     if (row >= 0 && static_cast<std::size_t>(row) < values.size()) SavedFilterView().SelectedIndex(row);
     refreshingSavedFilters_ = false;
+    RefreshPlayerMenus();
 }
 void MainWindow::EditSavedFilter(int action) {
     if (closing_ || !userDataLoaded_) return;

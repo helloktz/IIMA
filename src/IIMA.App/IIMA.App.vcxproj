@@ -113,6 +113,7 @@
     <ClCompile Include="MainWindow.WindowScale.cpp" />
     <ClCompile Include="MainWindow.Menus.cpp" />
     <ClCompile Include="MainWindow.Menus.Dynamic.cpp" />
+    <ClCompile Include="MainWindow.Menus.Media.cpp" />
     <ClCompile Include="MainWindow.VideoAdjustments.cpp" />
   </ItemGroup>
   <ItemGroup>

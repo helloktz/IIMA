@@ -109,28 +109,99 @@ MenuSnapshot ParseMenu(std::string const& json) {
 }
 
 namespace winrt::IIMA::implementation {
+bool MainWindow::PluginMenuVisible() const noexcept { return pluginMenuVisibleCount_ != 0; }
+void MainWindow::WireNativePluginMenu(Controls::MenuBarItem const& menu) {
+    if (nativePluginMenu_) return;
+    nativePluginMenu_ = Controls::MenuFlyoutSubItem{};
+    nativePluginMenu_.Text(L"当前插件命令");
+    nativePluginMenu_.IsEnabled(false);
+    auto weak = get_weak();
+    auto visible = std::make_shared<bool>(false);
+    // This fixed submenu row stays alive while its top-level popup is visible.
+    // Replacing its children never replaces the tracker or an open target.
+    nativePluginMenu_.Loaded([weak, visible](auto const&, auto const&) {
+        if (auto self = weak.get(); self && !*visible) {
+            *visible = true; ++self->pluginMenuVisibleCount_;
+        }
+    });
+    nativePluginMenu_.Unloaded([weak, visible](auto const&, auto const&) {
+        if (auto self = weak.get(); self && *visible) {
+            *visible = false;
+            if (self->pluginMenuVisibleCount_) --self->pluginMenuVisibleCount_;
+            self->QueuePluginMenuRefresh();
+        }
+    });
+    menu.Items().Append(nativePluginMenu_);
+    pluginMenuClearPending_ = true;
+    FlushPluginMenuRefresh();
+}
+void MainWindow::QueuePluginMenuRefresh() {
+    if (closing_ || pluginMenuRefreshQueued_) return;
+    pluginMenuRefreshQueued_ = true;
+    auto weak = get_weak();
+    if (!DispatcherQueue().TryEnqueue([weak] {
+        if (auto self = weak.get()) {
+            self->pluginMenuRefreshQueued_ = false;
+            if (self->closing_) return;
+            if (self->PluginMenuVisible()) { self->RefreshPlayerMenus(); return; }
+            self->FlushPluginMenuRefresh();
+            self->RefreshPlayerMenus();
+        }
+    })) pluginMenuRefreshQueued_ = false;
+}
+void MainWindow::FlushPluginMenuRefresh() {
+    if (PluginMenuVisible()) return;
+    if (pluginMenuClearPending_) {
+        pluginMenuClearPending_ = false;
+        try {
+            if (nativePluginMenu_) {
+                nativePluginMenu_.Items().Clear();
+                Controls::MenuFlyoutItem empty;
+                empty.Text(L"暂无插件命令"); empty.IsEnabled(false);
+                nativePluginMenu_.Items().Append(empty);
+                nativePluginMenu_.IsEnabled(false);
+            }
+            PluginMenuButton().Flyout(nullptr);
+            PluginMenuButton().IsEnabled(false);
+        } catch (...) { /* Detached XAML cannot prevent runtime cancellation. */ }
+    }
+    if (closing_ || !pluginRuntime_ || !pendingPluginMenuJson_) return;
+    auto json = std::move(*pendingPluginMenuJson_);
+    pendingPluginMenuJson_.reset();
+    if (pendingPluginMenuGeneration_ == pluginGeneration_) ApplyPluginMenu(json);
+}
 void MainWindow::ClearPluginMenu() {
     pluginMenuShortcuts_.clear();
-    // Stop/close may run while a flyout is open. Release the entire previous tree
-    // and its handlers; weak captures and generation checks guard late clicks.
+    pendingPluginMenuJson_.reset();
+    pluginMenuClearPending_ = true;
+    // Stop/close invalidates callback generations immediately. Keep an open
+    // native tree inert until it unloads instead of moving targets under a click.
     try {
+        if (nativePluginMenu_) nativePluginMenu_.IsEnabled(false);
         auto button = PluginMenuButton();
-        if (auto flyout = button.Flyout()) flyout.Hide();
-        button.Flyout(nullptr);
         button.IsEnabled(false);
-    } catch (...) {
-        // A disconnected XAML tree must never prevent cancellation of the worker.
-    }
+        if (auto flyout = button.Flyout()) flyout.Hide();
+    } catch (...) { /* A disconnected tree must not prevent stopping the worker. */ }
+    FlushPluginMenuRefresh();
+    QueuePluginMenuRefresh(); // Stop finishes invalidating runtime before this tick.
 }
 void MainWindow::ApplyPluginMenu(std::string const& json) {
     if (closing_ || !pluginRuntime_) return;
     try {
         auto snapshot = ParseMenu(json);
+        if (PluginMenuVisible()) {
+            // Validate now, but publish both surfaces and the shortcut map only
+            // once closed. Bounded single latest snapshot, no update backlog.
+            pendingPluginMenuJson_ = json;
+            pendingPluginMenuGeneration_ = pluginGeneration_;
+            return;
+        }
         auto generation = pluginGeneration_;
         auto weak = get_weak();
         auto invoke = [weak, generation, revision = snapshot.revision](std::string const& id) {
-            if (auto self = weak.get(); self && !self->closing_ && self->pluginRuntime_ &&
-                self->pluginGeneration_ == generation) {
+            if (auto self = weak.get(); self && !self->closing_ && !self->pickerOpen_ &&
+                !self->pluginStopPending_ && self->userDataLoaded_ && !self->interactiveCrop_.Active() &&
+                !self->cropOriginal_ && self->pluginRuntime_ && self->pluginGeneration_ == generation) {
                 try {
                     if (!self->pluginRuntime_->InvokeMenu(id, revision))
                         self->PluginRuntimeStatus().Text(L"插件菜单已变化或任务队列不可用；本次操作未提交。");
@@ -161,7 +232,7 @@ void MainWindow::ApplyPluginMenu(std::string const& json) {
             if (!node.keyBinding.empty()) {
                 // Visual hint only: a native KeyboardAccelerator would bypass
                 // the player's text-entry/conflict policy and may fire twice.
-                item.Text(node.title + L" [" + to_hstring(iima::DisplayMpvKey(node.keyBinding)) + L"]");
+                item.KeyboardAcceleratorTextOverride(to_hstring(iima::DisplayMpvKey(node.keyBinding)));
                 Automation::AutomationProperties::SetName(item, node.title);
                 Automation::AutomationProperties::SetHelpText(item,
                     L"快捷键 " + to_hstring(iima::DisplayMpvKey(node.keyBinding)) +
@@ -179,13 +250,50 @@ void MainWindow::ApplyPluginMenu(std::string const& json) {
         };
         MenuFlyout replacement;
         for (auto const& item : snapshot.items) replacement.Items().Append(build(item, true));
-        // Validate and construct everything before replacing the visible flyout.
-        // No half-built tree is exposed if validation or allocation throws.
+        std::vector<MenuFlyoutItemBase> nativeItems;
+        Controls::MenuFlyoutSubItem more{nullptr};
+        for (std::size_t index = 0; index < snapshot.items.size(); ++index) {
+            auto item = build(snapshot.items[index], true); // Independent XAML parent.
+            if (index < 5) nativeItems.push_back(std::move(item));
+            else {
+                if (!more) {
+                    more = Controls::MenuFlyoutSubItem{}; more.Text(L"更多…");
+                    nativeItems.push_back(more);
+                }
+                more.Items().Append(item);
+            }
+        }
+        if (nativeItems.empty()) {
+            Controls::MenuFlyoutItem empty; empty.Text(L"暂无插件命令"); empty.IsEnabled(false);
+            nativeItems.push_back(empty);
+        }
+        auto visible = std::make_shared<bool>(false);
+        replacement.Opened([weak, visible](auto const&, auto const&) {
+            if (auto self = weak.get(); self && !*visible) {
+                *visible = true; ++self->pluginMenuVisibleCount_;
+            }
+        });
+        replacement.Closed([weak, visible](auto const&, auto const&) {
+            if (auto self = weak.get(); self && *visible) {
+                *visible = false;
+                if (self->pluginMenuVisibleCount_) --self->pluginMenuVisibleCount_;
+                self->QueuePluginMenuRefresh();
+            }
+        });
+        // Construct both trees before publishing. Never reuse a XAML node in
+        // two parents. All handlers capture immutable generation/id/revision.
         auto button = PluginMenuButton();
-        if (auto previous = button.Flyout()) previous.Hide();
+        if (nativePluginMenu_) {
+            nativePluginMenu_.Items().Clear();
+            for (auto const& item : nativeItems) nativePluginMenu_.Items().Append(item);
+            nativePluginMenu_.IsEnabled(!snapshot.items.empty());
+        }
         button.Flyout(replacement);
         pluginMenuShortcuts_ = std::move(shortcuts);
+        pluginMenuClearPending_ = false;
+        pendingPluginMenuJson_.reset();
         button.IsEnabled(!snapshot.items.empty());
+        QueuePluginMenuRefresh();
     } catch (...) {
         StopLocalPlugin();
         if (!closing_) PluginRuntimeStatus().Text(L"插件菜单数据无效或无法显示，插件已停止。");

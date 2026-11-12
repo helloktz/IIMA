@@ -61,6 +61,7 @@ struct PlaybackSnapshot {
     std::optional<double> videoBitrate, audioBitrate, fileSize;
     std::vector<AudioDevice> audioDevices;
     std::string audioDevice{"auto"};
+    bool audioDeviceObserved{}; // Default text is not a confirmed property observation.
     std::uint64_t informationRevision{}, audioDevicesRevision{};
     bool compositionAvailable{}, voConfigured{};
     std::uint64_t clientApiVersion{};
