@@ -32,6 +32,7 @@ void ApplyPlaybackEvent(PlaybackSnapshot& s, MpvEvent const& e) {
         s.metadata.clear(); s.videoParameters.clear(); s.audioParameters.clear();
         s.videoBitrate.reset(); s.audioBitrate.reset(); s.fileSize.reset(); ++s.informationRevision;
         s.seeking=false; s.buffering=false; s.error.clear();
+        s.subtitleId.reset(); s.secondarySubtitleId.reset();
         s.tracks.clear(); ++s.tracksRevision; s.chapters.clear(); ++s.chaptersRevision; s.chapterIndex.reset();
         s.videoCodec.clear(); s.hwdecCurrent.clear(); s.currentVo.clear(); s.voConfigured=false; break;
     case MpvEvent::Kind::Loaded:
@@ -45,6 +46,7 @@ void ApplyPlaybackEvent(PlaybackSnapshot& s, MpvEvent const& e) {
         if(e.entryId!=s.entryId) break;
         s.swapChain.reset();
         s.seeking=false; s.buffering=false;
+        s.subtitleId.reset(); s.secondarySubtitleId.reset();
         if(e.error<0) { s.media=MediaState::Error; s.error=e.text; }
         else s.media=MediaState::Ended;
         break;
@@ -106,10 +108,35 @@ void ApplyPlaybackEvent(PlaybackSnapshot& s, MpvEvent const& e) {
         else if(e.name=="volume" && e.number && std::isfinite(*e.number)) s.volume=*e.number;
         else if(e.name=="speed" && e.number && std::isfinite(*e.number)) s.speed=*e.number;
         else if(e.name=="mute" && e.flag) s.muted=*e.flag;
-        else if(e.name=="sub-visibility" && e.flag) s.subtitlesVisible=*e.flag;
+        else if (e.name == "sid" || e.name == "secondary-sid") {
+            auto& id = e.name == "sid" ? s.subtitleId : s.secondarySubtitleId;
+            if (e.error >= 0 && e.integer && *e.integer >= -2) id = e.integer;
+            else id.reset();
+        }
+        else if (e.name == "sub-visibility" || e.name == "secondary-sub-visibility") {
+            auto& visible = e.name == "sub-visibility" ? s.subtitleVisibility : s.secondarySubtitlesVisible;
+            visible = e.error >= 0 ? e.flag : std::nullopt;
+            if (e.name == "sub-visibility" && visible) s.subtitlesVisible = *visible;
+        }
+        else if (e.name == "sub-pos" || e.name == "secondary-sub-pos") {
+            auto& position = e.name == "sub-pos" ? s.subtitlePosition : s.secondarySubtitlePosition;
+            if (e.error >= 0 && e.number && std::isfinite(*e.number) && *e.number >= 0 && *e.number <= 150)
+                position = e.number;
+            else position.reset();
+        }
+        else if (e.name == "sub-scale" || e.name == "secondary-sub-scale") {
+            auto& scale = e.name == "sub-scale" ? s.subtitleScale : s.secondarySubtitleScale;
+            if (e.error >= 0 && e.number && std::isfinite(*e.number) && *e.number >= 0 && *e.number <= 100)
+                scale = e.number;
+            else scale.reset();
+        }
         else if(e.name=="volume-max" && e.number && std::isfinite(*e.number) && *e.number>=100 && *e.number<=1000) s.maxVolume=*e.number;
         else if(e.name=="audio-delay" && e.number && std::isfinite(*e.number)) s.audioDelay=*e.number;
-        else if(e.name=="sub-delay" && e.number && std::isfinite(*e.number)) s.subtitleDelay=*e.number;
+        else if (e.name == "sub-delay" || e.name == "secondary-sub-delay") {
+            auto& delay = e.name == "sub-delay" ? s.observedSubtitleDelay : s.secondarySubtitleDelay;
+            delay = e.error >= 0 && e.number && std::isfinite(*e.number) ? e.number : std::nullopt;
+            if (e.name == "sub-delay" && delay) s.subtitleDelay = *delay;
+        }
         else if(e.name=="loop-file" || e.name=="loop-playlist") {
             if(e.name=="loop-file") s.loopFile=e.text; else s.loopPlaylist=e.text;
             s.repeatMode=LoopEnabled(s.loopFile) ? RepeatMode::File : LoopEnabled(s.loopPlaylist) ? RepeatMode::Playlist : RepeatMode::Off;

@@ -94,6 +94,7 @@
     <ClCompile Include="MainWindow.Audio.cpp" />
     <ClCompile Include="MainWindow.SubtitleMatching.cpp" />
     <ClCompile Include="MainWindow.Subtitles.cpp" />
+    <ClCompile Include="MainWindow.SecondarySubtitles.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MainWindow.Commands.cpp" />

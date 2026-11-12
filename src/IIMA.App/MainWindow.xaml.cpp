@@ -70,6 +70,7 @@ MainWindow::MainWindow()
     WireSavedFilters();
     WireThumbnailPreview();
     WireSubtitleControls();
+    WireSecondarySubtitles();
     WireOnlineSubtitles();
     WireAudioControls();
     WireEqualizerEditor();
@@ -186,6 +187,7 @@ void MainWindow::Apply(iima::PlaybackSnapshot const& state)
         if (userDataLoaded_ && !musicMode_.IsMusic() && preferences_.Boolean("fullScreenWhenOpen") && !fullscreen_) ToggleFullscreen();
     }
     ApplyCollections(state);
+    UpdateSecondarySubtitles(state);
     UpdateMediaInformation(state);
     UpdateVideoAdjustments(state);
     UpdateFilterEditor(state);

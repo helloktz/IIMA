@@ -119,6 +119,21 @@
                             </StackPanel>
                         </Expander>
                         <ComboBox x:Name="SubtitleBox" Header="字幕" HorizontalAlignment="Stretch" AutomationProperties.Name="字幕"/>
+                        <Expander Header="副字幕" HorizontalAlignment="Stretch">
+                            <StackPanel Spacing="6">
+                                <ComboBox x:Name="SecondarySubtitleBox" Header="副字幕轨道" HorizontalAlignment="Stretch"/>
+                                <CheckBox x:Name="SecondarySubtitlesVisibleCheck" Content="显示副字幕" IsThreeState="True"/>
+                                <TextBlock x:Name="SecondarySubtitleStatus" TextWrapping="Wrap"/>
+                                <Button x:Name="LoadSecondarySubtitleButton" Content="读取当前参数"/>
+                                <NumberBox x:Name="SecondarySubtitleDelayBox" Header="延迟（秒）" Value="0" SmallChange="0.1"/>
+                                <NumberBox x:Name="SecondarySubtitlePositionBox" Header="位置（0顶部，100底部）" Minimum="0" Maximum="150" Value="0"/>
+                                <NumberBox x:Name="SecondarySubtitleScaleBox" Header="缩放" Minimum="0" Maximum="100" Value="1" SmallChange="0.1"/>
+                                <Button x:Name="ApplySecondarySubtitleButton" Content="应用编辑参数" IsEnabled="False"/>
+                                <Button x:Name="ResetSecondaryDelayButton" Content="重置副字幕延迟"/>
+                                <TextBlock Text="参数不会在编辑中被自动覆盖，请先读取当前值。位置超过100可能截断字幕。" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Expander>
+                        <TextBlock x:Name="SubtitleStyleWarning" TextWrapping="Wrap"/>
                         <Button x:Name="SubtitleButton" Content="加载字幕…"/>
                         <Button x:Name="MatchSubtitleButton" Content="匹配同目录字幕"/>
                         <Expander x:Name="OnlineSubtitleExpander" Header="在线字幕" HorizontalAlignment="Stretch">
@@ -156,6 +171,7 @@
                         <NumberBox x:Name="SubtitleScaleBox" Header="字幕缩放" Value="1" Minimum="0.01" Maximum="100" SmallChange="0.1"/>
                         <NumberBox x:Name="SubtitlePositionBox" Header="字幕位置（0顶部，100底部）" Value="100" Minimum="0" Maximum="100"/>
                         <Button x:Name="ApplySubtitleLayoutButton" Content="应用字幕位置与缩放"/>
+                        <TextBlock x:Name="SubtitleLayoutStatus" TextWrapping="Wrap"/>
                         <Button x:Name="ScreenshotButton" Content="保存截图…"/>
                         <Button x:Name="CopyScreenshotButton" Content="复制视频截图"/>
                         <ComboBox x:Name="ChapterBox" Header="章节" HorizontalAlignment="Stretch" AutomationProperties.Name="章节"/>

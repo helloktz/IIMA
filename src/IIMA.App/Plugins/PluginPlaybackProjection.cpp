@@ -93,11 +93,11 @@ JsonObject TrackApi(PlaybackSnapshot const& state, std::string_view type, Projec
         auto value = SerializeTrack(track);
         budget.Account(value);
         tracks.Append(value);
-        if (track.selected) { ++selectedCount; selected = value; selectedId = Integer(track.id); }
+        const bool primary = type == "sub" ? state.subtitleId && track.id == *state.subtitleId : track.selected;
+        if (primary) { ++selectedCount; selected = value; selectedId = Integer(track.id); }
     }
-    // The current compact mpv payload does not carry main-selection. In
-    // particular two selected subtitle tracks cannot be assigned primary vs
-    // secondary without inventing an identity; leave selection unknown then.
+    // Explicit sid distinguishes the primary from a simultaneously selected
+    // secondary stream. A missing track object is not a fabricated selection.
     if (selectedCount != 1) {
         selected = JsonValue::CreateNullValue(); selectedId = JsonValue::CreateNullValue();
     }
@@ -111,7 +111,7 @@ JsonObject TrackApi(PlaybackSnapshot const& state, std::string_view type, Projec
         result.Insert(L"muted", JsonValue::CreateBooleanValue(state.muted));
     } else if (type == "sub") {
         result.Insert(L"delay", Number(state.subtitleDelay));
-        result.Insert(L"secondID", JsonValue::CreateNullValue());
+        result.Insert(L"secondID", Integer(state.secondarySubtitleId));
     }
     return result;
 }
@@ -179,6 +179,9 @@ void PlaybackProjection::Reset(PlaybackSnapshot const& state, bool music) {
     speed_ = state.speed; position_ = state.position; duration_ = state.duration;
     volume_ = state.volume; muted_ = state.muted;
     audioDelay_ = state.audioDelay; subtitleDelay_ = state.subtitleDelay;
+    subtitleId_ = state.subtitleId; secondarySubtitleId_ = state.secondarySubtitleId;
+    secondaryDelay_ = state.secondarySubtitleDelay;
+    secondaryVisibility_ = state.secondarySubtitlesVisible;
 }
 std::vector<PlaybackEvent> PlaybackProjection::Update(PlaybackSnapshot const& state, bool music) {
     std::vector<PlaybackEvent> events;
@@ -194,6 +197,15 @@ std::vector<PlaybackEvent> PlaybackProjection::Update(PlaybackSnapshot const& st
     if (state.muted != muted_) events.push_back({"mpv.mute.changed", state.muted ? "true" : "false"});
     if (state.audioDelay != audioDelay_) events.push_back({"mpv.audio-delay.changed", JsonNumber(state.audioDelay)});
     if (state.subtitleDelay != subtitleDelay_) events.push_back({"mpv.sub-delay.changed", JsonNumber(state.subtitleDelay)});
+    if (state.subtitleId != subtitleId_)
+        events.push_back({"mpv.sid.changed", winrt::to_string(Integer(state.subtitleId).Stringify())});
+    if (state.secondarySubtitleId != secondarySubtitleId_)
+        events.push_back({"mpv.secondary-sid.changed", winrt::to_string(Integer(state.secondarySubtitleId).Stringify())});
+    if (state.secondarySubtitleDelay != secondaryDelay_)
+        events.push_back({"mpv.secondary-sub-delay.changed", JsonNumber(state.secondarySubtitleDelay)});
+    if (state.secondarySubtitlesVisible != secondaryVisibility_)
+        events.push_back({"mpv.secondary-sub-visibility.changed", state.secondarySubtitlesVisible ?
+            (*state.secondarySubtitlesVisible ? "true" : "false") : "null"});
     if (music != music_) events.push_back({"iina.music-mode.changed", music ? "true" : "false"});
     Reset(state, music);
     return events;

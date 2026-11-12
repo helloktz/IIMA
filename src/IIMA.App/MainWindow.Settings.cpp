@@ -78,7 +78,9 @@ void MainWindow::ApplySettingsSnapshot(iima::PlaybackSnapshot const& state)
         ScreenshotModeBox().SelectedIndex(static_cast<int>(userData_.settings.screenshotMode));
     }
     MuteCheck().IsChecked(state.muted);
-    SubtitlesVisibleCheck().IsChecked(state.subtitlesVisible);
+    SubtitlesVisibleCheck().IsEnabled(!closing_ && state.session == iima::SessionState::Ready && state.subtitleVisibility.has_value());
+    SubtitlesVisibleCheck().IsChecked(state.subtitleVisibility ?
+        box_value(*state.subtitleVisibility).as<Windows::Foundation::IReference<bool>>() : nullptr);
     RepeatModeBox().SelectedIndex(static_cast<int>(state.repeatMode));
     auto projectNumber = [](Controls::NumberBox const& box, double value) {
         // Do not replace a partially typed number on each time-pos notification.
@@ -86,6 +88,7 @@ void MainWindow::ApplySettingsSnapshot(iima::PlaybackSnapshot const& state)
     };
     projectNumber(MaxVolumeBox(), state.maxVolume);
     projectNumber(AudioDelayBox(), state.audioDelay);
-    projectNumber(SubtitleDelayBox(), state.subtitleDelay);
+    SubtitleDelayBox().IsEnabled(!closing_ && state.session == iima::SessionState::Ready && state.observedSubtitleDelay.has_value());
+    if (state.observedSubtitleDelay) projectNumber(SubtitleDelayBox(), *state.observedSubtitleDelay);
 }
 }

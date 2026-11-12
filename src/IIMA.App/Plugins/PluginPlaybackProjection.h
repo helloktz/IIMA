@@ -10,8 +10,7 @@ struct PlaybackEvent { std::string name; std::string argumentJson{"null"}; };
 // and titles require explicit startup disclosure, including network URL secrets. Flat
 // status fields plus audio/subtitle/video objects and chapters array. Throws for
 // over 256 tracks, 2048 chapters, 1024 playlist entries, 4096-byte text or 64-KiB snapshot;
-// does not silently truncate collections. Secondary selected subtitle ID is not
-// observed by the current payload and remains null.
+// does not silently truncate collections. Subtitle slot IDs are observed independently; missing values remain null.
 std::string PlaybackStatusJson(PlaybackSnapshot const& state, std::uint64_t mediaToken = 0);
 class PlaybackProjection {
 public:
@@ -22,6 +21,8 @@ private:
     std::int64_t entry_{-1};
     bool paused_{true}, music_{}, muted_{};
     double speed_{1}, volume_{100}, audioDelay_{}, subtitleDelay_{};
-    std::optional<double> position_, duration_;
+    std::optional<double> position_, duration_, secondaryDelay_;
+    std::optional<std::int64_t> subtitleId_, secondarySubtitleId_;
+    std::optional<bool> secondaryVisibility_;
 };
 }

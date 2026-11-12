@@ -17,11 +17,15 @@ void PlayerSession::ApplySubtitleStyle(SubtitleStyle const& style) {
 void PlayerSession::SetSubtitleScale(double scale, bool primary) {
     if (snapshot_.session != SessionState::Ready || !std::isfinite(scale)) return;
     scale = std::abs(scale); // IINA accepts signed slider values as magnitudes.
-    if (scale < 0.01 || scale > 100) return;
+    // mpv mp_subtitle_shared_sub_opts permits zero (invisible text), unlike
+    // IINA's narrower slider. Primary UI may still constrain its own editor.
+    if (scale > 100) return;
     client_->Command({"set", primary ? "sub-scale" : "secondary-sub-scale", std::to_string(scale)});
 }
 void PlayerSession::SetSubtitlePosition(int percent, bool primary) {
-    if (snapshot_.session != SessionState::Ready || percent < 0 || percent > 100) return;
+    // Current mpv supports 0..150 for both slots. Values above 100 can put
+    // text outside the visible image; the UI must explain that explicitly.
+    if (snapshot_.session != SessionState::Ready || percent < 0 || percent > 150) return;
     client_->Command({"set", primary ? "sub-pos" : "secondary-sub-pos", std::to_string(percent)});
 }
 void PlayerSession::SetSecondarySubtitleDelay(double seconds) {

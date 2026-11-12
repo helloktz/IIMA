@@ -360,3 +360,12 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 - Windows布局以原生Slider/CheckBox实现，未知属性禁用并显示状态。采用逐项复位而不是隐式清空整个滤镜链；不额外保存成持久偏好，因为这些是当前播放器属性。快捷键、脚本及mpv属性变化也可回填。音频-only及视频后端是否支持这些属性仍需实测。
 
 本批仅静态源码移植，没有编译、自动化测试或Windows/mpv运行。反交错三态交互、命令失败恢复、快速拖动与异步反馈视觉体验仍待实际验证。
+
+### 第二十七批：双字幕轨道、显示与参数反馈
+
+- `SidebarSubtitlesPane.TrackSelector/VisibilitySwitch/SubPositionDelayView`、`PlayerCore.setTrack/toggleSecondSubVisibility/setSubDelay/setSubPos` → `MainWindow.SecondarySubtitles.cpp` 与既有会话 API。新增副字幕选择、显示开关、延迟/位置/缩放编辑与延迟复位，主副轨道分别使用实际 `sid/secondary-sid`，不再用 track-list 中可能同时为真的 selected 标记猜主字幕。`mp_property_switch_track` 的 -2/no 与 -1/auto 保留，未知值不伪装为关闭。
+- `MPVController` 的副字幕属性观察 → worker 的独立 INT64/DOUBLE/FLAG 观察及 optional 快照。START/END 清除媒体轨道身份；FILE_LOADED 后主动读取两个选择值，避免同一文件重播时没有变化通知而永久未知。读取不是原子事务，随后属性事件仍为权威。插件 currentTrack 与 secondID 同样使用明确身份，补齐对应变化事件；旧文档所述副字幕ID总是null不再适用。
+- IINA 的主/副分段位置和延迟控件映射为原生独立副字幕表单。为防止高频进度通知覆盖输入，用户先读取当前参数，再显式应用；当前观察值另行显示。换片、结束、尺寸无关的媒体重载都会使草稿失效，不把旧草稿当作新媒体数据。字幕样式对纯图形轨道禁用并提示；ASS排版显示警告。
+- 固定 mpv 快照实际支持 secondary-sub-scale，范围0..100，及主副位置0..150；副表单支持完整范围并警告>100可能截断，IINA上游侧栏位置只提供0..100。主副通用setter接受mpv范围，原主字幕表单仍使用较窄范围。缩放0合法但可能不可见。多个选项分别异步提交，不是假装原子应用或成功播放；实际DLL若不支持属性，界面显示未知/不可用。
+
+仅静态源码、文档映射、数量统计和Git发布核验。没有编译、自动化测试、Windows/mpv运行或插件执行。双字幕位图重叠、ASS排版、快速选轨、命令失败恢复及完整字幕样式仍待实际验证或后续移植。

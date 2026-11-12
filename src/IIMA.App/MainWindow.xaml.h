@@ -140,6 +140,14 @@ private:
     iima::FilterChainSnapshot displayedFilters_;
     std::optional<std::uint64_t> filterRevision_;
     void WireSubtitleControls();
+    void WireSecondarySubtitles();
+    void UpdateSecondarySubtitles(iima::PlaybackSnapshot const& state);
+    void LoadSecondarySubtitleDraft();
+    void ApplySecondarySubtitleDraft();
+    bool projectingSubtitles_{};
+    std::uint64_t secondaryTracksRevision_{~std::uint64_t{0}};
+    std::optional<std::int64_t> secondaryDraftEntry_;
+    std::string secondaryDraftPath_;
     void FindLocalSubtitle();
     void WireOnlineSubtitles();
     void SearchOnlineSubtitles();

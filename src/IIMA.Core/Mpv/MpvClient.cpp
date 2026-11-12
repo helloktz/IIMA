@@ -82,18 +82,18 @@ struct MpvClient::State {
                 check(api.set_option_string(handle, name, value), name);
             check(api.initialize(handle), "mpv_initialize");
             std::uint64_t id = 1;
-            for (auto const* name : {"time-pos", "duration", "volume", "speed", "volume-max", "audio-delay", "sub-delay", "ab-loop-a", "ab-loop-b", "video-bitrate", "audio-bitrate", "file-size"})
+            for (auto const* name : {"time-pos", "duration", "volume", "speed", "volume-max", "audio-delay", "sub-delay", "secondary-sub-delay", "sub-pos", "secondary-sub-pos", "sub-scale", "secondary-sub-scale", "ab-loop-a", "ab-loop-b", "video-bitrate", "audio-bitrate", "file-size"})
                 check(api.observe_property(handle, id++, name, MPV_FORMAT_DOUBLE), name);
-            for (auto const* name : {"pause", "paused-for-cache", "vo-configured", "mute", "sub-visibility", "seekable"})
+            for (auto const* name : {"pause", "paused-for-cache", "vo-configured", "mute", "sub-visibility", "secondary-sub-visibility", "seekable"})
                 check(api.observe_property(handle, id++, name, MPV_FORMAT_FLAG), name);
             for(auto const* name : {"path", "mpv-version", "current-tracks/video/codec-desc", "hwdec-current", "current-vo", "loop-file", "loop-playlist", "keep-open", "ab-loop-count", "media-title", "audio-device", "deinterlace"})
                 check(api.observe_property(handle,id++,name,MPV_FORMAT_STRING),name);
             for(auto const* name : {"playlist", "track-list", "chapter-list", "metadata", "video-params", "audio-params", "audio-device-list", "vf", "af"})
                 check(api.observe_property(handle,id++,name,MPV_FORMAT_NODE),name);
-            // IINA MPVController observes these as INT64; mpv's legal range
-            // is -100..100. Unsupported/temporarily unavailable values retain
-            // NONE in MpvEvent and are projected as unknown by the reducer.
-            for (auto const* name : {"chapter", "brightness", "contrast", "saturation", "gamma", "hue"})
+            // IINA MPVController observes selection/chapter/equalizers as
+            // INT64. Selection has mpv's -2=no/-1=auto sentinels; equalizers
+            // use -100..100. Unavailable observations remain unknown.
+            for (auto const* name : {"chapter", "sid", "secondary-sid", "brightness", "contrast", "saturation", "gamma", "hue"})
                 check(api.observe_property(handle, id++, name, MPV_FORMAT_INT64), name);
             MpvEvent ready{MpvEvent::Kind::Ready}; ready.flag=api.acquireSwapChain!=nullptr; ready.integer=api.client_api_version(); Emit(std::move(ready));
             std::uint64_t inFlight{};
@@ -261,7 +261,23 @@ struct MpvClient::State {
                         e.swapChain=std::shared_ptr<void>(chain,[lease=api.moduleLease](void* p) { static_cast<IUnknown*>(p)->Release(); });
                     else e.text=std::string("Composition output is not ready: ") + (result<0 ? api.error_string(result) : "no swapchain returned");
                 }
+                const bool loaded = e.kind == MpvEvent::Kind::Loaded;
                 Emit(std::move(e));
+                if (loaded) {
+                    // START_FILE clears media-scoped selection. On same-file
+                    // replay mpv may suppress unchanged observer values, so
+                    // query both actual slots after FILE_LOADED on this worker.
+                    // This is not an atomic pair; later observations remain
+                    // authoritative if scripts change tracks concurrently.
+                    for (auto const* name : {"sid", "secondary-sid"}) {
+                        MpvEvent selection{MpvEvent::Kind::Property};
+                        selection.name = name;
+                        std::int64_t value{};
+                        selection.error = api.get_property(handle, name, MPV_FORMAT_INT64, &value);
+                        if (selection.error >= 0) selection.integer = value;
+                        Emit(std::move(selection));
+                    }
+                }
             }
         } catch (std::exception const& error) { MpvEvent e{MpvEvent::Kind::Failure}; e.text=error.what(); Emit(std::move(e)); }
         catch (...) { MpvEvent e{MpvEvent::Kind::Failure}; e.text="Unexpected libmpv worker failure"; Emit(std::move(e)); }
