@@ -117,6 +117,7 @@
     <ClCompile Include="MainWindow.Network.cpp" />
     <ClCompile Include="MainWindow.OSD.cpp" />
     <ClCompile Include="MainWindow.Playlist.cpp" />
+    <ClCompile Include="MainWindow.PlaylistClipboard.cpp" />
     <ClCompile Include="Platform\AtomicTextFile.cpp" />
     <ClInclude Include="Platform\AtomicTextFile.h" />
   </ItemGroup>

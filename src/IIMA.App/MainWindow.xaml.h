@@ -273,6 +273,10 @@ private:
     std::vector<std::size_t> SelectedPlaylistRows();
     void UpdatePlaylistSelection();
     void WirePlaylistDrag();
+    void WirePlaylistClipboard();
+    void CopyPlaylistPaths(bool networkOnly);
+    winrt::fire_and_forget PastePlaylistPaths();
+    bool playlistPasteBusy_{};
     bool PlaylistDragCurrent(Microsoft::UI::Xaml::DragEventArgs const& args) const;
     std::optional<std::size_t> PlaylistDropRow(Microsoft::UI::Xaml::DragEventArgs const& args) const;
     std::optional<winrt::guid> playlistDragToken_;
