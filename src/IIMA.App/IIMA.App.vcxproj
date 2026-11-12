@@ -202,6 +202,7 @@
     <ClCompile Include="MainWindow.Information.cpp" />
     <ClCompile Include="MainWindow.TrackInspector.cpp" />
     <ClCompile Include="MainWindow.ExternalTrackRemoval.cpp" />
+    <ClCompile Include="MainWindow.ExternalTrackReload.cpp" />
     <ClCompile Include="MainWindow.InspectorWatch.cpp" />
     <ClCompile Include="MainWindow.WindowPolicy.cpp" />
     <ClCompile Include="MainWindow.Accessibility.cpp" />

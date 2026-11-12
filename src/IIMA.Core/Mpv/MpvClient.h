@@ -51,7 +51,7 @@ struct Chapter {
 // Owns all payloads; never exports mpv's borrowed event memory.
 struct MpvEvent {
     enum class Kind { Ready, Failure, StartFile, Loaded, EndFile, Seek, Restart, SeekMeasurement,
-                      Property, CommandReply, PlaylistReply, ExternalVideoLoadReply, ExternalTrackRemovalReply, SubtitleStateReply, PauseReply, VideoGeometryReply, WindowScaleReply, WatchedPropertiesReply, VideoReconfig, Shutdown } kind;
+                      Property, CommandReply, PlaylistReply, ExternalTrackStateReply, ExternalTrackEditReply, ExternalVideoLoadReply, ExternalTrackRemovalReply, SubtitleStateReply, PauseReply, VideoGeometryReply, WindowScaleReply, WatchedPropertiesReply, VideoReconfig, Shutdown } kind;
     std::string name, text;
     std::optional<double> number;
     std::optional<bool> flag;
@@ -64,6 +64,8 @@ struct MpvEvent {
     std::vector<MediaTrack> tracks;
     // Fresh bounded subtitle transaction read, not ordinary observations.
     bool subtitleStateComplete{};
+    bool externalTrackStateComplete{}, externalTrackEditSubmitted{}, externalTrackEditCommandSucceeded{};
+    std::optional<std::int64_t> audioTrack, videoTrack; // Fresh AV slots; 0 means off.
     bool externalTrackRemovalSubmitted{}, externalTrackRemovedConfirmed{};
     bool externalVideoLoadSubmitted{}, externalVideoSelectedConfirmed{};
     std::optional<std::int64_t> primarySubtitle, secondarySubtitle; // 0 means no selection.
@@ -97,6 +99,13 @@ public:
     // Serialized fresh reads with media identity before/after. Not an atomic
     // snapshot or compare-and-set against other mpv clients/natural transitions.
     std::uint64_t ReadSubtitleStateAsync();
+    // Complete bounded AV identities/slots. Multiple GETs are not an atomic CAS.
+    std::uint64_t ReadExternalTrackStateAsync(std::int64_t expectedEntry, std::string mediaPath);
+    // reload: exact external target. Restore: empty externalPath means embedded,
+    // id 0 means off. Restore requires the fresh current slot to match its guard.
+    std::uint64_t EditExternalTrackAsync(std::string type, std::int64_t id, std::string externalPath,
+        std::int64_t expectedEntry, std::string mediaPath, bool reload,
+        std::optional<std::int64_t> expectedCurrentId, std::shared_ptr<std::atomic_bool> cancelled = {});
     // Fresh identity check, one typed remove, then complete fresh confirmation.
     // Cancellation prevents queued submission, not an already executing command.
     // Local checks are not atomic with external mpv edits or natural transitions.

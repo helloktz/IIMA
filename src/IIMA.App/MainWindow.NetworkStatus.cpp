@@ -43,6 +43,7 @@ void MainWindow::UpdateNetworkOpen(iima::PlaybackSnapshot const& state) {
     UpdateExternalVideoLoad();
     UpdateABLoopMarkers();
     UpdateExternalTrackRemoval();
+    UpdateExternalTrackReload();
     UpdateSubtitleReload();
     if(playlistDurationInput_!=inputGeneration_ && !playlistDurationStop_.stop_requested()) CancelPlaylistDurations();
     if(musicVolumeOpen_ && !MusicVolumeContextValid()) CloseMusicVolume();

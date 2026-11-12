@@ -40,7 +40,7 @@ bool PlayerSession::LoadExternalVideo(std::string path) {
     BeginTrackEditIntent();
     CancelScrub();
     CancelSubtitleReload();
-    if (ExternalVideoLoadBusy() || ExternalTrackRemovalBusy() || SubtitleReloadBusy() ||
+    if (ExternalTrackReloadBusy() || ExternalVideoLoadBusy() || ExternalTrackRemovalBusy() || SubtitleReloadBusy() ||
         snapshot_.session != SessionState::Ready || snapshot_.media != MediaState::Loaded ||
         waitingForStart_ || snapshot_.mediaOriginPending || pauseRequest_ || loadRequest_ ||
         !pendingCommands_.empty() || playlistEdit_ || snapshot_.entryId < 0 ||

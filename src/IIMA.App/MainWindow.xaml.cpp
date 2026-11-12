@@ -280,6 +280,7 @@ void MainWindow::BeginClose()
     closing_ = true;
     UpdatePlaylistProgress();
     InvalidateExternalVideoLoad();
+    InvalidateExternalTrackReload();
     InvalidateExternalTrackRemoval();
     InvalidateSubtitleReload();
     CancelPlaylistDurations();

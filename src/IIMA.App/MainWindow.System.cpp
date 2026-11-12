@@ -32,6 +32,7 @@ void MainWindow::ReceiveActivation(std::vector<std::wstring> paths)
     if (activationInputs_.size() + paths.size() > 256) { ShowError(L"一次打开的文件过多，请分批打开。"); return; }
     activationInputs_.insert(activationInputs_.end(), std::make_move_iterator(paths.begin()), std::make_move_iterator(paths.end()));
     InvalidateExternalVideoLoad();
+    InvalidateExternalTrackReload();
     InvalidateExternalTrackRemoval();
     InvalidateSubtitleReload();
     CancelScrubbing();

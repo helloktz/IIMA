@@ -27,6 +27,7 @@ void PlayerSession::Notify() { if(changed_) changed_(snapshot_); }
 // distinction across queued old events. Pinned mpv cmd_loadfile creates a new,
 // monotonically allocated playlist entry and returns playlist_entry_id.
 void PlayerSession::BeginMediaOriginIntent(bool explicitOpen) {
+    CancelExternalTrackReload();
     CancelExternalVideoLoad();
     CancelExternalTrackRemoval();
     CancelSubtitleReload();
@@ -686,11 +687,17 @@ void PlayerSession::OnEvent(MpvEvent e) {
     if(e.kind==MpvEvent::Kind::Failure || e.kind==MpvEvent::Kind::Shutdown || e.kind==MpvEvent::Kind::EndFile) CancelWindowPausePolicy();
     if (e.kind == MpvEvent::Kind::Failure || e.kind == MpvEvent::Kind::Shutdown ||
         e.kind == MpvEvent::Kind::StartFile || e.kind == MpvEvent::Kind::EndFile) {
+        CancelExternalTrackReload();
         CancelExternalVideoLoad();
         CancelExternalTrackRemoval();
         CancelSubtitleReload();
     }
     if (e.kind == MpvEvent::Kind::Failure || e.kind == MpvEvent::Kind::Shutdown) {
+        externalTrackReloadRequest_ = 0;
+        externalTrackReloadStatus_.inFlight = false;
+        externalTrackReloadStatus_.targetPresentConfirmed = false;
+        externalTrackReloadStatus_.selectionRestoredConfirmed = false;
+        externalTrackReloadCancelled_.reset();
         externalVideoLoadRequest_ = 0;
         externalVideoLoadStatus_.inFlight = false;
         externalVideoLoadCancelled_.reset();
@@ -700,6 +707,7 @@ void PlayerSession::OnEvent(MpvEvent e) {
         subtitleReloadRequest_ = 0;
         subtitleReloadStatus_.inFlight = false;
     }
+    if (HandleExternalTrackReloadReply(e)) return;
     if (HandleExternalVideoLoadReply(e)) return;
     if (HandleExternalTrackRemovalReply(e)) return;
     if (HandleSubtitleReloadReply(e)) return;
@@ -842,6 +850,8 @@ void PlayerSession::CloseAsync(std::function<void()> completion) {
                          screenshotCompletion=std::move(screenshotCompletion)] {
         dispatch([weak,completion,screenshotCompletion] {
             if(auto self=weak.lock()) {
+                self->externalTrackReloadRequest_=0; self->externalTrackReloadStatus_.inFlight=false;
+                self->externalTrackReloadCancelled_.reset();
                 self->externalVideoLoadRequest_=0; self->externalVideoLoadStatus_.inFlight=false;
                 self->externalVideoLoadCancelled_.reset();
                 self->externalTrackRemovalRequest_=0; self->externalTrackRemovalStatus_.inFlight=false;

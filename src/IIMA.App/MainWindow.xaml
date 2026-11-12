@@ -648,6 +648,9 @@
                                 <Button x:Name="RemoveInspectedTrackButton" Content="移除所选外部轨道…" IsEnabled="False"/>
                                 <Button x:Name="CancelExternalRemovalButton" Content="取消后续确认" IsEnabled="False"/>
                                 <TextBlock x:Name="ExternalRemovalStatus" TextWrapping="Wrap" FontSize="12"/>
+                                <Button x:Name="ReloadInspectedTrackButton" Content="重载所选外部音视频轨道…" IsEnabled="False"/>
+                                <Button x:Name="CancelExternalReloadButton" Content="取消轨道重载后续操作" IsEnabled="False"/>
+                                <TextBlock x:Name="ExternalReloadStatus" TextWrapping="Wrap" FontSize="12"/>
                             </StackPanel>
                         </Expander>
                         <Expander x:Name="MediaInformationExpander" Header="媒体信息" HorizontalAlignment="Stretch">

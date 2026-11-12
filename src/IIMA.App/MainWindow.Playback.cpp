@@ -162,7 +162,7 @@ void MainWindow::ApplyCollections(iima::PlaybackSnapshot const& state)
     auto editing = session_->PlaylistEditBusy();
     LoadExternalAudioButton().IsEnabled(!closing_ && userDataLoaded_ && !pickerOpen_ && !editing &&
         !inputResolving_ && pendingFiles_.empty() && activationInputs_.empty() && !interactiveCrop_.Active() && !cropOriginal_ &&
-        !session_->ExternalVideoLoadBusy() && !session_->ExternalTrackRemovalBusy() && !session_->SubtitleReloadBusy() && !state.mediaOriginPending &&
+        !session_->ExternalVideoLoadBusy() && !session_->ExternalTrackRemovalBusy() && !session_->ExternalTrackReloadBusy() && !session_->SubtitleReloadBusy() && !state.mediaOriginPending &&
         state.session == iima::SessionState::Ready && state.media == iima::MediaState::Loaded);
     SortPlaylistButton().IsEnabled(!editing);
     ShufflePlaylistButton().IsEnabled(!editing);

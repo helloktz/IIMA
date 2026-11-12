@@ -12,7 +12,7 @@ fire_and_forget MainWindow::LoadExternalAudio() {
     auto lifetime = get_strong();
     if (closing_ || !userDataLoaded_ || pickerOpen_ || inputResolving_ || !pendingFiles_.empty() || !activationInputs_.empty() ||
         interactiveCrop_.Active() || cropOriginal_ || session_->PlaylistEditBusy() || session_->ExternalVideoLoadBusy() ||
-        session_->ExternalTrackRemovalBusy() || session_->SubtitleReloadBusy() || session_->Snapshot().mediaOriginPending ||
+        session_->ExternalTrackRemovalBusy() || session_->ExternalTrackReloadBusy() || session_->SubtitleReloadBusy() || session_->Snapshot().mediaOriginPending ||
         session_->Snapshot().session != iima::SessionState::Ready ||
         session_->Snapshot().media != iima::MediaState::Loaded) co_return;
     pickerOpen_ = true;
@@ -36,7 +36,7 @@ fire_and_forget MainWindow::LoadExternalAudio() {
             if (epoch != navigationEpoch_ || input!=inputGeneration_ || generation!=state.mediaGeneration || intent!=state.mediaOpenIntentRevision ||
                 trackIntent!=session_->TrackEditIntentRevision() || inputResolving_ || !pendingFiles_.empty() || !activationInputs_.empty() ||
                 interactiveCrop_.Active() || cropOriginal_ || session_->PlaylistEditBusy() || session_->ExternalVideoLoadBusy() ||
-                session_->ExternalTrackRemovalBusy() || session_->SubtitleReloadBusy() || state.mediaOriginPending ||
+                session_->ExternalTrackRemovalBusy() || session_->ExternalTrackReloadBusy() || session_->SubtitleReloadBusy() || state.mediaOriginPending ||
                 state.session!=iima::SessionState::Ready || state.entryId != entry ||
                 state.path != path || state.media != iima::MediaState::Loaded) {
                 // Discard a stale picker without reporting into a newer media.

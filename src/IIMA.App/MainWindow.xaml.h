@@ -300,6 +300,15 @@ private:
     winrt::hstring externalRemovalLabel_;
     std::uint64_t trackInspectionSelectionRevision_{}, externalRemovalSelection_{}, externalRemovalTracks_{}, externalRemovalTrackIntent_{}, externalRemovalRevision_{},
         externalRemovalGeneration_{}, externalRemovalIntent_{}, externalRemovalInput_{}, externalRemovalObservedInput_{};
+    bool CanReloadInspectedTrack();
+    winrt::fire_and_forget ReloadInspectedTrack();
+    void UpdateExternalTrackReload();
+    void InvalidateExternalTrackReload();
+    Microsoft::UI::Xaml::Controls::ContentDialog externalReloadDialog_{nullptr};
+    bool externalReloadUpdating_{}, externalReloadStarting_{};
+    winrt::hstring externalReloadLabel_;
+    std::uint64_t externalReloadSelection_{}, externalReloadTracks_{}, externalReloadTrackIntent_{}, externalReloadRevision_{},
+        externalReloadGeneration_{}, externalReloadIntent_{}, externalReloadInput_{}, externalReloadObservedInput_{};
     void UpdateTrackInspector(bool force = false);
     void ClearTrackInspector();
     bool TrackInspectorCurrent() const;

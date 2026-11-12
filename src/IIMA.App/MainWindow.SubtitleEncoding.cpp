@@ -44,7 +44,7 @@ bool MainWindow::CanStartSubtitleReload() {
     auto const& state=session_->Snapshot();
     return !closing_ && !subtitleReloadStarting_ && userDataLoaded_ && !pickerOpen_ && !inputResolving_ &&
         pendingFiles_.empty() && activationInputs_.empty() && !interactiveCrop_.Active() && !cropOriginal_ &&
-        !session_->PlaylistEditBusy() && !session_->ExternalTrackRemovalBusy() && !session_->ExternalVideoLoadBusy() && !session_->SubtitleReloadBusy() && !state.mediaOriginPending &&
+        !session_->PlaylistEditBusy() && !session_->ExternalTrackRemovalBusy() && !session_->ExternalTrackReloadBusy() && !session_->ExternalVideoLoadBusy() && !session_->SubtitleReloadBusy() && !state.mediaOriginPending &&
         state.session==iima::SessionState::Ready && state.media==iima::MediaState::Loaded;
 }
 void MainWindow::StartSubtitleReload(std::optional<std::string> encoding) {

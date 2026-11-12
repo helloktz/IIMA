@@ -45,6 +45,13 @@ struct ExternalVideoLoadStatus {
     bool inFlight{}, submitted{}, selectedConfirmed{};
     std::string error;
 };
+struct ExternalTrackReloadStatus {
+    enum class Phase { Idle, Reading, Reloading, Restoring, Completed, Cancelled, Failed };
+    Phase phase{Phase::Idle};
+    std::uint64_t revision{};
+    bool inFlight{}, reloadSubmitted{}, reloadAcknowledged{}, targetPresentConfirmed{}, selectionRestoredConfirmed{};
+    std::string error;
+};
 class PlayerSession final : public std::enable_shared_from_this<PlayerSession> {
 public:
     using Dispatch = std::function<void(std::function<void()>)>;
@@ -93,6 +100,10 @@ public:
     std::uint64_t SubtitleEditIntentRevision() const noexcept { return subtitleEditIntentRevision_; }
     // True means queued, not decoded. Actual tracks/errors arrive asynchronously.
     bool LoadExternalAudio(std::string path);
+    bool ReloadExternalTrack(std::string type, std::int64_t id, std::string externalPath);
+    void CancelExternalTrackReload();
+    bool ExternalTrackReloadBusy() const noexcept { return externalTrackReloadStatus_.inFlight; }
+    ExternalTrackReloadStatus const& ExternalTrackReload() const noexcept { return externalTrackReloadStatus_; }
     // Adds/selects a video track in the current media, never a playlist open.
     // Completed confirms fresh external path + vid, not rendered video output.
     bool LoadExternalVideo(std::string path);
@@ -209,6 +220,17 @@ private:
     PlayerSession(Dispatch dispatch, Changed changed);
     void OnEvent(MpvEvent event);
     void BeginTrackEditIntent();
+    bool HandleExternalTrackReloadReply(MpvEvent const& event);
+    void FailExternalTrackReload(std::string error);
+    void SubmitExternalTrackReloadEdit(bool reload, std::int64_t id, std::string path,
+        std::optional<std::int64_t> expectedCurrent = {});
+    std::optional<std::int64_t> ResolveExternalReloadSelection(MpvEvent const& fresh) const;
+    ExternalTrackReloadStatus externalTrackReloadStatus_;
+    std::shared_ptr<std::atomic_bool> externalTrackReloadCancelled_;
+    std::uint64_t externalTrackReloadRequest_{}, externalTrackReloadGeneration_{}, externalTrackReloadOpenIntent_{}, externalTrackReloadEditIntent_{};
+    std::int64_t externalTrackReloadEntry_{-1}, externalTrackReloadTargetId_{}, externalTrackReloadOriginalId_{};
+    std::string externalTrackReloadMediaPath_, externalTrackReloadType_, externalTrackReloadTargetPath_, externalTrackReloadOriginalPath_;
+    bool externalTrackReloadOriginalExternal_{}, externalTrackReloadHadError_{}, externalTrackReloadRequestWasReload_{}, externalTrackReloadBaselineCaptured_{};
     bool HandleExternalVideoLoadReply(MpvEvent const& event);
     ExternalVideoLoadStatus externalVideoLoadStatus_;
     std::shared_ptr<std::atomic_bool> externalVideoLoadCancelled_;

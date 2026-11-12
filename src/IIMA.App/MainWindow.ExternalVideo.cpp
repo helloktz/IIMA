@@ -35,7 +35,7 @@ bool MainWindow::CanLoadExternalVideo() {
     auto const& s=session_->Snapshot();
     return !closing_ && !externalVideoStarting_ && userDataLoaded_ && !pickerOpen_ && !inputResolving_ && pendingFiles_.empty() &&
         activationInputs_.empty() && !interactiveCrop_.Active() && !cropOriginal_ && !session_->PlaylistEditBusy() &&
-        !session_->ExternalVideoLoadBusy() && !session_->ExternalTrackRemovalBusy() && !session_->SubtitleReloadBusy() &&
+        !session_->ExternalVideoLoadBusy() && !session_->ExternalTrackRemovalBusy() && !session_->ExternalTrackReloadBusy() && !session_->SubtitleReloadBusy() &&
         s.session==iima::SessionState::Ready && s.media==iima::MediaState::Loaded && !s.mediaOriginPending && s.entryId>=0 && !s.path.empty();
 }
 fire_and_forget MainWindow::LoadExternalVideo() {
@@ -55,7 +55,7 @@ fire_and_forget MainWindow::LoadExternalVideo() {
         pickerOpen_=false;
         auto current=[&] {auto const& now=session_->Snapshot();return !closing_ && !inputResolving_ && pendingFiles_.empty() && activationInputs_.empty() &&
             !interactiveCrop_.Active() && !cropOriginal_ && !session_->PlaylistEditBusy() && !session_->ExternalVideoLoadBusy() &&
-            !session_->ExternalTrackRemovalBusy() && !session_->SubtitleReloadBusy() && now.session==iima::SessionState::Ready &&
+            !session_->ExternalTrackRemovalBusy() && !session_->ExternalTrackReloadBusy() && !session_->SubtitleReloadBusy() && now.session==iima::SessionState::Ready &&
             now.media==iima::MediaState::Loaded && !now.mediaOriginPending && generation==now.mediaGeneration && intent==now.mediaOpenIntentRevision &&
             input==inputGeneration_ && trackIntent==session_->TrackEditIntentRevision() && entry==now.entryId && path==now.path;};
         if(file && current()) {

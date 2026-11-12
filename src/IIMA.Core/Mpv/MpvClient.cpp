@@ -62,6 +62,11 @@ struct MpvClient::State {
         std::int64_t entry{-1};
         std::shared_ptr<std::atomic_bool> cancelled;
     };
+    struct TrackEdit {
+        TrackRemoval target;
+        bool reload{};
+        std::optional<std::int64_t> expectedCurrentId;
+    };
     struct Request {
         std::uint64_t id;
         std::vector<std::string> arguments;
@@ -77,6 +82,8 @@ struct MpvClient::State {
         bool pauseQuery{};
         bool subtitleStateQuery{};
         std::optional<TrackRemoval> trackRemoval;
+        std::optional<std::pair<std::int64_t,std::string>> externalTrackState;
+        std::optional<TrackEdit> trackEdit;
         std::optional<ExternalVideoLoad> externalVideoLoad;
         std::optional<std::string> recoverAudioDevice;
     };
@@ -135,6 +142,7 @@ struct MpvClient::State {
             };
             std::string inFlightFilter;
             std::optional<TrackRemoval> inFlightRemoval;
+            std::optional<TrackEdit> inFlightTrackEdit;
             std::optional<ExternalVideoLoad> inFlightVideoLoad;
             auto readFilterResult = [&](MpvEvent& event, std::string const& name) {
                 event.name = name;
@@ -156,7 +164,7 @@ struct MpvClient::State {
             };
             // cmd_track_remove ignores mp_remove_track's bool result. A command
             // acknowledgement alone therefore cannot confirm removal.
-            auto readTrackState=[&](MpvEvent& event, std::int64_t expectedEntry, std::string const& expectedPath, bool readVideoSlot=false) {
+            auto readTrackState=[&](MpvEvent& event, std::int64_t expectedEntry, std::string const& expectedPath, bool readVideoSlot=false, bool readAVSlots=false) {
                 try {
                     auto require=[&](int code) {
                         if(code<0) {event.error=code;throw std::runtime_error(api.error_string(code));}
@@ -193,13 +201,27 @@ struct MpvClient::State {
                             throw std::runtime_error("Selected video does not match complete track identities");
                         event.integer=vid; // -2 is confirmed off; -1 auto is not confirmed.
                     }
+                    if(readAVSlots) {
+                        auto slot=[&](char const* property, char const* type) {
+                            std::int64_t id{-1};
+                            require(api.get_property(handle,property,MPV_FORMAT_INT64,&id));
+                            if(id==-2) return std::int64_t{0};
+                            if(id<=0 || std::none_of(event.tracks.begin(),event.tracks.end(),
+                                [&](auto const& track){return track.type==type && track.id==id;}))
+                                throw std::runtime_error("Selected AV slot does not match complete track identities");
+                            return id;
+                        };
+                        event.audioTrack=slot("aid","audio");event.videoTrack=slot("vid","video");
+                    }
                     const auto after=identity();
                     if(before!=after) throw std::runtime_error("Media changed during track identity read");
                     event.entryId=after.first;event.properties["path"]=after.second;
+                    event.externalTrackStateComplete=readAVSlots;
                     return true;
                 } catch(std::exception const& failure) {
                     if(event.error>=0) event.error=MPV_ERROR_PROPERTY_ERROR;
                     event.text=failure.what();event.tracks.clear();event.properties.clear();event.entryId=-1;event.integer.reset();
+                    event.audioTrack.reset();event.videoTrack.reset();event.externalTrackStateComplete=false;
                     return false;
                 }
             };
@@ -235,7 +257,42 @@ struct MpvClient::State {
                     inFlightWindowScale = pending->windowScaleQuery;
                     inFlightPause = pending->pauseQuery;
                     int error{};
-                    if(pending->externalVideoLoad) {
+                    if(pending->externalTrackState) {
+                        MpvEvent result{MpvEvent::Kind::ExternalTrackStateReply};result.requestId=request;
+                        readTrackState(result,pending->externalTrackState->first,pending->externalTrackState->second,false,true);
+                        Emit(std::move(result));continue;
+                    } else if(pending->trackEdit) {
+                        auto edit=std::move(*pending->trackEdit);auto const& target=edit.target;
+                        MpvEvent result{MpvEvent::Kind::ExternalTrackEditReply};result.requestId=request;
+                        auto cancelled=[&] {std::lock_guard lock(mutex);return closing || (target.cancelled && target.cancelled->load());};
+                        if(cancelled()) {result.error=MPV_ERROR_COMMAND;result.text="Track edit cancelled before submission";}
+                        else if(readTrackState(result,target.entry,target.mediaPath,false,true)) {
+                            const auto matches=std::count_if(result.tracks.begin(),result.tracks.end(),[&](auto const& track) {
+                                return track.type==target.type && track.external && track.externalPath==target.externalPath;
+                            });
+                            const bool identity=target.id==0 ? !edit.reload && target.externalPath.empty() :
+                                std::any_of(result.tracks.begin(),result.tracks.end(),[&](auto const& track) {
+                                    return track.type==target.type && track.id==target.id &&
+                                        (target.externalPath.empty() ? !track.external : track.external && track.externalPath==target.externalPath && matches==1);
+                                });
+                            const auto current=target.type=="audio" ? result.audioTrack : result.videoTrack;
+                            if(!identity || (!edit.reload && current!=edit.expectedCurrentId)) {
+                                result.error=MPV_ERROR_COMMAND;result.text="Track identity or current selection changed; edit was not submitted";
+                            } else if(cancelled()) {result.error=MPV_ERROR_COMMAND;result.text="Track edit cancelled before submission";}
+                            else {
+                                // mpv cmd_track_reload removes/readds and selects a new ID.
+                                // Never synthesize that ID, or assume a failure rolled back.
+                                const auto command=edit.reload ? target.type+"-reload" : std::string("set");
+                                const auto property=target.type=="audio" ? "aid" : "vid";
+                                const auto value=target.id ? std::to_string(target.id) : std::string("no");
+                                const char* args[]{command.c_str(),edit.reload ? value.c_str() : property,edit.reload ? nullptr : value.c_str(),nullptr};
+                                const auto code=api.command_async(handle,request,args);
+                                if(code>=0) {inFlightTrackEdit=std::move(edit);inFlight=request;continue;}
+                                result.error=code;result.text=api.error_string(code);
+                            }
+                        }
+                        Emit(std::move(result));continue;
+                    } else if(pending->externalVideoLoad) {
                         auto target=std::move(*pending->externalVideoLoad);
                         MpvEvent result{MpvEvent::Kind::ExternalVideoLoadReply};result.requestId=request;
                         auto cancelled=[&] {
@@ -508,6 +565,18 @@ struct MpvClient::State {
                     break;
                 case MPV_EVENT_COMMAND_REPLY: {
                     e.kind=MpvEvent::Kind::CommandReply;
+                    if(e.requestId==inFlight && inFlightTrackEdit) {
+                        e.kind=MpvEvent::Kind::ExternalTrackEditReply;e.externalTrackEditSubmitted=true;
+                        const auto commandError=e.error;
+                        e.externalTrackEditCommandSucceeded=commandError>=0;
+                        // Drain and fresh-read even after cancellation/command failure.
+                        // Complete state is independent of command success or presentation.
+                        const auto& target=inFlightTrackEdit->target;
+                        if(readTrackState(e,target.entry,target.mediaPath,false,true)) {
+                            if(commandError<0) e.text="mpv reported a track edit error; fresh state is available and partial effects are possible";
+                        } else e.text="Track edit was submitted, but fresh state could not be confirmed: "+e.text;
+                        inFlightTrackEdit.reset();inFlight=0;break;
+                    }
                     if(e.requestId==inFlight && inFlightVideoLoad) {
                         e.kind=MpvEvent::Kind::ExternalVideoLoadReply;
                         e.externalVideoLoadSubmitted=true;
@@ -784,6 +853,28 @@ std::uint64_t MpvClient::RemoveExternalTrackAsync(std::string type, std::int64_t
     if(state_->closing || !state_->started || state_->commands.size()>=256) return 0;
     State::Request request{state_->nextId++,{},false};
     request.trackRemoval=State::TrackRemoval{std::move(type),std::move(externalPath),std::move(mediaPath),id,expectedEntry,std::move(cancelled)};
+    const auto requestId=request.id;state_->commands.push_back(std::move(request));return requestId;
+}
+std::uint64_t MpvClient::ReadExternalTrackStateAsync(std::int64_t expectedEntry, std::string mediaPath) {
+    if(expectedEntry<0 || mediaPath.empty() || mediaPath.size()>131072 || mediaPath.find('\0')!=std::string::npos) return 0;
+    std::lock_guard lock(state_->mutex);
+    if(state_->closing || !state_->started || state_->commands.size()>=256) return 0;
+    State::Request request{state_->nextId++,{},false};
+    request.externalTrackState=std::pair{expectedEntry,std::move(mediaPath)};
+    const auto id=request.id;state_->commands.push_back(std::move(request));return id;
+}
+std::uint64_t MpvClient::EditExternalTrackAsync(std::string type, std::int64_t id, std::string externalPath,
+    std::int64_t expectedEntry, std::string mediaPath, bool reload,
+    std::optional<std::int64_t> expectedCurrentId, std::shared_ptr<std::atomic_bool> cancelled) {
+    if((type!="audio" && type!="video") || id<0 || expectedEntry<0 ||
+        (reload && (id==0 || externalPath.empty() || expectedCurrentId)) ||
+        (!reload && (!expectedCurrentId || *expectedCurrentId<0)) || (id==0 && !externalPath.empty()) ||
+        externalPath.size()>131072 || externalPath.find('\0')!=std::string::npos ||
+        mediaPath.empty() || mediaPath.size()>131072 || mediaPath.find('\0')!=std::string::npos) return 0;
+    std::lock_guard lock(state_->mutex);
+    if(state_->closing || !state_->started || state_->commands.size()>=256) return 0;
+    State::Request request{state_->nextId++,{},false};
+    request.trackEdit=State::TrackEdit{State::TrackRemoval{std::move(type),std::move(externalPath),std::move(mediaPath),id,expectedEntry,std::move(cancelled)},reload,expectedCurrentId};
     const auto requestId=request.id;state_->commands.push_back(std::move(request));return requestId;
 }
 std::uint64_t MpvClient::ReadSubtitleStateAsync() {

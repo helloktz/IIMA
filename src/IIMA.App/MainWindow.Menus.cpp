@@ -191,7 +191,7 @@ void MainWindow::WirePlayerMenus() {
     audioTrackMenu_ = sub(audio, L"音轨");
     audioDeviceMenu_ = sub(audio, L"输出设备");
     savedAudioFilterMenu_ = sub(audio, L"保存的音频滤镜");
-    add(audio, L"加载外部音轨…", [this] { LoadExternalAudio(); }, [this, loaded] { return loaded() && !session_->ExternalVideoLoadBusy() && !session_->ExternalTrackRemovalBusy() && !session_->SubtitleReloadBusy(); });
+    add(audio, L"加载外部音轨…", [this] { LoadExternalAudio(); }, [this, loaded] { return loaded() && !session_->ExternalVideoLoadBusy() && !session_->ExternalTrackRemovalBusy() && !session_->ExternalTrackReloadBusy() && !session_->SubtitleReloadBusy(); });
     add(audio, L"静音", [this] { session_->ToggleMute(); }, loaded, {"cycle","mute"}, false,
         [this] { return session_->Snapshot().muted; });
     add(audio, L"增大音量", [this] { session_->SetVolume(session_->Snapshot().volume + 5); }, loaded, {"add","volume","5"});

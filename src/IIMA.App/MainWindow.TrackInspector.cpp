@@ -20,6 +20,10 @@ void MainWindow::WireTrackInspector() {
             ++self->trackInspectionSelectionRevision_; self->ShowInspectedTrack();
         }
     });
+    ReloadInspectedTrackButton().Click([weak](auto const&,auto const&) {if(auto self=weak.get()) self->ReloadInspectedTrack();});
+    CancelExternalReloadButton().Click([weak](auto const&,auto const&) {
+        if(auto self=weak.get();self && !self->closing_) {self->session_->CancelExternalTrackReload();self->UpdateExternalTrackReload();}
+    });
     RemoveInspectedTrackButton().Click([weak](auto const&,auto const&) {if(auto self=weak.get()) self->RemoveInspectedTrack();});
     CancelExternalRemovalButton().Click([weak](auto const&,auto const&) {
         if(auto self=weak.get();self && !self->closing_) {self->session_->CancelExternalTrackRemoval();self->UpdateExternalTrackRemoval();}
@@ -33,6 +37,7 @@ void MainWindow::ClearTrackInspector() {
     TrackInspectorBox().Items().Clear();TrackInspectorDetails().Text(L"");
     CopyTrackInspectionButton().IsEnabled(false);
     RemoveInspectedTrackButton().IsEnabled(false);
+    ReloadInspectedTrackButton().IsEnabled(false);
     inspectedTracks_.clear();trackInspectorRevision_.reset();
     trackInspectorProjecting_=false;
 }
@@ -46,6 +51,7 @@ bool MainWindow::TrackInspectorCurrent() const {
 }
 void MainWindow::UpdateTrackInspector(bool force) {
     UpdateExternalTrackRemoval();
+    UpdateExternalTrackReload();
     auto const& state=session_->Snapshot();
     const bool active=!closing_ && !inputResolving_ && pendingFiles_.empty() && activationInputs_.empty() &&
         state.session==iima::SessionState::Ready && !state.mediaOriginPending &&
@@ -87,6 +93,7 @@ void MainWindow::ShowInspectedTrack() {
     TrackInspectorDetails().Text(valid ? to_hstring(inspectedTracks_[index].Report()) :
         hstring{L"请选择轨道查看；查看不会改变实际播放轨道。"});
     UpdateExternalTrackRemoval();
+    UpdateExternalTrackReload();
 }
 void MainWindow::CopyTrackInspection() {
     if(!TrackInspectorExpander().IsExpanded() || !TrackInspectorCurrent()) {UpdateTrackInspector();return;}
