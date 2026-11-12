@@ -118,6 +118,7 @@
     <ClCompile Include="MainWindow.OSD.cpp" />
     <ClCompile Include="MainWindow.Playlist.cpp" />
     <ClCompile Include="MainWindow.MouseWheel.cpp" />
+    <ClCompile Include="MainWindow.MouseClicks.cpp" />
     <ClCompile Include="MainWindow.ControlBar.cpp" />
     <ClCompile Include="MainWindow.PlaylistClipboard.cpp" />
     <ClCompile Include="Platform\AtomicTextFile.cpp" />

@@ -22,6 +22,8 @@ constexpr EnumChoice alignX[]{{0,"left"},{1,"center"},{2,"right"}};
 constexpr EnumChoice alignY[]{{0,"top"},{1,"center"},{2,"bottom"}};
 constexpr EnumChoice resizeTiming[]{{0,"always"},{1,"onlyWhenOpen"},{2,"never"}};
 constexpr EnumChoice resizeSize[]{{0,"fit-screen"},{1,"0.5"},{2,"1"},{3,"1.5"},{4,"2"}};
+constexpr EnumChoice clickActions[]{{0,"none"},{1,"fullscreen"},{2,"pause"},{3,"hide-controls"},
+    {4,"picture-in-picture"},{5,"ab-loop"},{6,"reset-speed"}};
 constexpr EnumChoice scrollActions[]{{0,"volume"},{1,"seek"},{2,"none"},{4,"playback-speed"}};
 constexpr EnumChoice rtsp[]{{0,"lavf"},{1,"tcp"},{2,"udp"},{3,"http"}};
 using Area = PreferenceArea;
@@ -121,6 +123,9 @@ std::span<PreferenceDescriptor const> PreferenceSchema() {
         S("initialWindowSizePosition",Area::Window,""),
         E("resizeWindowTiming",Area::Window,1,resizeTiming),
         E("resizeWindowOption",Area::Window,2,resizeSize),
+        E("singleClickAction",Area::Interface,3,clickActions),
+        E("doubleClickAction",Area::Interface,1,clickActions),
+        E("rightClickAction",Area::Interface,2,clickActions),
         E("verticalScrollAction",Area::Interface,0,scrollActions),
         E("horizontalScrollAction",Area::Interface,1,scrollActions),
         I("relativeSeekAmount",Area::Interface,3,1,4),

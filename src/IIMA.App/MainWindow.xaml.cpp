@@ -51,6 +51,7 @@ MainWindow::MainWindow()
     WirePluginPointer();
     WireMouseWheel();
     WireControlBarVisibility();
+    WireMouseClicks();
     WireOSD();
     WireAdvancedPlayback();
     OpenButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->ExecuteApplicationCommand(iima::ApplicationCommand::OpenFile); });
@@ -272,6 +273,7 @@ void MainWindow::BeginClose()
     HideScreenshotPreview();
     if (osdTimer_) osdTimer_.Stop();
     if (controlBarTimer_) controlBarTimer_.Stop();
+    CancelMouseClick();
     InvalidateInspectorWatch();
     if (diagnosticTimer_) diagnosticTimer_.Stop();
     if (activationTimer_) activationTimer_.Stop();

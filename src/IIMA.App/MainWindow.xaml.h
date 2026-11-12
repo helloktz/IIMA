@@ -274,6 +274,13 @@ private:
     void UpdatePlaylistSelection();
     void WirePlaylistDrag();
     void WireMouseWheel();
+    void WireMouseClicks();
+    bool MouseClickAllowed();
+    void CancelMouseClick();
+    void PerformMouseClick(std::int64_t action);
+    Microsoft::UI::Dispatching::DispatcherQueueTimer singleClickTimer_{nullptr};
+    std::optional<std::int64_t> pendingClickAction_;
+    std::uint64_t pendingClickEpoch_{};
     void WireControlBarVisibility();
     void ControlBarActivity();
     void UpdateControlBarPolicy();
