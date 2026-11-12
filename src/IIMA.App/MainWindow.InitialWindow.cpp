@@ -82,6 +82,7 @@ void MainWindow::OpenInitialHistory(iima::HistoryEntry entry,std::uint64_t epoch
         std::none_of(initialWindowEntries_.begin(),initialWindowEntries_.end(),[&](auto const& e){return SameHistory(e,entry);})) return;
     inputStop_.request_stop();
     auto input=++inputGeneration_;
+    InvalidateSubtitleReload();
     const auto media=session_->Snapshot().mediaGeneration,intent=session_->Snapshot().mediaOpenIntentRevision;
     const auto playlist=session_->Snapshot().playlistRevision,edit=session_->PlaylistEditIntentRevision();
     const auto resume=userData_.settings.resumePosition;

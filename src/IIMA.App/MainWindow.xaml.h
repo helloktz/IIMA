@@ -361,6 +361,12 @@ private:
     void WireSubtitleControls();
     void WireSubtitleEncoding();
     void UpdateSubtitleEncoding(iima::PlaybackSnapshot const& state);
+    bool CanStartSubtitleReload();
+    void StartSubtitleReload(std::optional<std::string> encoding = {});
+    void UpdateSubtitleReload();
+    void InvalidateSubtitleReload();
+    bool subtitleReloadUpdating_{}, subtitleReloadStarting_{};
+    std::uint64_t subtitleReloadRevision_{}, subtitleReloadGeneration_{}, subtitleReloadIntent_{}, subtitleReloadInput_{}, subtitleReloadObservedInput_{};
     void ApplySubtitleColorDraft(unsigned kind);
     winrt::fire_and_forget ChooseSubtitleFont();
     std::stop_source fontCatalogStop_;

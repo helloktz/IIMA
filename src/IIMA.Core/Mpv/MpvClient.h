@@ -50,7 +50,7 @@ struct Chapter {
 // Owns all payloads; never exports mpv's borrowed event memory.
 struct MpvEvent {
     enum class Kind { Ready, Failure, StartFile, Loaded, EndFile, Seek, Restart, SeekMeasurement,
-                      Property, CommandReply, PlaylistReply, PauseReply, VideoGeometryReply, WindowScaleReply, WatchedPropertiesReply, VideoReconfig, Shutdown } kind;
+                      Property, CommandReply, PlaylistReply, SubtitleStateReply, PauseReply, VideoGeometryReply, WindowScaleReply, WatchedPropertiesReply, VideoReconfig, Shutdown } kind;
     std::string name, text;
     std::optional<double> number;
     std::optional<bool> flag;
@@ -61,6 +61,9 @@ struct MpvEvent {
     std::optional<std::int64_t> integer;
     std::vector<PlaylistItem> playlist;
     std::vector<MediaTrack> tracks;
+    // Fresh bounded subtitle transaction read, not ordinary observations.
+    bool subtitleStateComplete{};
+    std::optional<std::int64_t> primarySubtitle, secondarySubtitle; // 0 means no selection.
     std::vector<Chapter> chapters;
     FilterChainSnapshot filters;
     MediaProperties properties;
@@ -88,6 +91,9 @@ public:
     // Queued in the SAME serialized worker lane as commands. PlaylistReply
     // owns a fresh node copy; ordinary observed properties are not substitutes.
     std::uint64_t GetPlaylistAsync();
+    // Serialized fresh reads with media identity before/after. Not an atomic
+    // snapshot or compare-and-set against other mpv clients/natural transitions.
+    std::uint64_t ReadSubtitleStateAsync();
     // Genuine async GET reply through mpv's event queue, not cached observation.
     std::uint64_t GetVideoGeometryAsync();
     std::uint64_t GetWindowScaleAsync();

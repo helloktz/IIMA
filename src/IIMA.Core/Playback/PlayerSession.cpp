@@ -27,6 +27,7 @@ void PlayerSession::Notify() { if(changed_) changed_(snapshot_); }
 // distinction across queued old events. Pinned mpv cmd_loadfile creates a new,
 // monotonically allocated playlist entry and returns playlist_entry_id.
 void PlayerSession::BeginMediaOriginIntent(bool explicitOpen) {
+    CancelSubtitleReload();
     CancelScrub();
     if (snapshot_.networkOpenAttempt.phase != OpenAttemptPhase::None &&
         snapshot_.networkOpenAttempt.phase != OpenAttemptPhase::Cancelled)
@@ -127,7 +128,7 @@ void PlayerSession::OpenMultiple(std::vector<std::string> paths,bool append) {
     if(std::any_of(paths.begin(),paths.end(),[](auto const& p) { return p.empty() || p.find('\0')!=std::string::npos; })) {
         snapshot_.error="A media path is empty or contains a NUL character"; Notify(); return;
     }
-    if(!append) { subtitleEncodingRequest_=0; subtitleEncodingTracks_.clear(); sleepPauseHeld_=false; CancelWindowPausePolicy(); }
+    if(!append) { CancelSubtitleReload(); sleepPauseHeld_=false; CancelWindowPausePolicy(); }
     CancelPlaylistEdits();
     playlistShuffled_=false;
     // No shell or command string parsing: UTF-8 paths remain individual API arguments.
@@ -160,7 +161,7 @@ void PlayerSession::OpenMultiple(std::vector<std::string> paths,bool append) {
 void PlayerSession::PausedCommand(std::vector<std::string> command) {
     if(!CanOpen()) return;
     BeginMediaOriginIntent(false);
-    subtitleEncodingRequest_=0; subtitleEncodingTracks_.clear();
+    CancelSubtitleReload();
     sleepPauseHeld_=false;
     CancelWindowPausePolicy();
     CancelPlaylistEdits();
@@ -189,7 +190,7 @@ void PlayerSession::PlaylistPlay(std::size_t index) {
     if(index<snapshot_.playlist.size()) { expectedEntry_=snapshot_.playlist[index].id; PausedCommand({"playlist-play-index",std::to_string(index)}); }
 }
 void PlayerSession::SelectTrack(std::string type,std::int64_t id) {
-    if (type=="sub") ++subtitleEditIntentRevision_;
+    if (type=="sub") { CancelSubtitleReload(); ++subtitleEditIntentRevision_; }
     if(snapshot_.session!=SessionState::Ready || snapshot_.media!=MediaState::Loaded ||
         waitingForStart_ || playlistEdit_ || id<0) return;
     std::string property=type=="audio" ? "aid" : type=="sub" ? "sid" : type=="video" ? "vid" : "";
@@ -199,7 +200,7 @@ void PlayerSession::SelectTrack(std::string type,std::int64_t id) {
 }
 // IINA MainMenuActions.menuCycleTrack delegates order and off-slot to mpv.
 void PlayerSession::CycleTrack(std::string type) {
-    if (type=="sub") ++subtitleEditIntentRevision_;
+    if (type=="sub") { CancelSubtitleReload(); ++subtitleEditIntentRevision_; }
     if (snapshot_.session != SessionState::Ready || snapshot_.media != MediaState::Loaded ||
         waitingForStart_ || playlistEdit_) return;
     if (type != "video" && type != "audio" && type != "sub") return;
@@ -256,6 +257,7 @@ void PlayerSession::ScreenshotToFile(std::string path, ScreenshotCompleted compl
     screenshotCompleted_ = std::move(completion);
 }
 void PlayerSession::AddSubtitle(std::string path, bool select) {
+    CancelSubtitleReload();
     ++subtitleEditIntentRevision_;
     if(snapshot_.session!=SessionState::Ready || path.empty() || path.find('\0')!=std::string::npos) return;
     auto found=std::find_if(snapshot_.tracks.begin(),snapshot_.tracks.end(),[&](auto const& t){return t.type=="sub" && t.externalPath==path;});
@@ -287,7 +289,7 @@ void PlayerSession::Seek(double seconds) {
 }
 void PlayerSession::Stop() {
     BeginMediaOriginIntent(false);
-    subtitleEncodingRequest_=0; subtitleEncodingTracks_.clear();
+    CancelSubtitleReload();
     CancelWatchedProperties();
     CancelFilterEditCallbacks();
     CancelWindowPausePolicy();
@@ -678,9 +680,13 @@ void PlayerSession::OnEvent(MpvEvent e) {
     if(e.kind==MpvEvent::Kind::Failure || e.kind==MpvEvent::Kind::Shutdown || e.kind==MpvEvent::Kind::EndFile) CancelWindowPausePolicy();
     if (e.kind == MpvEvent::Kind::Failure || e.kind == MpvEvent::Kind::Shutdown ||
         e.kind == MpvEvent::Kind::StartFile || e.kind == MpvEvent::Kind::EndFile) {
-        subtitleEncodingRequest_=0; subtitleEncodingTracks_.clear();
+        CancelSubtitleReload();
     }
-    HandleSubtitleEncodingReply(e);
+    if (e.kind == MpvEvent::Kind::Failure || e.kind == MpvEvent::Kind::Shutdown) {
+        subtitleReloadRequest_ = 0;
+        subtitleReloadStatus_.inFlight = false;
+    }
+    if (HandleSubtitleReloadReply(e)) return;
     HandleWindowPauseReply(e);
     if(e.kind==MpvEvent::Kind::Failure || e.kind==MpvEvent::Kind::Shutdown) CancelPlaylistEdits();
     if(e.kind==MpvEvent::Kind::Failure && screenshotRequest_) {
@@ -803,7 +809,7 @@ void PlayerSession::OnEvent(MpvEvent e) {
 void PlayerSession::CloseAsync(std::function<void()> completion) {
     pendingAudioDevice_.reset(); audioDeviceWrite_=0; audioDeviceRecovery_=0;
     BeginMediaOriginIntent(false);
-    subtitleEncodingRequest_=0; subtitleEncodingTracks_.clear();
+    CancelSubtitleReload();
     // Mark closing before cancellation so reentrant UI callbacks cannot enqueue work.
     if (snapshot_.session != SessionState::Closed) snapshot_.session = SessionState::Closing;
     CancelWatchedProperties();
@@ -819,7 +825,10 @@ void PlayerSession::CloseAsync(std::function<void()> completion) {
     client_->CloseAsync([weak, dispatch=dispatch_, completion=std::move(completion),
                          screenshotCompletion=std::move(screenshotCompletion)] {
         dispatch([weak,completion,screenshotCompletion] {
-            if(auto self=weak.lock()) { self->snapshot_.session=SessionState::Closed; self->Notify(); }
+            if(auto self=weak.lock()) {
+                self->subtitleReloadRequest_=0; self->subtitleReloadStatus_.inFlight=false;
+                self->snapshot_.session=SessionState::Closed; self->Notify();
+            }
             if(screenshotCompletion) screenshotCompletion(false,"Player closed before screenshot completion");
             if(completion) completion();
         });

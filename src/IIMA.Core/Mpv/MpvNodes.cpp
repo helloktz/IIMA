@@ -8,6 +8,7 @@
 #include <iomanip>
 #include <locale>
 #include <algorithm>
+#include <utility>
 #include <set>
 namespace iima {
 namespace {
@@ -40,6 +41,51 @@ std::optional<std::int64_t> Integer(mpv_node const& node,char const* key) {
 bool Flag(mpv_node const& node,char const* key) {
     auto p=Field(node,key); return p && p->format==MPV_FORMAT_FLAG && p->u.flag!=0;
 }
+}
+// Unlike display parsing, absence from this list is used to restore selection.
+// Reject the entire result on malformed/duplicate identities or exceeded limits.
+bool CopySubtitleStateTracks(MpvEvent& event, mpv_node const& root) {
+    event.tracks.clear();
+    if(root.format!=MPV_FORMAT_NODE_ARRAY || !root.u.list || root.u.list->num<0 ||
+       root.u.list->num>256 || (root.u.list->num && !root.u.list->values)) return false;
+    std::vector<MediaTrack> tracks;
+    std::set<std::pair<std::string,std::int64_t>> identities;
+    std::set<std::string> paths;
+    std::size_t budget=1024*1024;
+    for(int i=0;i<root.u.list->num;++i) {
+        auto const& node=root.u.list->values[i];
+        if(node.format!=MPV_FORMAT_NODE_MAP || !node.u.list || node.u.list->num<0 ||
+           node.u.list->num>128 || !node.u.list->keys || !node.u.list->values) return false;
+        std::set<std::string> keys;
+        for(int k=0;k<node.u.list->num;++k) {
+            auto length=BoundedLength(node.u.list->keys[k],128);
+            if(!length || !*length || !keys.emplace(node.u.list->keys[k],*length).second) return false;
+        }
+        auto id=Field(node,"id"), type=Field(node,"type"), external=Field(node,"external");
+        if(!id || id->format!=MPV_FORMAT_INT64 || id->u.int64<=0 || !type ||
+           type->format!=MPV_FORMAT_STRING || !external || external->format!=MPV_FORMAT_FLAG ||
+           (external->u.flag!=0 && external->u.flag!=1)) return false;
+        auto length=BoundedLength(type->u.string,16);
+        if(!length) return false;
+        std::string kind(type->u.string,*length);
+        if(kind!="sub" && kind!="audio" && kind!="video") return false;
+        if(!identities.emplace(kind,id->u.int64).second) return false;
+        if(kind!="sub") continue;
+        if(tracks.size()>=64) return false;
+        MediaTrack track;track.id=id->u.int64;track.type="sub";track.external=external->u.flag!=0;
+        auto filename=Field(node,"external-filename");
+        if(filename) {
+            if(filename->format!=MPV_FORMAT_STRING) return false;
+            auto size=BoundedLength(filename->u.string,131072);
+            if(!size || *size>budget) return false;
+            budget-=*size;track.externalPath.assign(filename->u.string,*size);
+        }
+        if(track.external && (track.externalPath.empty() || !paths.insert(track.externalPath).second)) return false;
+        if(!track.external && !track.externalPath.empty()) return false;
+        tracks.push_back(std::move(track));
+    }
+    event.tracks=std::move(tracks);
+    return true;
 }
 void CopyCollectionProperty(MpvEvent& e, mpv_node const& root) {
     if (e.name == "vf" || e.name == "af") {

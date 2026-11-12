@@ -27,6 +27,7 @@ void PlayerSession::FailPlaylistEdit(std::string error) {
 }
 
 void PlayerSession::BeginPlaylistEdit(PlaylistEditPlan plan, std::optional<bool> shuffledAfter, bool automatic) {
+    CancelSubtitleReload();
     CancelScrub();
     // Intent, not observed mutation: even rejected/no-op user edits supersede
     // background automatic discovery that started before this action.

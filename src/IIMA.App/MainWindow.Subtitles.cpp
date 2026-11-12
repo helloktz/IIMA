@@ -76,7 +76,7 @@ void MainWindow::WireSubtitleControls() {
         }
     });
     ReloadSubtitlesButton().Click([weak](auto const&, auto const&) {
-        if (auto self = weak.get(); self && !self->closing_) self->session_->ReloadSubtitles();
+        if (auto self = weak.get()) self->StartSubtitleReload();
     });
     PreviousSubtitleButton().Click([weak](auto const&, auto const&) {
         if (auto self = weak.get(); self && !self->closing_) self->session_->SeekSubtitle(-1);

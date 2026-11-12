@@ -366,6 +366,8 @@
                             </StackPanel>
                         </Expander>
                         <Button x:Name="ReloadSubtitlesButton" Content="重新加载外部字幕"/>
+                        <Button x:Name="CancelSubtitleReloadButton" Content="取消后续字幕重载" IsEnabled="False"/>
+                        <TextBlock x:Name="SubtitleReloadStatusText" TextWrapping="Wrap" FontSize="12" AutomationProperties.LiveSetting="Polite"/>
                         <StackPanel Orientation="Horizontal" Spacing="4">
                             <Button x:Name="PreviousSubtitleButton" Content="上一句"/>
                             <Button x:Name="NextSubtitleButton" Content="下一句"/>

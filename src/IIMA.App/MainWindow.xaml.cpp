@@ -276,6 +276,7 @@ void MainWindow::BeginClose()
     CancelControlBarDrag();
     CancelScrubbing();
     closing_ = true;
+    InvalidateSubtitleReload();
     CancelPlaylistDurations();
     CloseMusicVolume();
     UpdateInitialWindow(true);

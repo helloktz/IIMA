@@ -18,6 +18,16 @@ struct AutoPlaylistExpansionState {
     // IDs of newly appended entries are never inferred from paths or counters.
     std::vector<PlaylistItem> playlist;
 };
+// Command acknowledgements, not proof that new subtitle text has been rendered.
+// A cancelled in-flight command cannot be recalled and may still change tracks.
+struct SubtitleReloadStatus {
+    enum class Phase { Idle, Reading, Encoding, Reloading, Restoring, Completed, Cancelled, Failed };
+    Phase phase{Phase::Idle};
+    std::uint64_t revision{};
+    std::size_t total{}, completed{}, failed{}, skipped{}, remaining{};
+    bool inFlight{};
+    std::string error;
+};
 class PlayerSession final : public std::enable_shared_from_this<PlayerSession> {
 public:
     using Dispatch = std::function<void(std::function<void()>)>;
@@ -75,7 +85,15 @@ public:
     void ReloadSubtitles();
     // Queue the encoding change; reload matching external tracks only after success.
     bool SetSubtitleEncoding(std::string encoding);
-    bool SubtitleEncodingBusy() const noexcept { return subtitleEncodingRequest_ != 0; }
+    bool SubtitleEncodingBusy() const noexcept { return SubtitleReloadBusy(); }
+    SubtitleReloadStatus const& SubtitleReload() const noexcept { return subtitleReloadStatus_; }
+    bool SubtitleReloadBusy() const noexcept {
+        return subtitleReloadStatus_.inFlight || subtitleReloadStatus_.phase == SubtitleReloadStatus::Phase::Reading ||
+            subtitleReloadStatus_.phase == SubtitleReloadStatus::Phase::Restoring ||
+            subtitleReloadStatus_.phase == SubtitleReloadStatus::Phase::Encoding ||
+            subtitleReloadStatus_.phase == SubtitleReloadStatus::Phase::Reloading;
+    }
+    void CancelSubtitleReload();
     void SeekSubtitle(int direction, bool primary = true);
     void StepSubtitleTiming(int direction, bool primary = true);
     void AdjustSubtitleScale(int direction);
@@ -157,9 +175,27 @@ public:
 private:
     PlayerSession(Dispatch dispatch, Changed changed);
     void OnEvent(MpvEvent event);
-    void HandleSubtitleEncodingReply(MpvEvent const& event);
-    std::uint64_t subtitleEncodingRequest_{}, subtitleEncodingGeneration_{};
-    std::vector<std::pair<std::int64_t, std::string>> subtitleEncodingTracks_;
+    bool BeginSubtitleReload(std::optional<std::string> encoding);
+    bool HandleSubtitleReloadReply(MpvEvent const& event);
+    bool SubtitleReloadContextValid() const;
+    enum class SubtitleReloadStep { Baseline, Encoding, Reload, Refresh, PrimarySet, SecondaryRead, SecondarySet, Verify };
+    void ReadSubtitleReloadState(SubtitleReloadStep step);
+    void SubmitSubtitleReloadCommand(std::vector<std::string> command, SubtitleReloadStep step);
+    void FailSubtitleReload(std::string error);
+    void AdvanceSubtitleReload(MpvEvent const& fresh);
+    void RestoreSubtitleReloadSlot(MpvEvent const& fresh, bool primary);
+    std::optional<std::int64_t> ResolveReloadSelection(MpvEvent const& fresh, bool primary) const;
+    struct ReloadSelection { std::int64_t id{}; bool external{}; std::string path; };
+    ReloadSelection subtitleReloadPrimary_, subtitleReloadSecondary_;
+    SubtitleReloadStep subtitleReloadStep_{SubtitleReloadStep::Baseline};
+    std::optional<std::string> subtitleReloadEncoding_;
+    std::int64_t subtitleReloadEntry_{-1};
+    std::string subtitleReloadMediaPath_;
+    bool subtitleReloadRestoreFailed_{};
+    SubtitleReloadStatus subtitleReloadStatus_;
+    std::uint64_t subtitleReloadRequest_{}, subtitleReloadGeneration_{}, subtitleReloadOpenIntent_{}, subtitleReloadEditIntent_{};
+    std::size_t subtitleReloadIndex_{};
+    std::vector<std::pair<std::int64_t, std::string>> subtitleReloadTracks_;
     void Notify();
     void SubmitAudioDevicePreference(std::string device, bool protectSelection = true);
     void PumpAudioDevicePreference();

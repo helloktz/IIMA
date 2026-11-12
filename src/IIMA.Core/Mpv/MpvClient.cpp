@@ -6,6 +6,7 @@
 #include "include/mpv/client.h"
 #include <atomic>
 #include <algorithm>
+#include <utility>
 #include <deque>
 #include <mutex>
 #include <thread>
@@ -64,6 +65,7 @@ struct MpvClient::State {
         bool videoGeometryQuery{};
         bool windowScaleQuery{};
         bool pauseQuery{};
+        bool subtitleStateQuery{};
         std::optional<std::string> recoverAudioDevice;
     };
     std::deque<Request> commands;
@@ -156,7 +158,7 @@ struct MpvClient::State {
                 // client.h explicitly permits async command reordering. Serialize at replies.
                 if(pending) {
                     const auto request=pending->id;
-                    if (!pending->playlistQuery && !pending->watchedPropertiesQuery && !pending->videoGeometryQuery && !pending->windowScaleQuery && !pending->pauseQuery) {
+                    if (!pending->playlistQuery && !pending->watchedPropertiesQuery && !pending->videoGeometryQuery && !pending->windowScaleQuery && !pending->pauseQuery && !pending->subtitleStateQuery) {
                         reportSeek(seekLatency.Cancel());
                         if (pending->measureSeek) seekLatency.Begin(request);
                     }
@@ -165,7 +167,73 @@ struct MpvClient::State {
                     inFlightWindowScale = pending->windowScaleQuery;
                     inFlightPause = pending->pauseQuery;
                     int error{};
-                    if (pending->watchedPropertiesQuery) {
+                    if (pending->subtitleStateQuery) {
+                        MpvEvent result{MpvEvent::Kind::SubtitleStateReply};
+                        result.requestId=request;
+                        // Synchronous GETs run only after the previous lane reply.
+                        // No async request is outstanding and this branch never
+                        // claims inFlight; both success/failure emit one owned reply.
+                        try {
+                            auto require=[&](int code) {
+                                if(code<0) { result.error=code; throw std::runtime_error(api.error_string(code)); }
+                            };
+                            auto identity=[&]() {
+                                std::int64_t position{-1},entry{-1};
+                                require(api.get_property(handle,"playlist-playing-pos",MPV_FORMAT_INT64,&position));
+                                if(position<0) throw std::runtime_error("No current media entry for subtitle state");
+                                const auto property="playlist/"+std::to_string(position)+"/id";
+                                require(api.get_property(handle,property.c_str(),MPV_FORMAT_INT64,&entry));
+                                if(entry<0) throw std::runtime_error("Invalid current media entry for subtitle state");
+                                char* raw{};
+                                const auto code=api.get_property(handle,"path",MPV_FORMAT_STRING,&raw);
+                                std::unique_ptr<char,decltype(api.free)> owned(raw,api.free);
+                                require(code);
+                                std::size_t size{};
+                                if(raw) while(size<=131072 && raw[size]) ++size;
+                                if(!raw || !size || size>131072) throw std::runtime_error("Invalid media path for subtitle state");
+                                return std::pair{entry,std::string(raw,size)};
+                            };
+                            const auto before=identity();
+                            mpv_node node{};
+                            const auto code=api.get_property(handle,"track-list",MPV_FORMAT_NODE,&node);
+                            auto release=[&](mpv_node* value){api.free_node_contents(value);};
+                            std::unique_ptr<mpv_node,decltype(release)> owned(code>=0 ? &node : nullptr,release);
+                            require(code);
+                            if(!CopySubtitleStateTracks(result,node))
+                                throw std::runtime_error("Subtitle track state is malformed, ambiguous or exceeds limits");
+                            auto slot=[&](char const* name) {
+                                std::int64_t value{-1};
+                                require(api.get_property(handle,name,MPV_FORMAT_INT64,&value));
+                                // mp_property_switch_track GET: initialized off=-2,
+                                // uninitialized auto=-1. Never reinterpret auto as off.
+                                if(value==-2) return std::int64_t{0};
+                                if(value<=0 || std::none_of(result.tracks.begin(),result.tracks.end(),
+                                    [&](auto const& track){return track.id==value;}))
+                                    throw std::runtime_error("Subtitle selection does not match fresh tracks");
+                                return value;
+                            };
+                            result.primarySubtitle=slot("sid");
+                            result.secondarySubtitle=slot("secondary-sid");
+                            if(*result.primarySubtitle && result.primarySubtitle==result.secondarySubtitle)
+                                throw std::runtime_error("Ambiguous duplicate subtitle selections");
+                            const auto after=identity();
+                            if(before!=after) throw std::runtime_error("Media changed during subtitle state read");
+                            result.entryId=after.first;
+                            result.properties["path"]=after.second;
+                            result.subtitleStateComplete=true;
+                            // Separate GETs are not an atomic snapshot. A change
+                            // after these reads still requires Session intent guards.
+                        } catch(std::exception const& failure) {
+                            if(result.error>=0) result.error=MPV_ERROR_PROPERTY_ERROR;
+                            result.text=failure.what();
+                            result.tracks.clear();result.primarySubtitle.reset();result.secondarySubtitle.reset();
+                            result.properties.clear();result.entryId=-1;result.subtitleStateComplete=false;
+                        }
+                        bool cancelled{};
+                        { std::lock_guard lock(mutex); cancelled=closing; }
+                        if(!cancelled) Emit(std::move(result));
+                        continue;
+                    } else if (pending->watchedPropertiesQuery) {
                         MpvEvent result{MpvEvent::Kind::WatchedPropertiesReply};
                         result.requestId = request;
                         for (auto const& name : pending->arguments) {
@@ -525,6 +593,12 @@ std::uint64_t MpvClient::GetVideoGeometryAsync() {
     const auto id = request.id;
     state_->commands.push_back(std::move(request));
     return id;
+}
+std::uint64_t MpvClient::ReadSubtitleStateAsync() {
+    std::lock_guard lock(state_->mutex);
+    if(state_->closing || !state_->started || state_->commands.size()>=256) return 0;
+    State::Request request{state_->nextId++,{},false};request.subtitleStateQuery=true;
+    const auto id=request.id;state_->commands.push_back(std::move(request));return id;
 }
 std::uint64_t MpvClient::GetPauseAsync() {
     std::lock_guard lock(state_->mutex);
