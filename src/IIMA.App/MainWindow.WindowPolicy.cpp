@@ -14,6 +14,14 @@ void MainWindow::WireWindowPlaybackPolicy() {
             if(auto self=weak.get(); self && !self->closing_)
                 self->session_->WindowLifecycleChanged(state.inactive,state.minimized);
         });
+    powerLifecycle_=std::make_unique<iima::PowerLifecycle>(window, [weak] {
+        if(auto self=weak.get(); self && !self->closing_ &&
+            self->preferences_.Boolean("pauseWhenGoesToSleep"))
+            self->session_->SystemWillSuspend();
+    });
+    if(!powerLifecycle_->ModernStandbyNotificationsRegistered())
+        ShowError(L"无法注册现代待机通知，仅保留传统睡眠广播；睡眠暂停可能不可用。Windows错误：" +
+            winrt::to_hstring(powerLifecycle_->RegistrationError()));
     const auto state=windowLifecycle_->Current();
     session_->WindowLifecycleChanged(state.inactive,state.minimized);
 }

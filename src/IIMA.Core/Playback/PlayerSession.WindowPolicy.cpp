@@ -3,6 +3,16 @@
 #include "PlayerSession.h"
 
 namespace iima {
+void PlayerSession::SystemWillSuspend() {
+    // PlayerWindowController.willSleepNotification -> PlayerCore.pause.
+    // See upstream issue #4520: avoid producing idle rendering work during sleep.
+    if(snapshot_.session!=SessionState::Ready ||
+       (snapshot_.media!=MediaState::Loading && snapshot_.media!=MediaState::Loaded)) return;
+    // Even if already paused, revoke earlier focus/minimize restoration and the
+    // current load's deferred auto-resume. Waking must not undo the sleep pause.
+    sleepPauseHeld_=true;
+    Pause(true);
+}
 void PlayerSession::WindowLifecycleChanged(bool inactive,bool minimized) {
     windowInactive_=inactive;
     windowMinimized_=minimized;
@@ -14,7 +24,7 @@ void PlayerSession::CancelWindowPausePolicy() {
     windowPauseDirective_.reset();
 }
 void PlayerSession::RefreshWindowPausePolicy() {
-    if(snapshot_.session!=SessionState::Ready || snapshot_.media!=MediaState::Loaded ||
+    if(sleepPauseHeld_ || snapshot_.session!=SessionState::Ready || snapshot_.media!=MediaState::Loaded ||
         pauseRequest_ || loadRequest_ || waitingForStart_) return;
     SubmitWindowPauseDirective(windowPausePolicy_.SetWindowState(windowInactive_,windowMinimized_,advancedPreferences_));
 }

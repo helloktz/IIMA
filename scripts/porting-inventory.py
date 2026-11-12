@@ -40,7 +40,7 @@ MAPPING = {
     'MPVController.swift': ['src/IIMA.Core/Mpv/MpvClient.cpp'],
     'MPVNode.swift': ['src/IIMA.Core/Mpv/MpvNodes.cpp'],
     'MainWindowController.swift': ['src/IIMA.App/MainWindow.xaml.cpp', 'src/IIMA.Core/Geometry/WindowGeometry.cpp', 'src/IIMA.App/Platform/WindowPlacement.cpp', 'src/IIMA.App/MainWindow.Placement.cpp'],
-    'PlayerWindowController.swift': ['src/IIMA.App/MainWindow.Commands.cpp', 'src/IIMA.App/MainWindow.Keyboard.cpp'],
+    'PlayerWindowController.swift': ['src/IIMA.App/MainWindow.Commands.cpp', 'src/IIMA.App/MainWindow.Keyboard.cpp', 'src/IIMA.App/Platform/PowerLifecycle.cpp', 'src/IIMA.App/MainWindow.WindowPolicy.cpp'],
     'VideoView.swift': ['src/IIMA.App/Presentation/VideoPresenter.cpp'],
     'MPVFilter.swift': ['src/IIMA.Core/Filters/MPVFilter.cpp'],
     'FilterPresets.swift': ['src/IIMA.Core/Filters/FilterPresets.cpp'],

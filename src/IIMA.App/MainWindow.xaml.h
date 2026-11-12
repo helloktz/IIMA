@@ -7,6 +7,7 @@
 #include <winrt/Windows.Graphics.h>
 #include "Platform/MediaIntegration.h"
 #include "Platform/WindowLifecycle.h"
+#include "Platform/PowerLifecycle.h"
 #include "Platform/WindowPlacement.h"
 #include "Platform/LocalInputResolver.h"
 #include "Platform/ScreenshotStaging.h"
@@ -179,6 +180,7 @@ private:
     void ApplyWindowPreferences();
     void WireWindowPlaybackPolicy();
     std::unique_ptr<iima::WindowLifecycle> windowLifecycle_;
+    std::unique_ptr<iima::PowerLifecycle> powerLifecycle_;
     iima::settings::PreferenceStore preferences_;
     void ApplySettingsSnapshot(iima::PlaybackSnapshot const& state);
     void WireAssociationControls();

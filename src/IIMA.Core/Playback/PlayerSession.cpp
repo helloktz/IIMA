@@ -30,7 +30,7 @@ void PlayerSession::SetPresentationReady(bool ready) {
     if(ready) RefreshWindowPausePolicy();
 }
 void PlayerSession::MaybeResume() {
-    if(resumePending_ && presentationReady_ && snapshot_.media==MediaState::Loaded &&
+    if(!sleepPauseHeld_ && resumePending_ && presentationReady_ && snapshot_.media==MediaState::Loaded &&
        !pauseRequest_ && !loadRequest_ && !waitingForStart_ && expectedEntry_>=0 && expectedEntry_==snapshot_.entryId) {
         resumePending_=false;
         // Automatic transition recovery is not explicit user pause intent.
@@ -51,7 +51,7 @@ void PlayerSession::OpenMultiple(std::vector<std::string> paths,bool append) {
     if(std::any_of(paths.begin(),paths.end(),[](auto const& p) { return p.empty() || p.find('\0')!=std::string::npos; })) {
         snapshot_.error="A media path is empty or contains a NUL character"; Notify(); return;
     }
-    if(!append) CancelWindowPausePolicy();
+    if(!append) { sleepPauseHeld_=false; CancelWindowPausePolicy(); }
     CancelPlaylistEdits();
     playlistShuffled_=false;
     // No shell or command string parsing: UTF-8 paths remain individual API arguments.
@@ -73,6 +73,7 @@ void PlayerSession::OpenMultiple(std::vector<std::string> paths,bool append) {
 }
 void PlayerSession::PausedCommand(std::vector<std::string> command) {
     if(!CanOpen()) return;
+    sleepPauseHeld_=false;
     CancelWindowPausePolicy();
     CancelPlaylistEdits();
     presentationReady_=false; resumePending_=!settings_.pauseWhenOpen; loadRequest_=0;
@@ -137,11 +138,12 @@ void PlayerSession::AddSubtitle(std::string path, bool select) {
     else client_->Command({"sub-add",std::move(path),select ? "select" : "auto"});
 }
 void PlayerSession::Pause(bool value) {
+    if(!value) sleepPauseHeld_=false;
     CancelWindowPausePolicy();
     if(value) resumePending_=false; // A user pause cancels deferred auto-resume.
     if(snapshot_.session==SessionState::Ready && (value || (presentationReady_ && snapshot_.media==MediaState::Loaded))) client_->Command({"set","pause",value ? "yes" : "no"});
 }
-void PlayerSession::TogglePause() { CancelWindowPausePolicy(); resumePending_=false; if(snapshot_.session==SessionState::Ready && presentationReady_ && snapshot_.media==MediaState::Loaded) client_->Command({"cycle","pause"}); }
+void PlayerSession::TogglePause() { sleepPauseHeld_=false; CancelWindowPausePolicy(); resumePending_=false; if(snapshot_.session==SessionState::Ready && presentationReady_ && snapshot_.media==MediaState::Loaded) client_->Command({"cycle","pause"}); }
 void PlayerSession::Seek(double seconds) {
     if(snapshot_.session!=SessionState::Ready || snapshot_.media!=MediaState::Loaded ||
        !snapshot_.duration || *snapshot_.duration<=0 || !std::isfinite(seconds)) return;
@@ -301,7 +303,7 @@ void PlayerSession::OnEvent(MpvEvent e) {
     if(e.kind==MpvEvent::Kind::Loaded) RefreshWindowPausePolicy();
     if(e.kind==MpvEvent::Kind::Ready) ApplyAdvancedPreferencesOnReady();
     if(e.kind==MpvEvent::Kind::Ready && applySettingsOnReady_) { applySettingsOnReady_=false; ApplySettings(settings_); }
-    if(!pauseRequest_ && !loadRequest_ && !waitingForStart_ &&
+    if(!sleepPauseHeld_ && !pauseRequest_ && !loadRequest_ && !waitingForStart_ &&
        e.kind==MpvEvent::Kind::VideoReconfig && previousChain && !snapshot_.swapChain && wasPlaying && snapshot_.media==MediaState::Loaded) {
         // Device/output loss: don't leave invisible audio playing. A later user
         // Pause(true) cancels this deferred recovery, preserving manual intent.

@@ -126,6 +126,8 @@
     <ClCompile Include="Platform\HistoryLocale.cpp" />
     <ClInclude Include="Platform\HistoryLocale.h" />
     <ClCompile Include="Platform\WindowLifecycle.cpp" />
+    <ClCompile Include="Platform\PowerLifecycle.cpp" />
+    <ClInclude Include="Platform\PowerLifecycle.h" />
     <ClInclude Include="Platform\WindowLifecycle.h" />
   </ItemGroup>
   <ItemGroup>

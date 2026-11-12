@@ -336,3 +336,12 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 - JS成功值只代表请求进入宿主队列，不是mpv完成证明。UI发现过期、繁忙或非法请求会显示反馈；不向已返回JS函数伪造同步失败。连续依赖编辑必须等待观察到的新列表，不能假定两次同步调用会按旧下标都成功。检查与mpv执行之间仍无CAS，外部脚本可能竞争；播放跳转沿既有异步切换保护，不宣称原子列表/播放事务。
 
 仅静态编写、源码阅读和Git发布核验，没有编译、测试、Windows运行或插件执行。完整插件API及数量目标仍未达到。
+
+### 第二十四批：系统睡眠暂停与恢复权取消
+
+- `PlayerWindowController` 注册 `NSWorkspace.willSleepNotification` → `PowerLifecycle` 的本窗口 `WM_POWERBROADCAST/PBT_APMSUSPEND`；`Preference.pauseWhenGoesToSleep` 默认true → 实际设置界面和当前偏好读取；`PlayerCore.pause` 的 active guard → `PlayerSession.SystemWillSuspend` 的 Ready + Loading/Loaded 检查。不会向空闲、结束、失败或关闭内核提交pause，保留上游issue #4520避免睡眠中唤起空闲绘制的意图。
+- Windows HWND同线程subclass直接调用短小会话通知，只排入异步mpv命令，不等UI队列、不等待mpv完成，也不延迟/否决系统睡眠。注册现代待机通知；失败保留传统广播适配并提示限制，不声称已成功订阅所有电源状态。每个窗口各自取消订阅，窗口销毁帧持有状态寿命，关闭后不再调用会话。
+- 上游只在睡眠时pause，不在唤醒时自动resume；本适配同样不自动恢复。睡眠暂停撤销此前失焦/最小化与换片的自动恢复权；额外sleep latch阻止迟到Loaded/图形重绑重新取得恢复权，直到显式播放/切换/重新打开。属于异步Windows状态机所需的意图保持，不伪造暂停已确认状态。系统未给足时间时命令可能直到唤醒后处理，不能保证每种硬件在断电前已经静音。
+- 本批仅处理睡眠暂停，不实现HDR/显卡设备重建或关屏即睡眠假设。现代待机、传统S3、休眠、外接显示器、设备恢复仍须平台验证；软件防休眠请求与系统强制睡眠是不同机制。
+
+未编译、测试、运行Windows，未触发系统睡眠或电源设置变更。文件数可能达到阈值仍不证明功能完整或行数达标。

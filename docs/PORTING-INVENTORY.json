@@ -934,7 +934,9 @@
       "coverage": "partial-static-unverified",
       "reviewTargets": [
         "src/IIMA.App/MainWindow.Commands.cpp",
-        "src/IIMA.App/MainWindow.Keyboard.cpp"
+        "src/IIMA.App/MainWindow.Keyboard.cpp",
+        "src/IIMA.App/Platform/PowerLifecycle.cpp",
+        "src/IIMA.App/MainWindow.WindowPolicy.cpp"
       ]
     },
     {

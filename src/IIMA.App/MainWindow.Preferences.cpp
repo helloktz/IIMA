@@ -13,7 +13,7 @@ namespace {
 bool HasApplicationAdapter(std::string_view key) {
     static const std::set<std::string_view> keys{
         "autoSwitchToMusicMode", "musicModeShowPlaylist", "musicModeShowAlbumArt",
-        "pauseWhenInactive", "pauseWhenMinimized", "enableThumbnailPreview", "thumbnailWidth", "maxThumbnailPreviewCacheSize",
+        "pauseWhenInactive", "pauseWhenMinimized", "pauseWhenGoesToSleep", "enableThumbnailPreview", "thumbnailWidth", "maxThumbnailPreviewCacheSize",
         "alwaysFloatOnTop", "fullScreenWhenOpen", "playWhenEnteringFullScreen", "pauseWhenLeavingFullScreen",
         "enableOSD", "disableOSDPauseResumeMsgs", "disableOSDSpeedMsg", "osdAutoHideTimeout", "osdTextSize"
     };

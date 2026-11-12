@@ -54,6 +54,9 @@ public:
     void TogglePause();
     // UI-thread notification; owned dialogs are filtered by the Windows adapter.
     void WindowLifecycleChanged(bool inactive, bool minimized);
+    // UI-thread suspend notification: never wakes/pauses an idle or closing core.
+    // Caller applies pauseWhenGoesToSleep. No automatic resume on wake.
+    void SystemWillSuspend();
     void Seek(double seconds);
     void SeekRelative(double seconds, bool exact = true);
     void StepFrame(bool backwards = false);
@@ -119,6 +122,7 @@ private:
     bool hasAdvancedPreferences_{}, applyAdvancedOnReady_{};
     settings::WindowPlaybackPolicy windowPausePolicy_;
     bool windowInactive_{}, windowMinimized_{};
+    bool sleepPauseHeld_{}; // explicit Play/new-media intent releases sleep pause
     std::uint64_t windowMediaGeneration_{}, windowPauseRequest_{};
     std::optional<settings::WindowPauseDirective> windowPauseDirective_;
     bool presentationReady_{};

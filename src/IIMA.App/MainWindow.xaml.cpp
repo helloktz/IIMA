@@ -243,6 +243,7 @@ void MainWindow::BeginClose()
     CancelOnlineSubtitles();
     musicMode_.Close();
     if(windowLifecycle_) windowLifecycle_->Close();
+    if(powerLifecycle_) powerLifecycle_->Close();
     inputStop_.request_stop(); ++inputGeneration_;
     subtitleMatchStop_.request_stop(); ++subtitleMatchGeneration_;
     if (osdTimer_) osdTimer_.Stop();
