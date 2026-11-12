@@ -16,6 +16,21 @@ std::string Decimal(double value) {
     return {buffer, end};
 }
 }
+std::optional<double> StepSubtitleScale(double current, int direction) noexcept {
+    if (direction == 0) return 1.0;
+    if ((direction != -1 && direction != 1) || !std::isfinite(current) || current <= 0 || current > 100) return {};
+    const auto display = current >= 1 ? current : -1 / current;
+    if (!std::isfinite(display) || !std::isfinite(display * 100)) return {};
+    const auto rounded = std::round(display * 100) / 100;
+    const auto amount = direction > 0 ? 0.1 : -0.1;
+    auto next = rounded + amount;
+    if ((next > 0 && next < 1) || (next > -1 && next < 0)) next = -rounded + amount;
+    if (!std::isfinite(next) || next == 0) return {};
+    const auto scale = std::abs(next > 0 ? next : 1 / next);
+    // Honor current mpv's range without silently changing the requested step.
+    if (!std::isfinite(scale) || scale <= 0 || scale > 100) return {};
+    return scale;
+}
 std::optional<SubtitleColor> SubtitleColor::ParseHex(std::string_view text) noexcept {
     if ((text.size() != 7 && text.size() != 9) || text.front() != '#') return {};
     std::uint32_t value{};

@@ -9,6 +9,14 @@ using namespace Microsoft::UI::Xaml;
 void MainWindow::WireSubtitleControls() {
     WireSubtitleEncoding();
     auto weak = get_weak();
+    auto scale = [weak](Controls::Button button, int direction) {
+        button.Click([weak, direction](auto const&, auto const&) {
+            if (auto self = weak.get(); self && !self->closing_) self->session_->AdjustSubtitleScale(direction);
+        });
+    };
+    scale(SmallerSubtitleButton(), -1);
+    scale(LargerSubtitleButton(), 1);
+    scale(ResetSubtitleScaleButton(), 0);
     auto timing = [weak](Controls::Button button, int direction, bool primary) {
         button.Click([weak, direction, primary](auto const&, auto const&) {
             if (auto self = weak.get(); self && !self->closing_)

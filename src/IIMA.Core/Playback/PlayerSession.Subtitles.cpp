@@ -32,6 +32,19 @@ void PlayerSession::SetSubtitleScale(double scale, bool primary) {
     if (scale > 100) return;
     client_->Command({"set", primary ? "sub-scale" : "secondary-sub-scale", std::to_string(scale)});
 }
+void PlayerSession::AdjustSubtitleScale(int direction) {
+    if (snapshot_.session != SessionState::Ready || snapshot_.media != MediaState::Loaded ||
+        waitingForStart_ || playlistEdit_) return;
+    if (direction && !snapshot_.subtitleScale) {
+        snapshot_.error = "Subtitle scale is unavailable"; Notify(); return;
+    }
+    auto scale = StepSubtitleScale(snapshot_.subtitleScale.value_or(1), direction);
+    if (!scale) {
+        snapshot_.error = "Subtitle scale step is outside the supported range; reset or enter a value";
+        Notify(); return;
+    }
+    SetSubtitleScale(*scale);
+}
 void PlayerSession::SetSubtitlePosition(int percent, bool primary) {
     // Current mpv supports 0..150 for both slots. Values above 100 can put
     // text outside the visible image; the UI must explain that explicitly.

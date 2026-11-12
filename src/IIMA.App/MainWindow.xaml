@@ -246,6 +246,12 @@
                                 <TextBlock Text="仅影响外部文本字幕；内嵌或图形字幕不适用。自动检测与可用编码取决于播放器构建。" TextWrapping="Wrap"/>
                             </StackPanel>
                         </Expander>
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <Button x:Name="SmallerSubtitleButton" Content="字幕缩小"/>
+                            <Button x:Name="LargerSubtitleButton" Content="字幕放大"/>
+                            <Button x:Name="ResetSubtitleScaleButton" Content="原始比例"/>
+                        </StackPanel>
+                        <TextBlock x:Name="SubtitleScaleStatus" TextWrapping="Wrap"/>
                         <NumberBox x:Name="SubtitleScaleBox" Header="字幕缩放" Value="1" Minimum="0.01" Maximum="100" SmallChange="0.1"/>
                         <NumberBox x:Name="SubtitlePositionBox" Header="字幕位置（0顶部，100底部）" Value="100" Minimum="0" Maximum="100"/>
                         <Button x:Name="ApplySubtitleLayoutButton" Content="应用字幕位置与缩放"/>

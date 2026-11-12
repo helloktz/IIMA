@@ -69,6 +69,14 @@ void MainWindow::ApplySecondarySubtitleDraft() {
 void MainWindow::UpdateSecondarySubtitles(iima::PlaybackSnapshot const& state) {
     struct Guard { bool& flag; explicit Guard(bool& f):flag(f){flag=true;} ~Guard(){flag=false;} } guard(projectingSubtitles_);
     const bool active = !closing_ && state.session == iima::SessionState::Ready && state.media == iima::MediaState::Loaded;
+    const bool scaleKnown = active && state.subtitleScale && *state.subtitleScale > 0;
+    SmallerSubtitleButton().IsEnabled(scaleKnown);
+    LargerSubtitleButton().IsEnabled(scaleKnown);
+    ResetSubtitleScaleButton().IsEnabled(active);
+    std::wstring scaleStatus = L"主字幕实际缩放：";
+    scaleStatus += active && state.subtitleScale ? to_hstring(*state.subtitleScale).c_str() : L"未知";
+    scaleStatus += L"；快捷增减沿 IINA 非线性步进，输入框为独立编辑值。";
+    SubtitleScaleStatus().Text(scaleStatus);
     const bool primaryTiming = active && state.subtitleId && *state.subtitleId > 0;
     const bool secondaryTiming = active && state.secondarySubtitleId && *state.secondarySubtitleId > 0;
     PreviousSubtitleTimingButton().IsEnabled(primaryTiming);

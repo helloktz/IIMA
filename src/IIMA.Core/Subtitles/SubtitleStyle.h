@@ -7,6 +7,10 @@
 #include <utility>
 #include <vector>
 namespace iima {
+// MainMenuActions.menuChangeSubScale: signed reciprocal display-space steps.
+// direction 0 resets to 1; -1/+1 step. Invalid/zero input is not inverted.
+std::optional<double> StepSubtitleScale(double current, int direction) noexcept;
+
 struct SubtitleColor {
     double red{}, green{}, blue{}, alpha{1};
     static std::optional<SubtitleColor> ParseHex(std::string_view text) noexcept;
