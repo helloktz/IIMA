@@ -3,6 +3,7 @@
 // Copyright (c) 2026 lhc and contributors. GPL-3.0; references/iina/LICENSE.
 #include "pch.h"
 #include "MainWindow.xaml.h"
+#include <algorithm>
 using namespace winrt;
 using namespace Microsoft::UI::Xaml;
 namespace {
@@ -84,6 +85,10 @@ void MainWindow::FinishManagedCropTransaction(bool commit) {
         !Matches(cropExpectedEmpty_,state.videoFilters)) {
         AbandonManagedCropTransaction(L"滤镜或媒体已改变，未覆盖其他操作；原裁剪表达式已保留。"); return;
     }
+    if (!commit && cropOriginal_->entries.empty()) {
+        // No pre-existing crop was removed; cancel is a read-only exit.
+        CompleteManagedCropTransaction(true); return;
+    }
     iima::FilterNode desired = cropOriginal_->root;
     if (commit) {
         if (!interactiveCrop_.Active() || !InteractiveCropMapping()) {
@@ -99,13 +104,33 @@ void MainWindow::FinishManagedCropTransaction(bool commit) {
         }
         auto filter = iima::MPVFilter::Crop(result->pixels.width,result->pixels.height,result->pixels.x,result->pixels.y);
         iima::MPVFilter named(filter.Name(),std::string("iina_crop"),filter.Params());
-        auto replace = iima::FilterChainEditor::Replace(*cropOriginal_,cropOriginal_->revision,0,named);
+        auto replace = cropOriginal_->entries.empty()
+            ? iima::FilterChainEditor::CreateSingle(*cropOriginal_,named)
+            : iima::FilterChainEditor::Replace(*cropOriginal_,cropOriginal_->revision,0,named);
         if (!replace.valid) { ShowError(to_hstring(replace.error)); return; }
-        desired = std::move(replace.after); // Preserves original enabled flag and unknown row fields.
+        desired = std::move(replace.after);
+        if (!cropOriginal_->entries.empty()) {
+            // Replace intentionally rebuilds a generic filter row. Here the
+            // filter identity is unchanged: change only crop params, preserving
+            // enabled and every unknown original field for this transaction.
+            auto row = cropOriginal_->root.children.front();
+            auto const& replacement = desired.children.front();
+            for (std::size_t n=0; n<replacement.keys.size(); ++n) {
+                if (replacement.keys[n] != "params") continue;
+                auto key = std::find(row.keys.begin(),row.keys.end(),"params");
+                if (key == row.keys.end()) {
+                    row.keys.push_back("params"); row.children.push_back(replacement.children[n]);
+                } else row.children[static_cast<std::size_t>(key-row.keys.begin())] = replacement.children[n];
+            }
+            desired.children.front() = std::move(row);
+        }
     }
     iima::FilterEditPlan plan{cropExpectedEmpty_,desired,true,{}};
     const auto generation = cropTransactionGeneration_;
     const bool restoring = !commit;
+    cropPointer_.reset(); interactiveCrop_.CancelDrag();
+    InteractiveCropCanvas().ReleasePointerCaptures();
+    InteractiveCropCanvas().IsEnabled(false);
     cropTransactionPhase_ = CropTransactionPhase::Writing;
     InteractiveCropConfirmButton().IsEnabled(false);
     InteractiveCropCancelButton().IsEnabled(false);
@@ -124,8 +149,9 @@ void MainWindow::FinishManagedCropTransaction(bool commit) {
                 self->CompleteManagedCropTransaction(true); return;
             }
             if (Matches(self->cropOriginal_->root,observed)) {
+                const bool emptyBaseline = self->cropOriginal_->entries.empty();
                 self->CompleteManagedCropTransaction(true);
-                self->ShowError(L"新裁剪未确认；读取结果显示原裁剪仍在。"); return;
+                self->ShowError(emptyBaseline ? L"新裁剪未确认；读取结果仍为空链。" : L"新裁剪未确认；读取结果显示原裁剪仍在。"); return;
             }
             if (!restoring && Matches(self->cropExpectedEmpty_,observed)) {
                 self->cropTransactionPhase_ = CropTransactionPhase::Preparing;
@@ -137,7 +163,7 @@ void MainWindow::FinishManagedCropTransaction(bool commit) {
     if (!queued) {
         cropTransactionPhase_ = CropTransactionPhase::Preparing;
         InteractiveCropCancelButton().IsEnabled(true);
-        InteractiveCropStatus().Text(L"最终请求未入队；原裁剪仍暂时移除。可再次点击取消请求恢复。");
+        InteractiveCropStatus().Text(L"最终请求未入队。可再次点击取消退出或恢复原裁剪。");
     }
 }
 void MainWindow::CompleteManagedCropTransaction(bool restorePlayback) {
@@ -154,7 +180,8 @@ void MainWindow::AbandonManagedCropTransaction(hstring const& message) {
         auto expression = to_hstring(cropOriginal_->entries[0].filter->StringFormat());
         VideoFilterText().Text(expression); ChainFilterExpression().Text(expression);
     }
+    const bool hadOriginalCrop = cropOriginal_ && !cropOriginal_->entries.empty();
     CompleteManagedCropTransaction(false);
-    if (!closing_) ShowError(message);
+    if (!closing_) ShowError(hadOriginalCrop ? message : L"裁剪结果因媒体或滤镜变化而无法确认；未覆盖当前状态，也未自动恢复播放。");
 }
 }

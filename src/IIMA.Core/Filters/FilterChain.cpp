@@ -214,6 +214,21 @@ bool FilterEditPlan::FreshMatches(FilterChainSnapshot const& snapshot) const {
     std::size_t visited{};
     return NodesEqual(snapshot.root, before, visited);
 }
+FilterEditPlan FilterChainEditor::CreateSingle(FilterChainSnapshot const& snapshot,
+    MPVFilter const& filter) {
+    FilterEditPlan empty{snapshot.root,{},true,{}};
+    if (!empty.FreshMatches(snapshot) || snapshot.root.format != MPV_FORMAT_NODE_ARRAY ||
+        !snapshot.root.children.empty() || !snapshot.entries.empty())
+        return {{},{},false,"A complete empty filter chain is required"};
+    // Reuse the structured parameter validation and resource bounds in Replace.
+    auto candidate = snapshot;
+    FilterNode row; row.format = MPV_FORMAT_NODE_MAP;
+    candidate.root.children.push_back(std::move(row));
+    candidate.entries.push_back({});
+    auto plan = Replace(candidate,candidate.revision,0,filter);
+    if (plan.valid) plan.before = snapshot.root;
+    return plan;
+}
 FilterEditPlan FilterChainEditor::Remove(FilterChainSnapshot const& snapshot,
     std::uint64_t revision, std::size_t index) {
     auto plan = Begin(snapshot, revision, index);

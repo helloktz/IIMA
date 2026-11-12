@@ -79,7 +79,7 @@ void MainWindow::WireInteractiveCrop() {
         if (auto self = weak.get()) self->FinishInteractiveCrop(true);
     });
     InteractiveCropAspectButton().Click([weak](auto const&, auto const&) {
-        auto self = weak.get(); if (!self || !self->interactiveCrop_.Active() || !self->cropMapping_) return;
+        auto self = weak.get(); if (!self || self->cropTransactionPhase_ != CropTransactionPhase::Editing || !self->interactiveCrop_.Active() || !self->cropMapping_) return;
         constexpr std::array<iima::CropPoint, 7> aspects{{{0,0},{4,3},{16,9},{16,10},{21,9},{3,2},{5,4}}};
         auto index = self->InteractiveCropAspect().SelectedIndex();
         if (index < 0 || index >= static_cast<int>(aspects.size())) return;
@@ -88,7 +88,7 @@ void MainWindow::WireInteractiveCrop() {
         self->PaintInteractiveCrop();
     });
     InteractiveCropNumbersButton().Click([weak](auto const&, auto const&) {
-        auto self = weak.get(); if (!self || !self->interactiveCrop_.Active()) return;
+        auto self = weak.get(); if (!self || self->cropTransactionPhase_ != CropTransactionPhase::Editing || !self->interactiveCrop_.Active()) return;
         std::array<double,4> numbers{self->InteractiveCropX().Value(),self->InteractiveCropY().Value(),
             self->InteractiveCropWidth().Value(),self->InteractiveCropHeight().Value()};
         for (auto value : numbers) if (!std::isfinite(value) || value < 0 || value > 65536 || std::floor(value) != value) {
@@ -101,7 +101,7 @@ void MainWindow::WireInteractiveCrop() {
         self->PaintInteractiveCrop();
     });
     InteractiveCropCanvas().PointerPressed([weak](auto const&, Input::PointerRoutedEventArgs const& args) {
-        auto self = weak.get(); if (!self || !self->interactiveCrop_.Active() || self->cropPointer_) return;
+        auto self = weak.get(); if (!self || self->cropTransactionPhase_ != CropTransactionPhase::Editing || !self->interactiveCrop_.Active() || self->cropPointer_) return;
         auto point = args.GetCurrentPoint(self->InteractiveCropCanvas());
         if (!point.Properties().IsLeftButtonPressed()) return;
         iima::CropPoint p{point.Position().X,point.Position().Y};
@@ -176,13 +176,22 @@ void MainWindow::StartInteractiveCrop() {
     if (!cropOriginal_) {
         interactiveCropEpoch_ = navigationEpoch_; interactiveCropEntry_ = state.entryId;
         interactiveCropWasPlaying_ = !state.paused;
-    } else cropTransactionPhase_ = CropTransactionPhase::Editing;
+    }
     interactiveCropFilterRevision_ = state.videoFilters.revision;
     CancelMouseClick(); CancelThumbnailPreview();
     if (!cropOriginal_) {
         InteractiveCropResume().IsChecked(true);
         session_->Pause(true);
     }
+    if (!cropOriginal_) {
+        // An empty baseline is still a transaction: first-time crop must wait
+        // for the same media-guarded property reply/readback as a replacement.
+        cropOriginal_ = state.videoFilters;
+        cropExpectedEmpty_ = state.videoFilters.root;
+        ++cropTransactionGeneration_; cropCancelRequested_ = false;
+    }
+    cropTransactionPhase_ = CropTransactionPhase::Editing;
+    InteractiveCropCanvas().IsEnabled(true);
     InteractiveCropConfirmButton().IsEnabled(true);
     PlayerSidebar().IsEnabled(false);
     InteractiveCropCanvas().Visibility(Visibility::Visible);
@@ -191,7 +200,7 @@ void MainWindow::StartInteractiveCrop() {
     UpdateControlBarPolicy(); PaintInteractiveCrop();
 }
 void MainWindow::PaintInteractiveCrop() {
-    if (!interactiveCrop_.Active() || !cropMapping_) return;
+    if (!interactiveCrop_.Active() || !cropMapping_ || cropTransactionPhase_ == CropTransactionPhase::Writing) return;
     auto rect = interactiveCrop_.DisplayRect(); if (!rect) return;
     Media::RectangleGeometry clip;
     clip.Rect({0,0,static_cast<float>(cropMapping_->viewport.width),static_cast<float>(cropMapping_->viewport.height)});
@@ -270,9 +279,6 @@ void MainWindow::FinishInteractiveCrop(bool commit, bool restorePlayback) {
     auto const& state = session_->Snapshot();
     const bool current = navigationEpoch_ == interactiveCropEpoch_ && state.entryId == interactiveCropEntry_ &&
         state.session == iima::SessionState::Ready && state.media == iima::MediaState::Loaded;
-    std::optional<iima::CropCommit> result;
-    if (commit && current && state.videoFilters.revision == interactiveCropFilterRevision_ && InteractiveCropMapping())
-        result = interactiveCrop_.Confirm();
     const bool resume = restorePlayback && current && interactiveCropWasPlaying_ &&
         InteractiveCropResume().IsChecked().Value();
     interactiveCrop_.Cancel(); cropMapping_.reset(); cropPointer_.reset();
@@ -280,8 +286,7 @@ void MainWindow::FinishInteractiveCrop(bool commit, bool restorePlayback) {
     InteractiveCropCanvas().Visibility(Visibility::Collapsed);
     InteractiveCropToolbar().Visibility(Visibility::Collapsed);
     PlayerSidebar().IsEnabled(true);
-    if (result && !result->removeManagedCrop) session_->AddFilter(false,result->filterExpression);
-    else if (commit && !result && !closing_) ShowError(L"裁剪草稿已失效，未提交滤镜。");
+    if (commit && !closing_) ShowError(L"裁剪事务已失效，未提交滤镜。");
     if (resume) session_->Pause(false);
     ControlBarActivity();
     if (!closing_) StartInteractiveCropButton().Focus(FocusState::Programmatic);

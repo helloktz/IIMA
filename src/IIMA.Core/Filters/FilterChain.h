@@ -58,6 +58,8 @@ struct OrientationFilter {
 OrientationFilter FindOrientationFilter(FilterChainSnapshot const&, bool mirror);
 class FilterChainEditor final {
 public:
+    // Create one structured filter only against a complete, empty observed chain.
+    static FilterEditPlan CreateSingle(FilterChainSnapshot const&, MPVFilter const&);
     static FilterEditPlan Remove(FilterChainSnapshot const&, std::uint64_t expectedRevision,
                                  std::size_t index);
     // Destination is the desired final index, not a pre-removal insertion slot.
