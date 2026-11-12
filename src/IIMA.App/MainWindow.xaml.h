@@ -33,7 +33,7 @@
 namespace winrt::IIMA::implementation {
 struct MainWindow : MainWindowT<MainWindow> {
     MainWindow();
-    void QueueFiles(std::vector<std::string> paths, bool append = false, bool useWindowPolicy = false);
+    void QueueFiles(std::vector<std::string> paths, bool append = false, bool useWindowPolicy = false, bool invertWindowPolicy = false);
     void ReceiveActivation(std::vector<std::wstring> paths);
     void ConfigureWindowActions(std::function<void()> create, std::function<void()> next);
     void UpdateWindowCount(std::size_t count);
@@ -45,9 +45,11 @@ struct MainWindow : MainWindowT<MainWindow> {
     bool IsClosing() const noexcept { return closing_; }
     void SetActivationClosing(std::function<void()> callback) { activationClosing_ = std::move(callback); }
 private:
-    winrt::fire_and_forget OpenFile(bool append = false);
+    winrt::fire_and_forget OpenFile(bool append = false, bool invertWindowPolicy = false);
+    winrt::fire_and_forget OpenFolder(bool append = false, bool invertWindowPolicy = false);
     winrt::fire_and_forget OpenSubtitle();
-    winrt::fire_and_forget OpenNetworkUrl();
+    winrt::fire_and_forget OpenNetworkUrl(bool invertWindowPolicy = false);
+    Microsoft::UI::Xaml::Controls::ContentDialog openUrlDialog_{nullptr};
     void WireWindowPlacement();
     void CapturePlacement();
     void RestorePlacement(std::optional<iima::WindowPlacementSnapshot> saved);

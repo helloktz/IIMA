@@ -15,6 +15,21 @@ namespace winrt::IIMA::implementation {
 void MainWindow::WireFileActions()
 {
     auto weak = get_weak();
+    OpenFileAlternativeItem().Click([weak](auto const&, auto const&) {
+        if (auto self = weak.get()) self->OpenFile(false, true);
+    });
+    OpenFolderItem().Click([weak](auto const&, auto const&) {
+        if (auto self = weak.get()) self->OpenFolder();
+    });
+    OpenFolderAlternativeItem().Click([weak](auto const&, auto const&) {
+        if (auto self = weak.get()) self->OpenFolder(false, true);
+    });
+    AppendFolderItem().Click([weak](auto const&, auto const&) {
+        if (auto self = weak.get()) self->OpenFolder(true);
+    });
+    OpenUrlAlternativeItem().Click([weak](auto const&, auto const&) {
+        if (auto self = weak.get()) self->OpenNetworkUrl(true);
+    });
     Root().DragOver([](auto const&, DragEventArgs const& args) {
         if (args.DataView().Contains(Windows::ApplicationModel::DataTransfer::StandardDataFormats::StorageItems()))
             args.AcceptedOperation(Windows::ApplicationModel::DataTransfer::DataPackageOperation::Copy);
@@ -24,7 +39,7 @@ void MainWindow::WireFileActions()
     ScreenshotButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->SaveScreenshot(); });
 
 }
-void MainWindow::QueueFiles(std::vector<std::string> paths, bool append, bool useWindowPolicy)
+void MainWindow::QueueFiles(std::vector<std::string> paths, bool append, bool useWindowPolicy, bool invertWindowPolicy)
 {
     if (closing_ || paths.empty()) return;
     if (activationTimer_) activationTimer_.Stop();
@@ -40,7 +55,7 @@ void MainWindow::QueueFiles(std::vector<std::string> paths, bool append, bool us
     for (auto const& path : paths) inputs.emplace_back(to_hstring(path));
     auto weak = get_weak();
     inputStop_ = iima::LocalInputResolver::Resolve(std::move(inputs), DispatcherQueue(),
-        [weak, generation, append, useWindowPolicy, singleSource](iima::LocalInputResult result) {
+        [weak, generation, append, useWindowPolicy, singleSource, invertWindowPolicy](iima::LocalInputResult result) {
             if (auto self = weak.get(); self && !self->closing_ && self->inputGeneration_ == generation && !result.cancelled) {
                 self->inputResolving_ = false;
                 try {
@@ -48,7 +63,7 @@ void MainWindow::QueueFiles(std::vector<std::string> paths, bool append, bool us
                         // A single folder remains one source. Splitting its expanded
                         // contents into separate windows would differ from openURLs.
                         self->openInputRouter_(std::move(result.paths),
-                            self->preferences_.Boolean("alwaysOpenInNewWindow"),
+                            self->preferences_.Boolean("alwaysOpenInNewWindow") != invertWindowPolicy,
                             singleSource || self->preferences_.Boolean("groupSimultaneousOpensInPlaylist"),
                             self->preferences_.Boolean("allowDuplicatePlayers"));
                     } else {

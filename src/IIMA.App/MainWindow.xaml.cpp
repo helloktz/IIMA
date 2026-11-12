@@ -117,7 +117,7 @@ MainWindow::MainWindow()
     session_->Start((std::filesystem::path{executable}.parent_path() / L"libmpv-2.dll").wstring());
 }
 void MainWindow::ShowError(hstring const& message) { StatusText().Text(message); }
-winrt::fire_and_forget MainWindow::OpenFile(bool append)
+winrt::fire_and_forget MainWindow::OpenFile(bool append, bool invertWindowPolicy)
 {
     auto lifetime = get_strong();
     if (closing_ || pickerOpen_) co_return;
@@ -132,7 +132,7 @@ winrt::fire_and_forget MainWindow::OpenFile(bool append)
         if (files.Size() && !closing_) {
             std::vector<std::string> paths;
             for (auto const& file : files) paths.push_back(to_string(file.Path()));
-            QueueFiles(std::move(paths), append, !append);
+            QueueFiles(std::move(paths), append, !append, invertWindowPolicy);
         }
     } catch (hresult_error const& error) { if (!closing_) ShowError(error.message()); }
     pickerOpen_ = false;
@@ -247,6 +247,7 @@ void MainWindow::BeginClose()
     SaveWindowPlacement();
     closing_ = true;
     if (jumpDialog_) jumpDialog_.Hide();
+    if (openUrlDialog_) openUrlDialog_.Hide();
     pluginInspectionStop_.request_stop();
     StopLocalPlugin();
     CancelThumbnailPreview();

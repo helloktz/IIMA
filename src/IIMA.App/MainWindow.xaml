@@ -94,6 +94,18 @@
                         <Button x:Name="MusicModeButton" Content="音乐模式"/>
                         <Button x:Name="CompactOverlayButton" Content="切换悬浮小窗"/>
                         <Button x:Name="OpenUrlButton" Content="打开网络媒体…"/>
+                        <DropDownButton Content="更多打开方式" AutomationProperties.Name="更多打开方式">
+                            <DropDownButton.Flyout>
+                                <MenuFlyout>
+                                    <MenuFlyoutItem x:Name="OpenFileAlternativeItem" Text="反转窗口偏好打开文件…"/>
+                                    <MenuFlyoutItem x:Name="OpenFolderItem" Text="打开文件夹…"/>
+                                    <MenuFlyoutItem x:Name="OpenFolderAlternativeItem" Text="反转窗口偏好打开文件夹…"/>
+                                    <MenuFlyoutItem x:Name="AppendFolderItem" Text="将文件夹追加到当前队列…"/>
+                                    <MenuFlyoutSeparator/>
+                                    <MenuFlyoutItem x:Name="OpenUrlAlternativeItem" Text="反转窗口偏好打开网络媒体…"/>
+                                </MenuFlyout>
+                            </DropDownButton.Flyout>
+                        </DropDownButton>
                         <StackPanel Orientation="Horizontal" Spacing="4">
                             <Button x:Name="StepBackButton" Content="上一帧"/>
                             <Button x:Name="StepForwardButton" Content="下一帧"/>

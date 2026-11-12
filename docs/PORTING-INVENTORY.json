@@ -45,6 +45,7 @@
       "reviewTargets": [
         "src/IIMA.App/App.xaml.cpp",
         "src/IIMA.App/App.OpenPolicy.cpp",
+        "src/IIMA.App/MainWindow.Folders.cpp",
         "src/IIMA.App/Platform/InstanceRouter.cpp"
       ]
     },

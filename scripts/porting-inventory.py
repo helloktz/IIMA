@@ -8,6 +8,7 @@ import json
 from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 MAPPING = {
+    'OpenURLWindowController.swift': ['src/IIMA.App/MainWindow.Network.cpp', 'src/IIMA.Core/Network/MediaUrl.cpp'],
     'PlaySliderLoopKnob.swift': ['src/IIMA.App/MainWindow.ABLoop.cpp', 'src/IIMA.Core/Playback/PlayerSession.Actions.cpp'],
     'JavascriptAPIPlaylist.swift': ['src/IIMA.App/Plugins/PluginRuntime.cpp', 'src/IIMA.App/Plugins/PluginBootstrap.h', 'src/IIMA.App/MainWindow.PluginPlaylist.cpp'],
     'JavascriptAPIInput.swift': ['src/IIMA.App/Plugins/PluginRuntime.cpp', 'src/IIMA.App/MainWindow.PluginInput.cpp', 'src/IIMA.App/MainWindow.PluginPointer.cpp'],
@@ -30,7 +31,7 @@ MAPPING = {
     'OnlineSubtitle.swift': ['src/IIMA.Core/OnlineSubtitles/SearchTransaction.cpp', 'src/IIMA.App/MainWindow.OnlineSubtitles.cpp'],
     'AssrtSubtitle.swift': ['src/IIMA.App/Platform/AssrtClient.cpp', 'src/IIMA.App/Platform/SubtitleStaging.cpp'],
     'SubChooseViewController.swift': ['src/IIMA.App/MainWindow.OnlineSubtitles.cpp'],
-    'AppDelegate.swift': ['src/IIMA.App/App.xaml.cpp', 'src/IIMA.App/App.OpenPolicy.cpp', 'src/IIMA.App/Platform/InstanceRouter.cpp'],
+    'AppDelegate.swift': ['src/IIMA.App/App.xaml.cpp', 'src/IIMA.App/App.OpenPolicy.cpp', 'src/IIMA.App/MainWindow.Folders.cpp', 'src/IIMA.App/Platform/InstanceRouter.cpp'],
     'PlayerCore.swift': ['src/IIMA.Core/Playback/PlayerSession.cpp', 'src/IIMA.Core/Windows/PlayerWindowRegistry.cpp', 'src/IIMA.App/App.xaml.cpp', 'src/IIMA.App/App.OpenPolicy.cpp', 'src/IIMA.App/MainWindow.OpenPolicy.cpp', 'src/IIMA.App/MainWindow.ABLoop.cpp', 'src/IIMA.Core/Playback/PlayerSession.Actions.cpp'],
     'PlaybackInfo.swift': ['src/IIMA.Core/Playback/PlaybackState.h'],
     'MPVCommand.swift': ['src/IIMA.Core/Mpv/Catalog/MPVCommand.h'],
