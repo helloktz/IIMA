@@ -26,7 +26,7 @@ struct Api {
     AcquireSwapChain acquireSwapChain{};
 #define API(name) decltype(&mpv_##name) name{};
     API(client_api_version) API(create) API(initialize) API(terminate_destroy)
-    API(set_option_string) API(command_async) API(observe_property) API(wait_event)
+    API(request_log_messages) API(set_option_string) API(command_async) API(observe_property) API(wait_event)
     API(error_string) API(set_property_string) API(get_property_async) API(get_property) API(free_node_contents) API(set_property_async) API(free)
 #undef API
     ~Api() = default;
@@ -37,7 +37,7 @@ struct Api {
         moduleLease=std::shared_ptr<void>(module,[](void* p) { FreeLibrary(static_cast<HMODULE>(p)); });
 #define API(name) name = reinterpret_cast<decltype(name)>(GetProcAddress(module, "mpv_" #name)); if (!name) throw std::runtime_error("Missing libmpv export: mpv_" #name);
         API(client_api_version) API(create) API(initialize) API(terminate_destroy)
-        API(set_option_string) API(command_async) API(observe_property) API(wait_event) API(error_string) API(set_property_string) API(get_property_async) API(get_property) API(free_node_contents) API(set_property_async) API(free)
+        API(request_log_messages) API(set_option_string) API(command_async) API(observe_property) API(wait_event) API(error_string) API(set_property_string) API(get_property_async) API(get_property) API(free_node_contents) API(set_property_async) API(free)
 #undef API
         acquireSwapChain = reinterpret_cast<AcquireSwapChain>(GetProcAddress(module,"mpv_iima_acquire_d3d11_swapchain_v1"));
         const auto version = client_api_version();
@@ -49,6 +49,7 @@ struct Api {
 struct MpvClient::State {
     explicit State(Sink s) : sink(std::move(s)) {}
     Sink sink;
+    MpvLogBuffer logs;
     std::mutex mutex;
     struct Request {
         std::uint64_t id;
@@ -135,8 +136,18 @@ struct MpvClient::State {
                     event.properties["path"] = rawPath;
                 std::unique_ptr<char,decltype(api.free)> path(rawPath,api.free);
             };
+            std::uint64_t logEpoch{};
             bool done = false;
             while (!done) {
+                // Latest intent slot, independent of the in-flight command lane.
+                // "no" destroys mpv's native log buffer (player/client.c), so a
+                // new start/clear cannot replay records from an earlier epoch.
+                auto desired=logs.Desired();
+                if (desired.first!=logEpoch) {
+                    auto error=api.request_log_messages(handle,"no");
+                    if (error>=0 && desired.second!="no") error=api.request_log_messages(handle,desired.second.c_str());
+                    logEpoch=desired.first;logs.Complete(logEpoch,error);
+                }
                 std::optional<Request> pending;
                 { std::lock_guard lock(mutex); if (closing) break;
                   if(!inFlight && !commands.empty()) { pending=std::move(commands.front()); commands.pop_front(); } }
@@ -275,6 +286,13 @@ struct MpvClient::State {
                 if (e.error < 0) e.text = api.error_string(e.error);
                 switch (raw->event_id) {
                 case MPV_EVENT_NONE: continue;
+                case MPV_EVENT_LOG_MESSAGE:
+                    if (raw->data) {
+                        auto const* message=static_cast<mpv_event_log_message const*>(raw->data);
+                        try { logs.Append(logEpoch,message->log_level,message->prefix,message->text); }
+                        catch (...) { logs.Overflow(logEpoch); } // Diagnostic allocation failure must not stop playback.
+                    }
+                    continue; // Never send raw content to the ordinary sink/disk logger.
                 case MPV_EVENT_START_FILE: e.kind=MpvEvent::Kind::StartFile; if(raw->data) e.entryId=static_cast<mpv_event_start_file*>(raw->data)->playlist_entry_id; break;
                 case MPV_EVENT_FILE_LOADED: e.kind=MpvEvent::Kind::Loaded; break;
                 case MPV_EVENT_END_FILE: {
@@ -435,6 +453,7 @@ struct MpvClient::State {
             }
         } catch (std::exception const& error) { MpvEvent e{MpvEvent::Kind::Failure}; e.text=error.what(); Emit(std::move(e)); }
         catch (...) { MpvEvent e{MpvEvent::Kind::Failure}; e.text="Unexpected libmpv worker failure"; Emit(std::move(e)); }
+        logs.Close();
         if(handle) api.terminate_destroy(handle);
         // Release worker DLL ownership. Queued COM owners retain their own DLL lease.
         api.moduleLease.reset(); api.module=nullptr;
@@ -446,6 +465,20 @@ struct MpvClient::State {
 MpvClient::MpvClient(Sink sink) : state_(std::make_shared<State>(std::move(sink))) {}
 MpvClient::~MpvClient() { CloseAsync(); }
 void MpvClient::SetPauseWhenOpen(bool value) { state_->pauseWhenOpen.store(value); }
+bool MpvClient::StartMpvLogCapture(std::string level) {
+    std::lock_guard lock(state_->mutex);
+    if (!state_->started || state_->closing || state_->closed) return false;
+    return state_->logs.Start(std::move(level));
+}
+void MpvClient::StopMpvLogCapture() {
+    std::lock_guard lock(state_->mutex);
+    if (state_->started && !state_->closing && !state_->closed) state_->logs.Stop();
+}
+void MpvClient::ClearMpvLogCapture() {
+    std::lock_guard lock(state_->mutex);
+    if (state_->started && !state_->closing && !state_->closed) state_->logs.Clear();
+}
+MpvLogSnapshot MpvClient::SnapshotMpvLogs() const { return state_->logs.Snapshot(); }
 void MpvClient::Start(std::wstring path) {
     std::lock_guard lock(state_->mutex);
     if(state_->started || state_->closing) return;
@@ -522,6 +555,7 @@ std::uint64_t MpvClient::EditFilterChainAsync(bool audio, FilterEditPlan plan,
     return id;
 }
 void MpvClient::CloseAsync(std::function<void()> completion) {
+    state_->logs.Close();
     bool immediate{};
     { std::lock_guard lock(state_->mutex); state_->closing=true;
       immediate=state_->closed || !state_->started;

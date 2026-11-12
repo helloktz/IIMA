@@ -24,6 +24,10 @@ public:
     using Changed = std::function<void(PlaybackSnapshot const&)>;
     static std::shared_ptr<PlayerSession> Create(Dispatch dispatch, Changed changed);
     void Start(std::wstring dllPath);
+    bool StartMpvLogCapture(std::string level) { return client_->StartMpvLogCapture(std::move(level)); }
+    void StopMpvLogCapture() { client_->StopMpvLogCapture(); }
+    void ClearMpvLogCapture() { client_->ClearMpvLogCapture(); }
+    MpvLogSnapshot SnapshotMpvLogs() const { return client_->SnapshotMpvLogs(); }
     // Only a presenter with a verified owned swapchain lifetime may grant this.
     void SetPresentationReady(bool ready);
     void Open(std::string utf8Path);

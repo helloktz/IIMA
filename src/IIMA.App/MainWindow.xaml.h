@@ -38,6 +38,7 @@
 #include "Plugins/PluginPlaybackProjection.h"
 #include "../IIMA.Core/History/HistoryBrowser.h"
 #include "../IIMA.Core/Diagnostics/DiagnosticLog.h"
+#include "../IIMA.Core/Diagnostics/MpvLogBuffer.h"
 #include <winrt/Microsoft.UI.Dispatching.h>
 #include <winrt/Microsoft.UI.Xaml.Input.h>
 #include "../IIMA.Core/Persistence/UserData.h"
@@ -593,6 +594,20 @@ private:
     std::function<void()> activationClosing_;
     std::function<void()> newWindow_, nextWindow_;
     std::unique_ptr<iima::DiagnosticLog> diagnostics_;
+    void WireMpvDiagnosticViewer();
+    void RefreshMpvDiagnosticViewer();
+    void RenderMpvDiagnosticViewer();
+    void ResetMpvDiagnosticView();
+    void CloseMpvDiagnosticViewer();
+    void CopyMpvDiagnosticSelection();
+    winrt::fire_and_forget ExportMpvDiagnosticSnapshot();
+    Microsoft::UI::Dispatching::DispatcherQueueTimer mpvLogTimer_{nullptr};
+    iima::MpvLogSnapshot mpvLogSnapshot_;
+    std::vector<iima::MpvLogRecord> mpvLogVisible_;
+    std::uint64_t mpvLogEpoch_{};
+    bool mpvLogExportBusy_{};
+    std::stop_source mpvLogExportStop_;
+    Windows::Foundation::IAsyncInfo mpvLogPicker_{nullptr};
     void WireDiagnosticViewer();
     void RefreshDiagnosticViewer(bool force);
     void RenderDiagnosticViewer();

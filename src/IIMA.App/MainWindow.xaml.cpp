@@ -72,6 +72,7 @@ MainWindow::MainWindow()
     WireMediaInformation();
     WireInspectorWatch();
     WireDiagnosticViewer();
+    WireMpvDiagnosticViewer();
     WireVideoControls();
     WireVideoAdjustments();
     WireCropControls();
@@ -304,6 +305,7 @@ void MainWindow::BeginClose()
     CancelMouseClick();
     InvalidateInspectorWatch();
     if (diagnosticTimer_) diagnosticTimer_.Stop();
+    CloseMpvDiagnosticViewer();
     if (activationTimer_) activationTimer_.Stop();
     if (activationClosing_) activationClosing_();
     if (mediaIntegration_) mediaIntegration_->Close();

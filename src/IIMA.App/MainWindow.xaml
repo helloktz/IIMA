@@ -532,6 +532,31 @@
                         <NumberBox x:Name="SubtitleDelayBox" Header="字幕延迟（秒，正数延后）" Value="0" SmallChange="0.1" LargeChange="1" SpinButtonPlacementMode="Compact"/>
                         <ComboBox x:Name="RepeatModeBox" Header="播放循环" HorizontalAlignment="Stretch"/>
                         <ComboBox x:Name="ScreenshotModeBox" Header="截图内容" HorizontalAlignment="Stretch"/>
+                        <Expander x:Name="MpvLogExpander" Header="原始 mpv 日志（手动启用）" HorizontalAlignment="Stretch">
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="警告：原始日志可能包含完整文件路径、网络URL和凭据。默认不采集，仅保留有界内存；复制或导出前请检查内容。trace日志量大，超限会丢弃；清空不能撤回已复制或写出的内容。" TextWrapping="Wrap"/>
+                                <ComboBox x:Name="MpvLogCaptureLevel" Header="采集详细程度（开始时生效）" SelectedIndex="3">
+                                    <ComboBoxItem Content="fatal"/><ComboBoxItem Content="error"/><ComboBoxItem Content="warn"/>
+                                    <ComboBoxItem Content="info"/><ComboBoxItem Content="v"/><ComboBoxItem Content="debug"/><ComboBoxItem Content="trace"/>
+                                </ComboBox>
+                                <Button x:Name="MpvLogStartButton" Content="开始采集原始日志"/>
+                                <Button x:Name="MpvLogStopButton" Content="停止采集，保留快照"/>
+                                <Button x:Name="MpvLogClearButton" Content="清空本窗口原始日志"/>
+                                <ComboBox x:Name="MpvLogDisplayLevel" Header="显示等级（包含更严重消息）" SelectedIndex="0">
+                                    <ComboBoxItem Content="全部"/><ComboBoxItem Content="fatal"/><ComboBoxItem Content="error"/>
+                                    <ComboBoxItem Content="warn"/><ComboBoxItem Content="info"/><ComboBoxItem Content="v"/>
+                                    <ComboBoxItem Content="debug"/><ComboBoxItem Content="trace"/>
+                                </ComboBox>
+                                <TextBox x:Name="MpvLogPrefix" Header="来源prefix（精确匹配；留空为全部）" MaxLength="256"/>
+                                <TextBox x:Name="MpvLogSearch" Header="搜索消息（不区分大小写）" MaxLength="256"/>
+                                <CheckBox x:Name="MpvLogLive" Content="展开时实时刷新" IsChecked="True"/>
+                                <Button x:Name="MpvLogRefreshButton" Content="读取最新快照"/>
+                                <ListView x:Name="MpvLogList" Height="180" SelectionMode="Extended" AutomationProperties.Name="原始mpv日志"/>
+                                <Button x:Name="MpvLogCopyButton" Content="复制所选原始日志（可能含私密信息）"/>
+                                <Button x:Name="MpvLogExportButton" Content="导出筛选快照（可能含私密信息）…"/>
+                                <TextBlock x:Name="MpvLogStatus" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Expander>
                         <Expander x:Name="DiagnosticExpander" Header="本窗口诊断日志" HorizontalAlignment="Stretch">
                             <StackPanel Spacing="6">
                                 <TextBlock Text="仅保留最近 1024 条诊断，不含完整 mpv 日志；此窗口不会新增媒体路径采集。" TextWrapping="Wrap"/>

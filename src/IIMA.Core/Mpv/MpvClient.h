@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include "../Diagnostics/MpvLogBuffer.h"
 #include <cstddef>
 #include "../Media/MediaInformation.h"
 #include "../Filters/FilterChain.h"
@@ -79,6 +80,10 @@ public:
     // DLL must be absolute and supplied from the application deployment directory.
     void Start(std::wstring dllPath);
     void SetPauseWhenOpen(bool value);
+    bool StartMpvLogCapture(std::string level);
+    void StopMpvLogCapture();
+    void ClearMpvLogCapture();
+    MpvLogSnapshot SnapshotMpvLogs() const;
     std::uint64_t Command(std::vector<std::string> arguments, bool measureSeek = false);
     // Queued in the SAME serialized worker lane as commands. PlaylistReply
     // owns a fresh node copy; ordinary observed properties are not substitutes.

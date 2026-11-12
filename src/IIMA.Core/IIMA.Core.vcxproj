@@ -189,4 +189,8 @@
     <ClInclude Include="Filters\QuickLut.h" />
     <ClCompile Include="Filters\QuickLut.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Diagnostics\MpvLogBuffer.h" />
+    <ClCompile Include="Diagnostics\MpvLogBuffer.cpp" />
+  </ItemGroup>
 </Project>
