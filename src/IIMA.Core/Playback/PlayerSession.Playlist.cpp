@@ -27,6 +27,7 @@ void PlayerSession::FailPlaylistEdit(std::string error) {
 }
 
 void PlayerSession::BeginPlaylistEdit(PlaylistEditPlan plan, std::optional<bool> shuffledAfter, bool automatic) {
+    CancelSpeedHold();
     CancelExternalTrackReload();
     CancelExternalAVLoad();
     CancelExternalTrackRemoval();

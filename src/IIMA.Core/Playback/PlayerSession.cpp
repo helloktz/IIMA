@@ -27,6 +27,7 @@ void PlayerSession::Notify() { if(changed_) changed_(snapshot_); }
 // distinction across queued old events. Pinned mpv cmd_loadfile creates a new,
 // monotonically allocated playlist entry and returns playlist_entry_id.
 void PlayerSession::BeginMediaOriginIntent(bool explicitOpen) {
+    CancelSpeedHold();
     CancelExternalTrackReload();
     CancelExternalAVLoad();
     CancelExternalTrackRemoval();
@@ -366,6 +367,7 @@ bool PlayerSession::HandleVolumeMemoryEvent(MpvEvent const& event) {
     return true;
 }
 void PlayerSession::SetSpeed(double value) {
+    ++speedIntentRevision_; CancelSpeedHold();
     if(snapshot_.session==SessionState::Ready && std::isfinite(value) && value>=0.01 && value<=100)
         client_->Command({"set","speed",std::to_string(value)});
 }
@@ -668,12 +670,14 @@ void PlayerSession::OnEvent(MpvEvent e) {
     if(e.kind==MpvEvent::Kind::Failure || e.kind==MpvEvent::Kind::Shutdown || e.kind==MpvEvent::Kind::EndFile) CancelWindowPausePolicy();
     if (e.kind == MpvEvent::Kind::Failure || e.kind == MpvEvent::Kind::Shutdown ||
         e.kind == MpvEvent::Kind::StartFile || e.kind == MpvEvent::Kind::EndFile) {
+        CancelSpeedHold();
         CancelExternalTrackReload();
         CancelExternalAVLoad();
         CancelExternalTrackRemoval();
         CancelSubtitleLoad(); CancelSubtitleReload();
     }
     if (e.kind == MpvEvent::Kind::Failure || e.kind == MpvEvent::Kind::Shutdown) {
+        speedHoldRequest_=0; speedHoldCancelled_.reset();
         subtitleLoadRequest_ = 0; subtitleLoadStatus_.inFlight = false;
         subtitleLoadItems_.clear(); subtitleLoadCancelled_.reset();
         externalTrackReloadRequest_ = 0;
@@ -690,6 +694,7 @@ void PlayerSession::OnEvent(MpvEvent e) {
         subtitleReloadRequest_ = 0;
         subtitleReloadStatus_.inFlight = false;
     }
+    if (HandleSpeedHoldReply(e)) return;
     if (HandleSubtitleLoadReply(e)) return;
     if (HandleExternalTrackReloadReply(e)) return;
     if (HandleExternalAVLoadReply(e)) return;
@@ -834,6 +839,7 @@ void PlayerSession::CloseAsync(std::function<void()> completion) {
                          screenshotCompletion=std::move(screenshotCompletion)] {
         dispatch([weak,completion,screenshotCompletion] {
             if(auto self=weak.lock()) {
+                self->speedHoldRequest_=0; self->speedHoldCancelled_.reset();
                 self->subtitleLoadRequest_=0; self->subtitleLoadStatus_.inFlight=false;
                 self->subtitleLoadItems_.clear(); self->subtitleLoadCancelled_.reset();
                 self->externalTrackReloadRequest_=0; self->externalTrackReloadStatus_.inFlight=false;

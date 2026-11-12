@@ -30,6 +30,7 @@ struct PlaybackSnapshot {
     std::optional<double> position, duration, abLoopA, abLoopB;
     std::optional<double> timeRemaining, playtimeRemaining;
     std::string abLoopCount{"inf"};
+    bool speedObserved{}; // Only a valid speed property observation establishes this.
     double volume{100}, speed{1}, maxVolume{100}, audioDelay{}, subtitleDelay{};
     // Confirmed result of explicit application volume commands, not startup
     // initialization or a synthesized default/property observation.

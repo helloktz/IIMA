@@ -66,6 +66,7 @@ MainWindow::MainWindow()
     PauseButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->session_->TogglePause(); });
     FullscreenButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->ToggleFullscreen(); });
     WireScrubbing();
+    WireOscArrows();
     PositionSlider().ValueChanged([weak](auto const&, auto const& args) {
         if (auto self = weak.get()) self->PositionSliderChanged(args.NewValue());
     });
@@ -263,6 +264,7 @@ void MainWindow::BeginClose()
     CancelControlBarDrag();
     CancelScrubbing();
     closing_ = true;
+    CancelOscArrow();
     ClearChapterMarkers();
     ResetPlaylistDrag();
     UpdatePlaylistProgress();

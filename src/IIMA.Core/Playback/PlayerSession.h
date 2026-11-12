@@ -194,6 +194,11 @@ public:
     void SetVolume(double value);
     void AdjustVolumeByWheel(double delta);
     void SetSpeed(double value);
+    std::uint64_t BeginSpeedHold(int direction);
+    void EndSpeedHold(std::uint64_t token);
+    void CancelSpeedHold();
+    std::uint64_t ActiveSpeedHoldToken() const noexcept { return speedHoldToken_; }
+    bool SpeedHoldBusy() const noexcept { return speedHoldToken_ || speedHoldRequest_; }
     void SetVideoAspect(std::string aspect);
     void SetVideoRotation(int degrees);
     void ToggleVideoOrientation(bool mirror);
@@ -236,6 +241,18 @@ public:
 private:
     PlayerSession(Dispatch dispatch, Changed changed);
     void OnEvent(MpvEvent event);
+    bool SpeedHoldContextValid() const;
+    bool SubmitSpeedHold(double expected, double target);
+    void FinishSpeedHoldRelease();
+    bool HandleSpeedHoldReply(MpvEvent const& event);
+    std::uint64_t speedHoldToken_{}, speedHoldSerial_{}, speedHoldRequest_{}, speedIntentRevision_{}, speedHoldIntent_{};
+    std::uint64_t speedHoldGeneration_{}, speedHoldOpenIntent_{};
+    std::int64_t speedHoldEntry_{-1};
+    std::string speedHoldMediaPath_;
+    std::shared_ptr<std::atomic_bool> speedHoldCancelled_;
+    std::chrono::steady_clock::time_point speedHoldStarted_;
+    double speedHoldTarget_{};
+    bool speedHoldRestoreEligible_{}, speedHoldRestoreWanted_{}, speedHoldEnding_{}, speedHoldConfirmed_{}, speedHoldRestoring_{};
     static bool LocalTrackPath(std::string_view path);
     bool SubtitleLoadContextValid() const;
     bool SubmitSubtitleLoad();

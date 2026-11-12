@@ -64,7 +64,7 @@ void MainWindow::WireControlBarVisibility() {
     });
 }
 bool MainWindow::CanHideControlBar() {
-    if (closing_ || abMarkerDragging_ || scrubToken_ || scrubStarting_ || oscDragging_ || pickerOpen_ || controlBarInactive_ || controlBarHovered_ ||
+    if (closing_ || oscArrowPointer_ || abMarkerDragging_ || scrubToken_ || scrubStarting_ || oscDragging_ || pickerOpen_ || controlBarInactive_ || controlBarHovered_ ||
         !preferences_.Boolean("enableControlBarAutoHide") ||
         AppWindow().Presenter().Kind() == Microsoft::UI::Windowing::AppWindowPresenterKind::CompactOverlay)
         return false;
@@ -87,6 +87,7 @@ void MainWindow::ControlBarActivity() {
 void MainWindow::UpdateControlBarPolicy() {
     if (!controlBarTimer_ || closing_) return;
     UpdateScrubbing();
+    UpdateOscArrows();
     UpdateABLoopMarkers();
     UpdateControlBarToolbar();
     UpdateCompactOverlayControls();

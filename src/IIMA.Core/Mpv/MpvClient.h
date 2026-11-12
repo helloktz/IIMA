@@ -51,7 +51,7 @@ struct Chapter {
 // Owns all payloads; never exports mpv's borrowed event memory.
 struct MpvEvent {
     enum class Kind { Ready, Failure, StartFile, Loaded, EndFile, Seek, Restart, SeekMeasurement,
-                      Property, CommandReply, PlaylistReply, ExternalTrackStateReply, ExternalTrackEditReply, SubtitleLoadReply, ExternalAVLoadReply, ExternalTrackRemovalReply, SubtitleStateReply, PauseReply, VideoGeometryReply, WindowScaleReply, WatchedPropertiesReply, VideoReconfig, Shutdown } kind;
+                      Property, CommandReply, SpeedEditReply, PlaylistReply, ExternalTrackStateReply, ExternalTrackEditReply, SubtitleLoadReply, ExternalAVLoadReply, ExternalTrackRemovalReply, SubtitleStateReply, PauseReply, VideoGeometryReply, WindowScaleReply, WatchedPropertiesReply, VideoReconfig, Shutdown } kind;
     std::string name, text;
     std::optional<double> number;
     std::optional<bool> flag;
@@ -62,6 +62,9 @@ struct MpvEvent {
     std::optional<std::int64_t> integer;
     std::vector<PlaylistItem> playlist;
     std::vector<MediaTrack> tracks;
+    // Independent speed command acknowledgement and fresh readback facts.
+    bool speedEditSubmitted{}, speedEditCommandSucceeded{}, speedEditConfirmed{};
+    std::optional<double> speedEditActual;
     // Fresh bounded subtitle transaction read, not ordinary observations.
     bool subtitleStateComplete{};
     bool subtitleLoadSubmitted{}, subtitleLoadCommandSucceeded{}, subtitleLoadConfirmed{}, subtitleLoadSkipped{};
@@ -113,6 +116,10 @@ public:
     std::uint64_t RemoveExternalTrackAsync(std::string type, std::int64_t id,
         std::string externalPath, std::int64_t expectedEntry, std::string mediaPath,
         std::shared_ptr<std::atomic_bool> cancelled = {});
+    // Fresh media/speed compare before a typed set, not an atomic CAS against
+    // other clients. Cancellation cannot recall an already submitted command.
+    std::uint64_t CompareSetSpeedAsync(double expected, double target, std::int64_t expectedEntry,
+        std::string mediaPath, std::shared_ptr<std::atomic_bool> cancelled = {});
     // One bounded subtitle item, serialized with all commands. Existing unique
     // paths reload when selected, or skip unchanged when select=false.
     std::uint64_t LoadSubtitleAsync(std::string path, bool select, std::int64_t expectedEntry,

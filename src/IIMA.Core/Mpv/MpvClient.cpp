@@ -13,6 +13,8 @@
 #include <stdexcept>
 #include <string_view>
 #include <filesystem>
+#include <charconv>
+#include <cmath>
 
 static_assert(sizeof(void*) == 8, "IIMA libmpv integration requires the x64 pointer ABI");
 static_assert(sizeof(int) == 4 && sizeof(std::int64_t) == 8);
@@ -98,6 +100,12 @@ struct MpvClient::State {
         bool reload{};
         std::optional<std::int64_t> expectedCurrentId;
     };
+    struct SpeedEdit {
+        double expected{}, target{};
+        std::int64_t entry{-1};
+        std::string mediaPath;
+        std::shared_ptr<std::atomic_bool> cancelled;
+    };
     struct Request {
         std::uint64_t id;
         std::vector<std::string> arguments;
@@ -117,6 +125,7 @@ struct MpvClient::State {
         std::optional<TrackEdit> trackEdit;
         std::optional<ExternalAVLoad> externalAVLoad;
         std::optional<SubtitleLoad> subtitleLoad;
+        std::optional<SpeedEdit> speedEdit;
         std::optional<std::string> recoverAudioDevice;
     };
     std::deque<Request> commands;
@@ -177,6 +186,7 @@ struct MpvClient::State {
             std::optional<TrackEdit> inFlightTrackEdit;
             std::optional<ExternalAVLoad> inFlightAVLoad;
             std::optional<SubtitleLoad> inFlightSubtitleLoad;
+            std::optional<SpeedEdit> inFlightSpeedEdit;
             auto readFilterResult = [&](MpvEvent& event, std::string const& name) {
                 event.name = name;
                 mpv_node value{};
@@ -194,6 +204,37 @@ struct MpvClient::State {
                 if (api.get_property(handle,"path",MPV_FORMAT_STRING,&rawPath) >= 0 && rawPath)
                     event.properties["path"] = rawPath;
                 std::unique_ptr<char,decltype(api.free)> path(rawPath,api.free);
+            };
+            auto readSpeedState=[&](MpvEvent& event, SpeedEdit const& target) {
+                try {
+                    auto require=[&](int code) {
+                        if(code<0) {event.error=code;throw std::runtime_error(api.error_string(code));}
+                    };
+                    auto identity=[&]() {
+                        std::int64_t position{-1},entry{-1};
+                        require(api.get_property(handle,"playlist-playing-pos",MPV_FORMAT_INT64,&position));
+                        if(position<0) throw std::runtime_error("No playing entry for speed edit");
+                        const auto property="playlist/"+std::to_string(position)+"/id";
+                        require(api.get_property(handle,property.c_str(),MPV_FORMAT_INT64,&entry));
+                        char* raw{};
+                        const auto code=api.get_property(handle,"path",MPV_FORMAT_STRING,&raw);
+                        std::unique_ptr<char,decltype(api.free)> owned(raw,api.free);require(code);
+                        std::size_t size{};if(raw) while(size<=131072 && raw[size]) ++size;
+                        if(entry<0 || !raw || !size || size>131072) throw std::runtime_error("Invalid media identity for speed edit");
+                        return std::pair{entry,std::string(raw,size)};
+                    };
+                    const auto before=identity();
+                    if(before.first!=target.entry || before.second!=target.mediaPath) throw std::runtime_error("Media differs from speed request");
+                    double speed{};require(api.get_property(handle,"speed",MPV_FORMAT_DOUBLE,&speed));
+                    if(!std::isfinite(speed) || speed<0.01 || speed>100) throw std::runtime_error("Fresh speed is outside supported bounds");
+                    const auto after=identity();
+                    if(before!=after) throw std::runtime_error("Media changed during speed read");
+                    event.entryId=after.first;event.properties["path"]=after.second;event.speedEditActual=speed;
+                    return true;
+                } catch(std::exception const& failure) {
+                    if(event.error>=0) event.error=MPV_ERROR_PROPERTY_ERROR;
+                    event.text=failure.what();event.speedEditActual.reset();event.entryId=-1;event.properties.clear();return false;
+                }
             };
             // cmd_track_remove ignores mp_remove_track's bool result. A command
             // acknowledgement alone therefore cannot confirm removal.
@@ -347,7 +388,29 @@ struct MpvClient::State {
                     inFlightWindowScale = pending->windowScaleQuery;
                     inFlightPause = pending->pauseQuery;
                     int error{};
-                    if(pending->subtitleLoad) {
+                    if(pending->speedEdit) {
+                        auto target=std::move(*pending->speedEdit);
+                        MpvEvent result{MpvEvent::Kind::SpeedEditReply};result.requestId=request;
+                        auto cancelled=[&] {std::lock_guard lock(mutex);return closing || (target.cancelled && target.cancelled->load());};
+                        if(cancelled()) {result.error=MPV_ERROR_COMMAND;result.text="Speed edit cancelled before submission";}
+                        else if(readSpeedState(result,target)) {
+                            if(*result.speedEditActual!=target.expected) {
+                                result.error=MPV_ERROR_COMMAND;result.text="Fresh speed differs from expected value; no speed edit submitted";
+                            } else {
+                                char value[64]{};
+                                auto [end,code]=std::to_chars(value,value+sizeof(value)-1,target.target,std::chars_format::general,17);
+                                if(code!=std::errc{}) {result.error=MPV_ERROR_COMMAND;result.text="Could not format requested speed";}
+                                else if(cancelled()) {result.error=MPV_ERROR_COMMAND;result.text="Speed edit cancelled before submission";}
+                                else {
+                                    *end='\0';const char* args[]{"set","speed",value,nullptr};
+                                    const auto error=api.command_async(handle,request,args);
+                                    if(error>=0) {inFlightSpeedEdit=std::move(target);inFlight=request;continue;}
+                                    result.error=error;result.text=api.error_string(error);
+                                }
+                            }
+                        }
+                        Emit(std::move(result));continue;
+                    } else if(pending->subtitleLoad) {
                         auto target=std::move(*pending->subtitleLoad);
                         MpvEvent result{MpvEvent::Kind::SubtitleLoadReply};result.requestId=request;
                         auto cancelled=[&] {std::lock_guard lock(mutex);return closing || (target.cancelled && target.cancelled->load());};
@@ -627,6 +690,20 @@ struct MpvClient::State {
                     break;
                 case MPV_EVENT_COMMAND_REPLY: {
                     e.kind=MpvEvent::Kind::CommandReply;
+                    if(e.requestId==inFlight && inFlightSpeedEdit) {
+                        e.kind=MpvEvent::Kind::SpeedEditReply;e.speedEditSubmitted=true;
+                        const auto commandError=e.error;e.speedEditCommandSucceeded=commandError>=0;
+                        // Read back even cancelled/failed work: an applied speed is
+                        // not rolled back here, and no pause/play command is sent.
+                        if(readSpeedState(e,*inFlightSpeedEdit)) {
+                            e.speedEditConfirmed=*e.speedEditActual==inFlightSpeedEdit->target;
+                            if(!e.speedEditConfirmed) {
+                                if(e.error>=0) e.error=MPV_ERROR_COMMAND;
+                                e.text="Speed command was submitted, but the target speed is not confirmed";
+                            } else if(commandError<0) e.text="mpv reported an error, but fresh speed matches the target";
+                        } else e.text="Speed command was submitted, but fresh speed is unavailable: "+e.text;
+                        inFlightSpeedEdit.reset();inFlight=0;break;
+                    }
                     if(e.requestId==inFlight && inFlightSubtitleLoad) {
                         e.kind=MpvEvent::Kind::SubtitleLoadReply;e.subtitleLoadSubmitted=true;
                         const auto commandError=e.error;e.subtitleLoadCommandSucceeded=commandError>=0;
@@ -911,6 +988,16 @@ std::uint64_t MpvClient::GetVideoGeometryAsync() {
     const auto id = request.id;
     state_->commands.push_back(std::move(request));
     return id;
+}
+std::uint64_t MpvClient::CompareSetSpeedAsync(double expected, double target, std::int64_t expectedEntry,
+    std::string mediaPath, std::shared_ptr<std::atomic_bool> cancelled) {
+    if(!std::isfinite(expected) || !std::isfinite(target) || expected<0.01 || expected>100 || target<0.01 || target>100 ||
+        expectedEntry<0 || mediaPath.empty() || mediaPath.size()>131072 || mediaPath.find('\0')!=std::string::npos) return 0;
+    std::lock_guard lock(state_->mutex);
+    if(state_->closing || !state_->started || state_->commands.size()>=256) return 0;
+    State::Request request{state_->nextId++,{},false};
+    request.speedEdit=State::SpeedEdit{expected,target,expectedEntry,std::move(mediaPath),std::move(cancelled)};
+    const auto id=request.id;state_->commands.push_back(std::move(request));return id;
 }
 std::uint64_t MpvClient::LoadSubtitleAsync(std::string path, bool select, std::int64_t expectedEntry,
     std::string mediaPath, std::shared_ptr<std::atomic_bool> cancelled) {

@@ -191,7 +191,12 @@
                     </Canvas>
                 </Grid>
                 <Button x:Name="OpenButton" Grid.Row="1" Content="打开文件" AutomationProperties.Name="打开文件" />
-                <Button x:Name="PauseButton" Grid.Row="1" Grid.Column="1" Content="播放" IsEnabled="False" />
+                <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="4">
+                    <Button x:Name="OscLeftButton" Content="减速" IsEnabled="False"/>
+                    <Button x:Name="PauseButton" Content="播放" IsEnabled="False" />
+                    <Button x:Name="OscRightButton" Content="加速" IsEnabled="False"/>
+                    <TextBlock x:Name="OscArrowSpeed" Width="64" MaxWidth="64" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                </StackPanel>
                 <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                     <TextBlock x:Name="TimeLabel" Foreground="{ThemeResource IimaTextBrush}" VerticalAlignment="Center" Text="--:--"/>
                     <TextBlock Text="/" VerticalAlignment="Center"/>

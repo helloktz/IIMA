@@ -145,7 +145,10 @@ void ApplyPlaybackEvent(PlaybackSnapshot& s, MpvEvent const& e) {
             else target.reset();
         }
         else if(e.name=="volume" && e.number && std::isfinite(*e.number)) s.volume=*e.number;
-        else if(e.name=="speed" && e.number && std::isfinite(*e.number)) s.speed=*e.number;
+        else if(e.name=="speed") {
+            s.speedObserved=e.number && std::isfinite(*e.number) && *e.number>=0.01 && *e.number<=100;
+            if(s.speedObserved) s.speed=*e.number;
+        }
         else if(e.name=="mute" && e.flag) s.muted=*e.flag;
         else if (e.name == "vid" || e.name == "aid" || e.name == "sid" || e.name == "secondary-sid") {
             auto& id = e.name == "vid" ? s.videoId : e.name == "aid" ? s.audioId :

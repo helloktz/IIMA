@@ -109,6 +109,7 @@
     <ClInclude Include="WheelSlider.h" />
     <ClCompile Include="WheelSlider.cpp" />
     <ClCompile Include="MainWindow.SliderWheel.cpp" />
+    <ClCompile Include="MainWindow.OscArrows.cpp" />
     <ClCompile Include="MainWindow.Scrubbing.cpp" />
     <ClCompile Include="MainWindow.CompactOverlay.cpp" />
     <ClCompile Include="MainWindow.CompactPlacement.cpp" />

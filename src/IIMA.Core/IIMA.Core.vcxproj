@@ -109,6 +109,9 @@
     <ClInclude Include="Mpv\Catalog\MPVCommand.h" />
     <ClInclude Include="Mpv\Catalog\MPVOption.h" />
     <ClInclude Include="Mpv\Catalog\MPVProperty.h" />
+    <ClCompile Include="Playback\PlayerSession.SpeedHold.cpp" />
+    <ClCompile Include="Playback\SpeedHoldPolicy.cpp" />
+    <ClInclude Include="Playback\SpeedHoldPolicy.h" />
     <ClCompile Include="Playback\PlaybackActions.cpp" />
     <ClInclude Include="Playback\PlaybackActions.h" />
     <ClCompile Include="Playback\PlayerSession.Actions.cpp" />
