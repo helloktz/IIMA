@@ -169,6 +169,8 @@ private:
     void ResetFilterPresetCatalog();
     void ShowFilterPresetParameters();
     void GenerateFilterPreset();
+    winrt::fire_and_forget PickFilterLutFile();
+    std::uint64_t filterPresetEpoch_{};
     bool projectingFilterPresets_{};
     std::string lastGeneratedFilter_;
     std::vector<iima::FilterPreset> filterPresets_;

@@ -137,7 +137,31 @@ std::optional<MPVFilter> FilterPresetInstance::CreateFilter() const {
     using T = FilterPreset::Transform;
     switch (preset_.transform) {
     case T::Mpv: return MPVFilter(preset_.name, std::nullopt, std::move(parameters));
-    case T::Lavfi: return MPVFilter::Lavfi(preset_.name, std::nullopt, parameters);
+    case T::Lavfi: {
+        if (preset_.name != "lut3d")
+            return MPVFilter::Lavfi(preset_.name, std::nullopt, parameters);
+        // IINA's LUT text field is carried over as a literal filename here.
+        // FFmpeg first tokenizes the graph, then the filter option list. Escape
+        // in the reverse order, without shell quoting (command_async argv).
+        auto const& path = parameters.at("file");
+        if (path.empty() || path.size() > 16384 || path.find('\0') != std::string::npos)
+            return std::nullopt;
+        auto escape = [](std::string_view value, std::string_view special) {
+            std::string result;
+            for (char c : value) {
+                if (special.find(c) != std::string_view::npos) result += '\\';
+                result += c;
+            }
+            return result;
+        };
+        auto option = escape(path, "\\': \t\r\n");
+        auto graphValue = escape(option, "\\'[],; \t\r\n");
+        auto graph = "lut3d=file=" + graphValue + ":interp=" + parameters.at("interp");
+        // Do not bracket-quote: a filename may itself contain square brackets.
+        // m_option.c read_subparam consumes an exact UTF-8 byte length.
+        return MPVFilter::WithRawParameters("lavfi", std::nullopt,
+                                            "graph=" + MPVFilter::QuoteValue(graph));
+    }
     case T::Sharpen:
     case T::Blur: {
         auto amount = Value("amount");

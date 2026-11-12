@@ -617,3 +617,11 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 - Windows采用明确“生成并替换下方表达式”→既有添加/替换→vf/af观察/异步错误链，生成不是成功应用；可在提交前人工检查或保存预设。链切换会清除仍等于上次生成结果的旧表达式，避免视频结果误用于音频；独立手工修改保留。切换预设/链或重置明确丢弃参数草稿，不自动改播放。
 - LUT文件字段仍遵循上游的FFmpeg表达式参数，不是原生路径选择器或自动Windows路径转义器；驱动器冒号、反斜杠及特殊字符需要FFmpeg多层转义，界面已标注，不能宣称直接输入任意Windows绝对路径可用。custom_ffmpeg同样是高级图语法，未对实际滤镜/文件可达性作探测。滤镜可用性、硬件下载/上传、画质和性能取决于实际libmpv/FFmpeg。
 - 仅静态编写与人工源码追踪、数量/Git核验，未编译测试运行。不是上游所有FFmpeg滤镜的完整UI、LUT浏览器或已验证的渲染效果。
+
+## 第五十九批：LUT 文件选择与 Windows 字面路径
+
+- 追踪 IINA `FilterWindowController.quickInput/sheetAddBtnAction`、`FilterPresets.vfPresets` 的 `lut3d(file,interp)`，保留 nearest 默认及三种插值。上游文本参数直接进入 `MPVFilter(lavfiName:paramDict:)`；Windows 盘符冒号和反斜杠需要平台适配，本批不再要求用户输入 FFmpeg 转义文本。
+- `MainWindow.FilterPresets` 增加绑定窗口的原生单文件选择，只填写参数草稿，不自动生成/添加。取消保留旧值；重建参数页的代次、关闭和路径编辑冲突阻止迟到覆盖；复用全窗口 picker 门禁及延迟文件激活。文件扩展名不当作解码证据。
+- `FilterPresetInstance::CreateFilter` 针对 LUT 的字面路径先做 FFmpeg 选项层、再做图层转义，再用 mpv `graph=%UTF8字节数%内容` 包装。依据固定 `mpv/options/m_option.c::read_subparam/split_subconf` 的长度消费及 `filters/f_lavfi.c::precreate_graph` 交给 `avfilter_graph_parse2` 的边界。不走 shell，不用遇到文件名方括号会冲突的外层括号引用。空路径/NUL/超过16KiB拒绝；其他预设和手写表达式不改变语义。
+- 第58批“LUT需手工转义”限制由本批静态代码替代：现在 LUT 参数输入为原始路径，已转义文本不兼容该字段，应在手写表达式中使用。运行时 FFmpeg 路径解析、文件读取和 LUT 像素结果均未验证；不声称任意路径已通过测试。
+- 未编译、测试或运行。仅源码追踪和静态审阅，未扩展为完整滤镜参数反解/编辑器。

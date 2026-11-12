@@ -4,6 +4,10 @@
 #include "MainWindow.xaml.h"
 #include <cmath>
 #include <limits>
+#include <ShObjIdl_core.h>
+#include <microsoft.ui.xaml.window.h>
+#include <winrt/Windows.Storage.h>
+#include <winrt/Windows.Storage.Pickers.h>
 using namespace winrt;
 using namespace Microsoft::UI::Xaml;
 namespace {
@@ -49,6 +53,7 @@ void MainWindow::ResetFilterPresetCatalog() {
     ShowFilterPresetParameters();
 }
 void MainWindow::ShowFilterPresetParameters() {
+    ++filterPresetEpoch_;
     filterPresetInputs_.clear(); FilterPresetParameters().Children().Clear();
     auto selected = FilterPresetBox().SelectedIndex();
     if (selected < 0 || static_cast<std::size_t>(selected) >= filterPresets_.size()) return;
@@ -60,7 +65,7 @@ void MainWindow::ShowFilterPresetParameters() {
         switch (parameter.type) {
         case Type::Text: {
             Controls::TextBox box;
-            box.Header(box_value(preset.name == "lut3d" && name == "file" ? hstring{L"file（FFmpeg转义路径，不是文件选择器）"} : to_hstring(name))); box.MaxLength(16384);
+            box.Header(box_value(preset.name == "lut3d" && name == "file" ? hstring{L"file（原始文件路径，无需转义）"} : to_hstring(name))); box.MaxLength(16384);
             box.Text(to_hstring(parameter.defaultValue.StringValue()));
             control = box; break;
         }
@@ -90,7 +95,52 @@ void MainWindow::ShowFilterPresetParameters() {
         filterPresetInputs_.emplace(name, control);
         FilterPresetParameters().Children().Append(control);
     }
+    if (preset.name == "lut3d") {
+        Controls::Button choose;
+        choose.Content(box_value(L"选择 LUT 文件…"));
+        auto weak = get_weak();
+        choose.Click([weak](auto const&, auto const&) {
+            if (auto self = weak.get()) self->PickFilterLutFile();
+        });
+        FilterPresetParameters().Children().Append(choose);
+    }
     FilterPresetStatus().Text(L"参数来自固定IINA预设。生成仅填入表达式，点击添加/替换才提交播放器。切换类型或预设会丢弃参数草稿。");
+}
+fire_and_forget MainWindow::PickFilterLutFile() {
+    auto lifetime = get_strong();
+    if (closing_ || pickerOpen_) co_return;
+    auto input = filterPresetInputs_.find("file");
+    if (input == filterPresetInputs_.end()) co_return;
+    auto field = input->second.as<Controls::TextBox>();
+    auto oldText = field.Text();
+    auto epoch = filterPresetEpoch_;
+    pickerOpen_ = true;
+    try {
+        Windows::Storage::Pickers::FileOpenPicker picker;
+        HWND hwnd{};
+        check_hresult(this->as<::IWindowNative>()->get_WindowHandle(&hwnd));
+        check_hresult(picker.as<::IInitializeWithWindow>()->Initialize(hwnd));
+        picker.CommitButtonText(L"选择 LUT 文件");
+        // Extension is not a format validator; FFmpeg owns file decoding.
+        picker.FileTypeFilter().Append(L"*");
+        auto file = co_await picker.PickSingleFileAsync();
+        if (file && !closing_ && epoch == filterPresetEpoch_) {
+            if (field.Text() != oldText) {
+                FilterPresetStatus().Text(L"路径草稿已改变，未覆盖。请重新选择。");
+            } else if (file.Path().empty() || to_string(file.Path()).size() > 16384) {
+                FilterPresetStatus().Text(L"所选文件没有可用本地路径或路径过长。");
+            } else {
+                field.Text(file.Path());
+                FilterPresetStatus().Text(L"已填入原始路径，尚未生成或添加滤镜。文件格式由FFmpeg确认。");
+            }
+        }
+    } catch (hresult_error const& error) {
+        if (!closing_ && epoch == filterPresetEpoch_) FilterPresetStatus().Text(error.message());
+    } catch (...) {
+        if (!closing_ && epoch == filterPresetEpoch_) FilterPresetStatus().Text(L"无法选择 LUT 文件。");
+    }
+    pickerOpen_ = false;
+    if (!closing_) { OpenPendingFiles(); FlushActivation(); }
 }
 void MainWindow::GenerateFilterPreset() {
     auto selected = FilterPresetBox().SelectedIndex();
