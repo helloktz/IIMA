@@ -76,6 +76,7 @@ void MainWindow::UpdatePresentationLayout() {
     BottomControlsBorder().Visibility(compact ? Visibility::Collapsed : Visibility::Visible);
     ExitCompactOverlayButton().Visibility(compact ? Visibility::Visible : Visibility::Collapsed);
     Root().ColumnDefinitions().GetAt(1).Width(GridLength{compact ? 0.0 : 300.0, GridUnitType::Pixel});
+    ApplyMusicLayout(compact);
 }
 void MainWindow::ExecuteApplicationCommand(iima::ApplicationCommand command) {
     try {

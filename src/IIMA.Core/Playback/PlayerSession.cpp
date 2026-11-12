@@ -2,6 +2,7 @@
 // Copyright © 2016 lhc. All rights reserved. IINA's GPL-3.0 license applies
 // to the adapted logic; see references/iina/LICENSE and docs/PORTING.md.
 #include "PlayerSession.h"
+#include "../Windows/MusicModePolicy.h"
 #include <algorithm>
 #include <cmath>
 
@@ -19,7 +20,10 @@ std::shared_ptr<PlayerSession> PlayerSession::Create(Dispatch dispatch, Changed 
 void PlayerSession::Start(std::wstring path) { client_->Start(std::move(path)); }
 void PlayerSession::Notify() { if(changed_) changed_(snapshot_); }
 void PlayerSession::SetPresentationReady(bool ready) {
-    ready=ready && static_cast<bool>(snapshot_.swapChain);
+    // Known audio-only media needs no video swapchain. Empty/unknown tracks
+    // never bypass the handshake; real video still requires UI binding.
+    ready=ready && (static_cast<bool>(snapshot_.swapChain) ||
+        (snapshot_.media==MediaState::Loaded && AudioOnlyPlaybackEligible(snapshot_.tracks, !snapshot_.tracks.empty())));
     if(presentationReady_==ready) return;
     presentationReady_=ready;
     MaybeResume();

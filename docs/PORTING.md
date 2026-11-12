@@ -226,3 +226,13 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 - 新出现的损坏文件阻止合并保存；仅与本次进程已安全备份的损坏原文完全一致时允许默认恢复。settings/history仍为两个独立原子文件，不声称跨文件事务或与外部编辑器跨进程互斥。失败保留既有错误/重试/不保存退出渠道。
 
 仅静态编写和人工源码审阅，未编译、测试或运行。窗口资源上限、关闭竞态、SMTC多实例、合并保存和图形并行需Windows独立验收；插件运行时、完整多窗口策略、音乐模式等仍未完成。
+
+### 第十二批：音乐布局、音频播放就绪与窗口位置
+
+- `PlaybackInfo.isAudio`、`PlayerCore.trackListChanged/switchToMiniPlayer/switchBackFromMiniPlayer`、`MiniPlayerWindowController` → `MusicModePolicy`与`MainWindow.Music.cpp`：依据全部轨道而不是当前选中视频判断（禁用视频不把电影当音乐），封面不是实视频，网络保持上游不自动当音乐。默认autoSwitchToMusicMode=true；全屏/Compact不自动进入，实视频自动退出；手动成功转换翻转播放器生命周期override，不随换片复位。代次和待提交ticket防过期布局建议。WinUI在同一个窗口内改变布局/尺寸而非创建第二Cocoa窗口并移动videoView，保留原PlayerSession/交换链，标题艺术家专辑、返回按钮、列表显示和封面显示偏好实际接线。
+- 音乐布局沿用既有控制/队列侧栏；并非IINA的逐像素mini-player复刻，未实现其专用触控动画/背景模糊/独立封面布局。手动切入可以显示视频；音频封面依赖mpv已有输出，隐藏封面仅设panel opacity，不宣称停止解码。普通窗口尺寸在音乐模式返回时恢复，未保存独立音乐布局大小。没有插件musicModeChanged事件运行时。
+- 音频播放就绪与音乐布局分类分开：已加载、轨道已知且存在音轨而无实视频（包括网络音频），不再强制等待交换链才允许继续/暂停/进度与续播；封面输出可选。未知轨道和有实视频仍须安全交换链绑定；打开仍要求固定libmpv扩展构建，不借此声称普通DLL兼容。错误显示仅忽略已知音频的“Composition output”未准备提示，其余错误保留。原脚本链接源清单随新纯逻辑依赖更新，但没有执行测试。
+- `MainWindowLastPosition`、`determineScreenToUse/windowFrameFromGeometry` → `WindowPlacement`、`MainWindow.Placement.cpp`：普通还原态窗口物理坐标与工作区/DPI单独持久化，加载时映射当前显示器可移动区间与逻辑大小，夹限到工作区；后台加载期间用户已移动则不覆盖其动作。音乐/全屏/最大最小化/Compact不是普通尺寸采样；关闭等待后台原子位置保存，失败保留旧文件但不困住播放器退出。捕获顺序仅进程内比较，多个窗口旧任务不会覆盖新采样，重启不受旧序号阻挡。不是每个媒体或每个窗口身份独立的恢复档案；磁盘只保留最近接受的普通布局，无显示器名持久化。
+- 位置JSON上限16KiB，拒绝非法坐标、更新schema或目标重解析文件；损坏原文件不自动覆盖。此数据与设置/历史独立，不声称跨文件事务。普通位置恢复默认开启，暂未接IINA全部窗口resize/geometry偏好，首次显示后可能异步调整位置。
+
+本批未编译、测试或运行，尤其需后续验证纯音频FILE_LOADED/track-list顺序、同媒体重播、音乐/全屏/Compact交互、显示器断开/DPI、独立窗口关闭与位置持久化。全量移植及数量要求依然未完成。

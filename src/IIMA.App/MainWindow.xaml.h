@@ -3,8 +3,11 @@
 #include "../IIMA.Core/Playback/PlayerSession.h"
 #include "../IIMA.Core/Commands/ApplicationCommand.h"
 #include "Presentation/VideoPresenter.h"
+#include "../IIMA.Core/Windows/MusicModePolicy.h"
+#include <winrt/Windows.Graphics.h>
 #include "Platform/MediaIntegration.h"
 #include "Platform/WindowLifecycle.h"
+#include "Platform/WindowPlacement.h"
 #include "Platform/LocalInputResolver.h"
 #include "Platform/ScreenshotStaging.h"
 #include "Platform/ThumbnailExtractor.h"
@@ -36,6 +39,21 @@ private:
     winrt::fire_and_forget OpenFile(bool append = false);
     winrt::fire_and_forget OpenSubtitle();
     winrt::fire_and_forget OpenNetworkUrl();
+    void WireWindowPlacement();
+    void CapturePlacement();
+    void RestorePlacement(std::optional<iima::WindowPlacementSnapshot> saved);
+    void SaveWindowPlacement();
+    std::optional<iima::WindowPlacementSnapshot> windowPlacement_;
+    bool placementTouched_{}, restoringPlacement_{}, placementSavePending_{}, placementWritable_{true}, musicTransition_{};
+    void WireMusicMode();
+    std::optional<iima::MusicModePolicy::Transition> UpdateMusicContext();
+    void UpdateMusicMode();
+    void ApplyMusicTransition(iima::MusicModePolicy::Transition const& transition);
+    void ApplyMusicLayout(bool compact);
+    iima::MusicModePolicy musicMode_;
+    std::uint64_t musicGeneration_{};
+    iima::MediaState lastMusicMediaState_{iima::MediaState::Empty};
+    std::optional<Windows::Graphics::RectInt32> beforeMusicBounds_;
     void WirePlaybackControls();
     void WireMediaInformation();
     void UpdateMediaInformation(iima::PlaybackSnapshot const& state);

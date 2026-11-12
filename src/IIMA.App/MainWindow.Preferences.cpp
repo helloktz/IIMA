@@ -12,6 +12,7 @@ using namespace Microsoft::UI::Xaml;
 namespace {
 bool HasApplicationAdapter(std::string_view key) {
     static const std::set<std::string_view> keys{
+        "autoSwitchToMusicMode", "musicModeShowPlaylist", "musicModeShowAlbumArt",
         "pauseWhenInactive", "pauseWhenMinimized", "enableThumbnailPreview", "thumbnailWidth",
         "alwaysFloatOnTop", "fullScreenWhenOpen", "playWhenEnteringFullScreen", "pauseWhenLeavingFullScreen",
         "enableOSD", "disableOSDPauseResumeMsgs", "disableOSDSpeedMsg", "osdAutoHideTimeout", "osdTextSize"
@@ -104,6 +105,7 @@ void MainWindow::ApplyAdvancedSetting(std::string const& key, iima::settings::Pr
     if (key == "enableThumbnailPreview" || key == "thumbnailWidth") {
         CancelThumbnailPreview(); thumbnailMemory_.clear();
     }
+    if (key == "autoSwitchToMusicMode" || key.starts_with("musicMode")) { UpdateMusicMode(); UpdatePresentationLayout(); }
     MarkUserDataDirty();
 }
 void MainWindow::ApplyWindowPreferences() {

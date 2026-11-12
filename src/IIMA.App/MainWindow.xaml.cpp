@@ -46,6 +46,7 @@ MainWindow::MainWindow()
         if (auto current = session.lock()) current->SetCompositionSize(w, h);
     }, [weak](hstring const& error) { if (auto self = weak.get(); self && !self->closing_) self->ShowError(error); });
     WireApplicationCommands();
+    WireMusicMode();
     WireOSD();
     WireAdvancedPlayback();
     OpenButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->ExecuteApplicationCommand(iima::ApplicationCommand::OpenFile); });
@@ -93,6 +94,7 @@ MainWindow::MainWindow()
     catch(hresult_error const& error) { ShowError(error.message()); }
     LoadUserData();
     AppWindow().Resize({1100, 720});
+    WireWindowPlacement();
     AppWindow().Closing([weak](auto const&, Microsoft::UI::Windowing::AppWindowClosingEventArgs const& args) {
         if (auto self = weak.get(); self && !self->closeComplete_) {
             args.Cancel(true);
@@ -170,10 +172,14 @@ void MainWindow::Apply(iima::PlaybackSnapshot const& state)
             swapChain_.reset();
         }
     }
-    session_->SetPresentationReady(state.swapChain && presenter_->IsBound() && presentationError.empty());
+    const bool audioOnly = state.media == iima::MediaState::Loaded &&
+        iima::AudioOnlyPlaybackEligible(state.tracks, !state.tracks.empty());
+    const bool outputReady = audioOnly || (state.swapChain && presenter_->IsBound() && presentationError.empty());
+    session_->SetPresentationReady(outputReady);
+    UpdateMusicMode();
     if (state.media == iima::MediaState::Loaded && fullscreenPreferenceEntry_ != state.entryId) {
         fullscreenPreferenceEntry_ = state.entryId;
-        if (userDataLoaded_ && preferences_.Boolean("fullScreenWhenOpen") && !fullscreen_) ToggleFullscreen();
+        if (userDataLoaded_ && !musicMode_.IsMusic() && preferences_.Boolean("fullScreenWhenOpen") && !fullscreen_) ToggleFullscreen();
     }
     ApplyCollections(state);
     UpdateMediaInformation(state);
@@ -188,17 +194,17 @@ void MainWindow::Apply(iima::PlaybackSnapshot const& state)
     FlushActivation();
     if (mediaIntegration_) mediaIntegration_->Update(state);
     bool loaded = state.media == iima::MediaState::Loaded || state.media == iima::MediaState::Ended;
-    PauseButton().IsEnabled(loaded && presenter_->IsBound());
+    PauseButton().IsEnabled(loaded && outputReady);
     PauseButton().Content(box_value(state.paused ? L"播放" : L"暂停"));
     auto seekable = loaded && state.seekable && state.duration && *state.duration > 0;
-    PositionSlider().IsEnabled(seekable && presenter_->IsBound());
+    PositionSlider().IsEnabled(seekable && outputReady);
     PositionSlider().Maximum(seekable ? *state.duration : 1.0);
     PositionSlider().Value(state.position.value_or(0));
     TimeLabel().Text(Clock(state.position) + L" / " + Clock(state.duration));
     ABLoopLabel().Text(L"A: " + Clock(state.abLoopA) + L"  B: " + Clock(state.abLoopB));
     EmptyLabel().Visibility(loaded ? Visibility::Collapsed : Visibility::Visible);
     if (!presentationError.empty()) ShowError(presentationError);
-    else if (!state.error.empty()) ShowError(to_hstring(state.error));
+    else if (!state.error.empty() && !(audioOnly && state.error.starts_with("Composition output"))) ShowError(to_hstring(state.error));
     else if (state.session == iima::SessionState::Ready && !state.compositionAvailable)
         ShowError(L"当前 libmpv 缺少安全的视频合成接口，请安装配套构建。");
     else if (state.media == iima::MediaState::Loading) StatusText().Text(L"正在打开…");
@@ -225,9 +231,12 @@ void MainWindow::BeginClose()
         ConfirmUnsavedClose(); return;
     }
     if (closing_) { FinishClose(); return; }
+    CapturePlacement();
+    SaveWindowPlacement();
     closing_ = true;
     CancelThumbnailPreview();
     CancelOnlineSubtitles();
+    musicMode_.Close();
     if(windowLifecycle_) windowLifecycle_->Close();
     inputStop_.request_stop(); ++inputGeneration_;
     subtitleMatchStop_.request_stop(); ++subtitleMatchGeneration_;

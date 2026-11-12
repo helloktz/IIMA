@@ -15,14 +15,18 @@ void MainWindow::LoadUserData()
     auto dispatcher = DispatcherQueue();
     std::thread([weak, dispatcher] {
         iima::UserData data;
+        std::optional<iima::WindowPlacementSnapshot> placement;
+        bool placementWritable = true;
         bool initialized = false;
         try {
             init_apartment(apartment_type::multi_threaded); initialized = true;
             data = iima::UserDataStore::Load();
+            try { placement = iima::WindowPlacementStore::Load(); }
+            catch (...) { placementWritable = false; data.warning += " 窗口位置文件未能读取，保留原文件。"; }
         } catch (std::exception const& e) { data.warning = e.what(); data.writable = false; }
           catch (hresult_error const& e) { data.warning = to_string(e.message()); data.writable = false; }
         if (initialized) uninit_apartment();
-        dispatcher.TryEnqueue([weak, data = std::move(data)]() mutable {
+        dispatcher.TryEnqueue([weak, data = std::move(data), placement, placementWritable]() mutable {
             if (auto self = weak.get()) {
                 self->userData_ = std::move(data);
                 self->savedUserData_ = self->userData_;
@@ -39,6 +43,9 @@ void MainWindow::LoadUserData()
                 self->preferences_.Restore(self->userData_.settings.advancedPreferences);
                 self->PopulateAdvancedSettings();
                 self->ApplyWindowPreferences();
+                self->placementWritable_ = placementWritable;
+                self->RestorePlacement(placement);
+                self->UpdateMusicMode();
                 self->ApplyUserData(self->session_->Snapshot());
                 self->OpenPendingFiles();
                 self->FlushActivation();
@@ -82,7 +89,7 @@ void MainWindow::ApplyUserData(iima::PlaybackSnapshot const& state)
         RecordLastMedia(); lastMedia_.reset(); resumedEntry_.reset();
     }
     if (state.media == iima::MediaState::Loaded || state.media == iima::MediaState::Ended) {
-        if (!resumedEntry_ && !closing_ && presenter_ && presenter_->IsBound() &&
+        if (!resumedEntry_ && !closing_ && presenter_ && (presenter_->IsBound() || iima::AudioOnlyPlaybackEligible(state.tracks, !state.tracks.empty())) &&
             !state.path.empty() && state.duration && *state.duration > 0) {
             resumedEntry_ = state.entryId;
             if (auto position = iima::ResumePosition(userData_, state.path)) session_->Seek(*position);
@@ -161,7 +168,7 @@ winrt::fire_and_forget MainWindow::ConfirmUnsavedClose()
 }
 void MainWindow::FinishClose()
 {
-    if (closing_ && !screenshotPostProcessing_ && coreClosed_ && diagnosticsClosed_ && userDataLoaded_ && !saving_ && (discardUserData_ || (!saveDirty_ && !saveFailed_ && userData_.writable))) {
+    if (closing_ && !placementSavePending_ && !screenshotPostProcessing_ && coreClosed_ && diagnosticsClosed_ && userDataLoaded_ && !saving_ && (discardUserData_ || (!saveDirty_ && !saveFailed_ && userData_.writable))) {
         closeComplete_ = true; Close();
     }
 }

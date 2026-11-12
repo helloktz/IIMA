@@ -11,7 +11,7 @@ core = 'src/IIMA.Core/'
 suites = {
     'playback-state': ['Playback/PlaybackState.cpp', 'Tests/PlaybackStateTests.cpp'],
     'mpv-nodes': ['Mpv/MpvNodes.cpp', 'Media/TrackPresentation.cpp', 'Tests/MpvNodesTests.cpp'],
-    'player-session': ['Playback/PlaybackState.cpp', 'Playback/PlayerSession.cpp', 'Playback/PlayerSession.Playlist.cpp', 'Playlist/PlaylistPlan.cpp', 'Tests/PlayerSessionTests.cpp'],
+    'player-session': ['Playback/PlaybackState.cpp', 'Playback/PlayerSession.cpp', 'Windows/MusicModePolicy.cpp', 'Playback/PlayerSession.Playlist.cpp', 'Playlist/PlaylistPlan.cpp', 'Tests/PlayerSessionTests.cpp'],
     'user-data': ['Tests/UserDataTests.cpp'],
     'diagnostic-log': ['Diagnostics/DiagnosticLog.cpp', 'Tests/DiagnosticLogTests.cpp'],
     'local-input': ['Input/LocalInputPolicy.cpp', '../../tests/local_input_policy_tests.cpp'],

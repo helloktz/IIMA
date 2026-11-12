@@ -8,6 +8,7 @@ import json
 from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 MAPPING = {
+    'MiniPlayerWindowController.swift': ['src/IIMA.Core/Windows/MusicModePolicy.cpp', 'src/IIMA.App/MainWindow.Music.cpp'],
     'OpenSubClient.swift': ['src/IIMA.App/Platform/OpenSubClient.cpp'],
     'OpenSubSubtitle.swift': ['src/IIMA.Core/OnlineSubtitles/MediaHash.cpp', 'src/IIMA.App/Platform/SubtitleMediaHash.cpp', 'src/IIMA.App/MainWindow.OnlineSubtitles.cpp'],
     'ShooterSubtitle.swift': ['src/IIMA.Core/OnlineSubtitles/MediaHash.cpp', 'src/IIMA.App/Platform/SubtitleMediaHash.cpp'],
@@ -24,7 +25,7 @@ MAPPING = {
     'CacheManager.swift': ['src/IIMA.Core/Thumbnails/ThumbnailCacheManager.cpp'],
     'MPVController.swift': ['src/IIMA.Core/Mpv/MpvClient.cpp'],
     'MPVNode.swift': ['src/IIMA.Core/Mpv/MpvNodes.cpp'],
-    'MainWindowController.swift': ['src/IIMA.App/MainWindow.xaml.cpp', 'src/IIMA.Core/Geometry/WindowGeometry.cpp'],
+    'MainWindowController.swift': ['src/IIMA.App/MainWindow.xaml.cpp', 'src/IIMA.Core/Geometry/WindowGeometry.cpp', 'src/IIMA.App/Platform/WindowPlacement.cpp', 'src/IIMA.App/MainWindow.Placement.cpp'],
     'PlayerWindowController.swift': ['src/IIMA.App/MainWindow.Commands.cpp', 'src/IIMA.App/MainWindow.Keyboard.cpp'],
     'VideoView.swift': ['src/IIMA.App/Presentation/VideoPresenter.cpp'],
     'MPVFilter.swift': ['src/IIMA.Core/Filters/MPVFilter.cpp'],

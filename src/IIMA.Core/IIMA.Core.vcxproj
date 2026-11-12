@@ -146,5 +146,9 @@
     <ClCompile Include="Windows\PlayerWindowRegistry.cpp" />
     <ClInclude Include="Windows\PlayerWindowRegistry.h" />
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Windows\MusicModePolicy.cpp" />
+    <ClInclude Include="Windows\MusicModePolicy.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

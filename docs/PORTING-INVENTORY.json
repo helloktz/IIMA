@@ -695,7 +695,9 @@
       "coverage": "partial-static-unverified",
       "reviewTargets": [
         "src/IIMA.App/MainWindow.xaml.cpp",
-        "src/IIMA.Core/Geometry/WindowGeometry.cpp"
+        "src/IIMA.Core/Geometry/WindowGeometry.cpp",
+        "src/IIMA.App/Platform/WindowPlacement.cpp",
+        "src/IIMA.App/MainWindow.Placement.cpp"
       ]
     },
     {
@@ -731,8 +733,11 @@
     {
       "source": "references/iina/iina/MiniPlayerWindowController.swift",
       "physicalLines": 728,
-      "coverage": "not-mapped",
-      "reviewTargets": []
+      "coverage": "partial-static-unverified",
+      "reviewTargets": [
+        "src/IIMA.Core/Windows/MusicModePolicy.cpp",
+        "src/IIMA.App/MainWindow.Music.cpp"
+      ]
     },
     {
       "source": "references/iina/iina/MiniPlayerWindowMenuActions.swift",

@@ -159,6 +159,12 @@
     <ClCompile Include="Platform\UserDataMerge.cpp" />
     <ClInclude Include="Platform\UserDataMerge.h" />
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="MainWindow.Music.cpp" />
+    <ClCompile Include="MainWindow.Placement.cpp" />
+    <ClCompile Include="Platform\WindowPlacement.cpp" />
+    <ClInclude Include="Platform\WindowPlacement.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Import Project="..\..\build\NuGet.targets" />
 </Project>
