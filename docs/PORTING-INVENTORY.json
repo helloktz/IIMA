@@ -1276,7 +1276,8 @@
       "physicalLines": 715,
       "coverage": "partial-static-unverified",
       "reviewTargets": [
-        "src/IIMA.App/MainWindow.Video.cpp"
+        "src/IIMA.App/MainWindow.Video.cpp",
+        "src/IIMA.App/MainWindow.VideoAdjustments.cpp"
       ]
     },
     {

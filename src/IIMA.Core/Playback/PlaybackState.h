@@ -13,6 +13,13 @@ struct PlaybackSnapshot {
     std::string abLoopCount{"inf"};
     double volume{100}, speed{1}, maxVolume{100}, audioDelay{}, subtitleDelay{};
     bool muted{}, subtitlesVisible{true};
+    // Observed mpv option values, not optimistic command echoes. Empty means
+    // unavailable/invalid, not neutral zero. Options can persist across files.
+    std::optional<int> videoBrightness, videoContrast, videoSaturation, videoGamma, videoHue;
+    std::optional<bool> deinterlace;
+    // Current mpv also supports auto, which cannot be faithfully represented
+    // by IINA's older Boolean switch. Keep it visible rather than reporting off.
+    std::optional<std::string> deinterlaceMode;
     RepeatMode repeatMode{RepeatMode::Off};
     std::string loopFile{"no"}, loopPlaylist{"no"}, keepOpen{"yes"};
     std::int64_t entryId{-1};

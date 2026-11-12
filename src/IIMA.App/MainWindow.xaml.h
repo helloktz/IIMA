@@ -124,6 +124,9 @@ private:
     std::string cropDraftPath_;
     int cropDraftWidth_{}, cropDraftHeight_{};
     void WireVideoControls();
+    void WireVideoAdjustments();
+    void UpdateVideoAdjustments(iima::PlaybackSnapshot const& state);
+    bool projectingVideoAdjustments_{};
     void WireFilterEditor();
     void WireSavedFilters();
     void LoadSavedFilters();

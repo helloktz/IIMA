@@ -352,3 +352,11 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 - `MPVController.getString` → `MpvClient` 工作线程串行 `mpv_get_property(..., MPV_FORMAT_STRING)`；每项独立显示错误，字符串由 mpv_free 对应释放。最多32项、名称128字节非空白ASCII，每值显示4096字节并避免截断UTF-8字符。这些限制区别于上游无限列表，用于限制UI投影与队列负担；mpv内部分配不受显示截断上限约束。
 - `PlayerSession` 一次只接受一个监视批次，START_FILE（包含同条目重播）、END_FILE、失败、退出与关闭取消当前完成回调。UI使用编辑/折叠代次、路径与条目身份拒绝迟到结果。只读属性不是原子媒体快照：底层播放器仍可在批次中更新属性，单次同步属性读取也没有强制超时，后续需实际验证响应性。
 - 与上游的可点击HTTP链接不同，属性值只作为可选择纯文本显示，不自动打开或预取地址。暂未加入独立Inspector窗口、列宽持久化和完整动态性能统计布局。本批只静态编写与源码阅读，不编译、测试或运行。
+
+### 第二十六批：视频均衡与反交错反馈操作链
+
+- `SidebarVideoPane.EqualizerView` 五条滑杆和逐项 resetAction → `MainWindow.VideoAdjustments.cpp` 的亮度、对比度、饱和度、Gamma、色相滑杆与重置按钮，范围保留 -100..100，重置为0。复用已转写的 `PlayerSession.setVideoEqualizer`，实际 mpv 属性观察反馈作为权威值，不仅移动UI滑块。
+- `MPVController` 的视频均衡/反交错观察 → worker 的 INT64 均衡属性与 STRING 反交错属性、optional快照和 reducer。缺值/非法值清空，不伪装默认值。参考 mpv 快照支持 deinterlace=auto，保留该模式，以第三态显示；用户明确开关写yes/no，不擅自把auto当no。UI暂停投影回写，避免接收到属性后又发相同命令形成循环。
+- Windows布局以原生Slider/CheckBox实现，未知属性禁用并显示状态。采用逐项复位而不是隐式清空整个滤镜链；不额外保存成持久偏好，因为这些是当前播放器属性。快捷键、脚本及mpv属性变化也可回填。音频-only及视频后端是否支持这些属性仍需实测。
+
+本批仅静态源码移植，没有编译、自动化测试或Windows/mpv运行。反交错三态交互、命令失败恢复、快速拖动与异步反馈视觉体验仍待实际验证。

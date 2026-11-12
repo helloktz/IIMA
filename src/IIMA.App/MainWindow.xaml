@@ -172,6 +172,22 @@
                             <ComboBoxItem Content="180°"/><ComboBoxItem Content="270°"/>
                         </ComboBox>
                         <Button x:Name="ApplyRotationButton" Content="应用旋转"/>
+                        <Expander Header="画面调整" HorizontalAlignment="Stretch">
+                            <StackPanel Spacing="6">
+                                <CheckBox x:Name="DeinterlaceCheck" Content="反交错" IsThreeState="True"/>
+                                <Slider x:Name="BrightnessSlider" Header="亮度" Minimum="-100" Maximum="100" StepFrequency="1" AutomationProperties.Name="亮度"/>
+                                <Button x:Name="ResetBrightnessButton" Content="重置亮度"/>
+                                <Slider x:Name="ContrastSlider" Header="对比度" Minimum="-100" Maximum="100" StepFrequency="1" AutomationProperties.Name="对比度"/>
+                                <Button x:Name="ResetContrastButton" Content="重置对比度"/>
+                                <Slider x:Name="SaturationSlider" Header="饱和度" Minimum="-100" Maximum="100" StepFrequency="1" AutomationProperties.Name="饱和度"/>
+                                <Button x:Name="ResetSaturationButton" Content="重置饱和度"/>
+                                <Slider x:Name="GammaSlider" Header="Gamma" Minimum="-100" Maximum="100" StepFrequency="1" AutomationProperties.Name="Gamma"/>
+                                <Button x:Name="ResetGammaButton" Content="重置Gamma"/>
+                                <Slider x:Name="HueSlider" Header="色相" Minimum="-100" Maximum="100" StepFrequency="1" AutomationProperties.Name="色相"/>
+                                <Button x:Name="ResetHueButton" Content="重置色相"/>
+                                <TextBlock x:Name="VideoAdjustmentStatus" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Expander>
                         <Expander Header="源像素裁剪" HorizontalAlignment="Stretch">
                             <StackPanel Spacing="6">
                                 <Button x:Name="LoadCropSizeButton" Content="读取当前视频尺寸"/>

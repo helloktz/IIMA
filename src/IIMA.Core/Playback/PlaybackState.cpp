@@ -57,6 +57,25 @@ void ApplyPlaybackEvent(PlaybackSnapshot& s, MpvEvent const& e) {
             filters = e.filters;
             filters.revision = revision;
         }
+        else if (e.name == "brightness" || e.name == "contrast" || e.name == "saturation" ||
+                 e.name == "gamma" || e.name == "hue") {
+            // SidebarVideoPane.EqualizerView consumes observed values. Do not
+            // clamp invalid replies: an invalid/absent observation is unknown.
+            auto& value = e.name == "brightness" ? s.videoBrightness :
+                          e.name == "contrast" ? s.videoContrast :
+                          e.name == "saturation" ? s.videoSaturation :
+                          e.name == "gamma" ? s.videoGamma : s.videoHue;
+            if (e.error >= 0 && e.integer && *e.integer >= -100 && *e.integer <= 100)
+                value = static_cast<int>(*e.integer);
+            else value.reset();
+        }
+        else if (e.name == "deinterlace") {
+            s.deinterlace.reset(); s.deinterlaceMode.reset();
+            if (e.error >= 0 && (e.text == "yes" || e.text == "no" || e.text == "auto")) {
+                s.deinterlaceMode = e.text;
+                if (e.text != "auto") s.deinterlace = e.text == "yes";
+            }
+        }
         else if(e.name=="metadata") {
             s.metadata=e.properties;
             s.metadataTitle=MetadataValue(s.metadata,"title");

@@ -62,7 +62,7 @@ MAPPING = {
     'GeometryDef.swift': ['src/IIMA.Core/Geometry/WindowGeometry.cpp'],
     'Equalizations.swift': ['src/IIMA.Core/Audio/Equalizations.cpp'],
     'SidebarAudioPane.swift': ['src/IIMA.Core/Audio/Equalizations.cpp', 'src/IIMA.App/MainWindow.Audio.cpp'],
-    'SidebarVideoPane.swift': ['src/IIMA.App/MainWindow.Video.cpp'],
+    'SidebarVideoPane.swift': ['src/IIMA.App/MainWindow.Video.cpp', 'src/IIMA.App/MainWindow.VideoAdjustments.cpp'],
     'SidebarSubtitlesPane.swift': ['src/IIMA.App/MainWindow.Subtitles.cpp'],
     'AutoFileMatcher.swift': ['src/IIMA.Core/Matching/SubtitleMatcher.cpp'],
     'FileGroup.swift': ['src/IIMA.Core/Matching/FileGroup.cpp'],

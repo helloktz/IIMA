@@ -88,6 +88,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MainWindow.Video.cpp" />
+    <ClCompile Include="MainWindow.VideoAdjustments.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MainWindow.Audio.cpp" />

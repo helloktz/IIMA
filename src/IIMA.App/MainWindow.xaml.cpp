@@ -64,6 +64,7 @@ MainWindow::MainWindow()
     WireMediaInformation();
     WireInspectorWatch();
     WireVideoControls();
+    WireVideoAdjustments();
     WireCropControls();
     WireFilterEditor();
     WireSavedFilters();
@@ -186,6 +187,7 @@ void MainWindow::Apply(iima::PlaybackSnapshot const& state)
     }
     ApplyCollections(state);
     UpdateMediaInformation(state);
+    UpdateVideoAdjustments(state);
     UpdateFilterEditor(state);
     UpdateThumbnailMedia(state);
     UpdateOnlineSubtitleMedia(state);
