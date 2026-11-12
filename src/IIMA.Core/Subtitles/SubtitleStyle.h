@@ -10,6 +10,8 @@ namespace iima {
 struct SubtitleColor {
     double red{}, green{}, blue{}, alpha{1};
     static std::optional<SubtitleColor> ParseHex(std::string_view text) noexcept;
+    static std::optional<SubtitleColor> ParseMpv(std::string_view text) noexcept;
+    std::string HexString() const; // #AARRGGBB, rounded to 8-bit sRGB channels.
     bool Valid() const noexcept;
     std::string MpvString() const;
 };

@@ -249,6 +249,7 @@ void MainWindow::BeginClose()
     SaveWindowPlacement();
     closing_ = true;
     if (jumpDialog_) jumpDialog_.Hide();
+    if (subtitleColorDialog_) subtitleColorDialog_.Hide();
     if (openUrlDialog_) openUrlDialog_.Hide();
     pluginInspectionStop_.request_stop();
     StopLocalPlugin();

@@ -163,6 +163,8 @@ private:
     Microsoft::UI::Xaml::Controls::ContentDialog jumpDialog_{nullptr};
     void WireSubtitleControls();
     void ApplySubtitleColorDraft(unsigned kind);
+    winrt::fire_and_forget ChooseSubtitleColor(unsigned kind);
+    Microsoft::UI::Xaml::Controls::ContentDialog subtitleColorDialog_{nullptr};
     void UpdateSubtitleStyleFeedback(iima::PlaybackSnapshot const& state);
     void WireSecondarySubtitles();
     void UpdateSecondarySubtitles(iima::PlaybackSnapshot const& state);

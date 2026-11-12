@@ -69,6 +69,7 @@
     <ClCompile Include="MainWindow.Settings.cpp" />
     <ClCompile Include="MainWindow.System.cpp" />
     <ClCompile Include="MainWindow.Diagnostics.cpp" />
+    <ClCompile Include="MainWindow.SubtitleColorPicker.cpp" />
     <ClCompile Include="Platform\FileAssociations.cpp" />
     <ClInclude Include="Platform\FileAssociations.h" />
     <ClCompile Include="Platform\InstanceRouter.cpp" />

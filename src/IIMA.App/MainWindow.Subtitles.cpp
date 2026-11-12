@@ -21,6 +21,15 @@ void MainWindow::WireSubtitleControls() {
             self->session_->ApplySubtitleStyle(style, {"sub-font", "options/sub-font-size", "options/sub-bold", "options/sub-italic"});
         }
     });
+    ChooseSubtitleColorButton().Click([weak](auto const&, auto const&) {
+        if (auto self = weak.get()) self->ChooseSubtitleColor(0);
+    });
+    ChooseSubtitleOutlineColorButton().Click([weak](auto const&, auto const&) {
+        if (auto self = weak.get()) self->ChooseSubtitleColor(1);
+    });
+    ChooseSubtitleBackgroundButton().Click([weak](auto const&, auto const&) {
+        if (auto self = weak.get()) self->ChooseSubtitleColor(2);
+    });
     ApplySubtitleColorButton().Click([weak](auto const&, auto const&) {
         if (auto self = weak.get()) self->ApplySubtitleColorDraft(0);
     });

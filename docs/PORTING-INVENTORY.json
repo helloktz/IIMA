@@ -1287,6 +1287,7 @@
       "physicalLines": 599,
       "coverage": "partial-static-unverified",
       "reviewTargets": [
+        "src/IIMA.App/MainWindow.SubtitleColorPicker.cpp",
         "src/IIMA.App/MainWindow.Subtitles.cpp",
         "src/IIMA.App/MainWindow.SubtitleStyle.cpp",
         "src/IIMA.Core/Subtitles/SubtitleStyle.cpp"

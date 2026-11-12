@@ -132,6 +132,9 @@ void MainWindow::UpdateSecondarySubtitles(iima::PlaybackSnapshot const& state) {
     const bool canStyle = active && (!selectedAny || !imageOnly);
     ApplySubtitleStyleButton().IsEnabled(canStyle);
     ApplySubtitleColorButton().IsEnabled(canStyle);
+    ChooseSubtitleColorButton().IsEnabled(canStyle);
+    ChooseSubtitleOutlineColorButton().IsEnabled(canStyle);
+    ChooseSubtitleBackgroundButton().IsEnabled(canStyle);
     ApplySubtitleOutlineButton().IsEnabled(canStyle);
     ApplySubtitleBackgroundButton().IsEnabled(canStyle);
     UpdateSubtitleStyleFeedback(state);

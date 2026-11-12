@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <cmath>
 #include <stdexcept>
+#include <initializer_list>
 namespace iima {
 namespace {
 bool Unit(double value) { return std::isfinite(value) && value >= 0 && value <= 1; }
@@ -23,6 +24,38 @@ std::optional<SubtitleColor> SubtitleColor::ParseHex(std::string_view text) noex
     const double alpha = text.size() == 9 ? ((value >> 24) & 255) / 255.0 : 1;
     return SubtitleColor{((value >> 16) & 255) / 255.0, ((value >> 8) & 255) / 255.0,
                          (value & 255) / 255.0, alpha};
+}
+std::optional<SubtitleColor> SubtitleColor::ParseMpv(std::string_view text) noexcept {
+    // IINA Extensions.NSColor(mpvColorString:) accepts RGB or RGBA fractions.
+    // Unlike its permissive hex scanner, reject incomplete/invalid components.
+    if (text.starts_with('#')) return ParseHex(text);
+    if (text.empty() || text.size() > 256) return {};
+    double channels[4]{0, 0, 0, 1};
+    unsigned count{};
+    while (!text.empty()) {
+        if (count == 4) return {};
+        auto slash = text.find('/');
+        auto component = text.substr(0, slash);
+        if (component.empty()) return {};
+        auto result = std::from_chars(component.data(), component.data() + component.size(), channels[count]);
+        if (result.ec != std::errc{} || result.ptr != component.data() + component.size() || !Unit(channels[count])) return {};
+        ++count;
+        if (slash == std::string_view::npos) break;
+        text.remove_prefix(slash + 1);
+        if (text.empty()) return {};
+    }
+    if (count != 3 && count != 4) return {};
+    return SubtitleColor{channels[0], channels[1], channels[2], channels[3]};
+}
+std::string SubtitleColor::HexString() const {
+    if (!Valid()) throw std::invalid_argument("Invalid subtitle RGBA color");
+    constexpr char digits[] = "0123456789ABCDEF";
+    std::string result("#");
+    for (double component : {alpha, red, green, blue}) {
+        auto value = static_cast<unsigned>(std::lround(component * 255));
+        result += digits[value >> 4]; result += digits[value & 15];
+    }
+    return result;
 }
 bool SubtitleColor::Valid() const noexcept { return Unit(red) && Unit(green) && Unit(blue) && Unit(alpha); }
 std::string SubtitleColor::MpvString() const {
