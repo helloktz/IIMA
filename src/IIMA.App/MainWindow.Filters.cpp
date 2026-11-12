@@ -6,6 +6,7 @@ using namespace winrt;
 namespace winrt::IIMA::implementation {
 void MainWindow::WireFilterEditor() {
     WireFilterPresets();
+    WireQuickLut();
     auto weak = get_weak();
     FilterTypeBox().SelectionChanged([weak](auto const&, auto const&) {
         if (auto self = weak.get(); self && !self->closing_) {
@@ -37,6 +38,7 @@ void MainWindow::WireFilterEditor() {
     });
 }
 void MainWindow::UpdateFilterEditor(iima::PlaybackSnapshot const& state) {
+    UpdateQuickLut();
     const bool active=!closing_ && state.session==iima::SessionState::Ready && state.media==iima::MediaState::Loaded;
     auto project=[&](Microsoft::UI::Xaml::Controls::Button button,bool mirror) {
         auto status=iima::FindOrientationFilter(state.videoFilters,mirror).state;

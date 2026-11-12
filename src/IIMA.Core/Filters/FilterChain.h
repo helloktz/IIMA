@@ -59,6 +59,9 @@ OrientationFilter FindOrientationFilter(FilterChainSnapshot const&, bool mirror)
 class FilterChainEditor final {
 public:
     // Create one structured filter only against a complete, empty observed chain.
+    // Append only a structured node, preserving all existing unknown entries.
+    // Final chain is revalidated against observation resource bounds.
+    static FilterEditPlan AppendStructured(FilterChainSnapshot const&, std::uint64_t expectedRevision, MPVFilter const&);
     static FilterEditPlan CreateSingle(FilterChainSnapshot const&, MPVFilter const&);
     static FilterEditPlan Remove(FilterChainSnapshot const&, std::uint64_t expectedRevision,
                                  std::size_t index);

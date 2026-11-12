@@ -444,6 +444,14 @@
                                 <Button x:Name="ResetCropButton" Content="移除裁剪"/>
                             </StackPanel>
                         </Expander>
+                        <Expander Header="快捷3D LUT" HorizontalAlignment="Stretch">
+                            <StackPanel Spacing="6">
+                                <TextBlock x:Name="QuickLutStatus" TextWrapping="Wrap"/>
+                                <Button x:Name="ChooseQuickLutButton" Content="选择并应用 LUT…"/>
+                                <Button x:Name="RemoveQuickLutButton" Content="移除快捷 LUT"/>
+                                <TextBlock Text="也可将单个LUT拖到播放区域。只替换快捷LUT，其他滤镜保留；文件内容由FFmpeg验证。" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Expander>
                         <ComboBox x:Name="FilterTypeBox" Header="滤镜链" SelectedIndex="0">
                             <ComboBoxItem Content="视频"/><ComboBoxItem Content="音频"/>
                         </ComboBox>

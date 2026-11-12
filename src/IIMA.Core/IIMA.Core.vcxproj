@@ -185,4 +185,8 @@
     <ClInclude Include="Playlist\PlaylistSubtitleAssociations.h" />
     <ClCompile Include="Playlist\PlaylistSubtitleAssociations.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Filters\QuickLut.h" />
+    <ClCompile Include="Filters\QuickLut.cpp" />
+  </ItemGroup>
 </Project>

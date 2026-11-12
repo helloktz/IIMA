@@ -229,6 +229,24 @@ FilterEditPlan FilterChainEditor::CreateSingle(FilterChainSnapshot const& snapsh
     if (plan.valid) plan.before = snapshot.root;
     return plan;
 }
+FilterEditPlan FilterChainEditor::AppendStructured(FilterChainSnapshot const& snapshot,
+    std::uint64_t revision,MPVFilter const& filter) {
+    FilterEditPlan initial{snapshot.root,{},true,{}};
+    if (snapshot.revision!=revision || !initial.FreshMatches(snapshot) ||
+        snapshot.root.format!=MPV_FORMAT_NODE_ARRAY || snapshot.root.children.size()>=4096 ||
+        snapshot.entries.size()!=snapshot.root.children.size())
+        return {{},{},false,"Stale, ambiguous or oversized filter chain"};
+    auto candidate=snapshot;
+    FilterNode row; row.format=MPV_FORMAT_NODE_MAP;
+    candidate.root.children.push_back(std::move(row)); candidate.entries.push_back({});
+    auto plan=Replace(candidate,revision,candidate.entries.size()-1,filter);
+    if (plan.valid) {
+        FilterNodeView view(plan.after);
+        if (!ParseFilterChain(view.Get()).complete) return {{},{},false,"Result exceeds filter-chain resource limits"};
+        plan.before=snapshot.root;
+    }
+    return plan;
+}
 FilterEditPlan FilterChainEditor::Remove(FilterChainSnapshot const& snapshot,
     std::uint64_t revision, std::size_t index) {
     auto plan = Begin(snapshot, revision, index);

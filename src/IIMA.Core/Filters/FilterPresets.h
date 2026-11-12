@@ -7,6 +7,9 @@
 #include <utility>
 
 namespace iima {
+// Shared two-stage FFmpeg escaping for literal LUT file paths.
+std::optional<std::string> BuildLut3dGraph(std::string_view path, std::string_view interpolation);
+
 class FilterParameterValue final {
 public:
     explicit FilterParameterValue(std::string value) : value_(std::move(value)) {}

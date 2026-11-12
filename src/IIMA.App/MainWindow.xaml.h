@@ -241,6 +241,12 @@ private:
     void UpdateVideoAdjustments(iima::PlaybackSnapshot const& state);
     bool projectingVideoAdjustments_{};
     void WireFilterEditor();
+    void WireQuickLut();
+    void UpdateQuickLut();
+    bool QuickLutAvailable() const;
+    winrt::fire_and_forget ImportQuickLut(std::wstring path = {});
+    void SubmitQuickLut(std::optional<std::string> path);
+    bool quickLutBusy_{};
     void WireFilterPresets();
     void ResetFilterPresetCatalog();
     void ShowFilterPresetParameters();

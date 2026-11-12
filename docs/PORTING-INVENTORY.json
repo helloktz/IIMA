@@ -139,6 +139,8 @@
       "physicalLines": 239,
       "coverage": "partial-static-unverified",
       "reviewTargets": [
+        "src/IIMA.App/MainWindow.QuickLut.cpp",
+        "src/IIMA.Core/Filters/QuickLut.cpp",
         "src/IIMA.App/MainWindow.Drop.cpp",
         "src/IIMA.Core/Input/LocalInputPolicy.cpp"
       ]

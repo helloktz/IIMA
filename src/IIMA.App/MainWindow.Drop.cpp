@@ -159,6 +159,12 @@ fire_and_forget MainWindow::DropFiles(DragEventArgs args, std::optional<std::siz
         try { co_await ui; } catch (...) { co_return; }
         if (classificationFailure) std::rethrow_exception(classificationFailure);
         if (!current()) co_return;
+        if (inputs.size() == 1 && skippedLut) {
+            if (playlistRow) ShowError(L"LUT不是播放列表媒体，请拖到播放区域。");
+            else if (!QuickLutAvailable()) ShowError(L"请等待当前视频及其他操作完成后再导入LUT。");
+            else { ImportQuickLut(std::move(inputs.front())); args.AcceptedOperation(DataPackageOperation::Copy); }
+            co_return;
+        }
         if (rejectedPlaylist) {
             ShowError(L"行插入不支持播放列表文件的异步展开，请先打开该列表；本次未插入任何项。");
             co_return;
@@ -209,7 +215,7 @@ fire_and_forget MainWindow::DropFiles(DragEventArgs args, std::optional<std::siz
             std::wstring warning;
             for (auto const& line : result.warnings) { if (!warning.empty()) warning += L"\n"; warning += line; }
             if (playlistRow && !subtitles.empty()) warning += L"\n已跳过字幕；播放列表插入不会给当前媒体附加字幕。";
-            if (skippedLut) warning += L"\n尚不支持拖放3D LUT，已跳过。";
+            if (skippedLut) warning += L"\n混合拖放中的3D LUT已跳过；请将单个LUT单独拖到播放区域。";
             if (invalidSubtitle) warning += L"\n无法读取字幕或字幕为链接文件，已跳过。";
             if (!warning.empty()) self->ShowError(hstring{warning});
         };
