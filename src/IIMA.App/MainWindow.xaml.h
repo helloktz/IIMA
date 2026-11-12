@@ -364,6 +364,9 @@ private:
     std::vector<Microsoft::UI::Xaml::FrameworkElement> advancedSettingsRows_;
     void ApplyAdvancedSetting(std::string const& key, iima::settings::PreferenceValue value);
     void ApplyWindowPreferences();
+    bool AnimationsAllowed() const;
+    void RefreshAccessibility();
+    bool systemAnimationsEnabled_{};
     void WireWindowPlaybackPolicy();
     std::unique_ptr<iima::WindowLifecycle> windowLifecycle_;
     std::unique_ptr<iima::PowerLifecycle> powerLifecycle_;

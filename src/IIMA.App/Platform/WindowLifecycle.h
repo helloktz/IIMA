@@ -14,7 +14,8 @@ public:
     // outlive Close. Owned dialogs do not count as switching to another player.
     WindowLifecycle(HWND window,
         winrt::Microsoft::UI::Dispatching::DispatcherQueue const& dispatcher,
-        std::function<void(WindowLifecycleState)> changed);
+        std::function<void(WindowLifecycleState)> changed,
+        std::function<void()> settingsChanged = {});
     ~WindowLifecycle();
     WindowLifecycle(WindowLifecycle const&)=delete;
     WindowLifecycle& operator=(WindowLifecycle const&)=delete;

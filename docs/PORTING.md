@@ -858,3 +858,15 @@ Windows新增只读`ReadFullscreenInformation`：GetTimeFormatEx按用户区域�
 可见期间一秒定时刷新本地时间与电源，暂停播放仍更新；隐藏时停止，不依赖高频time-pos轮询电源。标题本地只显示文件叶名，限制200 UTF-16单元并保护末尾代理项，过滤控制字符；网络媒体使用通用标签，避免将URL凭据或私密参数投射到全屏。与上游使用实际网络标题不同，为隐私刻意收窄。浮层无交互，不拦截播放器输入，不每秒作为辅助技术live-region播报。
 
 新偏好进入高级编辑和搜索。不复制Cocoa图标、玻璃材质、动画或macOS电源源列表，Windows显示系统汇总电池信息。未编译测试运行。
+
+## 第七十九批：系统减少动画与高对比度UI适配
+
+`AccessibilityPreferences.adjustedDuration`检查应用disableAnimations，`motionReductionEnabled`读取NSWorkspace系统减少动作；SettingsWindow/SidebarController/Inspector用它控制自有动画。Windows移植读取SPI_GETCLIENTAREAANIMATION，应用disableAnimations默认false，两者共同决定自有动画是否允许；读取失败保守关闭。新偏好实际接入高级编辑/搜索。
+
+缓冲spinner在动画禁用时停止并隐藏，但阶段文字与有效百分比继续显示，不用动画当作唯一忙碌反馈；设置搜索Enter定位使用显式BringIntoViewOptions.AnimationDesired。不会暂停视频、改变seek/解码时间或声称已禁用所有WinUI内部动效；标准控件仍由框架跟随系统策略。
+
+将视频空背景、侧栏/工具栏、OSD/缓冲/截图/全屏辅助浮层及显式文本色替换为主题资源。默认保留暗色播放器布局；HighContrast字典使用SystemColorWindowColor/SystemColorWindowTextColor，取消透明背景以保持系统指定对比。视频合成像素、截图内容和用户字幕样式不改色。交互选区及动态八个手柄在高对比模式使用系统Highlight颜色，而非固定黄色；普通模式保留黄色。
+
+扩展既有WindowLifecycle对WM_SETTINGCHANGE/WM_THEMECHANGED/WM_SYSCOLORCHANGE的只读监听，最多排一个设置刷新回调，刷新时读取最新值；Close/WM_NCDESTROY清回调，旧队列通过weak+closed丢弃。没有改动用户OS设置，也未增加外部权限。
+
+这不是完整辅助技术验收：未覆盖所有动态创建视图颜色、阅读顺序、缩放/文本溢出或所有框架动效；系统高对比与ThemeResource实际解析、通知顺序仍待Windows验证。未编译测试运行。

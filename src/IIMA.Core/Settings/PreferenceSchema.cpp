@@ -136,6 +136,7 @@ std::span<PreferenceDescriptor const> PreferenceSchema() {
         E("useExactSeek",Area::Interface,0,seekModes),
         B("showBufferingThrobber",Area::Interface,true),
         B("showSeekingThrobber",Area::Interface,true),
+        B("disableAnimations",Area::Interface,false),
         B("enableOSD",Area::Interface,true),
         B("disableOSDFileStartMsg",Area::Interface,false),
         B("disableOSDPauseResumeMsgs",Area::Interface,false),

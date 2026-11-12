@@ -13,7 +13,8 @@ void MainWindow::UpdateBufferingIndicator(iima::PlaybackSnapshot const& state) {
         AppWindow().Presenter().Kind()==Microsoft::UI::Windowing::AppWindowPresenterKind::CompactOverlay ||
         model.kind==iima::BufferingIndicatorKind::Hidden;
     BufferingOverlay().Visibility(hidden?Visibility::Collapsed:Visibility::Visible);
-    BufferingSpinner().IsActive(!hidden);
+    BufferingSpinner().IsActive(!hidden && AnimationsAllowed());
+    BufferingSpinner().Visibility(AnimationsAllowed()?Visibility::Visible:Visibility::Collapsed);
     if (hidden) {
         BufferingProgress().Visibility(Visibility::Collapsed);
         BufferingProgressText().Text(L""); BufferingDetailsText().Text(L""); return;

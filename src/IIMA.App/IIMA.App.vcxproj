@@ -161,6 +161,7 @@
     <ClCompile Include="MainWindow.Information.cpp" />
     <ClCompile Include="MainWindow.InspectorWatch.cpp" />
     <ClCompile Include="MainWindow.WindowPolicy.cpp" />
+    <ClCompile Include="MainWindow.Accessibility.cpp" />
     <ClCompile Include="Platform\HistoryLocale.cpp" />
     <ClInclude Include="Platform\HistoryLocale.h" />
     <ClCompile Include="Platform\WindowLifecycle.cpp" />

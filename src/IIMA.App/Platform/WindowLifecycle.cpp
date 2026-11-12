@@ -9,6 +9,8 @@ struct WindowLifecycle::State : std::enable_shared_from_this<State> {
     HWND window{};
     winrt::Microsoft::UI::Dispatching::DispatcherQueue dispatcher{nullptr};
     std::function<void(WindowLifecycleState)> changed;
+    std::function<void()> settingsChanged;
+    bool settingsPending{};
     WindowLifecycleState value;
     bool closed{};
     static bool IsOwnedDialog(HWND window,HWND candidate) noexcept {
@@ -26,6 +28,19 @@ struct WindowLifecycle::State : std::enable_shared_from_this<State> {
                 self->changed(next);
         });
     }
+    void SettingsChanged() {
+        if (closed || settingsPending || !settingsChanged) return;
+        settingsPending=true;
+        const auto weak=weak_from_this();
+        try {
+            if (!dispatcher.TryEnqueue([weak] {
+                if (auto self=weak.lock(); self && !self->closed) {
+                    self->settingsPending=false;
+                    if (self->settingsChanged) self->settingsChanged();
+                }
+            })) settingsPending=false;
+        } catch (...) { settingsPending=false; }
+    }
     static LRESULT CALLBACK Procedure(HWND hwnd,UINT message,WPARAM wParam,LPARAM lParam,
                                       UINT_PTR subclass,DWORD_PTR reference) noexcept {
         // Hold across callbacks/DefSubclassProc: a close message may release the
@@ -34,7 +49,9 @@ struct WindowLifecycle::State : std::enable_shared_from_this<State> {
         if(!self) return DefSubclassProc(hwnd,message,wParam,lParam);
         try {
             auto next=self->value;
-            if(message==WM_ACTIVATE) {
+            if (message==WM_SETTINGCHANGE || message==WM_THEMECHANGED || message==WM_SYSCOLORCHANGE) {
+                self->SettingsChanged();
+            } else if(message==WM_ACTIVATE) {
                 next.inactive=LOWORD(wParam)==WA_INACTIVE &&
                     !IsOwnedDialog(hwnd,reinterpret_cast<HWND>(lParam));
                 self->Publish(next);
@@ -55,7 +72,7 @@ struct WindowLifecycle::State : std::enable_shared_from_this<State> {
                 self->Publish(next);
             } else if(message==WM_NCDESTROY) {
                 self->closed=true;
-                self->changed={};
+                self->changed={}; self->settingsChanged={};
                 self->window=nullptr;
                 RemoveWindowSubclass(hwnd,Procedure,subclass);
             }
@@ -68,11 +85,12 @@ struct WindowLifecycle::State : std::enable_shared_from_this<State> {
 };
 WindowLifecycle::WindowLifecycle(HWND window,
     winrt::Microsoft::UI::Dispatching::DispatcherQueue const& dispatcher,
-    std::function<void(WindowLifecycleState)> changed) {
+    std::function<void(WindowLifecycleState)> changed,std::function<void()> settingsChanged) {
     if(!window || !dispatcher || GetWindowThreadProcessId(window,nullptr)!=GetCurrentThreadId())
         throw winrt::hresult_invalid_argument(L"Window lifecycle requires the owning UI thread");
     auto state=std::make_shared<State>();
     state->window=window; state->dispatcher=dispatcher; state->changed=std::move(changed);
+    state->settingsChanged=std::move(settingsChanged);
     auto foreground=GetForegroundWindow();
     state->value.inactive=foreground!=window && !State::IsOwnedDialog(window,foreground);
     state->value.minimized=IsIconic(window)!=FALSE;
@@ -86,7 +104,7 @@ WindowLifecycleState WindowLifecycle::Current() const noexcept { return state_?s
 void WindowLifecycle::Close() noexcept {
     if(!state_) return;
     state_->closed=true;
-    state_->changed={};
+    state_->changed={}; state_->settingsChanged={};
     if(state_->window) RemoveWindowSubclass(state_->window,State::Procedure,reinterpret_cast<UINT_PTR>(state_.get()));
     state_->window=nullptr;
     state_.reset();

@@ -50,7 +50,8 @@ void MainWindow::WireSettingsSearch() {
         } else if (args.Key()==Windows::System::VirtualKey::Enter) {
             for (auto const& row:self->advancedSettingsRows_) {
                 if (row.Visibility()!=Visibility::Visible) continue;
-                row.StartBringIntoView(); FocusEditor(row); break;
+                BringIntoViewOptions options; options.AnimationDesired(self->AnimationsAllowed());
+                row.StartBringIntoView(options); FocusEditor(row); break;
             }
             args.Handled(true);
         }

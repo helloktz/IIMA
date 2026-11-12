@@ -4,6 +4,22 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Application.Resources>
         <ResourceDictionary>
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Default">
+                    <SolidColorBrush x:Key="IimaVideoBackgroundBrush" Color="Black"/>
+                    <SolidColorBrush x:Key="IimaOverlayBackgroundBrush" Color="#EE202020"/>
+                    <SolidColorBrush x:Key="IimaPanelBackgroundBrush" Color="#FF242424"/>
+                    <SolidColorBrush x:Key="IimaTextBrush" Color="White"/>
+                    <SolidColorBrush x:Key="IimaSecondaryTextBrush" Color="LightGray"/>
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="HighContrast">
+                    <SolidColorBrush x:Key="IimaVideoBackgroundBrush" Color="{ThemeResource SystemColorWindowColor}"/>
+                    <SolidColorBrush x:Key="IimaOverlayBackgroundBrush" Color="{ThemeResource SystemColorWindowColor}"/>
+                    <SolidColorBrush x:Key="IimaPanelBackgroundBrush" Color="{ThemeResource SystemColorWindowColor}"/>
+                    <SolidColorBrush x:Key="IimaTextBrush" Color="{ThemeResource SystemColorWindowTextColor}"/>
+                    <SolidColorBrush x:Key="IimaSecondaryTextBrush" Color="{ThemeResource SystemColorWindowTextColor}"/>
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
             <ResourceDictionary.MergedDictionaries>
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
             </ResourceDictionary.MergedDictionaries>
