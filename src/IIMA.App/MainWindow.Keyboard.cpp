@@ -76,6 +76,7 @@ void MainWindow::ApplyKeyboardConfiguration() {
 void MainWindow::WireKeyboardControls() {
     WireBindingLibrary();
     WireBindingEditor();
+    WireKeyRecorder();
     auto weak = get_weak();
     // Tunnelling event replaces hard-coded accelerators, so edited bindings can
     // actually replace defaults. Text entry and modal pickers retain all keys.

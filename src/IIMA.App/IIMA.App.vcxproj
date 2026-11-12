@@ -129,6 +129,7 @@
     <ClCompile Include="MainWindow.Keyboard.cpp" />
     <ClCompile Include="MainWindow.BindingLibrary.cpp" />
     <ClCompile Include="MainWindow.BindingEditor.cpp" />
+    <ClCompile Include="MainWindow.KeyRecorder.cpp" />
     <ClCompile Include="MainWindow.Preferences.cpp" />
     <ClCompile Include="Platform\KeyboardInput.cpp" />
     <ClInclude Include="Platform\KeyboardInput.h" />

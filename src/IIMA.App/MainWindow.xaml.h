@@ -108,6 +108,8 @@ private:
     void WireKeyboardControls();
     void WireBindingLibrary();
     void WireBindingEditor();
+    void WireKeyRecorder();
+    bool recordingBindingKey_{};
     void LoadBindingRows();
     void UpdateBindingRowFields();
     void RefreshBindingRows(std::optional<std::size_t> selected = {});

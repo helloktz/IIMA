@@ -248,6 +248,7 @@ void MainWindow::BeginClose()
     CapturePlacement();
     SaveWindowPlacement();
     closing_ = true;
+    recordingBindingKey_ = false;
     if (jumpDialog_) jumpDialog_.Hide();
     fontCatalogStop_.request_stop();
     revealSelectionStop_.request_stop();

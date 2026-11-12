@@ -412,6 +412,10 @@
                                         <Button x:Name="LoadBindingRowsButton" Content="从文本读取并替换行草稿"/>
                                         <TextBox x:Name="BindingRowSearch" Header="搜索按键、动作或注释"/>
                                         <ListView x:Name="BindingRowsList" Height="200" SelectionMode="Single" AutomationProperties.Name="快捷键绑定行"/>
+                                        <Button x:Name="StartKeyRecordingButton" Content="录入一个按键组合"/>
+                                        <TextBox x:Name="KeyRecordingSurface" Header="按键录入区域" IsReadOnly="True" PlaceholderText="先点击录入按钮，再按键" AutomationProperties.Name="快捷键录入，仅当前焦点有效"/>
+                                        <Button x:Name="CancelKeyRecordingButton" Content="取消按键录入"/>
+                                        <TextBlock x:Name="KeyRecordingStatus" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite"/>
                                         <TextBox x:Name="BindingRowKey" Header="mpv按键名称（如 Ctrl+o）" MaxLength="16384"/>
                                         <TextBox x:Name="BindingRowAction" Header="动作（IINA动作加 @iina 前缀）" MaxLength="16384"/>
                                         <TextBox x:Name="BindingRowComment" Header="行内注释" MaxLength="16384"/>
