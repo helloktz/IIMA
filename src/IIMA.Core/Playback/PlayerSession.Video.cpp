@@ -16,6 +16,14 @@ void PlayerSession::SetVideoRotation(int degrees) {
     if (degrees != 0 && degrees != 90 && degrees != 180 && degrees != 270) return;
     client_->Command({"set", "video-rotate", std::to_string(degrees)});
 }
+// IINA PlayerCore.toggleHardwareDecoding: this is a session override, not
+// a persistent preference write. Actual hardware use comes from hwdec-current.
+void PlayerSession::SetHardwareDecoding(std::string mode) {
+    if (snapshot_.session != SessionState::Ready || snapshot_.media != MediaState::Loaded ||
+        waitingForStart_ || playlistEdit_) return;
+    if (mode != "no" && mode != "auto" && mode != "auto-copy") return;
+    client_->Command({"set", "hwdec", std::move(mode)});
+}
 void PlayerSession::SetDeinterlace(bool enabled) {
     if (snapshot_.session == SessionState::Ready)
         client_->Command({"set", "deinterlace", enabled ? "yes" : "no"});

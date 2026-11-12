@@ -268,6 +268,9 @@
                         <Button x:Name="ApplyRotationButton" Content="应用旋转"/>
                         <Expander Header="画面调整" HorizontalAlignment="Stretch">
                             <StackPanel Spacing="6">
+                                <TextBlock x:Name="HardwareDecodeStatus" TextWrapping="Wrap"/>
+                                <Button x:Name="DisableHardwareDecodeButton" Content="临时使用软件解码"/>
+                                <Button x:Name="RestoreHardwareDecodeButton" Content="恢复已保存的解码偏好"/>
                                 <CheckBox x:Name="DeinterlaceCheck" Content="反交错" IsThreeState="True"/>
                                 <Slider x:Name="BrightnessSlider" Header="亮度" Minimum="-100" Maximum="100" StepFrequency="1" AutomationProperties.Name="亮度"/>
                                 <Button x:Name="ResetBrightnessButton" Content="重置亮度"/>

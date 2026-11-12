@@ -31,6 +31,7 @@ struct PlaybackSnapshot {
     // Current mpv also supports auto, which cannot be faithfully represented
     // by IINA's older Boolean switch. Keep it visible rather than reporting off.
     std::optional<std::string> deinterlaceMode;
+    std::optional<std::string> hardwareDecodeMode; // Requested hwdec option, not actual decoder.
     RepeatMode repeatMode{RepeatMode::Off};
     std::string loopFile{"no"}, loopPlaylist{"no"}, keepOpen{"yes"};
     std::int64_t entryId{-1};

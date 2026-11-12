@@ -155,6 +155,10 @@ void ApplyPlaybackEvent(PlaybackSnapshot& s, MpvEvent const& e) {
         else if(e.name=="path") { s.path=e.text; ++s.informationRevision; }
         else if(e.name=="mpv-version") s.mpvVersion=e.text;
         else if(e.name=="current-tracks/video/codec-desc") { s.videoCodec=e.text; ++s.informationRevision; }
+        else if (e.name == "hwdec") {
+            if (e.error >= 0 && !e.text.empty() && e.text.size() <= 1024) s.hardwareDecodeMode = e.text;
+            else s.hardwareDecodeMode.reset();
+        }
         else if(e.name=="hwdec-current") { s.hwdecCurrent=e.text; ++s.informationRevision; }
         else if(e.name=="current-vo") s.currentVo=e.text;
         else if(e.name=="vo-configured") s.voConfigured=e.flag.value_or(false);

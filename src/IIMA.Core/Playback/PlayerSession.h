@@ -84,6 +84,7 @@ public:
     void SetVideoRotation(int degrees);
     void ToggleVideoOrientation(bool mirror);
     void SetDeinterlace(bool enabled);
+    void SetHardwareDecoding(std::string mode);
     void SetVideoEqualizer(std::string property, int value);
     void AddVideoFilter(std::string filter);
     void RemoveVideoFilter(std::string label);

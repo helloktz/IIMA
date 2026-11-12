@@ -8,6 +8,16 @@ using namespace Microsoft::UI::Xaml;
 namespace winrt::IIMA::implementation {
 void MainWindow::WireVideoAdjustments() {
     auto weak = get_weak();
+    DisableHardwareDecodeButton().Click([weak](auto const&, auto const&) {
+        if (auto self = weak.get(); self && !self->closing_)
+            self->session_->SetHardwareDecoding("no");
+    });
+    RestoreHardwareDecodeButton().Click([weak](auto const&, auto const&) {
+        if (auto self = weak.get(); self && !self->closing_ && self->userDataLoaded_) {
+            auto preference = self->preferences_.Integer("hardwareDecoder");
+            self->session_->SetHardwareDecoding(preference == 2 ? "auto-copy" : preference == 1 ? "auto" : "no");
+        }
+    });
     auto wire = [weak](Controls::Slider slider, Controls::Button reset, std::string property) {
         slider.ValueChanged([weak, property](auto const&, auto const& args) {
             if (auto self = weak.get(); self && !self->closing_ && !self->projectingVideoAdjustments_) {
@@ -39,6 +49,22 @@ void MainWindow::WireVideoAdjustments() {
 void MainWindow::UpdateVideoAdjustments(iima::PlaybackSnapshot const& state) {
     struct Guard { bool& value; explicit Guard(bool& v):value(v){value=true;} ~Guard(){value=false;} } guard(projectingVideoAdjustments_);
     bool active = !closing_ && state.session == iima::SessionState::Ready && state.media == iima::MediaState::Loaded;
+    DisableHardwareDecodeButton().IsEnabled(active && state.hardwareDecodeMode.has_value() &&
+        state.hardwareDecodeMode != "no");
+    RestoreHardwareDecodeButton().IsEnabled(active && userDataLoaded_);
+    std::wstring decode = L"请求模式：";
+    decode += state.hardwareDecodeMode ? to_hstring(*state.hardwareDecodeMode).c_str() : L"未知";
+    decode += L"；实际解码：";
+    if (!active || state.hwdecCurrent.empty()) decode += L"尚不可用";
+    else if (state.hwdecCurrent == "no") decode += L"软件解码";
+    else decode += to_hstring(state.hwdecCurrent).c_str();
+    if (userDataLoaded_) {
+        auto preference = preferences_.Integer("hardwareDecoder");
+        decode += L"；已保存偏好：";
+        decode += preference == 2 ? L"auto-copy" : preference == 1 ? L"auto" : L"no";
+    }
+    decode += L"。允许硬件解码不保证当前视频实际使用硬件。";
+    HardwareDecodeStatus().Text(decode);
     bool complete = true;
     auto project = [&](Controls::Slider slider, Controls::Button reset, std::optional<int> value) {
         slider.IsEnabled(active && value.has_value());
