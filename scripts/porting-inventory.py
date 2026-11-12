@@ -54,7 +54,7 @@ MAPPING = {
     'IINACommand.swift': ['src/IIMA.Core/Commands/ApplicationCommand.cpp'],
     'MPVCommandWrappers.swift': ['src/IIMA.Core/Commands/PlaylistCommands.cpp'],
     'MainMenuActions.swift': ['src/IIMA.App/MainWindow.Playlist.cpp', 'src/IIMA.App/Platform/ShellFileActions.cpp', 'src/IIMA.App/MainWindow.OnlineSubtitleSave.cpp'],
-    'SidebarPlaylistPane.swift': ['src/IIMA.Core/Playlist/PlaylistPlan.cpp', 'src/IIMA.App/MainWindow.PlaylistSelection.cpp'],
+    'SidebarPlaylistPane.swift': ['src/IIMA.App/MainWindow.PlaylistDrag.cpp', 'src/IIMA.Core/Playlist/PlaylistPlan.cpp', 'src/IIMA.App/MainWindow.PlaylistSelection.cpp'],
     'VideoTime.swift': ['src/IIMA.Core/Media/VideoTime.cpp'],
     'MPVChapter.swift': ['src/IIMA.Core/Media/MediaChapter.cpp'],
     'SidebarChaptersPane.swift': ['src/IIMA.Core/Media/MediaChapter.cpp'],

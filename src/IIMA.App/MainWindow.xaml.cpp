@@ -80,6 +80,7 @@ MainWindow::MainWindow()
     WireSettingsControls();
     WireAssociationControls();
     WireFileActions();
+    WirePlaylistDrag();
     try {
         HWND hwnd{};
         check_hresult(this->as<::IWindowNative>()->get_WindowHandle(&hwnd));

@@ -213,6 +213,13 @@ private:
     std::vector<std::int64_t> SelectedPlaylistIds() const;
     std::vector<std::size_t> SelectedPlaylistRows();
     void UpdatePlaylistSelection();
+    void WirePlaylistDrag();
+    bool PlaylistDragCurrent(Microsoft::UI::Xaml::DragEventArgs const& args) const;
+    std::optional<std::size_t> PlaylistDropRow(Microsoft::UI::Xaml::DragEventArgs const& args) const;
+    std::optional<winrt::guid> playlistDragToken_;
+    std::vector<std::int64_t> playlistDragIds_;
+    std::vector<std::size_t> playlistDragRows_;
+    std::uint64_t playlistDragRevision_{};
     void RemoveSelectedPlaylistItems();
     void QueueSelectedPlaylistNext();
     void MoveSelected(int delta);

@@ -63,7 +63,8 @@
                     <Button x:Name="SavePlaylistButton" Content="保存"/>
                 </StackPanel>
                 <ListView x:Name="PlaylistView" Grid.Row="1" Foreground="White" SelectionMode="Extended"
-                          AutomationProperties.Name="播放列表（Ctrl或Shift多选）" />
+                          CanDragItems="True" AllowDrop="True" CanReorderItems="False"
+                          AutomationProperties.Name="播放列表（Ctrl或Shift多选，可拖动排序）" />
                 <StackPanel Grid.Row="2" Spacing="6">
                     <StackPanel Orientation="Horizontal" Spacing="4">
                         <Button x:Name="SortPlaylistButton" Content="排序"/>
