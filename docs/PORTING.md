@@ -886,3 +886,12 @@ Windows新增只读`ReadFullscreenInformation`：GetTimeFormatEx按用户区域�
 - 沿用祖先目录持有、防 reparse/offline/hardlink、每文件1 MiB/每目录128项与16 MiB限制。跨目录统一先锁 data 后锁 tmp，避免合作进程反向锁顺序；在取得源 DELETE 句柄前完成目录扫描，再用已打开源身份的 `FileRenameInfo` 无覆盖重命名。跨卷失败无复制删除回退；失败无重试或猜测回滚。持锁/句柄机制不是抵御同权限恶意进程的完整安全沙箱。
 - 同步 worker 调用沿既有限流计为 mutation；与下载/退出清理由实例互斥锁串行。停止恰好发生在原生成功之后时可能看到停止错误但移动已发生，不声明事务撤销。启动说明明确移入 @tmp 将参与关闭清理，移入 @data 保留，不扩大到任意用户文件。
 - 未执行任何真实文件移动、插件或编译测试运行；Windows rename、并发、配额与取消时序仍需实际验证。
+
+## 第八十二批：视频区域光标自动隐藏与恢复
+
+- 源码：`MainWindowController.swift::hideUIAndCursor` 先隐藏控制栏再调用 `NSCursor.setHiddenUntilMouseMoves`；`mouseMoved` 在非交互模式恢复UI/更新闲置计时；`workaroundCursorDefect` 处理macOS点击导致意外显示的系统差异。
+- 新增 `VideoSurface` WinRT runtimeclass，继承现有 `SwapChainPanel`，只经 `UIElement.ProtectedCursor` 切换空光标/系统箭头。XAML 原名 VideoPanel、呈现适配和交换链生命周期保持；新增IDL/头文件/实现纳入固定工程生成链。不调用全局ShowCursor计数、不改系统光标、不安装全局钩子。
+- `MainWindow.VideoCursor.cpp` 联动既有控制栏闲置计时与Visibility通知，覆盖鼠标进入/离开、移动/按下/键盘活动、捕获丢失、失活和关闭。仅鼠标位于视频区域、Ready/Loaded且vo已配置、控制栏已隐藏、自动隐藏允许时隐藏；编辑、音乐模式、小窗、模态和按住鼠标均保留指针。正常窗口与全屏共用规则，暂停不额外禁用。
+- 恢复/关闭撤销visibility回调；控件卸载恢复箭头。父级通用活动入口先恢复，再重新计时；XamlRoot尚未就绪时不隐藏。使用局部控件属性，侧栏/裁剪手柄/其他窗口不继承隐藏光标。
+- Windows差异：点击/键盘也主动显示并重新计时，不照搬macOS维持隐藏的缺陷补丁；音乐/无已配置视频不隐藏。没有实现任意自定义光标主题或整个窗口隐藏。
+- 未编译测试运行，尤其自定义派生SwapChainPanel的MIDL/C++/WinRT/XAML生成、ProtectedCursor即时刷新与原生合成路径兼容性尚无证据；不能宣称当前可运行。

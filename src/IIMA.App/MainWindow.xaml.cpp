@@ -51,6 +51,7 @@ MainWindow::MainWindow()
     WirePluginPointer();
     WireMouseWheel();
     WireControlBarVisibility();
+    WireVideoCursor();
     WireFullscreenInformation();
     WireMouseClicks();
     WireTimeDisplay();
@@ -263,6 +264,7 @@ void MainWindow::BeginClose()
     FinishInteractiveCrop(false, false);
     closing_ = true;
     CloseFullscreenInformation();
+    CloseVideoCursor();
     BufferingSpinner().IsActive(false); BufferingOverlay().Visibility(Visibility::Collapsed);
     recordingBindingKey_ = false;
     if (jumpDialog_) jumpDialog_.Hide();

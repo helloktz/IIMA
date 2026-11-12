@@ -69,11 +69,14 @@ bool MainWindow::CanHideControlBar() {
     auto const& state = session_->Snapshot();
     if (state.session != iima::SessionState::Ready || state.media != iima::MediaState::Loaded)
         return false;
-    auto focused = Input::FocusManager::GetFocusedElement(Root().XamlRoot()).try_as<DependencyObject>();
+    auto root = Root().XamlRoot();
+    if (!root) return false;
+    auto focused = Input::FocusManager::GetFocusedElement(root).try_as<DependencyObject>();
     return !DescendantOf(focused, BottomControlsBorder());
 }
 void MainWindow::ControlBarActivity() {
     if (closing_) return;
+    VideoPanel().SetCursorHidden(false);
     if (controlBarTimer_) controlBarTimer_.Stop();
     if (AppWindow().Presenter().Kind() != Microsoft::UI::Windowing::AppWindowPresenterKind::CompactOverlay)
         BottomControlsBorder().Visibility(Visibility::Visible);
@@ -81,6 +84,7 @@ void MainWindow::ControlBarActivity() {
 }
 void MainWindow::UpdateControlBarPolicy() {
     if (!controlBarTimer_ || closing_) return;
+    UpdateVideoCursor();
     UpdateBufferingIndicator(session_->Snapshot());
     UpdateFullscreenInformation();
     const bool compact = AppWindow().Presenter().Kind() ==

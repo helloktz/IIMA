@@ -2,6 +2,7 @@
 #include <chrono>
 #include "../IIMA.Core/Settings/SettingsSearch.h"
 #include "MainWindow.g.h"
+#include "VideoSurface.h"
 #include "../IIMA.Core/Playback/PlayerSession.h"
 #include "../IIMA.Core/Commands/ApplicationCommand.h"
 #include "../IIMA.Core/Input/BindingConfiguration.h"
@@ -328,6 +329,11 @@ private:
     void CloseFullscreenInformation();
     Microsoft::UI::Dispatching::DispatcherQueueTimer fullscreenInfoTimer_{nullptr};
     std::optional<std::int64_t> fullscreenInfoVisibilityToken_;
+    void WireVideoCursor();
+    void UpdateVideoCursor();
+    void CloseVideoCursor();
+    bool videoMouseInside_{};
+    std::optional<std::int64_t> videoCursorVisibilityToken_;
     void WireControlBarVisibility();
     void ControlBarActivity();
     void UpdateControlBarPolicy();

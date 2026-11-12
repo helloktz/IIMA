@@ -93,6 +93,10 @@
     <ClInclude Include="MainWindow.xaml.h"><DependentUpon>MainWindow.xaml</DependentUpon></ClInclude>
     <ClInclude Include="Presentation\VideoPresenter.h" />
     <Midl Include="MainWindow.idl" />
+    <Midl Include="VideoSurface.idl" />
+    <ClInclude Include="VideoSurface.h" />
+    <ClCompile Include="VideoSurface.cpp" />
+    <ClCompile Include="MainWindow.VideoCursor.cpp" />
     <ApplicationDefinition Include="App.xaml" />
     <Page Include="MainWindow.xaml" />
   </ItemGroup>

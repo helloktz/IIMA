@@ -1,0 +1,9 @@
+namespace IIMA
+{
+    [default_interface]
+    runtimeclass VideoSurface : Microsoft.UI.Xaml.Controls.SwapChainPanel
+    {
+        VideoSurface();
+        void SetCursorHidden(Boolean hidden);
+    }
+}
