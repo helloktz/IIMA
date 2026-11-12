@@ -3,11 +3,13 @@
 #pragma once
 #include <optional>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 namespace iima {
 struct SubtitleColor {
     double red{}, green{}, blue{}, alpha{1};
+    static std::optional<SubtitleColor> ParseHex(std::string_view text) noexcept;
     bool Valid() const noexcept;
     std::string MpvString() const;
 };

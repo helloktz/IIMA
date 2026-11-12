@@ -129,6 +129,11 @@ void MainWindow::UpdateSecondarySubtitles(iima::PlaybackSnapshot const& state) {
     SubtitleStyleWarning().Text(selectedAny && imageOnly ?
         L"图形字幕不支持文本样式，副字幕可能与主字幕重叠。" : ass ?
         L"ASS字幕的内置排版可能覆盖样式；缩放或位置调整可能破坏排版。" : L"");
-    ApplySubtitleStyleButton().IsEnabled(active && (!selectedAny || !imageOnly));
+    const bool canStyle = active && (!selectedAny || !imageOnly);
+    ApplySubtitleStyleButton().IsEnabled(canStyle);
+    ApplySubtitleColorButton().IsEnabled(canStyle);
+    ApplySubtitleOutlineButton().IsEnabled(canStyle);
+    ApplySubtitleBackgroundButton().IsEnabled(canStyle);
+    UpdateSubtitleStyleFeedback(state);
 }
 }

@@ -162,6 +162,8 @@ private:
     std::string navigationPath_;
     Microsoft::UI::Xaml::Controls::ContentDialog jumpDialog_{nullptr};
     void WireSubtitleControls();
+    void ApplySubtitleColorDraft(unsigned kind);
+    void UpdateSubtitleStyleFeedback(iima::PlaybackSnapshot const& state);
     void WireSecondarySubtitles();
     void UpdateSecondarySubtitles(iima::PlaybackSnapshot const& state);
     void LoadSecondarySubtitleDraft();

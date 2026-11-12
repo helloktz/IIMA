@@ -2,6 +2,7 @@
 // Copyright © 2016 lhc. GPL v3; references/iina/LICENSE.
 #include "SubtitleStyle.h"
 #include <charconv>
+#include <cstdint>
 #include <cmath>
 #include <stdexcept>
 namespace iima {
@@ -13,6 +14,15 @@ std::string Decimal(double value) {
     if (ec != std::errc{}) throw std::invalid_argument("Invalid subtitle number");
     return {buffer, end};
 }
+}
+std::optional<SubtitleColor> SubtitleColor::ParseHex(std::string_view text) noexcept {
+    if ((text.size() != 7 && text.size() != 9) || text.front() != '#') return {};
+    std::uint32_t value{};
+    const auto parsed = std::from_chars(text.data() + 1, text.data() + text.size(), value, 16);
+    if (parsed.ec != std::errc{} || parsed.ptr != text.data() + text.size()) return {};
+    const double alpha = text.size() == 9 ? ((value >> 24) & 255) / 255.0 : 1;
+    return SubtitleColor{((value >> 16) & 255) / 255.0, ((value >> 8) & 255) / 255.0,
+                         (value & 255) / 255.0, alpha};
 }
 bool SubtitleColor::Valid() const noexcept { return Unit(red) && Unit(green) && Unit(blue) && Unit(alpha); }
 std::string SubtitleColor::MpvString() const {

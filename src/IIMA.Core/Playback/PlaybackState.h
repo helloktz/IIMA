@@ -1,6 +1,7 @@
 #pragma once
 #include "../Mpv/MpvClient.h"
 #include "PlaybackSettings.h"
+#include <map>
 
 namespace iima {
 enum class SessionState { Initializing, Ready, Closing, Closed, Failed };
@@ -21,6 +22,7 @@ struct PlaybackSnapshot {
     std::optional<double> observedSubtitleDelay, secondarySubtitleDelay;
     std::optional<double> subtitlePosition, secondarySubtitlePosition;
     std::optional<double> subtitleScale, secondarySubtitleScale;
+    std::map<std::string, std::string> subtitleStyleValues; // Fixed observed property names; missing means unknown.
     // Observed mpv option values, not optimistic command echoes. Empty means
     // unavailable/invalid, not neutral zero. Options can persist across files.
     std::optional<int> videoBrightness, videoContrast, videoSaturation, videoGamma, videoHue;

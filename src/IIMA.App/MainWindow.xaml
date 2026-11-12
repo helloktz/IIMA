@@ -193,7 +193,17 @@
                         <TextBox x:Name="SubtitleFontText" Header="字幕字体" Text="sans-serif"/>
                         <NumberBox x:Name="SubtitleFontSizeBox" Header="字幕字号" Value="55" Minimum="1" Maximum="9000"/>
                         <CheckBox x:Name="SubtitleBoldCheck" Content="粗体字幕" IsChecked="False"/>
-                        <Button x:Name="ApplySubtitleStyleButton" Content="应用字幕样式"/>
+                        <CheckBox x:Name="SubtitleItalicCheck" Content="斜体字幕" IsChecked="False"/>
+                        <Button x:Name="ApplySubtitleStyleButton" Content="应用字体、字号和字形"/>
+                        <TextBlock Text="主副字幕共享文字样式。以下是编辑草稿，不代表当前值。颜色为 #RRGGBB 或 #AARRGGBB，AA=00完全透明，FF不透明。" TextWrapping="Wrap"/>
+                        <TextBox x:Name="SubtitleColorText" Header="文字颜色" Text="#FFFFFFFF" MaxLength="9"/>
+                        <Button x:Name="ApplySubtitleColorButton" Content="仅应用文字颜色"/>
+                        <TextBox x:Name="SubtitleOutlineColorText" Header="描边颜色" Text="#FF000000" MaxLength="9"/>
+                        <NumberBox x:Name="SubtitleOutlineSizeBox" Header="描边宽度" Value="3" Minimum="0" Maximum="100"/>
+                        <Button x:Name="ApplySubtitleOutlineButton" Content="应用描边颜色和宽度"/>
+                        <TextBox x:Name="SubtitleBackgroundText" Header="背景/阴影颜色" Text="#00000000" MaxLength="9"/>
+                        <Button x:Name="ApplySubtitleBackgroundButton" Content="仅应用背景颜色"/>
+                        <TextBlock x:Name="SubtitleStyleObservedText" TextWrapping="Wrap"/>
                         <NumberBox x:Name="SubtitleScaleBox" Header="字幕缩放" Value="1" Minimum="0.01" Maximum="100" SmallChange="0.1"/>
                         <NumberBox x:Name="SubtitlePositionBox" Header="字幕位置（0顶部，100底部）" Value="100" Minimum="0" Maximum="100"/>
                         <Button x:Name="ApplySubtitleLayoutButton" Content="应用字幕位置与缩放"/>

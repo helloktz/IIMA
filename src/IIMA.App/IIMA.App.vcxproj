@@ -99,6 +99,7 @@
     <ClCompile Include="MainWindow.Audio.cpp" />
     <ClCompile Include="MainWindow.SubtitleMatching.cpp" />
     <ClCompile Include="MainWindow.Subtitles.cpp" />
+    <ClCompile Include="MainWindow.SubtitleStyle.cpp" />
     <ClCompile Include="MainWindow.SecondarySubtitles.cpp" />
     <ClCompile Include="MainWindow.Navigation.cpp" />
     <ClCompile Include="MainWindow.ABLoop.cpp" />

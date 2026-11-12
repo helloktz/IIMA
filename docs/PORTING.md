@@ -424,3 +424,12 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 - 不新增原子性承诺：多个mpv移动可能部分完成后失败，不回滚。最终快照读取与执行之间仍存在外部脚本竞争窗口。拖动命中仅遍历已实现的可见容器，身份检查仍遍历ID；尚无性能证据。
 
 本批仅静态编写、人工源码阅读、数量统计与Git核验，未编译、测试或运行Windows。
+
+### 第三十四批：字幕颜色、描边、背景与非破坏样式编辑
+
+- `SidebarSubtitlesPane.SubStyleView.colorAction/chooseSubBorderSizeAction/updateControls`、`PlayerCore.setSubTextColor/setSubTextBorderColor/setSubTextBorderSize/setSubTextBgColor/setSubFont` → 原生文本颜色草稿/描边宽度/字体斜体编辑、`SubtitleColor.ParseHex`和 `PlayerSession.ApplySubtitleStyle`字段子集。以mpv手册的`#RRGGBB/#AARRGGBB`规则解析，转为已有RGBA浮点序列化；透明度00透明、FF不透明。只接受完整6或8位十六进制输入，不猜测无效字符串或其他颜色命名。
+- 修复旧界面只显示字体/字号/粗体却提交整个默认SubtitleStyle、隐式重置文字色/描边/背景/斜体的问题。字体按钮只改字体字号粗斜体；文字色、描边和背景分别明确应用，不改未选择字段。会话在发送任何命令前验证样式及字段白名单；多字段仍是独立异步命令，失败不宣称回滚或原子更新。
+- mpv八项样式属性以STRING观察进入有界固定键快照，单独显示实际内核值；缺值显示未知，不把命令参数投影成已成功状态，不在time-pos通知覆盖编辑中的草稿。该类选项跨媒体持久，沿mpv实际观察更新。编辑初值明确是草稿而非当前属性；未实现上游原生字体/颜色选择器、自动读取到草稿和全部样式预设持久化。
+- 保留图形字幕禁用和ASS内置排版警告。字体样式选项共享主副字幕，不伪造独立副字幕色；背景色的视觉效果也受mpv现有边框/阴影样式影响，本批没有自动更改ASS override或阴影尺寸。颜色属性接收不代表视觉一定变化。
+
+仅静态编写、人工审阅、统计与Git核验，未编译、测试、运行或验证字幕画面。

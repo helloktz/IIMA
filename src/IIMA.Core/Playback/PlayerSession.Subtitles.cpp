@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <cmath>
 namespace iima {
-void PlayerSession::ApplySubtitleStyle(SubtitleStyle const& style) {
+void PlayerSession::ApplySubtitleStyle(SubtitleStyle const& style, std::vector<std::string> fields) {
     if (snapshot_.session != SessionState::Ready) return;
     auto properties = style.Properties();
     if (!properties) {
@@ -12,7 +12,16 @@ void PlayerSession::ApplySubtitleStyle(SubtitleStyle const& style) {
         Notify();
         return;
     }
-    for (auto const& [name, value] : *properties) client_->Command({"set", name, value});
+    // IINA's individual setters leave unrelated style fields untouched. Validate
+    // the complete requested subset before issuing any asynchronous commands.
+    for (auto const& field : fields) {
+        if (std::none_of(properties->begin(), properties->end(), [&](auto const& pair) { return pair.first == field; })) {
+            snapshot_.error = "Unknown subtitle style field"; Notify(); return;
+        }
+    }
+    for (auto const& [name, value] : *properties)
+        if (fields.empty() || std::find(fields.begin(), fields.end(), name) != fields.end())
+            client_->Command({"set", name, value});
 }
 void PlayerSession::SetSubtitleScale(double scale, bool primary) {
     if (snapshot_.session != SessionState::Ready || !std::isfinite(scale)) return;

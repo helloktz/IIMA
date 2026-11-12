@@ -16,8 +16,19 @@ void MainWindow::WireSubtitleControls() {
             style.font = to_string(self->SubtitleFontText().Text());
             style.fontSize = self->SubtitleFontSizeBox().Value();
             style.bold = self->SubtitleBoldCheck().IsChecked().Value();
-            self->session_->ApplySubtitleStyle(style);
+            style.italic = self->SubtitleItalicCheck().IsChecked().Value();
+            if (!style.Valid() || style.font.size() > 1024) { self->ShowError(L"请输入有效字体和字号。"); return; }
+            self->session_->ApplySubtitleStyle(style, {"sub-font", "options/sub-font-size", "options/sub-bold", "options/sub-italic"});
         }
+    });
+    ApplySubtitleColorButton().Click([weak](auto const&, auto const&) {
+        if (auto self = weak.get()) self->ApplySubtitleColorDraft(0);
+    });
+    ApplySubtitleOutlineButton().Click([weak](auto const&, auto const&) {
+        if (auto self = weak.get()) self->ApplySubtitleColorDraft(1);
+    });
+    ApplySubtitleBackgroundButton().Click([weak](auto const&, auto const&) {
+        if (auto self = weak.get()) self->ApplySubtitleColorDraft(2);
     });
     ApplySubtitleLayoutButton().Click([weak](auto const&, auto const&) {
         if (auto self = weak.get(); self && !self->closing_) {
