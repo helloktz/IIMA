@@ -133,7 +133,7 @@
         </Border>
         <Border x:Name="BottomControlsBorder" Background="{ThemeResource IimaOverlayBackgroundBrush}" VerticalAlignment="Bottom" Padding="12">
             <Grid ColumnSpacing="12" RowSpacing="6">
-                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/>
@@ -147,7 +147,11 @@
                     <TextBlock Text="/" VerticalAlignment="Center"/>
                     <Button x:Name="TimeModeButton" Content="--:--" Padding="4,2" AutomationProperties.Name="切换总时长与剩余时间"/>
                 </StackPanel>
-                <Button x:Name="FullscreenButton" Grid.Row="1" Grid.Column="3" Content="全屏" />
+                <ScrollViewer Grid.Row="2" Grid.ColumnSpan="4" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                    <StackPanel x:Name="OscToolbarItems" Orientation="Horizontal" Spacing="6">
+                        <Button x:Name="FullscreenButton" Content="全屏" Visibility="Collapsed"/>
+                    </StackPanel>
+                </ScrollViewer>
             </Grid>
         </Border>
         <Border x:Name="PlayerSidebar" Grid.Column="1" Background="{ThemeResource IimaPanelBackgroundBrush}" Padding="12">
@@ -580,6 +584,23 @@
                                 <Button x:Name="InspectorApplyButton" Content="保存并监视"/>
                                 <TextBlock x:Name="InspectorStatusText" TextWrapping="Wrap"/>
                                 <TextBlock x:Name="InspectorValuesText" TextWrapping="Wrap" IsTextSelectionEnabled="True"/>
+                            </StackPanel>
+                        </Expander>
+                        <Expander Header="播放控制栏工具按钮" HorizontalAlignment="Stretch">
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="最多5个按钮，可留空。修改是草稿，应用后才改变控制栏；播放、打开文件和进度条保持不变。" TextWrapping="Wrap"/>
+                                <ListView x:Name="ToolbarCurrentList" MaxHeight="180" SelectionMode="Single" AutomationProperties.Name="工具栏当前草稿顺序"/>
+                                <ComboBox x:Name="ToolbarAvailableBox" Header="可添加动作" HorizontalAlignment="Stretch"/>
+                                <Button x:Name="ToolbarAddButton" Content="添加到末尾"/>
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <Button x:Name="ToolbarUpButton" Content="上移"/><Button x:Name="ToolbarDownButton" Content="下移"/>
+                                    <Button x:Name="ToolbarRemoveButton" Content="移除"/>
+                                </StackPanel>
+                                <Button x:Name="ToolbarDefaultButton" Content="将草稿恢复为默认"/>
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <Button x:Name="ToolbarApplyButton" Content="应用"/><Button x:Name="ToolbarCancelButton" Content="取消草稿"/>
+                                </StackPanel>
+                                <TextBlock x:Name="ToolbarDraftStatus" TextWrapping="Wrap"/>
                             </StackPanel>
                         </Expander>
                         <Expander Header="高级播放与窗口偏好" HorizontalAlignment="Stretch">

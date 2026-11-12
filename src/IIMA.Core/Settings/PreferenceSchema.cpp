@@ -1,6 +1,7 @@
 // Adapted from IINA Preference.swift / MPVController.mpvInit and setUserOption.
 // Copyright © 2016 lhc and IINA contributors. GPL-3.0; references/iina/LICENSE.
 #include "PreferenceSchema.h"
+#include "ControlBarToolbar.h"
 #include <algorithm>
 #include <cmath>
 #include <iomanip>
@@ -153,6 +154,7 @@ std::span<PreferenceDescriptor const> PreferenceSchema() {
         D("osdTextSize",Area::Interface,20,8,96),
         B("enableControlBarAutoHide",Area::Interface,true),
         D("controlBarAutoHideTimeout",Area::Interface,2.5,0,60),
+        S("controlBarToolbarButtons",Area::Interface,"plugins,pip,playlist,settings"),
         B("showRemainingTime",Area::Interface,false),
         B("scaleRemainingTime",Area::Interface,false),
         I("timeDisplayPrecision",Area::Interface,0,0,3),
@@ -210,6 +212,8 @@ std::optional<std::string> ValidatePreference(PreferenceDescriptor const& d, Pre
         if(p->size()>4096) return "Text exceeds the 4096-byte limit";
         if(std::any_of(p->begin(),p->end(),[](unsigned char c){return c<32 || c==127;}))
             return "Text must not contain control characters";
+        if(d.key=="controlBarToolbarButtons" && !ParseToolbarActions(*p))
+            return "Toolbar must contain at most five unique supported action tokens";
         if(d.key=="audioDevice" && p->empty()) return "Audio device must not be empty";
     }
     return {};

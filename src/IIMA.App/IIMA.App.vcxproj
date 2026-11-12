@@ -152,6 +152,7 @@
     <ClCompile Include="MainWindow.TimeDisplay.cpp" />
     <ClCompile Include="MainWindow.MouseClicks.cpp" />
     <ClCompile Include="MainWindow.ControlBar.cpp" />
+    <ClCompile Include="MainWindow.ControlBarToolbar.cpp" />
     <ClCompile Include="MainWindow.PlaylistClipboard.cpp" />
     <ClCompile Include="Platform\AtomicTextFile.cpp" />
     <ClInclude Include="Platform\AtomicTextFile.h" />

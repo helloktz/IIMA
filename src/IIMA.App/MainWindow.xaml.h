@@ -3,6 +3,7 @@
 #include "../IIMA.Core/Matching/SubtitleMatcher.h"
 #include "../IIMA.Core/Playlist/PlaylistSubtitleAssociations.h"
 #include "../IIMA.Core/Settings/SettingsSearch.h"
+#include "../IIMA.Core/Settings/ControlBarToolbar.h"
 #include "MainWindow.g.h"
 #include "VideoSurface.h"
 #include "../IIMA.Core/Playback/PlayerSession.h"
@@ -241,6 +242,19 @@ private:
     void WireVideoAdjustments();
     void UpdateVideoAdjustments(iima::PlaybackSnapshot const& state);
     bool projectingVideoAdjustments_{};
+    void WireToolbarSettings();
+    void UpdateControlBarToolbar();
+    void RenderToolbarDraft(int selection = -1);
+    void UpdateToolbarDraftControls();
+    void EditToolbarDraft(int operation);
+    void ApplyToolbarDraft();
+    void CancelToolbarDraft();
+    bool ToolbarActionAvailable(iima::settings::ToolbarAction action);
+    void ExecuteToolbarAction(iima::settings::ToolbarAction action);
+    std::vector<iima::settings::ToolbarAction> toolbarDraft_;
+    std::vector<std::pair<iima::settings::ToolbarAction, Microsoft::UI::Xaml::Controls::Button>> toolbarButtons_;
+    std::string toolbarBaseline_, toolbarApplied_;
+    bool toolbarDraftReady_{}, toolbarDraftDirty_{}, toolbarProjecting_{}, toolbarBuilt_{};
     void WireInitialWindow();
     bool InitialWindowEligible() const;
     void UpdateInitialWindow(bool invalidate = false);

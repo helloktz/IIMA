@@ -15,6 +15,7 @@ bool DescendantOf(DependencyObject child, DependencyObject const& parent) {
 }
 }
 void MainWindow::WireControlBarVisibility() {
+    WireToolbarSettings();
     controlBarTimer_ = DispatcherQueue().CreateTimer();
     controlBarTimer_.IsRepeating(false);
     auto weak = get_weak();
@@ -84,6 +85,7 @@ void MainWindow::ControlBarActivity() {
 }
 void MainWindow::UpdateControlBarPolicy() {
     if (!controlBarTimer_ || closing_) return;
+    UpdateControlBarToolbar();
     UpdateVideoCursor();
     UpdateBufferingIndicator(session_->Snapshot());
     UpdateFullscreenInformation();

@@ -193,4 +193,8 @@
     <ClInclude Include="Diagnostics\MpvLogBuffer.h" />
     <ClCompile Include="Diagnostics\MpvLogBuffer.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Settings\ControlBarToolbar.h" />
+    <ClCompile Include="Settings\ControlBarToolbar.cpp" />
+  </ItemGroup>
 </Project>
