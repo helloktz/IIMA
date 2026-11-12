@@ -148,7 +148,7 @@
                     <ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <Slider x:Name="PositionSlider" Grid.ColumnSpan="4" Minimum="0" Maximum="1"
+                <local:WheelSlider x:Name="PositionSlider" SmallChange="1" Grid.ColumnSpan="4" Minimum="0" Maximum="1"
                         IsEnabled="False" AutomationProperties.Name="播放进度" />
                 <Button x:Name="OpenButton" Grid.Row="1" Content="打开文件" AutomationProperties.Name="打开文件" />
                 <Button x:Name="PauseButton" Grid.Row="1" Grid.Column="1" Content="播放" IsEnabled="False" />
@@ -415,7 +415,7 @@
                                 <Button x:Name="JumpToBeginningButton" Content="跳转到开头"/>
                             </StackPanel>
                         </Expander>
-                        <Slider x:Name="VolumeSlider" Header="音量" Minimum="0" Maximum="100" Value="100" AutomationProperties.Name="音量"/>
+                        <local:WheelSlider x:Name="VolumeSlider" SmallChange="1" Header="音量" Minimum="0" Maximum="100" Value="100" AutomationProperties.Name="音量"/>
                         <Expander Header="按视频尺寸缩放窗口" HorizontalAlignment="Stretch">
                             <StackPanel Spacing="6">
                                 <TextBlock Text="普通窗口模式；计入边框和侧栏，超出屏幕时按比例缩小。" TextWrapping="Wrap"/>

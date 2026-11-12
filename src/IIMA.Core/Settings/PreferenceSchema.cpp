@@ -157,6 +157,8 @@ std::span<PreferenceDescriptor const> PreferenceSchema() {
         D("controlBarPositionHorizontal",Area::Interface,0.5,0,1),
         D("controlBarPositionVertical",Area::Interface,0.1,0,1),
         B("controlBarStickToCenter",Area::Interface,true),
+        B("disablePlaySliderScrolling",Area::Interface,false),
+        B("disableVolumeSliderScrolling",Area::Interface,false),
         B("enableControlBarAutoHide",Area::Interface,true),
         D("controlBarAutoHideTimeout",Area::Interface,2.5,0,60),
         S("controlBarToolbarButtons",Area::Interface,"plugins,pip,playlist,settings"),

@@ -28,7 +28,7 @@ bool HasApplicationAdapter(std::string_view key) {
         "autoSwitchToMusicMode", "musicModeShowPlaylist", "musicModeShowAlbumArt",
         "resizeWindowTiming", "resizeWindowOption", "usePhysicalResolution", "unlockWindowAspectRatio", "preventScreenSaver", "allowScreenSaverForAudio", "pauseWhenInactive", "pauseWhenMinimized", "pauseWhenGoesToSleep", "enableThumbnailPreview", "thumbnailWidth", "maxThumbnailPreviewCacheSize",
         "displayTimeAndBatteryInFullScreen", "alwaysFloatOnTop", "fullScreenWhenOpen", "playWhenEnteringFullScreen", "pauseWhenLeavingFullScreen",
-        "singleClickAction", "doubleClickAction", "rightClickAction", "verticalScrollAction", "horizontalScrollAction",
+        "singleClickAction", "doubleClickAction", "rightClickAction", "verticalScrollAction", "horizontalScrollAction", "disablePlaySliderScrolling", "disableVolumeSliderScrolling",
         "relativeSeekAmount", "playbackSpeedScrollAmount", "wheelExactSeek", "enableControlBarAutoHide", "controlBarAutoHideTimeout", "controlBarToolbarButtons", "oscPosition", "controlBarPositionHorizontal", "controlBarPositionVertical", "controlBarStickToCenter",
         "showRemainingTime", "scaleRemainingTime", "timeDisplayPrecision", "disableOSDFileStartMsg", "disableOSDSeekMsg",
         "disableAnimations", "showBufferingThrobber", "showSeekingThrobber", "useExactSeek", "screenShotTemplate", "screenShotFormat", "screenshotSaveToFile", "screenshotCopyToClipboard", "screenshotShowPreview", "enableOSD", "disableOSDPauseResumeMsgs", "disableOSDSpeedMsg", "osdAutoHideTimeout", "osdTextSize"

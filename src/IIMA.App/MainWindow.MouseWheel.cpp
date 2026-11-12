@@ -11,9 +11,11 @@ using namespace winrt;
 using namespace Microsoft::UI::Xaml;
 namespace winrt::IIMA::implementation {
 void MainWindow::WireMouseWheel() {
+    WireSliderWheels();
     auto weak = get_weak();
-    // Register on the video surface only. ScrollViewer, slider, editor and
-    // playlist events keep their native behavior; no root handled-events hook.
+    // Register on the video surface only. ScrollViewer, editor and
+    // playlist events keep their native behavior; the two playback sliders use
+    // a separate preemptive subclass. No root handled-events hook.
     VideoPanel().PointerWheelChanged([weak](auto const&, Input::PointerRoutedEventArgs const& args) {
         auto self = weak.get();
         if (!self || self->closing_ || self->pickerOpen_ || args.Handled() ||

@@ -1230,3 +1230,11 @@ Windows新增只读`ReadFullscreenInformation`：GetTimeFormatEx按用户区域�
 - 每个文本字段和报告有界，非法UTF-8、控制及双向控制字符安全替换；未知可选属性明确显示Unknown，不从文件扩展名推断解码能力。布尔值沿既有紧凑轨道模型，缺失mpv标志映射为false，不冒充独立三态观察。语言显示原tag，不额外猜测本地化名称。
 - 显式复制选中报告前复验当前媒体与轨道观察，禁用剪贴板历史及漫游。外部路径可能含私密信息，界面提示检查后分享；路径只作为文本，不访问、执行或自动打开。切换媒体、失效或关闭清理旧显示，不持久化检查报告。
 - 本批仅静态实现/审阅、Git差异检查及数量统计，未编译、测试或运行。
+
+## 进度与音量滑块滚轮（2026-11-12）
+
+- IINA PlaySlider.scrollWheel、MiniPlaySlider.scrollWheel、VolumeSlider.scrollWheel → 两项真实偏好disablePlaySliderScrolling/disableVolumeSliderScrolling（默认false）及Windows专用滑块轮输入。上游只在偏好允许时调用native super，没有独立的IINA滑块步长/累积算法。
+- Windows有意差异：派生Slider在OnPointerWheelChanged中于默认处理前截获，不调用默认轮处理，避免先乐观修改Value再触发基于陈旧观察的绝对seek。启用时按WHEEL_DELTA=120与SmallChange比例提交既有相对seek/音量命令，高分辨率分数保留，单事件有界；进度沿wheelExactSeek/useExactSeek策略，快连续轮输入不依赖UI当前Value累加。
+- 禁用、修饰键、忙碌或不合格播放状态时吞掉目标滑块轮事件，不向外层ScrollViewer或视频滚轮重复传播；不把这些限制扩到整个窗口。普通滑块拖动、触控和键盘仍由原生Slider及既有ValueChanged链负责，不更换播放位置真相源。
+- 不模拟Cocoa精细滚轮phase、惯性或鼠标方向偏好，不把Windows wheel与macOS像素delta等同。源快照及命令观察仍决定最终位置/音量，不把提交动作当内核确认。
+- 本批仅静态实现/审阅、Git差异检查及数量统计，未编译、测试或运行。

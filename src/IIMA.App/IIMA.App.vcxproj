@@ -100,6 +100,10 @@
     <ClInclude Include="Presentation\VideoPresenter.h" />
     <Midl Include="MainWindow.idl" />
     <Midl Include="VideoSurface.idl" />
+    <Midl Include="WheelSlider.idl" />
+    <ClInclude Include="WheelSlider.h" />
+    <ClCompile Include="WheelSlider.cpp" />
+    <ClCompile Include="MainWindow.SliderWheel.cpp" />
     <ClInclude Include="VideoSurface.h" />
     <ClCompile Include="VideoSurface.cpp" />
     <ClCompile Include="MainWindow.VideoCursor.cpp" />

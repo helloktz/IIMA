@@ -8,6 +8,7 @@
 #include "../IIMA.Core/Settings/ControlBarLayout.h"
 #include "MainWindow.g.h"
 #include "VideoSurface.h"
+#include "WheelSlider.h"
 #include "../IIMA.Core/Playback/PlayerSession.h"
 #include "../IIMA.Core/Commands/ApplicationCommand.h"
 #include "../IIMA.Core/Input/BindingConfiguration.h"
@@ -269,6 +270,7 @@ private:
     std::vector<std::pair<iima::settings::ToolbarAction, Microsoft::UI::Xaml::Controls::Button>> toolbarButtons_;
     std::string toolbarBaseline_, toolbarApplied_;
     bool toolbarDraftReady_{}, toolbarDraftDirty_{}, toolbarProjecting_{}, toolbarBuilt_{};
+    void WireSliderWheels();
     void WireTrackInspector();
     void UpdateTrackInspector(bool force = false);
     void ClearTrackInspector();
