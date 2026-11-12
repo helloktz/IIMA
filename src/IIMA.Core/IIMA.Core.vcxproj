@@ -157,4 +157,8 @@
     <ClInclude Include="Plugins\PluginManifest.h" />
     <ClCompile Include="Plugins\PluginManifest.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Playback\SpeedControl.h" />
+    <ClCompile Include="Playback\SpeedControl.cpp" />
+  </ItemGroup>
 </Project>

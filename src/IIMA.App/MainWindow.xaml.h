@@ -139,6 +139,15 @@ private:
     void EditSelectedFilter(int operation);
     iima::FilterChainSnapshot displayedFilters_;
     std::optional<std::uint64_t> filterRevision_;
+    void WireNavigationControls();
+    void UpdateNavigationControls(iima::PlaybackSnapshot const& state);
+    void ApplyCustomSpeed(double requested);
+    winrt::fire_and_forget JumpToTime();
+    bool projectingNavigation_{};
+    std::uint64_t navigationEpoch_{};
+    std::int64_t navigationEntry_{-1};
+    std::string navigationPath_;
+    Microsoft::UI::Xaml::Controls::ContentDialog jumpDialog_{nullptr};
     void WireSubtitleControls();
     void WireSecondarySubtitles();
     void UpdateSecondarySubtitles(iima::PlaybackSnapshot const& state);

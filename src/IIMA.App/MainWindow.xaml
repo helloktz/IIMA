@@ -177,6 +177,17 @@
                         <ComboBox x:Name="ChapterBox" Header="章节" HorizontalAlignment="Stretch" AutomationProperties.Name="章节"/>
                         <ComboBox x:Name="AudioDeviceBox" Header="音频输出设备" HorizontalAlignment="Stretch"/>
                         <ComboBox x:Name="SpeedBox" Header="播放速度" HorizontalAlignment="Stretch" AutomationProperties.Name="播放速度"/>
+                        <Expander Header="自定义倍速与跳转" HorizontalAlignment="Stretch">
+                            <StackPanel Spacing="6">
+                                <Slider x:Name="CustomSpeedSlider" Minimum="0" Maximum="24" Value="8" StepFrequency="1" AutomationProperties.Name="对数倍速滑杆"/>
+                                <NumberBox x:Name="CustomSpeedBox" Header="精确倍速" Value="1" Minimum="0.01" Maximum="100" SmallChange="0.01"/>
+                                <Button x:Name="ApplyCustomSpeedButton" Content="应用倍速"/>
+                                <Button x:Name="ResetCustomSpeedButton" Content="恢复正常速度"/>
+                                <TextBlock x:Name="CustomSpeedStatus" TextWrapping="Wrap"/>
+                                <Button x:Name="JumpToTimeButton" Content="跳转到时间…"/>
+                                <Button x:Name="JumpToBeginningButton" Content="跳转到开头"/>
+                            </StackPanel>
+                        </Expander>
                         <Slider x:Name="VolumeSlider" Header="音量" Minimum="0" Maximum="100" Value="100" AutomationProperties.Name="音量"/>
                         <TextBox x:Name="AspectText" Header="视频比例（例如 16:9）"/>
                         <StackPanel Orientation="Horizontal" Spacing="4">

@@ -71,6 +71,7 @@ MainWindow::MainWindow()
     WireThumbnailPreview();
     WireSubtitleControls();
     WireSecondarySubtitles();
+    WireNavigationControls();
     WireOnlineSubtitles();
     WireAudioControls();
     WireEqualizerEditor();
@@ -188,6 +189,7 @@ void MainWindow::Apply(iima::PlaybackSnapshot const& state)
     }
     ApplyCollections(state);
     UpdateSecondarySubtitles(state);
+    UpdateNavigationControls(state);
     UpdateMediaInformation(state);
     UpdateVideoAdjustments(state);
     UpdateFilterEditor(state);
@@ -242,6 +244,7 @@ void MainWindow::BeginClose()
     CapturePlacement();
     SaveWindowPlacement();
     closing_ = true;
+    if (jumpDialog_) jumpDialog_.Hide();
     pluginInspectionStop_.request_stop();
     StopLocalPlugin();
     CancelThumbnailPreview();
