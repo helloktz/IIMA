@@ -6,10 +6,20 @@
 #include <cmath>
 #include <limits>
 #include <set>
+#include <functional>
+#include <memory>
+#include <utility>
+#include <winrt/Microsoft.UI.Xaml.Automation.h>
 
 using namespace winrt;
 using namespace Microsoft::UI::Xaml;
 namespace {
+// A programmatic editor refresh must not generate a second preference command.
+struct EditorRefreshScope {
+    std::shared_ptr<bool> flag;
+    explicit EditorRefreshScope(std::shared_ptr<bool> value) : flag(std::move(value)) { *flag = true; }
+    ~EditorRefreshScope() { *flag = false; }
+};
 bool HasApplicationAdapter(std::string_view key) {
     static const std::set<std::string_view> keys{
         "alwaysOpenInNewWindow", "groupSimultaneousOpensInPlaylist", "allowDuplicatePlayers",
@@ -43,6 +53,8 @@ void MainWindow::PopulateAdvancedSettings() {
         if (descriptor.timing == iima::settings::ApplyTiming::NextMedia)
             label = label + L"（下次打开）";
         auto value = preferences_.Get(key);
+        auto refreshing = std::make_shared<bool>(false);
+        std::function<void(iima::settings::PreferenceValue const&)> refreshEditor;
         if (!descriptor.choices.empty()) {
             Controls::ComboBox box;
             box.Header(box_value(label)); box.HorizontalAlignment(HorizontalAlignment::Stretch);
@@ -54,21 +66,34 @@ void MainWindow::PopulateAdvancedSettings() {
                 if (choice.value == std::get<std::int64_t>(value)) selected = static_cast<int>(box.Items().Size() - 1);
             }
             box.SelectedIndex(selected);
-            box.SelectionChanged([weak, key](auto const& sender, auto const&) {
+            box.SelectionChanged([weak, key, refreshing](auto const& sender, auto const&) {
+                if (*refreshing) return;
                 if (auto self = weak.get(); self && !self->closing_)
                     if (auto item = sender.template as<Controls::ComboBox>().SelectedItem().template try_as<Controls::ComboBoxItem>())
                         self->ApplyAdvancedSetting(key, unbox_value<std::int64_t>(item.Tag()));
             });
+            refreshEditor = [box](auto const& initial) {
+                const auto wanted = std::get<std::int64_t>(initial);
+                for (std::uint32_t i = 0; i < box.Items().Size(); ++i) {
+                    auto item = box.Items().GetAt(i).template as<Controls::ComboBoxItem>();
+                    if (unbox_value<std::int64_t>(item.Tag()) == wanted) {
+                        box.SelectedIndex(static_cast<int>(i)); return;
+                    }
+                }
+                box.SelectedIndex(-1);
+            };
             panel.Children().Append(box);
         } else if (auto boolean = std::get_if<bool>(&value)) {
             Controls::CheckBox box; box.Content(box_value(label)); box.IsChecked(*boolean);
-            auto changed = [weak, key](auto const& sender, auto const&) {
+            auto changed = [weak, key, refreshing](auto const& sender, auto const&) {
+                if (*refreshing) return;
                 if (auto self = weak.get(); self && !self->closing_) {
                     auto checked = sender.template as<Controls::CheckBox>().IsChecked();
                     if (checked) self->ApplyAdvancedSetting(key, checked.Value());
                 }
             };
             box.Checked(changed); box.Unchecked(changed);
+            refreshEditor = [box](auto const& initial) { box.IsChecked(std::get<bool>(initial)); };
             panel.Children().Append(box);
         } else if (auto text = std::get_if<std::string>(&value)) {
             Controls::StackPanel row;
@@ -77,6 +102,7 @@ void MainWindow::PopulateAdvancedSettings() {
             apply.Click([weak, key, box](auto const&, auto const&) {
                 if (auto self = weak.get(); self && !self->closing_) self->ApplyAdvancedSetting(key, to_string(box.Text()));
             });
+            refreshEditor = [box](auto const& initial) { box.Text(to_hstring(std::get<std::string>(initial))); };
             row.Children().Append(box); row.Children().Append(apply); panel.Children().Append(row);
         } else {
             Controls::NumberBox box; box.Header(box_value(label));
@@ -84,7 +110,8 @@ void MainWindow::PopulateAdvancedSettings() {
             if (descriptor.minimum) box.Minimum(*descriptor.minimum);
             if (descriptor.maximum) box.Maximum(*descriptor.maximum);
             box.Value(integral ? static_cast<double>(std::get<std::int64_t>(value)) : std::get<double>(value));
-            box.ValueChanged([weak, key, integral](auto const&, Controls::NumberBoxValueChangedEventArgs const& args) {
+            box.ValueChanged([weak, key, integral, refreshing](auto const&, Controls::NumberBoxValueChangedEventArgs const& args) {
+                if (*refreshing) return;
                 auto v = args.NewValue();
                 if (!std::isfinite(v)) return;
                 if (auto self = weak.get(); self && !self->closing_) {
@@ -96,8 +123,45 @@ void MainWindow::PopulateAdvancedSettings() {
                     } else self->ApplyAdvancedSetting(key, v);
                 }
             });
+            refreshEditor = [box, integral](auto const& initial) {
+                box.Value(integral ? static_cast<double>(std::get<std::int64_t>(initial)) : std::get<double>(initial));
+            };
             panel.Children().Append(box);
         }
+        // Wrap only this editor. Resetting one field must not rebuild the other
+        // rows, lose their unsubmitted text, or discard the current search.
+        auto editor = panel.Children().GetAt(panel.Children().Size() - 1);
+        panel.Children().RemoveAtEnd();
+        Controls::StackPanel settingsRow;
+        settingsRow.Spacing(4);
+        settingsRow.Children().Append(editor);
+        Controls::Button reset;
+        reset.Content(box_value(L"恢复此项默认值"));
+        Automation::AutomationProperties::SetName(reset, label + L"，恢复默认值");
+        Controls::ToolTipService::SetToolTip(reset, box_value(
+            L"只恢复这一项，并丢弃该项未应用的草稿。其他设置和草稿不变。下次打开项仍需重新打开媒体。"));
+        // Keep enabled even if there is no stored override: a string editor can
+        // contain an unapplied draft that the user wants to discard.
+        reset.Click([weak, key, refreshing, refreshEditor](auto const&, auto const&) {
+            auto self = weak.get();
+            if (!self || self->closing_ || !self->userDataLoaded_ || *refreshing) return;
+            auto descriptor = iima::settings::FindPreference(key);
+            if (!descriptor || !refreshEditor) return;
+            try {
+                // The descriptor is process-lifetime storage. Set(default)
+                // removes the override; use the normal application/persistence
+                // path so all per-key side effects remain identical to editing.
+                EditorRefreshScope scope(refreshing);
+                self->ApplyAdvancedSetting(key, descriptor->initial);
+                refreshEditor(self->preferences_.Get(key));
+            } catch (hresult_error const& error) {
+                // The preference may already be committed even if a native UI
+                // update failed. Do not roll back or submit another mpv command.
+                self->ShowError(error.message());
+            }
+        });
+        settingsRow.Children().Append(reset);
+        panel.Children().Append(settingsRow);
         auto row=panel.Children().GetAt(panel.Children().Size()-1).as<FrameworkElement>();
         std::string searchable=key+" "+std::string(iima::settings::PreferenceAreaTitle(descriptor.area))+" "+
             std::string(descriptor.mpvProperty);

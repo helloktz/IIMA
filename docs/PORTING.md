@@ -870,3 +870,11 @@ Windows新增只读`ReadFullscreenInformation`：GetTimeFormatEx按用户区域�
 扩展既有WindowLifecycle对WM_SETTINGCHANGE/WM_THEMECHANGED/WM_SYSCOLORCHANGE的只读监听，最多排一个设置刷新回调，刷新时读取最新值；Close/WM_NCDESTROY清回调，旧队列通过weak+closed丢弃。没有改动用户OS设置，也未增加外部权限。
 
 这不是完整辅助技术验收：未覆盖所有动态创建视图颜色、阅读顺序、缩放/文本溢出或所有框架动效；系统高对比与ThemeResource实际解析、通知顺序仍待Windows验证。未编译测试运行。
+
+## 第八十批：高级偏好单项恢复默认
+
+- 源码入口：`Preference.swift::defaultPreference`、`AppDelegate.swift` 注册 UserDefaults 默认表；`PrefOSCToolbarSettingsSheetController.swift::restoreDefaultButtonAction` 从同一默认表重建编辑值。Windows 高级面板将“默认表为唯一来源”的规则用于每个已接线偏好，不声称上游已有完全相同的通用重置界面。
+- `MainWindow.Preferences.cpp` 为布尔、枚举、整数/浮点、字符串编辑器加入单项恢复按钮。读取固定 schema 初始值，经原 `ApplyAdvancedSetting` 路径执行当前/下次媒体策略及持久化；`PreferenceStore::Set(default)` 删除覆盖项，不另存冗余默认值。默认值保留先前各项已记录的平台差异。
+- 原地刷新这一项，不重建面板、不清除其他字符串草稿或搜索条件；这一项的未应用草稿明确丢弃。无覆盖项仍可恢复，用于放弃未提交文本。局部 RAII 标志抑制同步控件变更事件，避免重复提交；“仅已修改”过滤下恢复后可隐藏该行，沿既有焦点转移逻辑回到搜索框。
+- 保留弱窗口引用、关闭/用户数据未加载保护；原生 UI 更新失败不盲目回滚已改变的偏好或重发命令。按钮提供带键名的可访问名称与范围提示。无全部重置、无账号/历史/文件删除、无隐含服务调用。
+- 本批是静态实现；没有编译、测试或运行，不能宣称控件事件顺序、焦点变化、mpv 接受默认值或跨重启持久化已验证。
