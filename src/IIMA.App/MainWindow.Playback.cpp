@@ -89,6 +89,18 @@ void MainWindow::WirePlaybackControls()
                 self->session_->SelectTrack(type, unbox_value<int64_t>(item.Tag()));
         }
     };
+    VideoTrackBox().SelectionChanged([trackChanged](auto const& box, auto const&) {
+        trackChanged(box.template as<Controls::ComboBox>(), "video");
+    });
+    CycleVideoTrackButton().Click([weak](auto const&, auto const&) {
+        if (auto self = weak.get(); self && !self->closing_) self->session_->CycleTrack("video");
+    });
+    CycleAudioTrackButton().Click([weak](auto const&, auto const&) {
+        if (auto self = weak.get(); self && !self->closing_) self->session_->CycleTrack("audio");
+    });
+    CycleSubtitleTrackButton().Click([weak](auto const&, auto const&) {
+        if (auto self = weak.get(); self && !self->closing_) self->session_->CycleTrack("sub");
+    });
     AudioBox().SelectionChanged([trackChanged](auto const& box, auto const&) { trackChanged(box.template as<Controls::ComboBox>(), "audio"); });
     SubtitleBox().SelectionChanged([trackChanged](auto const& box, auto const&) { trackChanged(box.template as<Controls::ComboBox>(), "sub"); });
     ChapterBox().SelectionChanged([weak](auto const&, auto const&) {
@@ -172,8 +184,30 @@ void MainWindow::ApplyCollections(iima::PlaybackSnapshot const& state)
             }
             box.SelectedIndex(selected);
         };
-        populate(AudioBox(), "audio"); populate(SubtitleBox(), "sub");
+        populate(VideoTrackBox(), "video"); populate(AudioBox(), "audio"); populate(SubtitleBox(), "sub");
     }
+    // vid/aid are authoritative even when track-list has not changed yet.
+    // Unknown or auto is not falsely projected as the explicit Off item.
+    auto projectTrack = [](Controls::ComboBox const& box, std::optional<std::int64_t> id) {
+        int selected = -1;
+        if (id && (*id == -2 || *id > 0)) {
+            auto tag = *id == -2 ? std::int64_t{0} : *id;
+            for (std::uint32_t index = 0; index < box.Items().Size(); ++index) {
+                auto item = box.Items().GetAt(index).try_as<Controls::ComboBoxItem>();
+                if (item && unbox_value<std::int64_t>(item.Tag()) == tag) {
+                    selected = static_cast<int>(index); break;
+                }
+            }
+        }
+        box.SelectedIndex(selected);
+    };
+    projectTrack(VideoTrackBox(), state.videoId);
+    projectTrack(AudioBox(), state.audioId);
+    const auto canSelectTrack = state.session == iima::SessionState::Ready && state.media == iima::MediaState::Loaded;
+    VideoTrackBox().IsEnabled(canSelectTrack); AudioBox().IsEnabled(canSelectTrack);
+    CycleVideoTrackButton().IsEnabled(canSelectTrack);
+    CycleAudioTrackButton().IsEnabled(canSelectTrack);
+    CycleSubtitleTrackButton().IsEnabled(canSelectTrack);
     if (chaptersRevision_ != state.chaptersRevision) {
         chaptersRevision_ = state.chaptersRevision;
         chapters_ = state.chapters;

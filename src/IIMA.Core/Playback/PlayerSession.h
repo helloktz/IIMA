@@ -36,6 +36,7 @@ public:
     bool PlaylistEditBusy() const noexcept { return static_cast<bool>(playlistEdit_); }
     bool PlaylistShuffled() const noexcept { return playlistShuffled_; }
     void SelectTrack(std::string type, std::int64_t id);
+    void CycleTrack(std::string type);
     void SelectChapter(std::size_t index);
     void AddSubtitle(std::string path, bool select = true);
     // True means queued, not decoded. Actual tracks/errors arrive asynchronously.

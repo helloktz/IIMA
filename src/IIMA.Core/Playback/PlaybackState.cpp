@@ -34,6 +34,7 @@ void ApplyPlaybackEvent(PlaybackSnapshot& s, MpvEvent const& e) {
         s.videoBitrate.reset(); s.audioBitrate.reset(); s.fileSize.reset(); ++s.informationRevision;
         s.seeking=false; s.buffering=false; s.error.clear();
         s.subtitleId.reset(); s.secondarySubtitleId.reset();
+        s.videoId.reset(); s.audioId.reset();
         s.tracks.clear(); ++s.tracksRevision; s.chapters.clear(); ++s.chaptersRevision; s.chapterIndex.reset();
         s.videoCodec.clear(); s.hwdecCurrent.clear(); s.currentVo.clear(); s.voConfigured=false; break;
     case MpvEvent::Kind::Loaded:
@@ -48,6 +49,7 @@ void ApplyPlaybackEvent(PlaybackSnapshot& s, MpvEvent const& e) {
         s.swapChain.reset();
         s.seeking=false; s.buffering=false;
         s.subtitleId.reset(); s.secondarySubtitleId.reset();
+        s.videoId.reset(); s.audioId.reset();
         if(e.error<0) { s.media=MediaState::Error; s.error=e.text; }
         else s.media=MediaState::Ended;
         break;
@@ -109,8 +111,9 @@ void ApplyPlaybackEvent(PlaybackSnapshot& s, MpvEvent const& e) {
         else if(e.name=="volume" && e.number && std::isfinite(*e.number)) s.volume=*e.number;
         else if(e.name=="speed" && e.number && std::isfinite(*e.number)) s.speed=*e.number;
         else if(e.name=="mute" && e.flag) s.muted=*e.flag;
-        else if (e.name == "sid" || e.name == "secondary-sid") {
-            auto& id = e.name == "sid" ? s.subtitleId : s.secondarySubtitleId;
+        else if (e.name == "vid" || e.name == "aid" || e.name == "sid" || e.name == "secondary-sid") {
+            auto& id = e.name == "vid" ? s.videoId : e.name == "aid" ? s.audioId :
+                e.name == "sid" ? s.subtitleId : s.secondarySubtitleId;
             if (e.error >= 0 && e.integer && *e.integer >= -2) id = e.integer;
             else id.reset();
         }

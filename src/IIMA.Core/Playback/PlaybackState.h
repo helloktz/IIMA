@@ -18,6 +18,7 @@ struct PlaybackSnapshot {
     // track-list.selected is not a primary-slot identifier. Preserve mpv's
     // -2=no and -1=auto values; null means no valid observation, never "no".
     std::optional<std::int64_t> subtitleId, secondarySubtitleId;
+    std::optional<std::int64_t> videoId, audioId; // Same no/auto/unknown rules.
     std::optional<bool> subtitleVisibility, secondarySubtitlesVisible;
     std::optional<double> observedSubtitleDelay, secondarySubtitleDelay;
     std::optional<double> subtitlePosition, secondarySubtitlePosition;

@@ -102,11 +102,19 @@ void PlayerSession::PlaylistPlay(std::size_t index) {
     if(index<snapshot_.playlist.size()) { expectedEntry_=snapshot_.playlist[index].id; PausedCommand({"playlist-play-index",std::to_string(index)}); }
 }
 void PlayerSession::SelectTrack(std::string type,std::int64_t id) {
-    if(snapshot_.session!=SessionState::Ready || id<0) return;
+    if(snapshot_.session!=SessionState::Ready || snapshot_.media!=MediaState::Loaded ||
+        waitingForStart_ || playlistEdit_ || id<0) return;
     std::string property=type=="audio" ? "aid" : type=="sub" ? "sid" : type=="video" ? "vid" : "";
     if(property.empty()) return;
     if(id && std::none_of(snapshot_.tracks.begin(),snapshot_.tracks.end(),[&](auto const& track){return track.type==type && track.id==id;})) return;
     client_->Command({"set",property,id ? std::to_string(id) : "no"});
+}
+// IINA MainMenuActions.menuCycleTrack delegates order and off-slot to mpv.
+void PlayerSession::CycleTrack(std::string type) {
+    if (snapshot_.session != SessionState::Ready || snapshot_.media != MediaState::Loaded ||
+        waitingForStart_ || playlistEdit_) return;
+    if (type != "video" && type != "audio" && type != "sub") return;
+    client_->Command({"cycle", std::move(type)});
 }
 void PlayerSession::SelectChapter(std::size_t index) {
     if(snapshot_.session!=SessionState::Ready || index>=snapshot_.chapters.size()) return;

@@ -93,7 +93,7 @@ struct MpvClient::State {
             // IINA MPVController observes selection/chapter/equalizers as
             // INT64. Selection has mpv's -2=no/-1=auto sentinels; equalizers
             // use -100..100. Unavailable observations remain unknown.
-            for (auto const* name : {"chapter", "sid", "secondary-sid", "brightness", "contrast", "saturation", "gamma", "hue"})
+            for (auto const* name : {"chapter", "vid", "aid", "sid", "secondary-sid", "brightness", "contrast", "saturation", "gamma", "hue"})
                 check(api.observe_property(handle, id++, name, MPV_FORMAT_INT64), name);
             MpvEvent ready{MpvEvent::Kind::Ready}; ready.flag=api.acquireSwapChain!=nullptr; ready.integer=api.client_api_version(); Emit(std::move(ready));
             std::uint64_t inFlight{};
@@ -288,7 +288,7 @@ struct MpvClient::State {
                         if (count.error >= 0 && value) count.text = value;
                         Emit(std::move(count));
                     }
-                    for (auto const* name : {"sid", "secondary-sid"}) {
+                    for (auto const* name : {"vid", "aid", "sid", "secondary-sid"}) {
                         MpvEvent selection{MpvEvent::Kind::Property};
                         selection.name = name;
                         std::int64_t value{};

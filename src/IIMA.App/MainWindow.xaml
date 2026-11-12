@@ -141,6 +141,9 @@
                                 <TextBlock x:Name="ABEditStatus" TextWrapping="Wrap"/>
                             </StackPanel>
                         </Expander>
+                        <ComboBox x:Name="VideoTrackBox" Header="视频轨道" PlaceholderText="尚无已确认选择" HorizontalAlignment="Stretch" AutomationProperties.Name="视频轨道"/>
+                        <Button x:Name="CycleVideoTrackButton" Content="切换下一视频轨道"/>
+                        <Button x:Name="CycleAudioTrackButton" Content="切换下一音轨"/>
                         <ComboBox x:Name="AudioBox" Header="音轨" HorizontalAlignment="Stretch" AutomationProperties.Name="音轨"/>
                         <Button x:Name="LoadExternalAudioButton" Content="载入外置音频…" IsEnabled="False"/>
                         <ComboBox x:Name="AudioEqualizerBox" Header="音频均衡预设" HorizontalAlignment="Stretch"/>
@@ -159,6 +162,7 @@
                                 <Button x:Name="DeleteUserEqualizerButton" Content="删除选中预设"/>
                             </StackPanel>
                         </Expander>
+                        <Button x:Name="CycleSubtitleTrackButton" Content="切换下一主字幕轨道"/>
                         <ComboBox x:Name="SubtitleBox" Header="字幕" HorizontalAlignment="Stretch" AutomationProperties.Name="字幕"/>
                         <Expander Header="副字幕" HorizontalAlignment="Stretch">
                             <StackPanel Spacing="6">
