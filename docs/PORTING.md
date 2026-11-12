@@ -254,3 +254,13 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 - 第十三批插件检查补充UI调度失败时直接结束，避免关闭后的后台继续修改界面状态。
 
 仅静态编写/人工审阅，未编译、测试、运行或实际写入缓存。全部功能和数量目标仍未达成。
+
+### 第十五批：固定 JavaScript 引擎与受限本地插件执行
+
+- `JavascriptPluginInstance.createJSContext/evaluateFile/deinit` → QuickJS-ng `v0.12.1` 固定官方提交（详见 QUICKJS.md）、`Plugins/PluginRuntime.*`、`MainWindow.PluginRuntime.cpp`。用户选择本地普通插件目录后，先在后台读取/验证清单与入口 UTF-8 文本，再确认运行这份已读取的代码；不重新读文件造成确认后内容替换。每窗口最多一个临时实例，不安装、不自动启用、不持久化授权。已声明但未实现的权限和 globalEntry 拒绝启动，避免静默授予能力。入口在独立 worker 执行，运行失败、停止、关闭取消所有定时器/监听器和排队动作；释放 QuickJS 在后台 join，最终窗口关闭等待释放而不让 worker 同步等 UI。
+- `JavascriptAPICore.pause/resume/stop/seek/seekTo/setSpeed/osd` → 受限宿主函数，通过 generation 守卫投递到原 typed PlayerSession。OSD 还需清单 show-osd 和运行确认；命令入队不冒称 mpv 已成功。`StatusAPI` → 复制的观察状态 JSON（暂停、空闲、位置、时长、速度、尺寸、是否网络资源）；不提供原生句柄。此首版 grant 不允许完整 URL/路径或标题访问，`url/title` 为 null，明确不同于上游。不实现 open/history/recentDocuments、audio/video/subtitle 子 API 或任意 mpv 命令。
+- `JavascriptAPIEvent.on/off` / `EventController` → 有界事件监听及投影，只接受实际接入的 `iina.file-started/file-loaded/music-mode.changed` 与 `mpv.pause/time-pos/duration/speed.changed`。事件载荷在 worker 消费前深拷贝；回调可注册/注销而不破坏迭代。文件事件来自既有 PlayerSession 的有序状态投影，不宣称完整 mpv 原始事件流；运行后才注册的插件不伪造过去的文件/窗口事件，关闭是强制取消而非执行不受控关闭钩子。
+- `JavascriptPolyfill` → 字符串 ID 定时器、取消和 Promise job drain。超时至少16ms、interval至少50ms，最大一天；每实例最多128定时器/256监听器，与上游未限定数目的行为有意不同。CommonJS require、模块加载、全局实例、DOM/HTML、文件、HTTP、WebSocket、菜单/输入/字幕提供商和偏好 API 尚未实现，不能称完整 IINA 插件兼容。未知 namespace/API 显式抛错，不返回假成功。
+- `JavascriptAPIConsole` → 控制台多参数/类型显示、可序列化对象和环回回退；日志只显示在当前窗口有界文本框，不落磁盘。循环对象用 `<unserializable>` 回退。计时/入站事件/出站日志命令均有限额；64MiB引擎内存、1MiB JS 栈，入口500ms、每事件/定时器100ms预算，Promise job共享预算。溢出或超时停止并反馈，不悄悄假设所有事件送达。
+
+这些限制不是 OS 安全沙箱，也不能保证面对引擎漏洞的不可信代码隔离；产品只允许用户明确选择受信任来源。没有链接 QuickJS std/os 模块，不代表全部 JS 特性或任何插件已实际可运行。QuickJS 源、MSVC CI及 API 契约只做静态阅读；本批未编译、测试、执行脚本或联网运行插件。MIT 依赖许可证及固定来源随打包保留，IINA 转写继续保留 GPL 来源。完整插件 API 和全量移植目标仍未完成。

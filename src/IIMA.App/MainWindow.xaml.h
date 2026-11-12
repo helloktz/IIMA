@@ -18,6 +18,8 @@
 #include "../IIMA.Core/OnlineSubtitles/SearchTransaction.h"
 #include "../IIMA.Core/Filters/SavedFilterLibrary.h"
 #include <deque>
+#include "Plugins/PluginRuntime.h"
+#include "Plugins/PluginPlaybackProjection.h"
 #include "../IIMA.Core/History/HistoryBrowser.h"
 #include "../IIMA.Core/Diagnostics/DiagnosticLog.h"
 #include <winrt/Microsoft.UI.Dispatching.h>
@@ -46,6 +48,17 @@ private:
     std::optional<iima::WindowPlacementSnapshot> windowPlacement_;
     bool placementTouched_{}, restoringPlacement_{}, placementSavePending_{}, placementWritable_{true}, musicTransition_{};
     void WirePluginInspection();
+    winrt::fire_and_forget StartLocalPlugin();
+    void StopLocalPlugin();
+    winrt::fire_and_forget RetirePlugin(std::unique_ptr<iima::plugins::PluginRuntime> runtime);
+    void UpdatePlugin(iima::PlaybackSnapshot const& state);
+    void DispatchPluginCommand(iima::plugins::PluginCommand command);
+    std::unique_ptr<iima::plugins::PluginRuntime> pluginRuntime_;
+    iima::plugins::PlaybackProjection pluginProjection_;
+    std::uint64_t pluginGeneration_{};
+    bool pluginStarting_{}, pluginStopPending_{}, pluginOsdAllowed_{};
+    std::wstring pluginLog_;
+
     winrt::fire_and_forget InspectPlugin();
     bool pluginInspectionBusy_{};
     std::stop_source pluginInspectionStop_;

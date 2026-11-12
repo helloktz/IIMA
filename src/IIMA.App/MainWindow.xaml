@@ -257,7 +257,11 @@
                         <TextBlock x:Name="ThumbnailCacheStatusText" TextWrapping="Wrap"/>
                         <TextBlock Text="IINA 插件检查"/>
                         <Button x:Name="InspectPluginButton" Content="检查本地插件目录…"/>
-                        <TextBlock x:Name="PluginInspectionText" Text="仅检查清单与文件；当前不运行插件。" TextWrapping="Wrap" IsTextSelectionEnabled="True"/>
+                        <TextBlock x:Name="PluginInspectionText" Text="检查不会执行脚本。受限运行需要单独确认。" TextWrapping="Wrap" IsTextSelectionEnabled="True"/>
+                        <Button x:Name="StartPluginButton" Content="运行受信任的本地插件…"/>
+                        <Button x:Name="StopPluginButton" Content="停止此窗口插件" IsEnabled="False"/>
+                        <TextBlock x:Name="PluginRuntimeStatus" Text="仅支持部分播放 API、事件与定时器；无网络、文件访问或 HTML。" TextWrapping="Wrap"/>
+                        <TextBox x:Name="PluginRuntimeLog" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" MaxHeight="180"/>
                         <TextBlock Text="Windows 文件关联"/>
                         <Button x:Name="RegisterAssociationsButton" Content="注册为可选播放器"/>
                         <Button x:Name="DefaultAppsButton" Content="选择 Windows 默认应用…"/>

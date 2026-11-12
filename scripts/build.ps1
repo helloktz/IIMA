@@ -6,6 +6,33 @@ param(
 )
 . (Join-Path $PSScriptRoot 'Common.ps1')
 $toolchain = Get-IimaToolchain
+$quickjsRoot = Join-Path $RepoRoot '.deps/quickjs'
+$quickjsManifestPath = Join-Path $quickjsRoot "$Configuration-manifest.json"
+if (-not (Test-Path -LiteralPath $quickjsManifestPath -PathType Leaf)) {
+    throw "Stage QuickJS-ng first: scripts/build-quickjs.ps1 -Configuration $Configuration. See docs/QUICKJS.md."
+}
+$quickjs = Get-Content -LiteralPath $quickjsManifestPath -Raw | ConvertFrom-Json
+$expectedRuntime = if ($Configuration -eq 'Debug') { 'MultiThreadedDebugDLL' } else { 'MultiThreadedDLL' }
+if ($quickjs.dependency -ne 'QuickJS-ng' -or $quickjs.version -ne '0.12.1' -or
+    $quickjs.revision -ne '58bdcf0ce35594df30bf5cfbba3be8b454799cc0' -or
+    $quickjs.configuration -ne $Configuration -or $quickjs.architecture -ne 'x64' -or
+    $quickjs.linkage -ne 'static' -or $quickjs.target -ne 'qjs' -or $quickjs.libc -ne $false -or
+    $quickjs.toolVersion -ne $toolchain.ToolVersion -or $quickjs.runtime -ne $expectedRuntime -or
+    $quickjs.cmakeVersion -ne '4.2.0' -or
+    $quickjs.windowsSdk -ne [string]$BuildProperties.Project.PropertyGroup.WindowsTargetPlatformVersion) {
+    throw 'QuickJS staging does not match the pinned engine/toolchain/configuration. Rebuild with scripts/build-quickjs.ps1.'
+}
+foreach ($entry in @(
+    @{ Path='include/quickjs.h'; Hash=$quickjs.headerSha256 },
+    @{ Path="lib/$Configuration/qjs.lib"; Hash=$quickjs.librarySha256 },
+    @{ Path='licenses/QuickJS-ng-LICENSE'; Hash=$quickjs.licenseSha256 }
+)) {
+    $path = Join-Path $quickjsRoot $entry.Path
+    if (-not (Test-Path -LiteralPath $path -PathType Leaf) -or
+        (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash -ne $entry.Hash) {
+        throw "QuickJS staged file missing/changed: $path. Rebuild before linking."
+    }
+}
 $nugetVersion = [string]$BuildProperties.Project.PropertyGroup.NuGetVersion
 $nuget = Join-Path $RepoRoot ".deps/tools/nuget-$nugetVersion.exe"
 if (-not (Test-Path -LiteralPath $nuget)) {

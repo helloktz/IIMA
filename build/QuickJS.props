@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <IimaQuickJSRoot>$(IimaRoot).deps\quickjs\</IimaQuickJSRoot>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(IimaQuickJSRoot)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>$(IimaQuickJSRoot)lib\$(Configuration)\qjs.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <!-- Upstream CMake uses 8 MiB on Windows: the JS stack budget must not
+           consume the native worker thread's whole 1 MiB default reserve. -->
+      <StackReserveSize>8388608</StackReserveSize>
+    </Link>
+  </ItemDefinitionGroup>
+  <Target Name="ValidateQuickJSStaging" BeforeTargets="PrepareForBuild">
+    <Error Condition="!Exists('$(IimaQuickJSRoot)include\quickjs.h') Or !Exists('$(IimaQuickJSRoot)lib\$(Configuration)\qjs.lib') Or !Exists('$(IimaQuickJSRoot)$(Configuration)-manifest.json')"
+           Text="QuickJS-ng SDK is absent. Run scripts/build-quickjs.ps1 -Configuration $(Configuration) on the Windows worker; see docs/QUICKJS.md." />
+  </Target>
+</Project>

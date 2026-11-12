@@ -9,6 +9,12 @@
 
 namespace winrt::IIMA::implementation {
 void MainWindow::WirePluginInspection() {
+    StartPluginButton().Click([weak = get_weak()](auto const&, auto const&) {
+        if (auto self = weak.get(); self && !self->closing_) self->StartLocalPlugin();
+    });
+    StopPluginButton().Click([weak = get_weak()](auto const&, auto const&) {
+        if (auto self = weak.get()) self->StopLocalPlugin();
+    });
     InspectPluginButton().Click([weak = get_weak()](auto const&, auto const&) {
         if (auto self = weak.get(); self && !self->closing_) self->InspectPlugin();
     });

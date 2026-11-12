@@ -190,6 +190,7 @@ void MainWindow::Apply(iima::PlaybackSnapshot const& state)
     ApplySettingsSnapshot(state);
     UpdateDiagnostics(state);
     UpdateOSD(state);
+    UpdatePlugin(state);
     ApplyUserData(state);
     OpenPendingFiles();
     FlushActivation();
@@ -236,6 +237,7 @@ void MainWindow::BeginClose()
     SaveWindowPlacement();
     closing_ = true;
     pluginInspectionStop_.request_stop();
+    StopLocalPlugin();
     CancelThumbnailPreview();
     CancelOnlineSubtitles();
     musicMode_.Close();

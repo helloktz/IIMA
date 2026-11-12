@@ -27,3 +27,7 @@ NuGet 包来自 https://api.nuget.org/v3/index.json，NuGet CLI 来自微软的 
 - [VC++ 本地部署](https://learn.microsoft.com/en-us/cpp/windows/walkthrough-deploying-a-visual-cpp-application-to-an-application-local-folder)
 
 libmpv SDK 未随源码提供，当前云端没有可运行的 Windows DLL。scripts/stage-libmpv.ps1 对人工准备的上游构建产物执行 PE、导出、API 与选项探针，并保存 DLL 哈希防止打包前被替换。build.ps1 在 SDK 可用时复制运行 DLL；package.ps1 缺 SDK 时明确失败。动态调用只跨 C ABI，主程序无 MinGW 导入库依赖。探针不证明 D3D11 呈现成功。
+
+## 插件 JavaScript 引擎（静态接入，未构建运行）
+
+QuickJS-ng `v0.12.1`，固定官方提交 `58bdcf0ce35594df30bf5cfbba3be8b454799cc0`，使用上游 C11 `qjs` 静态目标。构建器固定 CMake `4.2.0`，MSVC、SDK 和 CRT 随本仓库固定工具链，配置分别 `/MDd` 和 `/MD`。`scripts/build-quickjs.ps1` 显式 stage，`build/QuickJS.props` 链接，`build.ps1` 验证 provenance 与文件哈希，`package.ps1` 携带 MIT 许可证。详见 [QUICKJS.md](../docs/QUICKJS.md)。不链接 `qjs-libc`，不引入 WebView UI，不代表全部 IINA 插件 API 已兼容。

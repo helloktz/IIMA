@@ -315,20 +315,30 @@
     {
       "source": "references/iina/iina/JavascriptAPIConsole.swift",
       "physicalLines": 58,
-      "coverage": "not-mapped",
-      "reviewTargets": []
+      "coverage": "partial-static-unverified",
+      "reviewTargets": [
+        "src/IIMA.App/Plugins/PluginBootstrap.h",
+        "src/IIMA.App/Plugins/PluginRuntime.cpp"
+      ]
     },
     {
       "source": "references/iina/iina/JavascriptAPICore.swift",
       "physicalLines": 473,
-      "coverage": "not-mapped",
-      "reviewTargets": []
+      "coverage": "partial-static-unverified",
+      "reviewTargets": [
+        "src/IIMA.App/Plugins/PluginBootstrap.h",
+        "src/IIMA.App/Plugins/PluginPlaybackProjection.cpp",
+        "src/IIMA.App/MainWindow.PluginRuntime.cpp"
+      ]
     },
     {
       "source": "references/iina/iina/JavascriptAPIEvent.swift",
       "physicalLines": 76,
-      "coverage": "not-mapped",
-      "reviewTargets": []
+      "coverage": "partial-static-unverified",
+      "reviewTargets": [
+        "src/IIMA.App/Plugins/PluginRuntime.cpp",
+        "src/IIMA.App/Plugins/PluginPlaybackProjection.cpp"
+      ]
     },
     {
       "source": "references/iina/iina/JavascriptAPIFile.swift",
@@ -429,14 +439,20 @@
     {
       "source": "references/iina/iina/JavascriptPlugin.swift",
       "physicalLines": 623,
-      "coverage": "not-mapped",
-      "reviewTargets": []
+      "coverage": "partial-static-unverified",
+      "reviewTargets": [
+        "src/IIMA.Core/Plugins/PluginManifest.cpp",
+        "src/IIMA.App/Platform/PluginInspection.cpp"
+      ]
     },
     {
       "source": "references/iina/iina/JavascriptPluginInstance.swift",
       "physicalLines": 193,
-      "coverage": "not-mapped",
-      "reviewTargets": []
+      "coverage": "partial-static-unverified",
+      "reviewTargets": [
+        "src/IIMA.App/Plugins/PluginRuntime.cpp",
+        "src/IIMA.App/MainWindow.PluginRuntime.cpp"
+      ]
     },
     {
       "source": "references/iina/iina/JavascriptPluginMenuItem.swift",
@@ -459,8 +475,11 @@
     {
       "source": "references/iina/iina/JavascriptPolyfill.swift",
       "physicalLines": 112,
-      "coverage": "not-mapped",
-      "reviewTargets": []
+      "coverage": "partial-static-unverified",
+      "reviewTargets": [
+        "src/IIMA.App/Plugins/PluginRuntime.cpp",
+        "src/IIMA.App/Plugins/PluginBootstrap.h"
+      ]
     },
     {
       "source": "references/iina/iina/JustExtension.swift",

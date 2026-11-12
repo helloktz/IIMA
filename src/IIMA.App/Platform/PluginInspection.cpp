@@ -82,6 +82,29 @@ struct LocalFolder {
         return file;
     }
 };
+
+std::string ReadProgram(LocalFolder const& folder, std::string const& path, std::stop_token stop) {
+    auto file = folder.Open(path);
+    LARGE_INTEGER size{};
+    check_bool(GetFileSizeEx(file.get(), &size));
+    if (size.QuadPart <= 0 || size.QuadPart > 1024 * 1024)
+        throw hresult_invalid_argument(L"插件入口必须是 1 MiB 以内的非空 UTF-8 文本。");
+    std::string source(static_cast<std::size_t>(size.QuadPart), '\0');
+    for (std::size_t offset{}; offset < source.size();) {
+        CheckStop(stop);
+        DWORD read{};
+        check_bool(ReadFile(file.get(), source.data() + offset,
+            static_cast<DWORD>(std::min<std::size_t>(65536, source.size() - offset)), &read, nullptr));
+        if (!read) throw hresult_error(E_FAIL, L"插件入口读取不完整。");
+        offset += read;
+    }
+    if (source.starts_with("\xef\xbb\xbf")) source.erase(0, 3);
+    if (source.find('\0') != source.npos || !MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS,
+        source.data(), static_cast<int>(source.size()), nullptr, 0))
+        throw hresult_invalid_argument(L"插件入口不是有效 UTF-8 文本。");
+    return source;
+}
+
 std::string ReadManifest(LocalFolder const& folder, std::stop_token stop) {
     auto file = folder.Open("Info.json");
     LARGE_INTEGER size{};
@@ -135,11 +158,7 @@ std::vector<std::string> Strings(JsonObject const& object, wchar_t const* key) {
     }
     return result;
 }
-}
-std::wstring InspectPluginFolder(std::filesystem::path const& root, std::stop_token stop) {
-    CheckStop(stop);
-    LocalFolder folder(root);
-    auto json = JsonObject::Parse(to_hstring(ReadManifest(folder, stop)));
+PluginManifestInput ParseManifest(JsonObject const& json) {
     PluginManifestInput input;
     input.name = String(json, L"name"); input.identifier = String(json, L"identifier");
     input.version = String(json, L"version"); input.entry = String(json, L"entry");
@@ -167,6 +186,15 @@ std::wstring InspectPluginFolder(std::filesystem::path const& root, std::stop_to
         input.authorUrl = String(author, L"url");
     }
     input.permissions = Strings(json, L"permissions"); input.allowedDomains = Strings(json, L"allowedDomains");
+    return input;
+}
+
+}
+std::wstring InspectPluginFolder(std::filesystem::path const& root, std::stop_token stop) {
+    CheckStop(stop);
+    LocalFolder folder(root);
+    auto json = JsonObject::Parse(to_hstring(ReadManifest(folder, stop)));
+    auto input = ParseManifest(json);
     // Compatibility report deliberately does not instantiate HTML pages,
     // subtitle providers or preference defaults as executable product features.
     auto result = ValidatePluginManifest(input);
@@ -193,10 +221,29 @@ std::wstring InspectPluginFolder(std::filesystem::path const& root, std::stop_to
         if (result.manifest->preferencesPage) check(*result.manifest->preferencesPage, false);
         report << L"\n\n清单字段通过静态校验；这不是可执行性或插件安全审计结论。";
     } else report << L"\n\n清单校验未通过。";
-    report << L"\n当前没有 JavaScript 运行时、IINA 插件 API、HTML 页面或插件字幕提供商支持。";
+    report << L"\n另有手动启动的受限插件运行入口；HTML 页面、插件字幕提供商和大部分 IINA API 仍不支持。";
     if (json.HasKey(L"localized")) report << L"\nlocalized 信息尚未投影，显示基础名称。";
     if (json.HasKey(L"preferenceDefaults")) report << L"\npreferenceDefaults 未应用或持久化。";
     if (json.HasKey(L"subtitleProviders")) report << L"\nsubtitleProviders 未注册。";
     return report.str();
 }
+PluginProgram LoadPluginProgram(std::filesystem::path const& root, std::stop_token stop) {
+    CheckStop(stop);
+    LocalFolder folder(root);
+    auto json = JsonObject::Parse(to_hstring(ReadManifest(folder, stop)));
+    auto validation = ValidatePluginManifest(ParseManifest(json));
+    if (!validation.manifest) throw hresult_invalid_argument(L"插件清单未通过检查，不能执行。");
+    auto manifest = std::move(*validation.manifest);
+    if (manifest.globalEntry) throw hresult_invalid_argument(L"本阶段不运行声明全局入口的插件。");
+    if (!manifest.unknownPermissions.empty())
+        throw hresult_invalid_argument(L"插件声明了不支持的权限，不能执行。");
+    for (auto permission : manifest.permissions) {
+        if (permission != PluginPermission::ShowOSD)
+            throw hresult_invalid_argument(L"本阶段插件执行仅支持 show-osd 权限；网络、文件、HTML 和弹窗权限不可用。");
+    }
+    auto source = ReadProgram(folder, manifest.entry, stop);
+    CheckStop(stop);
+    return {std::move(manifest), std::move(source)};
+}
+
 }

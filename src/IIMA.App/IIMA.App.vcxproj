@@ -34,6 +34,7 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <Import Project="..\..\build\NuGet.props" />
   <Import Project="..\..\build\Compiler.props" />
+  <Import Project="..\..\build\QuickJS.props" />
   <ItemDefinitionGroup>
     <Midl>
       <EnableWindowsRuntime>true</EnableWindowsRuntime>
@@ -164,6 +165,14 @@
     <ClCompile Include="MainWindow.Placement.cpp" />
     <ClCompile Include="Platform\WindowPlacement.cpp" />
     <ClInclude Include="Platform\WindowPlacement.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="MainWindow.PluginRuntime.cpp" />
+    <ClCompile Include="Plugins\PluginRuntime.cpp" />
+    <ClInclude Include="Plugins\PluginRuntime.h" />
+    <ClInclude Include="Plugins\PluginBootstrap.h" />
+    <ClCompile Include="Plugins\PluginPlaybackProjection.cpp" />
+    <ClInclude Include="Plugins\PluginPlaybackProjection.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Import Project="..\..\build\NuGet.targets" />

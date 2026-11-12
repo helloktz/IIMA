@@ -5,6 +5,7 @@
 ## Windows 构建环境
 
 - PowerShell 7 或更高版本。
+- 插件 JS 引擎静态依赖：Git、CMake 4.2.0；先按 [QUICKJS.md](QUICKJS.md) 获取固定 QuickJS-ng 源并分别 stage Debug/Release。
 - Visual Studio 2026 / Build Tools，安装 C++ 桌面开发工具；固定 MSVC v145 / 14.51.36231。
 - Windows SDK 10.0.26100.0，包括头文件、库、WinRT 元数据及构建工具。
 - MSVC 对应的 x64 Release CRT redist 目录，用于 app-local 打包。
@@ -16,9 +17,11 @@ C++23 对应当前工具集的 MSBuild `stdcpp23`，实际编译开关为 `/std:
 
 ## 构建
 
-从仓库根目录执行：
+从仓库根目录执行（先完成 libmpv staging；新增 QuickJS 依赖也必须分别 stage，以下步骤本批未执行）：
 
 ```powershell
+pwsh -NoProfile -File scripts/build-quickjs.ps1 -Configuration Debug
+pwsh -NoProfile -File scripts/build-quickjs.ps1 -Configuration Release
 pwsh -NoProfile -File scripts/build.ps1 -Configuration Debug
 pwsh -NoProfile -File scripts/build.ps1 -Configuration Release
 ```

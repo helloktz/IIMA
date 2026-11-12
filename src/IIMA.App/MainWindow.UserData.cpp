@@ -168,7 +168,7 @@ winrt::fire_and_forget MainWindow::ConfirmUnsavedClose()
 }
 void MainWindow::FinishClose()
 {
-    if (closing_ && !placementSavePending_ && !screenshotPostProcessing_ && coreClosed_ && diagnosticsClosed_ && userDataLoaded_ && !saving_ && (discardUserData_ || (!saveDirty_ && !saveFailed_ && userData_.writable))) {
+    if (closing_ && !pluginStopPending_ && !pluginStarting_ && !placementSavePending_ && !screenshotPostProcessing_ && coreClosed_ && diagnosticsClosed_ && userDataLoaded_ && !saving_ && (discardUserData_ || (!saveDirty_ && !saveFailed_ && userData_.writable))) {
         closeComplete_ = true; Close();
     }
 }
