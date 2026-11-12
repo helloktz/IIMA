@@ -18,6 +18,17 @@ void MainWindow::WireApplicationCommands() {
         if (args.DidPresenterChange()) if (auto self = weak.get()) self->UpdatePresentationLayout();
     });
     auto available = [weak] { auto self = weak.get(); return self && !self->closing_; };
+    auto orientationAvailable = [weak] {
+        auto self = weak.get();
+        return self && !self->closing_ && self->session_->Snapshot().session == iima::SessionState::Ready &&
+            self->session_->Snapshot().media == iima::MediaState::Loaded;
+    };
+    commandRouter_.Register(Command::ToggleFlip, [weak] {
+        if (auto self = weak.get()) self->session_->ToggleVideoOrientation(false);
+    }, orientationAvailable);
+    commandRouter_.Register(Command::ToggleMirror, [weak] {
+        if (auto self = weak.get()) self->session_->ToggleVideoOrientation(true);
+    }, orientationAvailable);
     commandRouter_.Register(Command::RevealCurrentFile, [weak] {
         if (auto self = weak.get()) iima::RevealFile(std::filesystem::path(to_hstring(self->session_->Snapshot().path).c_str()));
     }, [weak] {

@@ -232,6 +232,9 @@ bool MainWindow::DispatchKeyBinding(iima::KeyMapping const& binding) {
         else if (t[1] == "mute") session_->ToggleMute();
         else if (t[1] == "sub-visibility") session_->SetSubtitlesVisible(!state.subtitlesVisible);
         else if (t[1] == "fullscreen") ToggleFullscreen();
+        else if (t[1] == "video" || t[1] == "vid") session_->CycleTrack("video");
+        else if (t[1] == "audio" || t[1] == "aid") session_->CycleTrack("audio");
+        else if (t[1] == "sub" || t[1] == "sid") session_->CycleTrack("sub");
         else return unsupported();
         return true;
     }
@@ -247,7 +250,9 @@ bool MainWindow::DispatchKeyBinding(iima::KeyMapping const& binding) {
     if ((command == "set" || command == "add") && t.size() == 3) {
         auto number = Number(t[2]);
         if (!number) return unsupported();
-        if (t[1] == "volume") session_->SetVolume(*number + (command == "add" ? state.volume : 0));
+        if (t[1] == "chapter" && command == "add" && (*number == -1 || *number == 1))
+            session_->StepChapter(static_cast<int>(*number));
+        else if (t[1] == "volume") session_->SetVolume(*number + (command == "add" ? state.volume : 0));
         else if (t[1] == "speed") session_->SetSpeed(*number + (command == "add" ? state.speed : 0));
         else return unsupported();
         return true;

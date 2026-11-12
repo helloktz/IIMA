@@ -38,6 +38,7 @@ public:
     void SelectTrack(std::string type, std::int64_t id);
     void CycleTrack(std::string type);
     void SelectChapter(std::size_t index);
+    void StepChapter(int direction);
     void AddSubtitle(std::string path, bool select = true);
     // True means queued, not decoded. Actual tracks/errors arrive asynchronously.
     bool LoadExternalAudio(std::string path);

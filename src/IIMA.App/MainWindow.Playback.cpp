@@ -103,6 +103,12 @@ void MainWindow::WirePlaybackControls()
     });
     AudioBox().SelectionChanged([trackChanged](auto const& box, auto const&) { trackChanged(box.template as<Controls::ComboBox>(), "audio"); });
     SubtitleBox().SelectionChanged([trackChanged](auto const& box, auto const&) { trackChanged(box.template as<Controls::ComboBox>(), "sub"); });
+    PreviousChapterButton().Click([weak](auto const&, auto const&) {
+        if (auto self = weak.get(); self && !self->closing_) self->session_->StepChapter(-1);
+    });
+    NextChapterButton().Click([weak](auto const&, auto const&) {
+        if (auto self = weak.get(); self && !self->closing_) self->session_->StepChapter(1);
+    });
     ChapterBox().SelectionChanged([weak](auto const&, auto const&) {
         if (auto self = weak.get(); self && !self->updating_ && !self->closing_ && self->ChapterBox().SelectedIndex() >= 0)
             self->session_->SelectChapter(static_cast<size_t>(self->ChapterBox().SelectedIndex()));
@@ -221,7 +227,15 @@ void MainWindow::ApplyCollections(iima::PlaybackSnapshot const& state)
                 L"  " + to_hstring(model.IntervalLabel(next))));
         }
     }
-    ChapterBox().SelectedIndex(state.chapterIndex ? static_cast<int>(*state.chapterIndex) : -1);
+    int currentChapter = -1;
+    if (state.chapterIndex && *state.chapterIndex >= 0 &&
+        static_cast<std::uint64_t>(*state.chapterIndex) < state.chapters.size())
+        currentChapter = static_cast<int>(*state.chapterIndex);
+    ChapterBox().SelectedIndex(currentChapter);
+    const bool canNavigateChapters = canSelectTrack && state.seekable && !state.chapters.empty() && !editing;
+    ChapterBox().IsEnabled(canNavigateChapters);
+    PreviousChapterButton().IsEnabled(canNavigateChapters);
+    NextChapterButton().IsEnabled(canNavigateChapters);
     int speedIndex = -1;
     for (int i = 0; i < static_cast<int>(std::size(speeds)); ++i) if (std::abs(state.speed - speeds[i]) < 0.001) speedIndex = i;
     SpeedBox().SelectedIndex(speedIndex);

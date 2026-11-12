@@ -117,9 +117,19 @@ void PlayerSession::CycleTrack(std::string type) {
     client_->Command({"cycle", std::move(type)});
 }
 void PlayerSession::SelectChapter(std::size_t index) {
-    if(snapshot_.session!=SessionState::Ready || index>=snapshot_.chapters.size()) return;
+    if(snapshot_.session!=SessionState::Ready || snapshot_.media!=MediaState::Loaded ||
+        waitingForStart_ || playlistEdit_ || !snapshot_.seekable || index>=snapshot_.chapters.size()) return;
     client_->Command({"seek",std::to_string(snapshot_.chapters[index].time),"absolute"});
     Pause(false);
+}
+// IINA MainMenuActions.menuNextChapter/menuPreviousChapter use add, not a
+// computed chapter index: mpv owns chapter-seek-threshold and end behavior.
+void PlayerSession::StepChapter(int direction) {
+    if (snapshot_.session != SessionState::Ready || snapshot_.media != MediaState::Loaded ||
+        !snapshot_.seekable || snapshot_.chapters.empty() || waitingForStart_ || playlistEdit_) return;
+    if (direction != -1 && direction != 1) return;
+    client_->Command({"add", "chapter", direction > 0 ? "1" : "-1"});
+    // Unlike selecting a chapter explicitly, stepping does not force resume.
 }
 void PlayerSession::ScreenshotToFile(std::string path, ScreenshotCompleted completion) {
     auto reject = [&](std::string error) {

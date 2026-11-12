@@ -242,6 +242,10 @@
                         <Button x:Name="ScreenshotButton" Content="保存截图…"/>
                         <Button x:Name="CopyScreenshotButton" Content="复制视频截图"/>
                         <ComboBox x:Name="ChapterBox" Header="章节" HorizontalAlignment="Stretch" AutomationProperties.Name="章节"/>
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <Button x:Name="PreviousChapterButton" Content="上一章节"/>
+                            <Button x:Name="NextChapterButton" Content="下一章节"/>
+                        </StackPanel>
                         <ComboBox x:Name="AudioDeviceBox" Header="音频输出设备" HorizontalAlignment="Stretch"/>
                         <ComboBox x:Name="SpeedBox" Header="播放速度" HorizontalAlignment="Stretch" AutomationProperties.Name="播放速度"/>
                         <Expander Header="自定义倍速与跳转" HorizontalAlignment="Stretch">
