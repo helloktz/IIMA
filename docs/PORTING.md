@@ -191,3 +191,11 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 - `enableThumbnailPreview`与`thumbnailWidth`接入设置；提取宽高上限1024px，UI显示240×135等比框，不把上游2048设置范围当作无限解码许可。预览失败不影响主播放器，也不自动反复请求同一位置。
 
 本批只完成静态源码及人工接口/生命周期审阅，未编译、测试或运行。完整滤镜管理、缩略图缓存及全部IINA移植仍未完成。
+
+### 第八批：保存滤镜、用户EQ与裁剪操作
+
+- `FilterWindowController`保存/编辑/删除/toggle、`SavedFilter`字典与`MenuController.updateSavedFilters` → `SavedFilterLibrary.*`、`MainWindow.SavedFilters.cpp`、`MediaPresetsJson.*`：视频/音频分类，保存当前行或输入表达式，编辑名称/表达式/快捷键、删除、基于观察列表应用或移除；禁用匹配项原位启用，不盲目重复添加。JSON新字段兼容旧设置，已有后台原子保存链处理失败与退出；保存定义不改变活动滤镜。模型还支持复制/移动，但本批UI只暴露保存/更新/删除。重复名称按ASCII大小写折叠拒绝，非ASCII精确；跨类别快捷键冲突拒绝，input.conf优先且保存时检查冲突。后续修改input.conf仍可遮蔽已保存快捷键，不宣称全局冲突自动解决。Windows系统键不拦截；从外部存储恢复的Win键字段保留但不是可用键承诺。
+- `SidebarAudioPane.audioEqSliderAction/eqPopUpButtonAction`、`Equalizations/EQProfile` → 十段NumberBox编辑、显式应用、从观察af读取、用户预设另存/载入/重命名/删除，及JSON持久化。与上游即时滑块不同，本UI显式应用整组，防半编辑值被异步提交；载入编辑器不改变播放。存储保留有限增益，编辑器限制±12dB；载入超范围值会夹到编辑范围，已保存数据本身不改写。内建英文键用于重名检查，完整本地化尚未完成。
+- `InteractiveModeController/CropBoxView`、`PlayerCore.setCrop/removeCropFilter` → `CropSelection.*`：顶左坐标、黑边/缩放/平移/明确90度旋转与源轴flip/mirror的逆变换，八方向/移动/自由框选、四像素吸附、取消、确认及代次返回。未知变换/其他空间滤镜/未确认映射拒绝，不猜测GPU实际画面。**本批未接鼠标拖动裁剪覆盖层**；只将像素矩形校验和mpv crop命令接到 `MainWindow.Crop.cpp` 源像素表单，读取video-params/w,h、换片失效、拒绝其他vf，`@iina_crop`替换/移除走已有异步链。保持所有输入为源像素而不是窗口坐标，避免不可靠的显示映射。
+
+仅静态编写与人工审阅，未编译、测试或运行；交互裁剪UI、完整预设编辑本地化、多窗口、插件/在线字幕等仍未完成。新增JSON字段不迁移或删除既有文件，加载不合法字段沿原备份/default策略处理，不能称数据迁移已实测。

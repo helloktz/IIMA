@@ -128,5 +128,11 @@
     <ClCompile Include="Filters\FilterChain.cpp" />
     <ClCompile Include="Playback\PlayerSession.Filters.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Filters\SavedFilterLibrary.h" />
+    <ClCompile Include="Filters\SavedFilterLibrary.cpp" />
+    <ClInclude Include="Geometry\CropSelection.h" />
+    <ClCompile Include="Geometry\CropSelection.cpp" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

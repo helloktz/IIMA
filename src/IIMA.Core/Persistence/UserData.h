@@ -2,6 +2,8 @@
 // History recency and preference defaults adapted from IINA HistoryController.swift
 // (Copyright © 2017 lhc) and Preference.swift. GPL-3.0; references/iina/LICENSE.
 #include "../Playback/PlaybackSettings.h"
+#include "../Filters/SavedFilter.h"
+#include "../Audio/Equalizations.h"
 #include "../Settings/PreferenceSchema.h"
 #include <algorithm>
 #include <cmath>
@@ -13,6 +15,8 @@
 namespace iima {
 struct UserSettings {
     settings::PreferenceValues advancedPreferences;
+    std::vector<SavedFilter> savedVideoFilters, savedAudioFilters;
+    UserEQProfiles::Profiles userEqualizers;
     // Missing means platform defaults; an empty custom file intentionally unbinds all.
     std::optional<std::string> inputConf;
     double volume{100};

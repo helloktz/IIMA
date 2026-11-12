@@ -8,6 +8,7 @@ void MainWindow::WireFilterEditor() {
     auto weak = get_weak();
     FilterTypeBox().SelectionChanged([weak](auto const&, auto const&) {
         if (auto self = weak.get(); self && !self->closing_) {
+            self->SavedFilterView().SelectedIndex(-1);
             self->filterRevision_.reset();
             self->UpdateFilterEditor(self->session_->Snapshot());
         }
@@ -46,6 +47,7 @@ void MainWindow::UpdateFilterEditor(iima::PlaybackSnapshot const& state) {
         FilterChainView().Items().Append(box_value(hstring(label) + to_hstring(row.display)));
     }
     FilterChainError().Text(to_hstring(chain.error));
+    RefreshSavedFilters();
 }
 void MainWindow::EditSelectedFilter(int operation) {
     if (closing_) return;

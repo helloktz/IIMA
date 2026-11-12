@@ -32,7 +32,9 @@ void MainWindow::LoadUserData()
                 self->ResumeCheck().IsChecked(self->userData_.settings.resumePosition);
                 self->updating_ = false;
                 self->RefreshHistory();
+                self->RefreshUserEqualizers();
                 self->ApplyKeyboardConfiguration();
+                self->LoadSavedFilters();
                 self->preferences_.Restore(self->userData_.settings.advancedPreferences);
                 self->PopulateAdvancedSettings();
                 self->ApplyWindowPreferences();

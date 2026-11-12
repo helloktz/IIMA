@@ -8,6 +8,7 @@
 #include "Platform/LocalInputResolver.h"
 #include "Platform/ScreenshotStaging.h"
 #include "Platform/ThumbnailExtractor.h"
+#include "../IIMA.Core/Filters/SavedFilterLibrary.h"
 #include <deque>
 #include "../IIMA.Core/History/HistoryBrowser.h"
 #include "../IIMA.Core/Diagnostics/DiagnosticLog.h"
@@ -50,8 +51,21 @@ private:
     std::int64_t thumbnailEntry_{-1};
     double thumbnailSeconds_{};
     std::deque<iima::ThumbnailExtractionResult> thumbnailMemory_;
+    void WireCropControls();
+    void LoadCropDraft();
+    void ApplyCropDraft();
+    std::optional<std::int64_t> cropDraftEntry_;
+    std::string cropDraftPath_;
+    int cropDraftWidth_{}, cropDraftHeight_{};
     void WireVideoControls();
     void WireFilterEditor();
+    void WireSavedFilters();
+    void LoadSavedFilters();
+    void RefreshSavedFilters();
+    void EditSavedFilter(int action);
+    void ApplySavedFilter(bool audio, std::size_t index);
+    iima::SavedFilterLibrary savedFilterLibrary_;
+    bool refreshingSavedFilters_{};
     void UpdateFilterEditor(iima::PlaybackSnapshot const& state);
     void EditSelectedFilter(int operation);
     iima::FilterChainSnapshot displayedFilters_;
@@ -59,6 +73,13 @@ private:
     void WireSubtitleControls();
     void FindLocalSubtitle();
     void WireAudioControls();
+    void WireEqualizerEditor();
+    std::optional<iima::EQProfile> ReadEqualizerDraft();
+    void SetEqualizerDraft(iima::EQProfile const& profile);
+    void RefreshUserEqualizers();
+    void EditUserEqualizer(int operation);
+    std::array<Microsoft::UI::Xaml::Controls::NumberBox, iima::EQProfile::BandCount> equalizerBands_;
+    std::vector<std::string> equalizerNames_;
     void WireApplicationCommands();
     void WireOSD();
     void WireAdvancedPlayback();

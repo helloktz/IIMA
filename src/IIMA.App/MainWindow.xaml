@@ -87,6 +87,19 @@
                         <ComboBox x:Name="AudioEqualizerBox" Header="音频均衡预设" HorizontalAlignment="Stretch"/>
                         <Button x:Name="ApplyAudioEqualizerButton" Content="应用均衡预设"/>
                         <Button x:Name="RemoveAudioEqualizerButton" Content="移除音频均衡"/>
+                        <Expander Header="自定义十段均衡" HorizontalAlignment="Stretch">
+                            <StackPanel Spacing="6">
+                                <StackPanel x:Name="EqualizerBandsPanel" Spacing="4"/>
+                                <Button x:Name="LoadObservedEqualizerButton" Content="读取当前均衡"/>
+                                <Button x:Name="ApplyCustomEqualizerButton" Content="应用编辑值"/>
+                                <ComboBox x:Name="UserEqualizerBox" Header="我的预设"/>
+                                <Button x:Name="LoadUserEqualizerButton" Content="载入编辑器"/>
+                                <TextBox x:Name="UserEqualizerName" Header="预设名称" MaxLength="256"/>
+                                <Button x:Name="SaveUserEqualizerButton" Content="另存预设"/>
+                                <Button x:Name="RenameUserEqualizerButton" Content="重命名选中预设"/>
+                                <Button x:Name="DeleteUserEqualizerButton" Content="删除选中预设"/>
+                            </StackPanel>
+                        </Expander>
                         <ComboBox x:Name="SubtitleBox" Header="字幕" HorizontalAlignment="Stretch" AutomationProperties.Name="字幕"/>
                         <Button x:Name="SubtitleButton" Content="加载字幕…"/>
                         <Button x:Name="MatchSubtitleButton" Content="匹配同目录字幕"/>
@@ -118,6 +131,18 @@
                             <ComboBoxItem Content="180°"/><ComboBoxItem Content="270°"/>
                         </ComboBox>
                         <Button x:Name="ApplyRotationButton" Content="应用旋转"/>
+                        <Expander Header="源像素裁剪" HorizontalAlignment="Stretch">
+                            <StackPanel Spacing="6">
+                                <Button x:Name="LoadCropSizeButton" Content="读取当前视频尺寸"/>
+                                <TextBlock x:Name="CropSourceLabel" TextWrapping="Wrap"/>
+                                <NumberBox x:Name="CropX" Header="X" Minimum="0" Maximum="65536" Value="0"/>
+                                <NumberBox x:Name="CropY" Header="Y" Minimum="0" Maximum="65536" Value="0"/>
+                                <NumberBox x:Name="CropWidth" Header="宽度" Minimum="1" Maximum="65536" Value="1"/>
+                                <NumberBox x:Name="CropHeight" Header="高度" Minimum="1" Maximum="65536" Value="1"/>
+                                <Button x:Name="ApplyCropButton" Content="应用裁剪"/>
+                                <Button x:Name="ResetCropButton" Content="移除裁剪"/>
+                            </StackPanel>
+                        </Expander>
                         <ComboBox x:Name="FilterTypeBox" Header="滤镜链" SelectedIndex="0">
                             <ComboBoxItem Content="视频"/><ComboBoxItem Content="音频"/>
                         </ComboBox>
@@ -136,6 +161,23 @@
                             <Button x:Name="AddChainFilterButton" Content="添加"/>
                             <Button x:Name="ReplaceChainFilterButton" Content="替换选中"/>
                         </StackPanel>
+                        <Expander Header="保存的滤镜" HorizontalAlignment="Stretch">
+                            <StackPanel Spacing="6">
+                                <ListView x:Name="SavedFilterView" MaxHeight="180" SelectionMode="Single"/>
+                                <Button x:Name="ToggleSavedFilterButton" Content="应用/移除选中预设"/>
+                                <TextBox x:Name="SavedFilterName" Header="预设名称" MaxLength="256"/>
+                                <TextBox x:Name="SavedFilterKey" Header="快捷键（例如 F6，可留空）" MaxLength="64"/>
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <CheckBox x:Name="SavedFilterCtrl" Content="Ctrl" IsChecked="False"/>
+                                    <CheckBox x:Name="SavedFilterAlt" Content="Alt" IsChecked="False"/>
+                                    <CheckBox x:Name="SavedFilterShift" Content="Shift" IsChecked="False"/>
+                                </StackPanel>
+                                <Button x:Name="SaveNewFilterButton" Content="将表达式另存预设"/>
+                                <Button x:Name="SaveCurrentChainFilterButton" Content="保存当前选中滤镜"/>
+                                <Button x:Name="UpdateSavedFilterButton" Content="更新选中预设"/>
+                                <Button x:Name="DeleteSavedFilterButton" Content="删除选中预设"/>
+                            </StackPanel>
+                        </Expander>
                         <TextBox x:Name="VideoFilterText" Header="视频滤镜" PlaceholderText="@iima_flip:flip"/>
                         <Button x:Name="ApplyFilterButton" Content="添加或替换滤镜"/>
                         <TextBox x:Name="VideoFilterLabelText" Header="要移除的滤镜标签" PlaceholderText="iima_flip"/>

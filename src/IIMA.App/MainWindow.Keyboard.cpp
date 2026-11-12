@@ -85,7 +85,13 @@ void MainWindow::WireKeyboardControls() {
         auto key = iima::WindowsMpvKey(static_cast<std::uint32_t>(args.Key()), status.ScanCode, status.IsExtendedKey);
         if (!key) return;
         auto binding = self->keyBindings_->Find(*key);
-        if (!binding) return;
+        if (!binding) {
+            if (auto saved = self->savedFilterLibrary_.FindShortcut(*key)) {
+                args.Handled(true);
+                if (!status.WasKeyDown) self->ApplySavedFilter(saved->first, saved->second);
+            }
+            return;
+        }
         // Repeating a key is useful for seek/volume but not dialogs/window close.
         if (status.WasKeyDown && (binding->IsIinaCommand() || binding->RawAction() == "quit" ||
             binding->RawAction().starts_with("screenshot"))) { args.Handled(true); return; }

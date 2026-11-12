@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "UserDataStore.h"
 #include "../Settings/PreferenceJson.h"
+#include "../Settings/MediaPresetsJson.h"
 #include <winrt/Windows.Data.Json.h>
 #include <ShlObj.h>
 #pragma comment(lib, "shell32.lib")
@@ -79,6 +80,9 @@ UserData UserDataStore::Load() {
                 data.settings.advancedPreferences = preferences.Overrides();
                 if (!issues.empty()) data.warning = "部分高级偏好无效，已分别恢复默认值。";
             }
+            if (json->HasKey(L"savedVideoFilters")) data.settings.savedVideoFilters = ReadSavedFiltersJson(json->GetNamedArray(L"savedVideoFilters"));
+            if (json->HasKey(L"savedAudioFilters")) data.settings.savedAudioFilters = ReadSavedFiltersJson(json->GetNamedArray(L"savedAudioFilters"));
+            if (json->HasKey(L"userEqualizers")) data.settings.userEqualizers = ReadEqualizersJson(json->GetNamedObject(L"userEqualizers"));
             if (json->HasKey(L"inputConf")) data.settings.inputConf = to_string(json->GetNamedString(L"inputConf"));
             data.settings.volume=json->GetNamedNumber(L"volume",100);
             data.settings.speed=json->GetNamedNumber(L"speed",1);
@@ -137,6 +141,9 @@ void UserDataStore::Save(UserData const& data) {
     auto root=Root();
     if(!ValidUserSettings(data.settings)) throw std::runtime_error("Invalid settings range");
     auto settings=Document();
+    settings.Insert(L"savedVideoFilters", WriteSavedFiltersJson(data.settings.savedVideoFilters));
+    settings.Insert(L"savedAudioFilters", WriteSavedFiltersJson(data.settings.savedAudioFilters));
+    settings.Insert(L"userEqualizers", WriteEqualizersJson(data.settings.userEqualizers));
     settings.Insert(L"advancedPreferences", WritePreferenceJson(data.settings.advancedPreferences));
     if (data.settings.inputConf) settings.Insert(L"inputConf", JsonValue::CreateStringValue(to_hstring(*data.settings.inputConf)));
     settings.Insert(L"volume",JsonValue::CreateNumberValue(data.settings.volume));

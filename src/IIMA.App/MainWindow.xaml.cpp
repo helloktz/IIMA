@@ -60,10 +60,13 @@ MainWindow::MainWindow()
     WirePlaybackControls();
     WireMediaInformation();
     WireVideoControls();
+    WireCropControls();
     WireFilterEditor();
+    WireSavedFilters();
     WireThumbnailPreview();
     WireSubtitleControls();
     WireAudioControls();
+    WireEqualizerEditor();
     WireUserDataControls();
     WireSettingsControls();
     WireAssociationControls();
@@ -143,6 +146,7 @@ winrt::fire_and_forget MainWindow::OpenSubtitle()
 void MainWindow::Apply(iima::PlaybackSnapshot const& state)
 {
     if (state.media != iima::MediaState::Loaded) {
+        cropDraftEntry_.reset();
         subtitleMatchStop_.request_stop();
         ++subtitleMatchGeneration_;
     }
