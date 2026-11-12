@@ -36,6 +36,7 @@ void MainWindow::WireFileActions()
     });
     Root().Drop([weak](auto const&, DragEventArgs const& args) { if (auto self = weak.get()) self->DropFiles(args); });
     CopyScreenshotButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->SaveScreenshot(true); });
+    WireScreenshotPreview();
     ScreenshotButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->SaveScreenshot(); });
 
 }
@@ -186,7 +187,7 @@ winrt::fire_and_forget MainWindow::FinishScreenshot(std::shared_ptr<iima::Screen
             iima::CopyScreenshotToClipboard(hwnd, *pixels);
         }
         if (preview && preferences_.Boolean("screenshotShowPreview") && preferences_.Boolean("enableOSD")) {
-            try { ShowScreenshotPreview(*preview); }
+            try { ShowScreenshotPreview(*preview, destination); }
             catch (...) { previewFailed = true; HideScreenshotPreview(); }
         }
         ShowError(previewFailed ? (copyToClipboard ? L"截图已复制，但预览不可用。" : L"截图已保存，但预览不可用。") :

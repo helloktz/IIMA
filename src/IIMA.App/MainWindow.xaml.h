@@ -312,7 +312,13 @@ private:
     std::optional<int64_t> fullscreenPreferenceEntry_;
     bool discardUserData_{}, saveDialogOpen_{}, userDataLoaded_{}, settingsApplied_{}, saving_{}, saveDirty_{}, saveFailed_{}, coreClosed_{};
     bool screenshotPostProcessing_{};
-    void ShowScreenshotPreview(iima::ScreenshotPixels const& preview);
+    void ShowScreenshotPreview(iima::ScreenshotPixels const& preview,
+        std::optional<std::filesystem::path> destination);
+    void WireScreenshotPreview();
+    winrt::fire_and_forget OpenScreenshotPreviewFile(bool reveal);
+    std::optional<std::filesystem::path> screenshotPreviewPath_;
+    std::uint64_t screenshotPreviewGeneration_{};
+    bool screenshotPreviewHovered_{}, screenshotPreviewFocused_{};
     void HideScreenshotPreview();
     Microsoft::UI::Dispatching::DispatcherQueueTimer screenshotPreviewTimer_{nullptr};
     bool updating_{}, closing_{}, closeComplete_{}, pickerOpen_{}, fullscreen_{};

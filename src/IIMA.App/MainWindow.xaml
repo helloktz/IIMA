@@ -33,11 +33,16 @@
         </Border>
         <Border x:Name="ScreenshotPreviewBorder" Visibility="Collapsed" Canvas.ZIndex="9"
                 HorizontalAlignment="Left" VerticalAlignment="Top" Margin="16,64,16,0"
-                Background="#EE202020" Padding="8" IsHitTestVisible="False">
+                Background="#EE202020" Padding="8">
             <StackPanel Spacing="6">
                 <TextBlock Text="截图预览" Foreground="White"/>
                 <Image x:Name="ScreenshotPreviewImage" MaxWidth="300" MaxHeight="200" Stretch="Uniform"
                        AutomationProperties.Name="刚完成的截图预览"/>
+                <StackPanel x:Name="ScreenshotPreviewActions" Orientation="Horizontal" Spacing="6" Visibility="Collapsed">
+                    <Button x:Name="OpenScreenshotPreviewButton" Content="打开图片"/>
+                    <Button x:Name="RevealScreenshotPreviewButton" Content="定位文件"/>
+                </StackPanel>
+                <Button x:Name="DismissScreenshotPreviewButton" Content="关闭预览"/>
             </StackPanel>
         </Border>
         <Border x:Name="ThumbnailPreviewBorder" Visibility="Collapsed" Canvas.ZIndex="8"
