@@ -6,7 +6,7 @@
 #include <array>
 namespace iima {
 // Retains only scalar presentation facts, not media paths, metadata or playlists.
-// First observation after load establishes a baseline. Unknown -> known optional
+// First observation after load establishes an edit baseline and announces the file. Unknown -> known optional
 // values establish their own baseline rather than announcing defaults as edits.
 class PlaybackOSD final {
 public:
@@ -22,8 +22,11 @@ private:
         std::array<std::optional<int>, 5> equalizer; // brightness, contrast, saturation, gamma, hue
         std::optional<std::string> deinterlace, hwdec;
         RepeatMode repeat{RepeatMode::Off};
+        bool seeking{};
+        std::optional<double> position, duration;
     };
     std::optional<State> previous_;
     std::int64_t entry_{-1};
+    bool fileAnnounced_{};
 };
 }

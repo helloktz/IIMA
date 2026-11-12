@@ -2,20 +2,39 @@
 // Copyright (c) lhc and contributors. GPL-3.0; references/iina/LICENSE.
 #include "PlaybackOSD.h"
 #include "../Media/TrackPresentation.h"
+#include "../Network/MediaUrl.h"
 #include <algorithm>
 #include <cmath>
 namespace iima {
-void PlaybackOSD::Reset() noexcept { previous_.reset(); entry_ = -1; }
+void PlaybackOSD::Reset() noexcept { previous_.reset(); entry_ = -1; fileAnnounced_ = false; }
 std::vector<OSDMessage> PlaybackOSD::Observe(PlaybackSnapshot const& s) {
     std::vector<OSDMessage> messages;
     if (s.session != SessionState::Ready || s.media != MediaState::Loaded) { Reset(); return messages; }
+    if (entry_ != s.entryId) {
+        previous_.reset(); fileAnnounced_ = false; entry_ = s.entryId;
+    }
+    if (!fileAnnounced_ && !s.path.empty()) {
+        OSDMessage start; start.kind = OSDKind::FileStart;
+        if (IsNetworkMediaPath(s.path)) {
+            // An mpv title may itself be a signed URL. Avoid projecting network
+            // credentials/query tokens into a transient overlay or screenshot.
+            start.text = "Network media";
+        } else {
+            auto last = s.path.find_last_of("/\\");
+            start.text = last == std::string::npos ? s.path : s.path.substr(last + 1);
+            if (start.text.empty()) start.text = "Media loaded";
+            // Bound malformed metadata without cutting a UTF-8 sequence.
+            if (start.text.size() > 4096) start.text = "Media loaded";
+        }
+        messages.push_back(std::move(start)); fileAnnounced_ = true;
+    }
     State next{s.paused, s.muted, s.volume, s.speed, s.audioDelay,
         {s.observedSubtitleDelay, s.secondarySubtitleDelay, s.subtitleScale, s.subtitlePosition, s.secondarySubtitlePosition},
         {s.subtitleVisibility, s.secondarySubtitlesVisible},
         {s.videoId, s.audioId, s.subtitleId, s.secondarySubtitleId},
         {s.videoBrightness, s.videoContrast, s.videoSaturation, s.videoGamma, s.videoHue},
-        s.deinterlaceMode, s.hardwareDecodeMode, s.repeatMode};
-    if (!previous_ || entry_ != s.entryId) { previous_ = std::move(next); entry_ = s.entryId; return messages; }
+        s.deinterlaceMode, s.hardwareDecodeMode, s.repeatMode, s.seeking, s.position, s.duration};
+    if (!previous_) { previous_ = std::move(next); return messages; }
     auto const& old = *previous_;
     auto number = [&](OSDKind kind, double value) {
         if (!std::isfinite(value)) return;
@@ -72,6 +91,22 @@ std::vector<OSDMessage> PlaybackOSD::Observe(PlaybackSnapshot const& s) {
     }
     // These high-frequency controls retain priority when a snapshot changes
     // several fields at once. The UI displays the last eligible message only.
+    // Seek notifications, not ordinary clock advancement. Refresh while the
+    // observed seek is in flight and once at restart; never show requested
+    // target values as if they were the actual decoded position.
+    if (old.seeking != next.seeking ||
+        (next.seeking && (old.position != next.position || old.duration != next.duration))) {
+        OSDMessage seek; seek.kind = OSDKind::Seek;
+        auto clock = [](std::optional<double> value) {
+            return value && std::isfinite(*value) && *value >= 0 ?
+                VideoTime(*value).StringRepresentation() : std::string("--:--");
+        };
+        seek.text = clock(next.position); seek.detail = clock(next.duration);
+        seek.value = next.position && next.duration && std::isfinite(*next.position) &&
+            std::isfinite(*next.duration) && *next.duration > 0 ?
+            std::clamp(*next.position / *next.duration, 0.0, 1.0) : 0;
+        messages.push_back(std::move(seek));
+    }
     if (old.audioDelay != next.audioDelay) number(OSDKind::AudioDelay, next.audioDelay);
     if (old.speed != next.speed) number(OSDKind::Speed, next.speed);
     if (old.volume != next.volume) number(OSDKind::Volume, next.volume);

@@ -681,3 +681,11 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 - WinUI当前时间和右侧时间分离；右侧为可键盘操作按钮，点击在总时长/剩余时间之间切换并保存，右击菜单选择秒/100ms/10ms/1ms精度。使用已移植VideoTime格式化，剩余时间前置负号；未知显示--:--，非载入状态不保留旧媒体时间。辅助名称说明当前模式及切换动作，缩放剩余时间偏好仍在高级设置中。
 - 平台差异：右侧按钮替代Cocoa可点击标签，不提供Touch Bar；精度菜单不绘制当前项勾选，仅修改设置和即时文字。负剩余时间不展示双负号而视为未知。总时长/剩余均是媒体估计，不是实际完成时间保证。既有多窗口设置没有实时广播，本批不宣称所有窗口立刻同步。
 - 未编译、测试或运行，mpv属性事件顺序、XAML菜单及辅助技术实际反馈仍待验证。
+
+## 第六十七批：文件载入与seek观察型OSD
+
+- 追踪 IINA `MPVController.handleEvent` 的START_FILE→fileStart消息、SEEK→时间同步/seek消息和PLAYBACK_RESTART→更新位置。`PlaybackOSD` 增加每条目一次文件通知及seek状态/位置比较，补齐此前只有消息模型而无生产接线的两类OSD。
+- 文件通知在Loaded且path已观察后发送，不因迟到轨道/metadata再次弹出；首次属性仍建立基线，不把初始音量等当作用户修改。为避免网络凭据/签名参数出现在瞬时叠层或截图，网络统一显示Network media，本地只显示文件名；不保留整条路径到OSD历史状态。
+- seek仅在观察到seeking状态改变、或seeking期间实际position/duration变化时更新，并在restart恢复时刷新一次；普通时间推进不持续弹出。使用已观察位置和时长，未知显示占位，不使用请求目标假装成功。消息与既有音量/暂停等变化按原有最后合格项策略合并，不积压过时队列。
+- 真正接入disableOSDFileStartMsg/disableOSDSeekMsg偏好。全局禁用及CompactOverlay仍推进比较状态，不在重新开启后重播旧消息。
+- 有意差异：IINA的fileStart在START_FILE阶段且网络显示URL，本批为Loaded阶段的隐私收敛通知；加载失败无fileStart成功叠层。seek观察不能识别发起者，也不声称解决事件因果归属/自动精确seek性能测量。未编译、测试、运行。

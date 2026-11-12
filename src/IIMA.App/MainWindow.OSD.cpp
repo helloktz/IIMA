@@ -32,6 +32,8 @@ void MainWindow::UpdateOSD(iima::PlaybackSnapshot const& state) {
     }
     iima::OSDPreferences preferences;
     preferences.maximumVolume = state.maxVolume;
+    preferences.disableFileStart = preferences_.Boolean("disableOSDFileStartMsg");
+    preferences.disableSeek = preferences_.Boolean("disableOSDSeekMsg");
     preferences.disablePauseResume = preferences_.Boolean("disableOSDPauseResumeMsgs");
     preferences.disableSpeed = preferences_.Boolean("disableOSDSpeedMsg");
     iima::OSDDispatchContext dispatch;
