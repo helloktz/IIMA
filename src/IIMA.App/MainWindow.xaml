@@ -122,6 +122,8 @@
                         <Button x:Name="NextButton" Content="下一项"/>
                     </StackPanel>
                     <TextBlock x:Name="PlaylistSelectionText" Text="未选择条目；Ctrl或Shift可多选" TextWrapping="Wrap"/>
+                    <Button x:Name="DeletePlaylistFilesButton" Content="删除所选磁盘文件…" ToolTipService.ToolTip="区别于移除列表；系统优先使用回收站，不能回收时另行确认"/>
+                    <Button x:Name="CancelPlaylistDeletionButton" Content="停止后续文件删除" IsEnabled="False"/>
                     <Button x:Name="QueueSelectedNextButton" Content="选中项接下来播放"/>
                     <StackPanel Orientation="Horizontal" Spacing="4">
                         <Button x:Name="RemoveButton" Content="移除"/>

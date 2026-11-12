@@ -88,6 +88,7 @@ MainWindow::MainWindow()
     WireFileActions();
     WirePlaylistDrag();
     WirePlaylistClipboard();
+    WirePlaylistDeletion();
     try {
         HWND hwnd{};
         check_hresult(this->as<::IWindowNative>()->get_WindowHandle(&hwnd));
@@ -261,6 +262,8 @@ void MainWindow::BeginClose()
     if (jumpDialog_) jumpDialog_.Hide();
     fontCatalogStop_.request_stop();
     revealSelectionStop_.request_stop();
+    playlistDeletionStop_.request_stop();
+    if (playlistDeletionDialog_) playlistDeletionDialog_.Hide();
     playlistPasteStop_.request_stop(); ++playlistPasteGeneration_;
     if (subtitleFontDialog_) subtitleFontDialog_.Hide();
     if (subtitleColorDialog_) subtitleColorDialog_.Hide();

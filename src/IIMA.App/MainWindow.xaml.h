@@ -367,6 +367,11 @@ private:
     void OpenSelectedHistory();
     bool projectingHistory_{};
     winrt::fire_and_forget RevealSelection(bool history);
+    void WirePlaylistDeletion();
+    winrt::fire_and_forget DeleteSelectedPlaylistFiles();
+    bool playlistDeletionBusy_{};
+    std::stop_source playlistDeletionStop_;
+    Microsoft::UI::Xaml::Controls::ContentDialog playlistDeletionDialog_{nullptr};
     bool revealSelectionBusy_{};
     std::stop_source revealSelectionStop_;
     iima::HistoryView historyProjection_;

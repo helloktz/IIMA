@@ -47,6 +47,7 @@ void MainWindow::UpdatePlaylistSelection() {
     const bool single = ready && ids.size() == 1;
     PlaySelectedButton().IsEnabled(hasSelection);
     RemoveButton().IsEnabled(hasSelection);
+    DeletePlaylistFilesButton().IsEnabled(hasSelection && !playlistDeletionBusy_ && !pickerOpen_);
     RevealPlaylistButton().IsEnabled(hasSelection && !revealSelectionBusy_);
     auto current = std::find_if(playlist_.begin(), playlist_.end(), [](auto const& item) { return item.current; });
     std::unordered_set<std::int64_t> selectedIds(ids.begin(), ids.end());
