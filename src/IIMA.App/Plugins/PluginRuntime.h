@@ -47,7 +47,8 @@ public:
         std::string initialStatusJson = "{}",
         std::string entryRelativePath = "main.js",
         std::map<std::string, std::string> modules = {},
-        std::string defaultsJson = "{}", std::string storedJson = "{}");
+        std::string defaultsJson = "{}", std::string storedJson = "{}",
+        std::string initialKeyBindingsJson = "{}");
     ~PluginRuntime();
     PluginRuntime(PluginRuntime const&) = delete;
     PluginRuntime& operator=(PluginRuntime const&) = delete;
@@ -61,6 +62,13 @@ public:
     // Queue a click from the exact rendered menu revision. Worker rechecks
     // revision, reachability, enabled ancestors and callback identity.
     bool InvokeMenu(std::string id, std::string revision);
+    // UI publishes active key bindings, not arbitrary files. 1024 entries and
+    // 256 KiB maximum are enforced by the host projection; replacement coalesces.
+    bool UpdateKeyBindings(std::string json);
+    // Asynchronous observation AFTER native handling; cannot consume or suppress
+    // OS/default behavior. Caller excludes text/password editors and stale owners.
+    // Callback receives {x:null,y:null,isRepeat}; no global keyboard hook.
+    bool PublishKeyInput(std::string normalizedKey, bool down, bool isRepeat);
     // Nonblocking cancellation; deadline handler interrupts active JS. Destructor
     // joins worker; worker never waits for UI. Native caller callbacks must obey
     // the above contract for shutdown to remain bounded.

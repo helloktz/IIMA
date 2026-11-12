@@ -361,8 +361,11 @@
     {
       "source": "references/iina/iina/JavascriptAPIInput.swift",
       "physicalLines": 87,
-      "coverage": "not-mapped",
-      "reviewTargets": []
+      "coverage": "partial-static-unverified",
+      "reviewTargets": [
+        "src/IIMA.App/Plugins/PluginRuntime.cpp",
+        "src/IIMA.App/MainWindow.PluginInput.cpp"
+      ]
     },
     {
       "source": "references/iina/iina/JavascriptAPIMenu.swift",
@@ -930,8 +933,11 @@
     {
       "source": "references/iina/iina/PluginInputManager.swift",
       "physicalLines": 116,
-      "coverage": "not-mapped",
-      "reviewTargets": []
+      "coverage": "partial-static-unverified",
+      "reviewTargets": [
+        "src/IIMA.App/Plugins/PluginRuntime.cpp",
+        "src/IIMA.App/MainWindow.Keyboard.cpp"
+      ]
     },
     {
       "source": "references/iina/iina/PluginManager.swift",

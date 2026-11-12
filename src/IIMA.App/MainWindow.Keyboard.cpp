@@ -68,6 +68,7 @@ void MainWindow::ApplyKeyboardConfiguration() {
     auto const text = userData_.settings.inputConf.value_or(std::string(DefaultBindings));
     auto parsed = iima::ParseInputConf(text);
     keyBindings_ = std::make_unique<iima::KeyBindingSet>(parsed.mappings);
+    UpdatePluginKeyBindings();
     KeyBindingsEditor().Text(to_hstring(text));
     KeyBindingsStatus().Text(parsed.issues.empty() ? L"快捷键配置已载入。" : L"配置包含无法解析的行；有效条目已载入，请检查后重新保存。");
 }
@@ -90,12 +91,23 @@ void MainWindow::WireKeyboardControls() {
                 args.Handled(true);
                 if (!status.WasKeyDown) self->ApplySavedFilter(saved->first, saved->second);
             }
-            return;
-        }
-        // Repeating a key is useful for seek/volume but not dialogs/window close.
-        if (status.WasKeyDown && (binding->IsIinaCommand() || binding->RawAction() == "quit" ||
-            binding->RawAction().starts_with("screenshot"))) { args.Handled(true); return; }
-        if (self->DispatchKeyBinding(*binding)) args.Handled(true);
+        } else if (status.WasKeyDown && (binding->IsIinaCommand() || binding->RawAction() == "quit" ||
+            binding->RawAction().starts_with("screenshot"))) {
+            args.Handled(true); // Repeat may be observed but does not reopen dialogs.
+        } else if (self->DispatchKeyBinding(*binding)) args.Handled(true);
+        // Low-priority observation follows the application's native action. It
+        // cannot consume a routed event or suppress native/default behaviour.
+        self->PublishPluginKey(*key, true, status.WasKeyDown);
+    });
+    Root().PreviewKeyUp([weak](auto const&, Input::KeyRoutedEventArgs const& args) {
+        auto self = weak.get();
+        if (!self || self->closing_ || self->pickerOpen_ || args.Handled() ||
+            !self->KeyboardPlaybackAllowed()) return;
+        auto focused = Input::FocusManager::GetFocusedElement(self->Root().XamlRoot()).try_as<DependencyObject>();
+        if (NativeControlOwnsKey(focused, args.Key())) return;
+        auto status = args.KeyStatus();
+        if (auto key = iima::WindowsMpvKey(static_cast<std::uint32_t>(args.Key()), status.ScanCode, status.IsExtendedKey))
+            self->PublishPluginKey(*key, false, false);
     });
     SaveKeyBindingsButton().Click([weak](auto const&, auto const&) {
         auto self = weak.get();
@@ -111,6 +123,7 @@ void MainWindow::WireKeyboardControls() {
         }
         self->userData_.settings.inputConf = text;
         self->keyBindings_ = std::make_unique<iima::KeyBindingSet>(parsed.mappings);
+        self->UpdatePluginKeyBindings();
         self->MarkUserDataDirty();
         self->KeyBindingsStatus().Text(L"已应用，正在保存设置。未移植的动作会在触发时明确提示。");
     });

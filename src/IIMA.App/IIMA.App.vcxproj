@@ -169,6 +169,7 @@
   <ItemGroup>
     <ClCompile Include="MainWindow.PluginRuntime.cpp" />
     <ClCompile Include="MainWindow.PluginMenu.cpp" />
+    <ClCompile Include="MainWindow.PluginInput.cpp" />
     <ClCompile Include="Plugins\PluginRuntime.cpp" />
     <ClInclude Include="Plugins\PluginRuntime.h" />
     <ClInclude Include="Plugins\PluginBootstrap.h" />

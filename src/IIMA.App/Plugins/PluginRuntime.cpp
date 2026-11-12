@@ -6,6 +6,7 @@
 #include "PluginRuntime.h"
 #include "PluginBootstrap.h"
 #include "../../IIMA.Core/Plugins/PluginModulePath.h"
+#include "../../IIMA.Core/Input/KeyMapping.h"
 #include <quickjs.h>
 #include <algorithm>
 #include <array>
@@ -32,6 +33,7 @@ constexpr std::size_t MaxModuleBytes = 8 * 1024 * 1024;
 constexpr std::size_t MaxModules = 128;
 constexpr std::size_t MaxModuleDepth = 32;
 constexpr std::size_t MaxJson = 64 * 1024;
+constexpr std::size_t MaxBindingsJson = 256 * 1024;
 constexpr std::size_t MaxEventBytes = 2 * 1024 * 1024;
 constexpr std::size_t MaxEvents = 128;
 constexpr std::size_t MaxListeners = 256;
@@ -77,6 +79,7 @@ struct PluginRuntime::Impl {
         std::string event;
         std::string argument;
         bool menuClick{};
+        bool keyInput{}, keyDown{}, keyRepeat{};
         // For a click, event carries its item ID and argument its revision;
         // there is no stale media snapshot to overwrite current player status.
         std::size_t Bytes() const noexcept { return status.size() + event.size() + argument.size(); }
@@ -86,7 +89,7 @@ struct PluginRuntime::Impl {
     std::condition_variable changed;
     std::deque<UpdateItem> events;
     std::size_t queuedBytes{};
-    std::string latestStatus;
+    std::string latestStatus, latestKeyBindings;
     std::uint64_t statusRevision{1};
     std::string source, name, entryPath, defaultsJson, storedJson;
     std::map<std::string, std::string> modules;
@@ -96,8 +99,8 @@ struct PluginRuntime::Impl {
 
     Impl(std::string text, std::string pluginName, bool grant, Callbacks cb, std::string status,
          std::string entry, std::map<std::string, std::string> package,
-         std::string defaults, std::string stored)
-        : latestStatus(std::move(status)), source(std::move(text)), name(std::move(pluginName)),
+         std::string defaults, std::string stored, std::string keyBindings)
+        : latestStatus(std::move(status)), latestKeyBindings(std::move(keyBindings)), source(std::move(text)), name(std::move(pluginName)),
           entryPath(std::move(entry)), defaultsJson(std::move(defaults)), storedJson(std::move(stored)),
           modules(std::move(package)), allowOsd(grant), callbacks(std::move(cb)) {}
     ~Impl() {
@@ -132,7 +135,8 @@ struct PluginRuntime::Impl {
             Pause, Resume, StopPlayback, Seek, SeekTo, Speed, Osd,
             Log, Warn, Error, Status, On, Off, Timeout, Interval, ClearTimer, Require,
             PlayChapter, AudioVolume, AudioMuted, AudioDelay, AudioId, SubtitleDelay, SubtitleId, VideoId,
-            PreferenceDefaults, PreferenceStored, PreferenceSync, MenuInstall, MenuPublish
+            PreferenceDefaults, PreferenceStored, PreferenceSync, MenuInstall, MenuPublish,
+            InputInstall, InputNormalize, InputBindings
         };
         Impl& owner;
         JSRuntime* runtime{};
@@ -144,6 +148,7 @@ struct PluginRuntime::Impl {
         std::uint64_t nextIdentity{1};
         std::string status;
         JSValue menuDispatch{JS_UNDEFINED};
+        JSValue inputDispatch{JS_UNDEFINED};
         std::string menuRevision, pendingMenu;
         Clock::time_point deadline{Clock::now()};
         Clock::time_point rateWindow{Clock::now()};
@@ -166,6 +171,7 @@ struct PluginRuntime::Impl {
             JS_SetHostPromiseRejectionTracker(runtime, Rejected, this);
         }
         ~Worker() {
+            JS_FreeValue(context, inputDispatch);
             JS_FreeValue(context, menuDispatch);
             for (auto const& [path, exports] : moduleCache) JS_FreeValue(context, exports);
             for (auto const& [id, item] : timers) JS_FreeValue(context, item.callback);
@@ -355,6 +361,24 @@ struct PluginRuntime::Impl {
                 if (index >= argc) throw std::invalid_argument("Missing API argument.");
                 return argv[index];
             };
+            if (function == InputInstall) {
+                if (!JS_IsUndefined(inputDispatch) || !JS_IsFunction(context, argument(0)))
+                    throw std::invalid_argument("Input dispatcher must be installed once with a function.");
+                inputDispatch = JS_DupValue(context, argv[0]);
+                return JS_UNDEFINED;
+            }
+            if (function == InputNormalize) {
+                auto key = iima::NormalizeMpvKey(String(context, argument(0), 256));
+                if (key.empty() || key.size() > 256) throw std::invalid_argument("Invalid normalized input key.");
+                return JS_NewStringLen(context, key.data(), key.size());
+            }
+            if (function == InputBindings) {
+                std::string json;
+                { std::lock_guard lock(owner.mutex); json = owner.latestKeyBindings; }
+                // Parse a fresh independent tree on each call. Plugins cannot
+                // mutate the host snapshot through returned objects.
+                return JS_ParseJSON(context, json.data(), json.size(), "iima-key-bindings");
+            }
             if (function == MenuInstall) {
                 if (!JS_IsUndefined(menuDispatch)) throw std::invalid_argument("Plugin menu dispatcher is already installed.");
                 if (!JS_IsFunction(context, argument(0))) throw std::invalid_argument("Menu dispatcher must be a function.");
@@ -521,7 +545,7 @@ struct PluginRuntime::Impl {
             Value global(context, JS_GetGlobalObject(context));
             Value host(context, JS_NewObject(context));
             if (JS_IsException(host.value)) { Fail(ExceptionText()); return false; }
-            constexpr std::array<std::tuple<char const*, int, Function>, 30> definitions{{
+            constexpr std::array<std::tuple<char const*, int, Function>, 33> definitions{{
                 {"pause", 0, Pause}, {"resume", 0, Resume}, {"stop", 0, StopPlayback},
                 {"seek", 2, Seek}, {"seekTo", 1, SeekTo}, {"setSpeed", 1, Speed}, {"osd", 1, Osd},
                 {"log", 1, Log}, {"warn", 1, Warn}, {"error", 1, Error}, {"status", 0, Status},
@@ -532,7 +556,8 @@ struct PluginRuntime::Impl {
                 {"audioId", 1, AudioId}, {"subtitleDelay", 1, SubtitleDelay},
                 {"subtitleId", 1, SubtitleId}, {"videoId", 1, VideoId},
                 {"preferenceDefaults", 0, PreferenceDefaults}, {"preferenceStored", 0, PreferenceStored},
-                {"preferenceSync", 1, PreferenceSync}, {"menuInstall", 1, MenuInstall}, {"menuPublish", 2, MenuPublish}
+                {"preferenceSync", 1, PreferenceSync}, {"menuInstall", 1, MenuInstall}, {"menuPublish", 2, MenuPublish},
+                {"inputInstall", 1, InputInstall}, {"inputNormalize", 1, InputNormalize}, {"inputBindings", 0, InputBindings}
             }};
             for (auto const& [name, arity, function] : definitions) {
                 if (!SetFunction(host.value, name, arity, function)) return false;
@@ -580,6 +605,15 @@ struct PluginRuntime::Impl {
                 if (Clock::now() >= deadline) { Fail("Plugin event handlers exceeded the time budget."); break; }
             }
             if (!failed) Jobs();
+        }
+        void KeyInput(UpdateItem const& item) {
+            if (JS_IsUndefined(inputDispatch) || !BeginTurn()) return;
+            status = item.status;
+            if (!ValidateStatus()) return;
+            Value key(context, JS_NewStringLen(context, item.event.data(), item.event.size()));
+            if (JS_IsException(key.value)) { Fail(ExceptionText()); return; }
+            JSValueConst args[]{key.value, JS_NewBool(context, item.keyDown), JS_NewBool(context, item.keyRepeat)};
+            if (Result(JS_Call(context, inputDispatch, JS_UNDEFINED, 3, args))) Jobs();
         }
         void MenuClicked(UpdateItem const& click) {
             if (click.argument != menuRevision || JS_IsUndefined(menuDispatch) || !BeginTurn()) return;
@@ -631,7 +665,8 @@ struct PluginRuntime::Impl {
                     }
                 }
                 if (hasEvent) {
-                    if (update.menuClick) MenuClicked(update);
+                    if (update.keyInput) KeyInput(update);
+                    else if (update.menuClick) MenuClicked(update);
                     else Event(update);
                 }
                 else if (hasStatus) { status = std::move(update.status); }
@@ -665,13 +700,15 @@ PluginRuntime::PluginRuntime(std::unique_ptr<Impl> impl) : impl_(std::move(impl)
 std::unique_ptr<PluginRuntime> PluginRuntime::Start(std::string source, std::string pluginName,
     bool allowOsd, Callbacks callbacks, std::string initialStatusJson,
     std::string entryRelativePath, std::map<std::string, std::string> modules,
-    std::string defaultsJson, std::string storedJson) {
+    std::string defaultsJson, std::string storedJson, std::string initialKeyBindingsJson) {
     if (source.empty() || source.size() > MaxSource || source.find('\0') != source.npos)
         throw std::invalid_argument("Plugin entry must contain 1 byte to 1 MiB of UTF-8 source without NUL.");
     if (pluginName.size() > 512 || initialStatusJson.empty() || initialStatusJson.size() > MaxJson)
         throw std::invalid_argument("Plugin name or initial status exceeds limits.");
     if (defaultsJson.empty() || storedJson.empty() || defaultsJson.size() > MaxJson || storedJson.size() > MaxJson)
         throw std::invalid_argument("Plugin preference documents must be JSON objects no larger than 64 KiB.");
+    if (initialKeyBindingsJson.empty() || initialKeyBindingsJson.size() > MaxBindingsJson)
+        throw std::invalid_argument("Plugin key bindings snapshot exceeds 256 KiB.");
     auto entry = ResolvePluginModulePath("__iima_root__.js", entryRelativePath);
     if (!entry || *entry != entryRelativePath) throw std::invalid_argument("Plugin entry path must be canonical and package-relative.");
     if (modules.size() > MaxModules) throw std::invalid_argument("Plugin module snapshot has too many files.");
@@ -686,7 +723,7 @@ std::unique_ptr<PluginRuntime> PluginRuntime::Start(std::string source, std::str
     }
     auto instance = std::unique_ptr<PluginRuntime>(new PluginRuntime(std::make_unique<Impl>(
         std::move(source), std::move(pluginName), allowOsd, std::move(callbacks), std::move(initialStatusJson),
-        std::move(entryRelativePath), std::move(modules), std::move(defaultsJson), std::move(storedJson))));
+        std::move(entryRelativePath), std::move(modules), std::move(defaultsJson), std::move(storedJson), std::move(initialKeyBindingsJson))));
     auto impl = instance->impl_.get();
     impl->thread = std::jthread([impl] { impl->Run(); });
     return instance;
@@ -701,6 +738,27 @@ bool PluginRuntime::InvokeMenu(std::string id, std::string revision) {
     auto bytes = id.size() + revision.size();
     if (impl_->stop.load() || impl_->events.size() >= MaxEvents || bytes > MaxEventBytes - impl_->queuedBytes) return false;
     impl_->events.push_back({{}, std::move(id), std::move(revision), true});
+    impl_->queuedBytes += bytes;
+    impl_->changed.notify_one();
+    return true;
+}
+bool PluginRuntime::UpdateKeyBindings(std::string json) {
+    if (json.empty() || json.size() > MaxBindingsJson || impl_->stop.load()) return false;
+    std::lock_guard lock(impl_->mutex);
+    if (impl_->stop.load()) return false;
+    impl_->latestKeyBindings = std::move(json);
+    return true;
+}
+bool PluginRuntime::PublishKeyInput(std::string key, bool down, bool isRepeat) {
+    if (key.empty() || key.size() > 256 || key.find('\0') != key.npos || impl_->stop.load()) return false;
+    std::lock_guard lock(impl_->mutex);
+    auto bytes = key.size() + impl_->latestStatus.size();
+    if (impl_->stop.load() || impl_->events.size() >= MaxEvents || bytes > MaxEventBytes - impl_->queuedBytes) return false;
+    Impl::UpdateItem item;
+    item.status = impl_->latestStatus;
+    item.event = std::move(key);
+    item.keyInput = true; item.keyDown = down; item.keyRepeat = isRepeat;
+    impl_->events.push_back(std::move(item));
     impl_->queuedBytes += bytes;
     impl_->changed.notify_one();
     return true;

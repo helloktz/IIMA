@@ -401,8 +401,46 @@ inline constexpr char PluginBootstrap[] = R"IIMAJS(
       const action = record.action; action(entry.item);
     }
   });
+  // JavascriptAPIInput / PluginInputManager: one callback per normalized key
+  // and event. Windows delivery is deliberately asynchronous, after the native
+  // handler, so high-priority propagation interception is explicitly unsupported.
+  const keyListeners = create(null);
+  let keyListenerCount = 0;
+  function addKeyListener(down, key, callback, priority = 100) {
+    if (typeof priority !== 'number') priority = 100;
+    if (!finite(priority) || priority % 1 || priority >= 200)
+      throw new TypeError('Only finite low-priority input observation is supported; input cannot be consumed');
+    if (typeof callback !== 'function') throw new TypeError('Input callback must be a function');
+    key = host.inputNormalize(key);
+    const identity = (down ? 'down:' : 'up:') + key;
+    if (!hasOwn(keyListeners, identity)) {
+      if (keyListenerCount >= 256) throw new RangeError('Plugin input listener limit is 256');
+      ++keyListenerCount;
+    }
+    keyListeners[identity] = callback;
+  }
+  const input = namespace('input', {
+    PRIORITY_LOW: 100, PRIORITY_HIGH: 200,
+    MOUSE: '*mouse', RIGHT_MOUSE: '*rightMouse', OTHER_MOUSE: '*otherMouse',
+    normalizeKeyCode: key => host.inputNormalize(key),
+    getAllKeyBindings: () => host.inputBindings(),
+    onKeyDown: (key, callback, priority) => addKeyListener(true, key, callback, priority),
+    onKeyUp: (key, callback, priority) => addKeyListener(false, key, callback, priority),
+    onMouseDown: () => missing('input.onMouseDown'),
+    onMouseUp: () => missing('input.onMouseUp'),
+    onMouseDrag: () => missing('input.onMouseDrag')
+  });
+  host.inputInstall((key, down, isRepeat) => {
+    const identity = (down ? 'down:' : 'up:') + key;
+    if (!hasOwn(keyListeners, identity)) return;
+    // No current-pointer guess: keyboard routing has no reliable video-relative
+    // coordinates. Callback return values cannot suppress already handled input.
+    const callback = keyListeners[identity];
+    const result = callback({x: null, y: null, isRepeat});
+    if (result === true) host.warn('Input callback return cannot consume input in IIMA');
+  });
   Object.defineProperty(globalThis, 'iina', {
-    value: namespace('iina', {core, console: consoleApi, event, preferences, menu}),
+    value: namespace('iina', {core, console: consoleApi, event, preferences, menu, input}),
     writable: false, configurable: false
   });
   Object.defineProperty(globalThis, 'console', {value: consoleApi, configurable: false});

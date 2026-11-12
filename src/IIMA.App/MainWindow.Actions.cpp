@@ -13,7 +13,7 @@ bool MainWindow::KeyboardPlaybackAllowed() const {
     for (auto element = focused; element; element = Media::VisualTreeHelper::GetParent(element)) {
         if (element.try_as<Controls::TextBox>() || element.try_as<Controls::PasswordBox>() ||
             element.try_as<Controls::RichEditBox>() || element.try_as<Controls::NumberBox>() ||
-            element.try_as<Controls::AutoSuggestBox>()) return false;
+            element.try_as<Controls::AutoSuggestBox>() || element.try_as<Controls::ContentDialog>()) return false;
     }
     return true;
 }

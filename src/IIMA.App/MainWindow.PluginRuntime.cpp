@@ -69,7 +69,7 @@ winrt::fire_and_forget MainWindow::StartLocalPlugin() {
                     L"\n\n该插件可暂停、继续、停止、跳转或调整此窗口的播放速度，读取播放时间、状态、轨道和章节元数据，并可调整音量、静音、延迟、轨道和章节。";
                 pluginOsdAllowed_ = program->manifest.HasPermission(iima::PluginPermission::ShowOSD);
                 if (pluginOsdAllowed_) message += L"它还申请在播放器画面上显示文字。";
-                message += L"\n它还可读取并保存此标识对应的插件偏好；相同标识的其他插件可读取这些值，请勿用于保存密码或令牌。它还可在此窗口的插件菜单中添加命令。"
+                message += L"\n它还可读取并保存此标识对应的插件偏好；相同标识的其他插件可读取这些值，请勿用于保存密码或令牌。它还可在此窗口的插件菜单中添加命令，读取当前快捷键配置的完整动作文本，并观察播放器区域按键（不含文本输入、密码输入和对话框）。请勿把秘密写在快捷键动作中。"
                     L"\n不提供网络、任意文件、进程、HTML 或完整 IINA 插件 API。"
                     L"只有部分插件可以使用。运行时不是操作系统安全沙箱，请只运行你信任的来源。"
                     L"\n此次仅运行已读入的入口和目录内 JS 模块快照，不安装、不自动启动；可随时停止。";
@@ -151,7 +151,7 @@ winrt::fire_and_forget MainWindow::StartLocalPlugin() {
                         program->manifest.name, pluginOsdAllowed_, std::move(callbacks),
                         iima::plugins::PlaybackStatusJson(session_->Snapshot(), pluginMediaEpoch_),
                         program->manifest.entry, std::move(program->modules),
-                        std::move(program->preferenceDefaultsJson), std::move(storedPreferences));
+                        std::move(program->preferenceDefaultsJson), std::move(storedPreferences), PluginKeyBindingsJson());
                     StopPluginButton().IsEnabled(true);
                     PluginRuntimeStatus().Text(L"正在启动受限插件…");
                     // No synthetic window-loaded/file-loaded event: this plugin was
