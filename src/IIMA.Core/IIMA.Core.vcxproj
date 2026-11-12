@@ -71,5 +71,21 @@
     <ClCompile Include="Subtitles\SubtitleStyle.cpp" />
     <ClInclude Include="Subtitles\SubtitleStyle.h" />
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Commands\ApplicationCommand.cpp" />
+    <ClInclude Include="Commands\ApplicationCommand.h" />
+    <ClCompile Include="Commands\KeyBindingTranslator.cpp" />
+    <ClInclude Include="Commands\KeyBindingTranslator.h" />
+    <ClCompile Include="Commands\PlaylistCommands.cpp" />
+    <ClInclude Include="Commands\PlaylistCommands.h" />
+    <ClCompile Include="Network\MediaUrl.cpp" />
+    <ClInclude Include="Network\MediaUrl.h" />
+    <ClCompile Include="OSD\OSDMessage.cpp" />
+    <ClInclude Include="OSD\OSDMessage.h" />
+    <ClCompile Include="Playlist\M3uWriter.cpp" />
+    <ClInclude Include="Playlist\M3uWriter.h" />
+    <ClCompile Include="Playlist\PlaylistPlan.cpp" />
+    <ClInclude Include="Playlist\PlaylistPlan.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

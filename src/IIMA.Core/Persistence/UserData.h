@@ -46,7 +46,7 @@ struct UserData {
     bool writable{true}; // False when loading failed before safe corruption preservation.
 };
 inline void RecordHistory(UserData& data, HistoryEntry entry) {
-    if(!data.settings.recordHistory || entry.path.empty() || !std::isfinite(entry.position)) return;
+    if(!data.settings.recordHistory || entry.path.empty() || entry.path.find("://") != std::string::npos || !std::isfinite(entry.position)) return;
     entry.position=std::max(0.0,entry.position);
     if(entry.duration && (!std::isfinite(*entry.duration) || *entry.duration<0)) entry.duration.reset();
     if(entry.duration) entry.position=std::min(entry.position,*entry.duration);

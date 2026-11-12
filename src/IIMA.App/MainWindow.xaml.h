@@ -1,6 +1,7 @@
 #pragma once
 #include "MainWindow.g.h"
 #include "../IIMA.Core/Playback/PlayerSession.h"
+#include "../IIMA.Core/Commands/ApplicationCommand.h"
 #include "Presentation/VideoPresenter.h"
 #include "Platform/MediaIntegration.h"
 #include "Platform/LocalInputResolver.h"
@@ -19,11 +20,17 @@ struct MainWindow : MainWindowT<MainWindow> {
 private:
     winrt::fire_and_forget OpenFile(bool append = false);
     winrt::fire_and_forget OpenSubtitle();
+    winrt::fire_and_forget OpenNetworkUrl();
     void WirePlaybackControls();
     void WireVideoControls();
     void WireSubtitleControls();
     void FindLocalSubtitle();
     void WireAudioControls();
+    void WireApplicationCommands();
+    void WireOSD();
+    void UpdateOSD(iima::PlaybackSnapshot const& state);
+    void UpdatePresentationLayout();
+    void ExecuteApplicationCommand(iima::ApplicationCommand command);
     void ApplyCollections(iima::PlaybackSnapshot const& state);
     void PlaySelected();
     void MoveSelected(int delta);
@@ -41,6 +48,7 @@ private:
     void OpenPendingFiles();
     winrt::fire_and_forget DropFiles(Microsoft::UI::Xaml::DragEventArgs args);
     winrt::fire_and_forget SaveScreenshot();
+    winrt::fire_and_forget SavePlaylist();
     void LoadUserData();
     void WireUserDataControls();
     void ApplyUserData(iima::PlaybackSnapshot const& state);
@@ -52,6 +60,10 @@ private:
     winrt::fire_and_forget ConfirmUnsavedClose();
     void ShowError(winrt::hstring const& message);
     std::shared_ptr<iima::PlayerSession> session_;
+    iima::ApplicationCommandRouter commandRouter_;
+    Microsoft::UI::Dispatching::DispatcherQueueTimer osdTimer_{nullptr};
+    bool osdHaveState_{}, osdPaused_{}, osdMuted_{};
+    double osdVolume_{}, osdSpeed_{};
     std::unique_ptr<iima::VideoPresenter> presenter_;
     std::optional<uint64_t> playlistRevision_, tracksRevision_, chaptersRevision_;
     std::vector<iima::PlaylistItem> playlist_;

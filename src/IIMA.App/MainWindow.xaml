@@ -4,12 +4,22 @@
     <Grid x:Name="Root" Background="Black" RequestedTheme="Dark" AllowDrop="True">
         <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="300"/></Grid.ColumnDefinitions>
         <SwapChainPanel x:Name="VideoPanel" />
+        <Button x:Name="ExitCompactOverlayButton" Content="返回播放器" Visibility="Collapsed"
+                HorizontalAlignment="Right" VerticalAlignment="Top" Canvas.ZIndex="10"/>
         <TextBlock x:Name="EmptyLabel" Text="打开视频，开始播放" Foreground="White"
                    HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="24" />
-        <Border Background="#DD202020" VerticalAlignment="Top" Padding="16">
+        <Border x:Name="OSDBorder" Visibility="Collapsed" Background="#DD202020" Padding="12"
+                HorizontalAlignment="Left" VerticalAlignment="Top" Margin="16,64,16,0" Canvas.ZIndex="5">
+            <StackPanel Spacing="4" MinWidth="180">
+                <TextBlock x:Name="OSDTitle" Foreground="White" FontSize="20"/>
+                <TextBlock x:Name="OSDDetail" Foreground="LightGray"/>
+                <ProgressBar x:Name="OSDProgress" Minimum="0" Maximum="1"/>
+            </StackPanel>
+        </Border>
+        <Border x:Name="TopStatusBorder" Background="#DD202020" VerticalAlignment="Top" Padding="16">
             <TextBlock x:Name="StatusText" Text="正在初始化播放器…" Foreground="White" TextWrapping="Wrap" />
         </Border>
-        <Border Background="#DD202020" VerticalAlignment="Bottom" Padding="12">
+        <Border x:Name="BottomControlsBorder" Background="#DD202020" VerticalAlignment="Bottom" Padding="12">
             <Grid ColumnSpacing="12" RowSpacing="6">
                 <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
@@ -24,12 +34,13 @@
                 <Button x:Name="FullscreenButton" Grid.Row="1" Grid.Column="3" Content="全屏" />
             </Grid>
         </Border>
-        <Border Grid.Column="1" Background="#FF242424" Padding="12">
+        <Border x:Name="PlayerSidebar" Grid.Column="1" Background="#FF242424" Padding="12">
             <Grid RowSpacing="8">
                 <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                 <StackPanel Orientation="Horizontal" Spacing="6">
                     <TextBlock Text="播放列表" Foreground="White" VerticalAlignment="Center"/>
                     <Button x:Name="AppendButton" Content="添加"/>
+                    <Button x:Name="SavePlaylistButton" Content="保存"/>
                 </StackPanel>
                 <ListView x:Name="PlaylistView" Grid.Row="1" Foreground="White" SelectionMode="Single"
                           AutomationProperties.Name="播放列表" />
@@ -47,6 +58,8 @@
                 </StackPanel>
                 <ScrollViewer Grid.Row="3" MaxHeight="300" HorizontalScrollBarVisibility="Disabled">
                     <StackPanel Spacing="6">
+                        <Button x:Name="CompactOverlayButton" Content="切换悬浮小窗"/>
+                        <Button x:Name="OpenUrlButton" Content="打开网络媒体…"/>
                         <ComboBox x:Name="AudioBox" Header="音轨" HorizontalAlignment="Stretch" AutomationProperties.Name="音轨"/>
                         <ComboBox x:Name="AudioEqualizerBox" Header="音频均衡预设" HorizontalAlignment="Stretch"/>
                         <Button x:Name="ApplyAudioEqualizerButton" Content="应用均衡预设"/>

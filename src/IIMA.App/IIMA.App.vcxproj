@@ -93,6 +93,14 @@
     <ClCompile Include="MainWindow.SubtitleMatching.cpp" />
     <ClCompile Include="MainWindow.Subtitles.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="MainWindow.Commands.cpp" />
+    <ClCompile Include="MainWindow.Network.cpp" />
+    <ClCompile Include="MainWindow.OSD.cpp" />
+    <ClCompile Include="MainWindow.Playlist.cpp" />
+    <ClCompile Include="Platform\AtomicTextFile.cpp" />
+    <ClInclude Include="Platform\AtomicTextFile.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Import Project="..\..\build\NuGet.targets" />
 </Project>

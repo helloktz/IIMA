@@ -45,7 +45,11 @@ MainWindow::MainWindow()
     presenter_ = std::make_unique<iima::VideoPresenter>(VideoPanel(), [session](unsigned w, unsigned h) {
         if (auto current = session.lock()) current->SetCompositionSize(w, h);
     }, [weak](hstring const& error) { if (auto self = weak.get(); self && !self->closing_) self->ShowError(error); });
-    OpenButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->OpenFile(); });
+    WireApplicationCommands();
+    WireOSD();
+    OpenButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->ExecuteApplicationCommand(iima::ApplicationCommand::OpenFile); });
+    OpenUrlButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->ExecuteApplicationCommand(iima::ApplicationCommand::OpenUrl); });
+    CompactOverlayButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->ExecuteApplicationCommand(iima::ApplicationCommand::TogglePictureInPicture); });
     PauseButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->session_->TogglePause(); });
     FullscreenButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->ToggleFullscreen(); });
     PositionSlider().ValueChanged([weak](auto const&, auto const& args) {
@@ -170,6 +174,7 @@ void MainWindow::Apply(iima::PlaybackSnapshot const& state)
     ApplyCollections(state);
     ApplySettingsSnapshot(state);
     UpdateDiagnostics(state);
+    UpdateOSD(state);
     ApplyUserData(state);
     OpenPendingFiles();
     FlushActivation();
@@ -210,6 +215,7 @@ void MainWindow::BeginClose()
     closing_ = true;
     inputStop_.request_stop(); ++inputGeneration_;
     subtitleMatchStop_.request_stop(); ++subtitleMatchGeneration_;
+    if (osdTimer_) osdTimer_.Stop();
     if (activationTimer_) activationTimer_.Stop();
     if (activationClosing_) activationClosing_();
     if (mediaIntegration_) mediaIntegration_->Close();

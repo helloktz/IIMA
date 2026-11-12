@@ -36,6 +36,9 @@ namespace winrt::IIMA::implementation {
 void MainWindow::WirePlaybackControls()
 {
     auto weak = get_weak();
+    SavePlaylistButton().Click([weak](auto const&, auto const&) {
+        if (auto self = weak.get()) self->ExecuteApplicationCommand(iima::ApplicationCommand::SavePlaylist);
+    });
     AppendButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->OpenFile(true); });
     SubtitleButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->OpenSubtitle(); });
     PreviousButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->session_->PlaylistPrevious(); });

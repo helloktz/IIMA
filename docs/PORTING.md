@@ -141,3 +141,13 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 本批仅静态实现与人工源码审阅，未编译、测试或运行；数量仍远未达到完整移植指标。
 
 轨道解析的明确兼容性差异：IINA 构造器要求全部布尔字段存在；IIMA 对可识别 id/type 的轨道保留缺失可选标志为 false，避免部分 mpv 属性快照令可用轨道消失。滤镜单项解析额外拒绝非法名称/标签字符，防止单项 UI 意外成为多项滤镜列表表达式。
+
+### 第三批：应用命令、播放列表计划、网络打开与 OSD
+
+- `IINACommand.swift`、`PlayerWindowController` → `Commands/ApplicationCommand.*`：21 命令的严格类型化解析与可用性路由。`KeyBindingTranslator.swift` → 描述模板和 seek/add/cycle 参数转换，暂未接完整按键编辑器。`MPVCommandWrappers` 的4个队列参数构造也已移植。
+- WinUI 已通过路由接入打开文件/网络、保存播放列表、面板焦点、尺寸动作和悬浮小窗。Windows `CompactOverlay` 是原窗口原播放器的小窗模式，隐藏侧栏/控制栏并保留返回按钮；**不是** IINA 的独立 Cocoa PiP 窗口，也不是音乐模式。其他未注册命令明确不可用，不以枚举存在宣称功能实现。
+- `PlayerCore` / `SidebarPlaylistPane` / `MainMenuActions` → `Playlist/*`：基于真实ID的排序/插删/拖动/Play Next/Clear/Shuffle计划、逐命令回复与刷新快照的 cursor、新条目ID绑定、M3U8序列化。批量编辑 executor 尚未接入，不能把计划一次性盲发。重排使用 move 而非清空重建，保留条目身份。M3U8 保存已接 Windows picker 与同目录临时文件 flush+replace，后台执行；保存的是发起时队列快照。
+- `OpenURLWindowController.getURL` → `Network/MediaUrl.*` 与 `MainWindow.Network.cpp`：trim、缺省http、Windows Uri解析、显式网络打开。当前支持HTTP(S)/RTSP(S)/RTMP(S)/FTP/SFTP输入；无凭据持久化、独立用户名密码字段或未知协议兼容承诺。网络地址不写历史以避免保存签名查询和凭据，和IINA历史行为有意不同。libmpv是否支持协议仍未经运行确认。
+- `OSDMessage.swift` / `OSDView.swift` → `OSD/OSDMessage.*`：56消息、5展示类型、禁用/强制/窗口状态门控、文本进度、模板变量及语义文本runs。WinUI已经接入已确认的暂停/继续、音量、速度、静音状态及1秒隐藏计时器；其余消息尚需各功能触发。当前默认英文fallback，完整中文资源/动画/语义runs视觉样式未接入。
+
+仍为静态源码批次，未编译、测试或运行。已写入不代表可运行；全量移植和用户数量指标尚未完成。
