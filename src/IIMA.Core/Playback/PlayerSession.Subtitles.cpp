@@ -2,6 +2,7 @@
 // GPL v3, references/iina/LICENSE. mpv DOCS/man/input.rst sub-reload/sub-seek.
 #include "PlayerSession.h"
 #include <algorithm>
+#include "../Subtitles/CharacterEncoding.h"
 #include <cmath>
 namespace iima {
 void PlayerSession::ApplySubtitleStyle(SubtitleStyle const& style, std::vector<std::string> fields) {
@@ -65,4 +66,32 @@ void PlayerSession::SeekSubtitle(int direction) {
         direction < -1 || direction > 1) return;
     client_->Command({"sub-seek", std::to_string(direction)});
 }
+bool PlayerSession::SetSubtitleEncoding(std::string encoding) {
+    if (snapshot_.session != SessionState::Ready || snapshot_.media != MediaState::Loaded ||
+        waitingForStart_ || playlistEdit_ || subtitleEncodingRequest_ || !IsSubtitleEncoding(encoding)) return false;
+    subtitleEncodingTracks_.clear();
+    for (auto const& track : snapshot_.tracks)
+        if (track.type == "sub" && track.external)
+            subtitleEncodingTracks_.emplace_back(track.id, track.externalPath);
+    subtitleEncodingGeneration_ = windowMediaGeneration_;
+    subtitleEncodingRequest_ = client_->Command({"set", "sub-codepage", std::move(encoding)});
+    Notify();
+    return subtitleEncodingRequest_ != 0;
+}
+void PlayerSession::HandleSubtitleEncodingReply(MpvEvent const& event) {
+    if (event.kind != MpvEvent::Kind::CommandReply || !subtitleEncodingRequest_ ||
+        event.requestId != subtitleEncodingRequest_) return;
+    subtitleEncodingRequest_ = 0;
+    auto tracks = std::move(subtitleEncodingTracks_);
+    subtitleEncodingTracks_.clear();
+    if (event.error < 0 || snapshot_.media != MediaState::Loaded || waitingForStart_ ||
+        subtitleEncodingGeneration_ != windowMediaGeneration_) return;
+    // Do not reload embedded tracks or a replacement external track reusing an ID.
+    // mpv retains subtitle IDs on reload. Selection remains the observed state.
+    for (auto const& [id, filename] : tracks)
+        if (std::any_of(snapshot_.tracks.begin(), snapshot_.tracks.end(), [&](auto const& track) {
+            return track.type == "sub" && track.external && track.id == id && track.externalPath == filename;
+        })) client_->Command({"sub-reload", std::to_string(id)});
+}
+
 }

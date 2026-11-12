@@ -125,7 +125,7 @@ void ApplyPlaybackEvent(PlaybackSnapshot& s, MpvEvent const& e) {
                 position = e.number;
             else position.reset();
         }
-        else if (e.name == "sub-font" || e.name == "sub-font-size" || e.name == "sub-bold" ||
+        else if (e.name == "sub-codepage" || e.name == "sub-font" || e.name == "sub-font-size" || e.name == "sub-bold" ||
                  e.name == "sub-italic" || e.name == "sub-color" || e.name == "sub-outline-color" ||
                  e.name == "sub-outline-size" || e.name == "sub-back-color") {
             if (e.error >= 0 && !e.text.empty() && e.text.size() <= 1024) s.subtitleStyleValues[e.name] = e.text;

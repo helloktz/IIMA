@@ -51,7 +51,7 @@ void PlayerSession::OpenMultiple(std::vector<std::string> paths,bool append) {
     if(std::any_of(paths.begin(),paths.end(),[](auto const& p) { return p.empty() || p.find('\0')!=std::string::npos; })) {
         snapshot_.error="A media path is empty or contains a NUL character"; Notify(); return;
     }
-    if(!append) { sleepPauseHeld_=false; CancelWindowPausePolicy(); }
+    if(!append) { subtitleEncodingRequest_=0; subtitleEncodingTracks_.clear(); sleepPauseHeld_=false; CancelWindowPausePolicy(); }
     CancelPlaylistEdits();
     playlistShuffled_=false;
     // No shell or command string parsing: UTF-8 paths remain individual API arguments.
@@ -74,6 +74,7 @@ void PlayerSession::OpenMultiple(std::vector<std::string> paths,bool append) {
 }
 void PlayerSession::PausedCommand(std::vector<std::string> command) {
     if(!CanOpen()) return;
+    subtitleEncodingRequest_=0; subtitleEncodingTracks_.clear();
     sleepPauseHeld_=false;
     CancelWindowPausePolicy();
     CancelPlaylistEdits();
@@ -161,6 +162,7 @@ void PlayerSession::Seek(double seconds) {
     client_->Command({"seek",std::to_string(std::clamp(seconds,0.0,*snapshot_.duration)),"absolute+exact"});
 }
 void PlayerSession::Stop() {
+    subtitleEncodingRequest_=0; subtitleEncodingTracks_.clear();
     CancelWatchedProperties();
     CancelWindowPausePolicy();
     CancelPlaylistEdits();
@@ -283,6 +285,11 @@ void PlayerSession::OnEvent(MpvEvent e) {
     if (e.kind == MpvEvent::Kind::Failure || e.kind == MpvEvent::Kind::Shutdown ||
         e.kind == MpvEvent::Kind::StartFile || e.kind == MpvEvent::Kind::EndFile) CancelWatchedProperties();
     if(e.kind==MpvEvent::Kind::Failure || e.kind==MpvEvent::Kind::Shutdown || e.kind==MpvEvent::Kind::EndFile) CancelWindowPausePolicy();
+    if (e.kind == MpvEvent::Kind::Failure || e.kind == MpvEvent::Kind::Shutdown ||
+        e.kind == MpvEvent::Kind::StartFile || e.kind == MpvEvent::Kind::EndFile) {
+        subtitleEncodingRequest_=0; subtitleEncodingTracks_.clear();
+    }
+    HandleSubtitleEncodingReply(e);
     HandleWindowPauseReply(e);
     if(e.kind==MpvEvent::Kind::Failure || e.kind==MpvEvent::Kind::Shutdown) CancelPlaylistEdits();
     if(e.kind==MpvEvent::Kind::Failure && screenshotRequest_) {
@@ -359,6 +366,7 @@ void PlayerSession::OnEvent(MpvEvent e) {
     if(e.kind==MpvEvent::Kind::Shutdown) CloseAsync();
 }
 void PlayerSession::CloseAsync(std::function<void()> completion) {
+    subtitleEncodingRequest_=0; subtitleEncodingTracks_.clear();
     // Mark closing before cancellation so reentrant UI callbacks cannot enqueue work.
     if (snapshot_.session != SessionState::Closed) snapshot_.session = SessionState::Closing;
     CancelWatchedProperties();

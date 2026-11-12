@@ -70,6 +70,7 @@
     <ClCompile Include="Playback\PlayerSession.Subtitles.cpp" />
     <ClCompile Include="Subtitles\SubtitleStyle.cpp" />
     <ClInclude Include="Subtitles\SubtitleStyle.h" />
+    <ClInclude Include="Subtitles\CharacterEncoding.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Commands\ApplicationCommand.cpp" />

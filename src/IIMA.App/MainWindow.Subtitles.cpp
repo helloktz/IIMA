@@ -6,6 +6,7 @@
 using namespace winrt;
 namespace winrt::IIMA::implementation {
 void MainWindow::WireSubtitleControls() {
+    WireSubtitleEncoding();
     auto weak = get_weak();
     MatchSubtitleButton().Click([weak](auto const&, auto const&) {
         if (auto self = weak.get(); self && !self->closing_) self->FindLocalSubtitle();

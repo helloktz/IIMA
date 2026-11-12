@@ -97,8 +97,12 @@
     {
       "source": "references/iina/iina/CharEncoding.swift",
       "physicalLines": 59,
-      "coverage": "not-mapped",
-      "reviewTargets": []
+      "coverage": "partial-static-unverified",
+      "reviewTargets": [
+        "src/IIMA.Core/Subtitles/CharacterEncoding.h",
+        "src/IIMA.App/MainWindow.SubtitleEncoding.cpp",
+        "src/IIMA.Core/Playback/PlayerSession.Subtitles.cpp"
+      ]
     },
     {
       "source": "references/iina/iina/CommonWindow.swift",

@@ -139,5 +139,6 @@ void MainWindow::UpdateSecondarySubtitles(iima::PlaybackSnapshot const& state) {
     ApplySubtitleOutlineButton().IsEnabled(canStyle);
     ApplySubtitleBackgroundButton().IsEnabled(canStyle);
     UpdateSubtitleStyleFeedback(state);
+    UpdateSubtitleEncoding(state);
 }
 }

@@ -163,6 +163,8 @@ private:
     std::string navigationPath_;
     Microsoft::UI::Xaml::Controls::ContentDialog jumpDialog_{nullptr};
     void WireSubtitleControls();
+    void WireSubtitleEncoding();
+    void UpdateSubtitleEncoding(iima::PlaybackSnapshot const& state);
     void ApplySubtitleColorDraft(unsigned kind);
     winrt::fire_and_forget ChooseSubtitleFont();
     std::stop_source fontCatalogStop_;

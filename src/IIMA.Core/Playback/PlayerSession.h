@@ -47,6 +47,9 @@ public:
     void SelectSecondarySubtitle(std::int64_t id);
     void SetSecondarySubtitlesVisible(bool visible);
     void ReloadSubtitles();
+    // Queue the encoding change; reload matching external tracks only after success.
+    bool SetSubtitleEncoding(std::string encoding);
+    bool SubtitleEncodingBusy() const noexcept { return subtitleEncodingRequest_ != 0; }
     void SeekSubtitle(int direction);
     // Completion runs on the UI dispatcher, including immediate rejection.
     // Close cancellation is delivered only after mpv has released its file writes.
@@ -109,6 +112,9 @@ public:
 private:
     PlayerSession(Dispatch dispatch, Changed changed);
     void OnEvent(MpvEvent event);
+    void HandleSubtitleEncodingReply(MpvEvent const& event);
+    std::uint64_t subtitleEncodingRequest_{}, subtitleEncodingGeneration_{};
+    std::vector<std::pair<std::int64_t, std::string>> subtitleEncodingTracks_;
     void Notify();
     bool CanOpen();
     void MaybeResume();

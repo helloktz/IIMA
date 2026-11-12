@@ -86,7 +86,7 @@ struct MpvClient::State {
                 check(api.observe_property(handle, id++, name, MPV_FORMAT_DOUBLE), name);
             for (auto const* name : {"pause", "paused-for-cache", "vo-configured", "mute", "sub-visibility", "secondary-sub-visibility", "seekable"})
                 check(api.observe_property(handle, id++, name, MPV_FORMAT_FLAG), name);
-            for(auto const* name : {"path", "mpv-version", "current-tracks/video/codec-desc", "hwdec-current", "current-vo", "loop-file", "loop-playlist", "keep-open", "ab-loop-count", "media-title", "audio-device", "deinterlace", "sub-font", "sub-font-size", "sub-bold", "sub-italic", "sub-color", "sub-outline-color", "sub-outline-size", "sub-back-color"})
+            for(auto const* name : {"path", "mpv-version", "current-tracks/video/codec-desc", "hwdec-current", "current-vo", "loop-file", "loop-playlist", "keep-open", "ab-loop-count", "media-title", "audio-device", "deinterlace", "sub-codepage", "sub-font", "sub-font-size", "sub-bold", "sub-italic", "sub-color", "sub-outline-color", "sub-outline-size", "sub-back-color"})
                 check(api.observe_property(handle,id++,name,MPV_FORMAT_STRING),name);
             for(auto const* name : {"playlist", "track-list", "chapter-list", "metadata", "video-params", "audio-params", "audio-device-list", "vf", "af"})
                 check(api.observe_property(handle,id++,name,MPV_FORMAT_NODE),name);
