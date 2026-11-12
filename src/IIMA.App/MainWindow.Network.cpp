@@ -55,7 +55,7 @@ winrt::fire_and_forget MainWindow::OpenNetworkUrl(bool invertWindowPolicy) {
                 // file openURLs duplicate suppression path in IINA.
                 pickerOpen_ = false;
                 std::vector<std::string> paths{to_string(uri.AbsoluteUri())};
-                if (openInputRouter_) openInputRouter_(std::move(paths), newWindow, true, true);
+                if (openInputRouter_) openInputRouter_(std::move(paths), newWindow, true, true, false);
                 else ReceiveResolvedInput(std::move(paths));
             }
         }

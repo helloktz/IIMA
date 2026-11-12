@@ -44,6 +44,7 @@ void MainWindow::QueueFiles(std::vector<std::string> paths, bool append, bool us
     if (closing_ || paths.empty()) return;
     if (activationTimer_) activationTimer_.Stop();
     activationInputs_.clear(); activationDelayElapsed_ = false;
+    CancelAutomaticFiles(); pendingAutoFileMatch_ = false;
     inputStop_.request_stop();
     auto generation = ++inputGeneration_;
     UpdateNetworkOpen(session_->Snapshot());
@@ -66,10 +67,11 @@ void MainWindow::QueueFiles(std::vector<std::string> paths, bool append, bool us
                         self->openInputRouter_(std::move(result.paths),
                             self->preferences_.Boolean("alwaysOpenInNewWindow") != invertWindowPolicy,
                             singleSource || self->preferences_.Boolean("groupSimultaneousOpensInPlaylist"),
-                            self->preferences_.Boolean("allowDuplicatePlayers"));
+                            self->preferences_.Boolean("allowDuplicatePlayers"), result.singleExplicitMedia);
                     } else {
                         self->pendingFiles_ = std::move(result.paths);
                         self->pendingAppend_ = append;
+                        self->pendingAutoFileMatch_ = !append && result.singleExplicitMedia;
                         self->OpenPendingFiles();
                     }
                 } catch (hresult_error const& error) { self->ShowError(error.message()); }
@@ -96,6 +98,8 @@ void MainWindow::OpenPendingFiles()
     }
     inputAssigned_ = true;
     BindNetworkOpenAttempt(paths, pendingAppend_);
+    PrepareAutomaticFiles(paths, !pendingAppend_ && pendingAutoFileMatch_);
+    pendingAutoFileMatch_ = false;
     session_->OpenMultiple(std::move(paths), pendingAppend_);
     UpdateNetworkOpen(session_->Snapshot());
 }

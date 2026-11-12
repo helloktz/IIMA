@@ -23,7 +23,7 @@ bool MainWindow::HasOpenInput(std::string const& path) const
     return (state.media == iima::MediaState::Loading || state.media == iima::MediaState::Loaded ||
             state.media == iima::MediaState::Ended) && state.path == path;
 }
-void MainWindow::ReceiveResolvedInput(std::vector<std::string> paths)
+void MainWindow::ReceiveResolvedInput(std::vector<std::string> paths, bool singleExplicitMedia)
 {
     if (closing_ || paths.empty()) return;
     // Input was resolved once on the originating window's worker. Re-enumerating
@@ -31,6 +31,8 @@ void MainWindow::ReceiveResolvedInput(std::vector<std::string> paths)
     if (activationTimer_) activationTimer_.Stop();
     activationInputs_.clear(); activationDelayElapsed_ = false;
     inputStop_.request_stop(); ++inputGeneration_; inputResolving_ = false;
+    CancelAutomaticFiles();
+    pendingAutoFileMatch_ = singleExplicitMedia && paths.size() == 1;
     inputAssigned_ = true;
     pendingFiles_ = std::move(paths);
     pendingAppend_ = false;

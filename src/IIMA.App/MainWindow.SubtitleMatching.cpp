@@ -9,6 +9,7 @@
 using namespace winrt;
 namespace winrt::IIMA::implementation {
 void MainWindow::FindLocalSubtitle() {
+    CancelAutomaticFiles(); // Explicit matching supersedes background auto matching.
     auto const& snapshot = session_->Snapshot();
     if (closing_ || snapshot.media != iima::MediaState::Loaded || snapshot.path.empty()) return;
     std::filesystem::path media(to_hstring(snapshot.path).c_str());

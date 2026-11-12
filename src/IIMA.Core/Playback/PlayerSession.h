@@ -30,11 +30,17 @@ public:
     // shuffled=true asks mpv to undo its last shuffle, false asks to shuffle.
     void ShufflePlaylist(bool shuffled);
     void InsertPlaylist(std::vector<std::string> paths, std::optional<std::size_t> at = {});
+    // False means not started. True is accepted/no-op, not completed; playlist
+    // events and the existing edit cursor remain the source of truth.
+    bool ExpandAutoPlaylist(std::vector<std::string> before, std::vector<std::string> after,
+                            std::int64_t expectedEntry, std::uint64_t expectedRevision,
+                            std::uint64_t expectedIntent, std::uint64_t expectedGeneration);
     void RemovePlaylistItems(std::vector<std::size_t> indices);
     void DropPlaylistItems(std::vector<std::size_t> indices, std::size_t beforeRow);
     void QueuePlaylistItemsNext(std::vector<std::size_t> indices);
     // Cancels only unsent work, never claims rollback of a submitted command.
     void CancelPlaylistEdits();
+    std::uint64_t PlaylistEditIntentRevision() const noexcept { return playlistEditIntentRevision_; }
     bool PlaylistEditBusy() const noexcept { return static_cast<bool>(playlistEdit_); }
     bool PlaylistShuffled() const noexcept { return playlistShuffled_; }
     void SelectTrack(std::string type, std::int64_t id);
@@ -42,6 +48,7 @@ public:
     void SelectChapter(std::size_t index);
     void StepChapter(int direction);
     void AddSubtitle(std::string path, bool select = true);
+    std::uint64_t SubtitleEditIntentRevision() const noexcept { return subtitleEditIntentRevision_; }
     // True means queued, not decoded. Actual tracks/errors arrive asynchronously.
     bool LoadExternalAudio(std::string path);
     void ApplySubtitleStyle(SubtitleStyle const& style, std::vector<std::string> fields = {});
@@ -181,7 +188,9 @@ private:
     void CancelFilterEditCallbacks();
     std::map<std::uint64_t, FilterEditCompleted> filterEditCallbacks_;
     void PausedCommand(std::vector<std::string> command);
-    void BeginPlaylistEdit(PlaylistEditPlan plan, std::optional<bool> shuffledAfter = {});
+    std::uint64_t playlistEditIntentRevision_{};
+    std::uint64_t subtitleEditIntentRevision_{};
+    void BeginPlaylistEdit(PlaylistEditPlan plan, std::optional<bool> shuffledAfter = {}, bool automatic = false);
     void AdvancePlaylistEdit(std::span<const PlaylistItem> refreshed);
     bool HandlePlaylistEditEvent(MpvEvent const& event);
     void FailPlaylistEdit(std::string error);

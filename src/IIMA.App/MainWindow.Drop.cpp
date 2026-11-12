@@ -133,7 +133,7 @@ fire_and_forget MainWindow::DropFiles(DragEventArgs args) {
         if (!current()) co_return;
         auto weak = get_weak();
         auto finish = [weak, operation, inputRevision, generation, intent,
-            subtitles = std::move(subtitles), skippedLut, invalidSubtitle](iima::LocalInputResult result) {
+            subtitles = std::move(subtitles), skippedLut, invalidSubtitle, singleSource = inputs.size() == 1](iima::LocalInputResult result) {
             auto self = weak.get();
             if (!self || self->closing_ || result.cancelled || !self->userDataLoaded_ || self->pickerOpen_ ||
                 self->interactiveCrop_.Active() || self->cropOriginal_ || self->session_->PlaylistEditBusy() ||
@@ -141,7 +141,7 @@ fire_and_forget MainWindow::DropFiles(DragEventArgs args) {
             auto const& state = self->session_->Snapshot();
             if (state.mediaGeneration != generation || state.mediaOpenIntentRevision != intent) return;
             if (!result.paths.empty()) {
-                self->ReceiveResolvedInput(std::move(result.paths));
+                self->ReceiveResolvedInput(std::move(result.paths), singleSource && result.singleExplicitMedia);
             } else if (!subtitles.empty()) {
                 if (self->inputResolving_ || !self->pendingFiles_.empty() || !self->activationInputs_.empty()) {
                     self->ShowError(L"另一次媒体打开尚未完成，请等待后重新拖放字幕。"); return;

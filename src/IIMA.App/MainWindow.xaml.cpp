@@ -245,6 +245,7 @@ void MainWindow::Apply(iima::PlaybackSnapshot const& state)
     UpdateAutomaticVideoSize();
     UpdateWindowAspectConstraint();
     UpdateNetworkOpen(state);
+    UpdateAutomaticFiles();
     QueueWindowScaleFeedback();
     RefreshPlayerMenus();
 }
@@ -287,6 +288,7 @@ void MainWindow::BeginClose()
     inputStop_.request_stop(); ++inputGeneration_;
     dropResolveStop_.request_stop(); ++dropReadGeneration_;
     networkOpenUrl_.clear();
+    CancelAutomaticFiles();
     subtitleMatchStop_.request_stop(); ++subtitleMatchGeneration_;
     HideScreenshotPreview();
     if (osdTimer_) osdTimer_.Stop();

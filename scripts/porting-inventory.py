@@ -68,7 +68,7 @@ MAPPING = {
     'SidebarAudioPane.swift': ['src/IIMA.Core/Audio/Equalizations.cpp', 'src/IIMA.App/MainWindow.Audio.cpp', 'src/IIMA.App/MainWindow.ExternalAudio.cpp'],
     'SidebarVideoPane.swift': ['src/IIMA.App/MainWindow.Video.cpp', 'src/IIMA.App/MainWindow.VideoAdjustments.cpp'],
     'SidebarSubtitlesPane.swift': ['src/IIMA.App/MainWindow.SubtitleColorPicker.cpp', 'src/IIMA.App/MainWindow.Subtitles.cpp', 'src/IIMA.App/MainWindow.SubtitleStyle.cpp', 'src/IIMA.Core/Subtitles/SubtitleStyle.cpp'],
-    'AutoFileMatcher.swift': ['src/IIMA.Core/Matching/SubtitleMatcher.cpp'],
+    'AutoFileMatcher.swift': ['src/IIMA.Core/Matching/SubtitleMatcher.cpp', 'src/IIMA.App/Platform/AutomaticFileMatcher.cpp', 'src/IIMA.App/MainWindow.AutomaticFiles.cpp', 'src/IIMA.Core/Playlist/PlaylistPlan.cpp'],
     'FileGroup.swift': ['src/IIMA.Core/Matching/FileGroup.cpp'],
     'OpenURLWindowController.swift': ['src/IIMA.Core/Network/MediaUrl.cpp', 'src/IIMA.App/MainWindow.Network.cpp', 'src/IIMA.App/MainWindow.NetworkStatus.cpp', 'src/IIMA.Core/Playback/PlayerSession.NetworkOpen.cpp'],
     'OSDMessage.swift': ['src/IIMA.Core/OSD/OSDMessage.cpp'],

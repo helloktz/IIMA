@@ -30,7 +30,12 @@ LocalInputResult Enumerate(std::vector<std::wstring> const& inputs, std::stop_to
         if(attributes==INVALID_FILE_ATTRIBUTES) { warn(input,L"无法访问路径"); continue; }
         if(!(attributes & FILE_ATTRIBUTE_DIRECTORY)) {
             // IINA openURLs passes a single source playlist straight to mpv.
-            if((inputs.size()==1 && IsPlaylistPath(root.native())) || AcceptExplicitFile(root.native())) files.push_back(root.native());
+            if((inputs.size()==1 && IsPlaylistPath(root.native())) || AcceptExplicitFile(root.native())) {
+                files.push_back(root.native());
+                result.singleExplicitMedia=inputs.size()==1 && AcceptDiscoveredFile(root.native()) &&
+                    !IsPlaylistPath(root.native()) && !(attributes & (FILE_ATTRIBUTE_REPARSE_POINT|FILE_ATTRIBUTE_DEVICE)) &&
+                    fs::is_regular_file(root,error) && !error;
+            }
             else warn(input,L"不是可打开的媒体文件；字幕请使用添加字幕操作");
             continue;
         }

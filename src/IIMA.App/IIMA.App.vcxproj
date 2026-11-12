@@ -86,6 +86,8 @@
     <ClInclude Include="Platform\InstanceProtocol.h" />
     <ClCompile Include="Platform\LocalInputResolver.cpp" />
     <ClInclude Include="Platform\LocalInputResolver.h" />
+    <ClInclude Include="Platform\AutomaticFileMatcher.h" />
+    <ClCompile Include="Platform\AutomaticFileMatcher.cpp" />
     <ClCompile Include="Platform\MediaIntegration.cpp" />
     <ClInclude Include="Platform\MediaIntegration.h" />
     <ClCompile Include="Platform\UserDataStore.cpp" />
@@ -121,6 +123,7 @@
   <ItemGroup>
     <ClCompile Include="MainWindow.Audio.cpp" />
     <ClCompile Include="MainWindow.SubtitleMatching.cpp" />
+    <ClCompile Include="MainWindow.AutomaticFiles.cpp" />
     <ClCompile Include="MainWindow.Subtitles.cpp" />
     <ClCompile Include="MainWindow.SubtitleEncoding.cpp" />
     <ClCompile Include="MainWindow.SubtitleStyle.cpp" />

@@ -1120,3 +1120,13 @@ Windows新增只读`ReadFullscreenInformation`：GetTimeFormatEx按用户区域�
 - 实际ReceiveResolvedInput目标窗口显示非模态加载取消/失败重试；源窗口不控制路由到其他窗口的播放器。重试只在目标窗口打开，待提交取消只删除该pending输入，已提交取消须匹配仍有效的intent。成功、后续新打开/导航、关闭均废弃旧提示。
 - 事件小日志最多64项，支持loadfile回复与START/Loaded先后顺序；重定向仅跟踪mpv提供的first inserted entry。无法确定重定向目标或事件超限保持等待，不推测成功/失败；取消也必须验证媒体代次仍归属该请求，无法证实时明确报告未停止，不让旧按钮停止其他媒体。URL只保留窗口内存，不写历史/设置；提示不显示完整URL。暂不提供失败面板内编辑地址，也不加入认证或凭据保存。
 - 本批仅源码阅读、静态路径审阅、Git差异检查与统计，没有编译、测试或应用运行。
+
+## 显式单文件的同目录自动匹配（2026-11-12）
+
+- AutoFileMatcher.startMatching/getAllMediaFiles/addFilesToPlaylist、PlayerCore.fileStarted/autoLoadFilesInCurrentFolder → AutomaticFileMatcher后台发现、MainWindow.AutomaticFiles及PlanPlaylistAutoExpand。新增playlistAutoAdd（默认true）、subAutoLoadIINA（默认iina）及逗号分隔subAutoLoadPriorityString。
+- LocalInputResolver根据原始输入与真实文件属性标记singleExplicitMedia；该标记经过App窗口路由保留。只对原始单个支持媒体常规文件启用，不从解析后“只剩一个文件”推断；目录、批量、播放列表、网络、链接不触发。打开意图与实际entry确认后等待真实Loaded和单项队列，最多等待10秒的Loaded观察窗口，不使用轮询计时器。
+- 同目录视频组自然排序后音频组；单个事务append其他项，再把原current entry移到其排序位置，不重载或替换current ID。沿现有新鲜playlist读回cursor执行，每步校验队列；命令已执行部分不会宣称回滚。
+- 后台最多4个扫描，最多10000访问项、256媒体、512字幕、1MiB路径数据；非递归，跳过隐藏、链接及设备对象，读取不完整则不应用部分发现结果。匹配复用现有IINA分组/集数/优先词/有界模糊回退逻辑，模糊回退受playlistAutoAdd控制。
+- UI应用前再次核对输入/媒体代次、打开意图、playlistRevision及独立编辑意图修订；用户no-op或被拒绝的队列编辑也取消未提交自动发现。换片、关闭、选择器/裁剪、新输入、手动匹配和相关偏好修改取消旧工作。自动扩展开始后遵守现有单队列事务忙碌策略，不把用户操作当作可撤销已提交命令。
+- 字幕仅针对当前媒体，按外部路径去重且最多64项；扫描期间轨道或选择变化、或用户已提交但尚未观察的字幕添加/选择/重载/编码意图变化则跳过字幕应用。首次扫描等待path、非空track-list及首个playback restart，不把Loaded当所有属性已观察。使用sub-add auto而非强制sid=1，尊重已有内嵌/用户字幕选择，观察track-list决定实际结果。
+- 有意未覆盖：自定义字幕搜索目录（含上游默认./*的一层子目录）、自动队列后续自然切换的应用层匹配缓存、macOS本地化排序。后续媒体仍有既有mpv字幕加载规则，不宣称等同IINA完整自动匹配链。纯同目录显式打开链已静态接通，未编译、测试或运行。

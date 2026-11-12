@@ -16,7 +16,10 @@ bool Contains(std::wstring_view table, std::wstring const& value) {
 }
 constexpr auto playlists = L"|cue|m3u|m3u8|pls|";
 constexpr auto blacklist = L"|utf|utf8|utf-8|idx|sub|srt|smi|rt|ssa|aqt|jss|js|ass|mks|vtt|sup|scc|lrc|m3u|m3u8|pls|";
-constexpr auto media = L"|mkv|mp4|avi|m4v|mov|3gp|ts|mts|m2ts|wmv|flv|f4v|asf|webm|rm|rmvb|qt|dv|mpg|mpeg|mxf|vob|gif|ogv|ogm|mp3|aac|mka|dts|flac|ogg|oga|mogg|m4a|ac3|opus|wav|wv|aiff|aif|ape|tta|tak|";
+// Existing IINA Utility-derived discovery table, separated to retain its
+// video-before-audio automatic playlist order without duplicating the policy.
+constexpr auto video = L"|mkv|mp4|avi|m4v|mov|3gp|ts|mts|m2ts|wmv|flv|f4v|asf|webm|rm|rmvb|qt|dv|mpg|mpeg|mxf|vob|gif|ogv|ogm|";
+constexpr auto audio = L"|mp3|aac|mka|dts|flac|ogg|oga|mogg|m4a|ac3|opus|wav|wv|aiff|aif|ape|tta|tak|";
 bool Digit(wchar_t c) { return c >= L'0' && c <= L'9'; }
 // Numeric runs are compared without integer conversion or overflow. Unicode
 // non-ASCII code units remain ordinal: intentionally not macOS locale collation.
@@ -41,7 +44,13 @@ int Natural(std::wstring_view a, std::wstring_view b) {
 }
 bool IsPlaylistPath(std::wstring_view path) { return Contains(playlists, Extension(path)); }
 bool AcceptExplicitFile(std::wstring_view path) { return !Contains(blacklist, Extension(path)); }
-bool AcceptDiscoveredFile(std::wstring_view path) { return Contains(media, Extension(path)); }
+DiscoveredMediaType ClassifyDiscoveredMedia(std::wstring_view path) {
+    const auto extension=Extension(path);
+    if (Contains(video,extension)) return DiscoveredMediaType::Video;
+    if (Contains(audio,extension)) return DiscoveredMediaType::Audio;
+    return DiscoveredMediaType::None;
+}
+bool AcceptDiscoveredFile(std::wstring_view path) { return ClassifyDiscoveredMedia(path)!=DiscoveredMediaType::None; }
 void SortUniquePaths(std::vector<std::wstring>& paths) {
     std::sort(paths.begin(),paths.end(),[](auto const& a, auto const& b) {
         auto ai=a.find_last_of(L"/\\"), bi=b.find_last_of(L"/\\");

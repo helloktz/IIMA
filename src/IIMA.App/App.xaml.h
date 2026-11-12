@@ -16,7 +16,7 @@ namespace winrt::IIMA::implementation
         winrt::com_ptr<MainWindow> CreatePlayerWindow();
         void RouteActivation(std::vector<std::wstring> paths);
         void RouteResolvedInput(WindowId source, std::vector<std::string> paths,
-                                bool newWindow, bool group, bool allowDuplicates);
+                                bool newWindow, bool group, bool allowDuplicates, bool singleExplicitMedia);
         void ActivateNext(WindowId current);
         void WindowClosed(WindowId id);
         void UpdateWindowCounts();

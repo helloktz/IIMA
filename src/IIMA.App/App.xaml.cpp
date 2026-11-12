@@ -29,8 +29,8 @@ winrt::com_ptr<MainWindow> App::CreatePlayerWindow()
             if (auto app = weak.get()) app->ActivateNext(id);
         });
         window->SetOpenInputRouter([weak, id = *id](std::vector<std::string> paths,
-                bool newWindow, bool group, bool duplicates) {
-            if (auto app = weak.get()) app->RouteResolvedInput(id, std::move(paths), newWindow, group, duplicates);
+                bool newWindow, bool group, bool duplicates, bool singleExplicitMedia) {
+            if (auto app = weak.get()) app->RouteResolvedInput(id, std::move(paths), newWindow, group, duplicates, singleExplicitMedia);
         });
         window->SetActivationClosing([weak, id = *id] {
             if (auto app = weak.get()) {

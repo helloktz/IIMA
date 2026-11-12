@@ -120,6 +120,7 @@ bool PlayerSession::CanOpen() {
 }
 void PlayerSession::Open(std::string path) { OpenMultiple({std::move(path)}); }
 void PlayerSession::OpenMultiple(std::vector<std::string> paths,bool append) {
+    if (append) ++playlistEditIntentRevision_;
     if(paths.empty() || !CanOpen()) return;
     if(std::any_of(paths.begin(),paths.end(),[](auto const& p) { return p.empty() || p.find('\0')!=std::string::npos; })) {
         snapshot_.error="A media path is empty or contains a NUL character"; Notify(); return;
@@ -186,6 +187,7 @@ void PlayerSession::PlaylistPlay(std::size_t index) {
     if(index<snapshot_.playlist.size()) { expectedEntry_=snapshot_.playlist[index].id; PausedCommand({"playlist-play-index",std::to_string(index)}); }
 }
 void PlayerSession::SelectTrack(std::string type,std::int64_t id) {
+    if (type=="sub") ++subtitleEditIntentRevision_;
     if(snapshot_.session!=SessionState::Ready || snapshot_.media!=MediaState::Loaded ||
         waitingForStart_ || playlistEdit_ || id<0) return;
     std::string property=type=="audio" ? "aid" : type=="sub" ? "sid" : type=="video" ? "vid" : "";
@@ -195,6 +197,7 @@ void PlayerSession::SelectTrack(std::string type,std::int64_t id) {
 }
 // IINA MainMenuActions.menuCycleTrack delegates order and off-slot to mpv.
 void PlayerSession::CycleTrack(std::string type) {
+    if (type=="sub") ++subtitleEditIntentRevision_;
     if (snapshot_.session != SessionState::Ready || snapshot_.media != MediaState::Loaded ||
         waitingForStart_ || playlistEdit_) return;
     if (type != "video" && type != "audio" && type != "sub") return;
@@ -249,6 +252,7 @@ void PlayerSession::ScreenshotToFile(std::string path, ScreenshotCompleted compl
     screenshotCompleted_ = std::move(completion);
 }
 void PlayerSession::AddSubtitle(std::string path, bool select) {
+    ++subtitleEditIntentRevision_;
     if(snapshot_.session!=SessionState::Ready || path.empty() || path.find('\0')!=std::string::npos) return;
     auto found=std::find_if(snapshot_.tracks.begin(),snapshot_.tracks.end(),[&](auto const& t){return t.type=="sub" && t.externalPath==path;});
     if(found!=snapshot_.tracks.end()) client_->Command({"sub-reload",std::to_string(found->id)});

@@ -23,7 +23,7 @@ struct EditorRefreshScope {
 };
 bool HasApplicationAdapter(std::string_view key) {
     static const std::set<std::string_view> keys{
-        "initialWindowSizePosition", "enableInitialVolume", "initialVolume", "alwaysOpenInNewWindow", "groupSimultaneousOpensInPlaylist", "allowDuplicatePlayers",
+        "playlistAutoAdd", "subAutoLoadIINA", "subAutoLoadPriorityString", "initialWindowSizePosition", "enableInitialVolume", "initialVolume", "alwaysOpenInNewWindow", "groupSimultaneousOpensInPlaylist", "allowDuplicatePlayers",
         "autoSwitchToMusicMode", "musicModeShowPlaylist", "musicModeShowAlbumArt",
         "resizeWindowTiming", "resizeWindowOption", "usePhysicalResolution", "unlockWindowAspectRatio", "preventScreenSaver", "allowScreenSaverForAudio", "pauseWhenInactive", "pauseWhenMinimized", "pauseWhenGoesToSleep", "enableThumbnailPreview", "thumbnailWidth", "maxThumbnailPreviewCacheSize",
         "displayTimeAndBatteryInFullScreen", "alwaysFloatOnTop", "fullScreenWhenOpen", "playWhenEnteringFullScreen", "pauseWhenLeavingFullScreen",
@@ -194,6 +194,8 @@ void MainWindow::ApplyAdvancedSetting(std::string const& key, iima::settings::Pr
     }
     std::string error;
     if (!preferences_.Set(key, std::move(value), error)) { ShowError(to_hstring(error)); return; }
+    if (key == "playlistAutoAdd" || key == "subAutoLoadIINA" || key == "subAutoLoadPriorityString")
+        CancelAutomaticFiles(); // Changes apply to the next explicit single-file open.
     userData_.settings.advancedPreferences = preferences_.Overrides();
     session_->ApplyAdvancedPreferences(preferences_, key == "audioDevice");
     UpdateControlBarPolicy();

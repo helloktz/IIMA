@@ -56,6 +56,7 @@ void PlayerSession::SetSecondarySubtitleDelay(double seconds) {
         client_->Command({"set", "secondary-sub-delay", std::to_string(seconds)});
 }
 void PlayerSession::SelectSecondarySubtitle(std::int64_t id) {
+    ++subtitleEditIntentRevision_;
     if (snapshot_.session != SessionState::Ready || id < 0) return;
     if (id && std::none_of(snapshot_.tracks.begin(), snapshot_.tracks.end(), [id](auto const& track) {
         return track.type == "sub" && track.id == id;
@@ -67,6 +68,7 @@ void PlayerSession::SetSecondarySubtitlesVisible(bool visible) {
         client_->Command({"set", "secondary-sub-visibility", visible ? "yes" : "no"});
 }
 void PlayerSession::ReloadSubtitles() {
+    ++subtitleEditIntentRevision_;
     if (snapshot_.session != SessionState::Ready) return;
     // Reload only external tracks. Embedded subtitle tracks cannot be reloaded.
     // mpv retains each reloaded track ID; do not optimistically reselect it.
@@ -93,6 +95,7 @@ void PlayerSession::StepSubtitleTiming(int direction, bool primary) {
     // authoritative and available events depend on mpv's subtitle prefetch.
 }
 bool PlayerSession::SetSubtitleEncoding(std::string encoding) {
+    ++subtitleEditIntentRevision_;
     if (snapshot_.session != SessionState::Ready || snapshot_.media != MediaState::Loaded ||
         waitingForStart_ || playlistEdit_ || subtitleEncodingRequest_ || !IsSubtitleEncoding(encoding)) return false;
     subtitleEncodingTracks_.clear();

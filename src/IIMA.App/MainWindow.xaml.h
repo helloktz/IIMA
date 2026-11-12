@@ -48,9 +48,9 @@ struct MainWindow : MainWindowT<MainWindow> {
     void ReceiveActivation(std::vector<std::wstring> paths);
     void ConfigureWindowActions(std::function<void()> create, std::function<void()> next);
     void UpdateWindowCount(std::size_t count);
-    using OpenInputRouter = std::function<void(std::vector<std::string>, bool, bool, bool)>;
+    using OpenInputRouter = std::function<void(std::vector<std::string>, bool, bool, bool, bool)>;
     void SetOpenInputRouter(OpenInputRouter router) { openInputRouter_ = std::move(router); }
-    void ReceiveResolvedInput(std::vector<std::string> paths);
+    void ReceiveResolvedInput(std::vector<std::string> paths, bool singleExplicitMedia = false);
     bool CanReuseForInput() const;
     bool HasOpenInput(std::string const& path) const;
     bool IsClosing() const noexcept { return closing_; }
@@ -301,6 +301,14 @@ private:
     std::optional<std::int64_t> secondaryDraftEntry_;
     std::string secondaryDraftPath_;
     void FindLocalSubtitle();
+    void PrepareAutomaticFiles(std::vector<std::string> const& paths, bool eligible);
+    void UpdateAutomaticFiles();
+    void CancelAutomaticFiles();
+    bool pendingAutoFileMatch_{}, automaticFilesStarted_{};
+    std::string automaticFilesPath_;
+    std::uint64_t automaticFilesGeneration_{}, automaticFilesIntent_{}, automaticFilesInputRevision_{}, automaticFilesEditIntent_{}, automaticFilesMediaGeneration_{}, automaticFilesSubtitleIntent_{};
+    std::stop_source automaticFilesStop_;
+    std::chrono::steady_clock::time_point automaticFilesDeadline_{};
     void WireOnlineSubtitles();
     void SearchOnlineSubtitles();
     void DownloadOnlineSubtitle();

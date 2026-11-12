@@ -8,12 +8,12 @@
 
 namespace winrt::IIMA::implementation {
 void App::RouteResolvedInput(WindowId source, std::vector<std::string> paths,
-                            bool newWindow, bool group, bool allowDuplicates)
+                            bool newWindow, bool group, bool allowDuplicates, bool singleExplicitMedia)
 {
     auto origin = windows_.find(source);
     if (origin == windows_.end() || origin->second->IsClosing() || paths.empty()) return;
     if (!newWindow) {
-        origin->second->ReceiveResolvedInput(std::move(paths));
+        origin->second->ReceiveResolvedInput(std::move(paths), singleExplicitMedia);
         return;
     }
     struct Delivery {
@@ -68,7 +68,7 @@ void App::RouteResolvedInput(WindowId source, std::vector<std::string> paths,
         if (!delivery.window) delivery.window = CreatePlayerWindow();
     for (auto& delivery : deliveries) {
         if (delivery.paths.empty()) delivery.window->ReceiveActivation({});
-        else delivery.window->ReceiveResolvedInput(std::move(delivery.paths));
+        else delivery.window->ReceiveResolvedInput(std::move(delivery.paths), singleExplicitMedia);
     }
 }
 }

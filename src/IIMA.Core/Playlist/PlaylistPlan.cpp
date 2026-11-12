@@ -151,6 +151,45 @@ PlaylistEditPlan PlanPlaylistInsert(std::span<const PlaylistItem> items,
     return plan;
 }
 
+// IINA AutoFileMatcher.addFilesToPlaylist, Copyright (c) 2017 lhc.
+// Append siblings in order and move the original current entry once. Never
+// clear/reload it: its mpv identity, playback position and track state survive.
+PlaylistEditPlan PlanPlaylistAutoExpand(std::span<const PlaylistItem> items,
+                                       std::span<const std::string> before,
+                                       std::span<const std::string> after,
+                                       std::uint64_t revision) {
+    auto plan = Base(items, revision);
+    if (!plan) return plan;
+    if (items.size() != 1 || !items.front().current) {
+        plan.error = "Automatic expansion requires a single current playlist entry"; return plan;
+    }
+    if (before.size() > 1000 || after.size() > 1000 - before.size()) {
+        plan.error = "Automatic expansion exceeds 1000 additional entries; no entries were added"; return plan;
+    }
+    std::vector<std::string> paths;
+    paths.reserve(before.size() + after.size());
+    paths.insert(paths.end(), before.begin(), before.end());
+    paths.insert(paths.end(), after.begin(), after.end());
+    std::set<std::string> unique{items.front().path};
+    for (auto const& path : paths) {
+        if (path.empty() || path.find('\0') != std::string::npos || !unique.insert(path).second) {
+            plan.error = "Automatic expansion contains an invalid or duplicate path"; return plan;
+        }
+    }
+    if (!FitsSnapshotBudget(items, paths.size() + (before.empty() ? 0 : 1), paths)) {
+        plan.error = "Automatic expansion exceeds the bounded edit-plan budget; no entries were added"; return plan;
+    }
+    auto queue = Capture(items);
+    std::size_t token{};
+    for (auto const& path : paths) {
+        auto previous = queue;
+        queue.push_back({std::nullopt, path, token++});
+        plan.steps.push_back({{"loadfile", path, "append"}, std::move(previous), queue});
+    }
+    Move(plan, queue, 0, before.size());
+    return plan;
+}
+
 PlaylistEditPlan PlanPlaylistRemove(std::span<const PlaylistItem> items,
                                    std::span<const std::size_t> indices, std::uint64_t revision) {
     auto plan = Base(items, revision);

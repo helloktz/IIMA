@@ -9,6 +9,9 @@ struct LocalInputResult {
     std::vector<std::string> paths;
     std::vector<std::wstring> warnings;
     bool cancelled{};
+    // Proven from the original single input's file attributes, not expansion
+    // result count. Never true for a folder, playlist, URL or unknown extension.
+    bool singleExplicitMedia{};
 };
 class LocalInputResolver {
 public:

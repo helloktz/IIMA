@@ -20,7 +20,10 @@ void PlayerSession::FailPlaylistEdit(std::string error) {
     Notify();
 }
 
-void PlayerSession::BeginPlaylistEdit(PlaylistEditPlan plan, std::optional<bool> shuffledAfter) {
+void PlayerSession::BeginPlaylistEdit(PlaylistEditPlan plan, std::optional<bool> shuffledAfter, bool automatic) {
+    // Intent, not observed mutation: even rejected/no-op user edits supersede
+    // background automatic discovery that started before this action.
+    if (!automatic) ++playlistEditIntentRevision_;
     if(snapshot_.session!=SessionState::Ready) return;
     // Do not replace an executing edit with one based on its not-yet-observed
     // intermediate state. Explicit Open/Stop/Close may cancel it instead.
@@ -130,6 +133,25 @@ void PlayerSession::ShufflePlaylist(bool shuffled) {
 void PlayerSession::InsertPlaylist(std::vector<std::string> paths,std::optional<std::size_t> at) {
     BeginPlaylistEdit(PlanPlaylistInsert(snapshot_.playlist,paths,at,snapshot_.playlistRevision));
 }
+bool PlayerSession::ExpandAutoPlaylist(std::vector<std::string> before, std::vector<std::string> after,
+                                       std::int64_t expectedEntry, std::uint64_t expectedRevision,
+                                       std::uint64_t expectedIntent, std::uint64_t expectedGeneration) {
+    if (snapshot_.session != SessionState::Ready || snapshot_.media != MediaState::Loaded ||
+        snapshot_.entryId != expectedEntry || snapshot_.playlistRevision != expectedRevision ||
+        snapshot_.mediaOpenIntentRevision != expectedIntent || snapshot_.mediaGeneration != expectedGeneration ||
+        snapshot_.playlist.size() != 1 || snapshot_.playlist.front().id != expectedEntry ||
+        !snapshot_.playlist.front().current || playlistEdit_ || pauseRequest_ || loadRequest_ ||
+        waitingForStart_ || !pendingCommands_.empty()) return false;
+    auto plan = PlanPlaylistAutoExpand(snapshot_.playlist, before, after, expectedRevision);
+    if (!plan) {
+        snapshot_.error = plan.error;
+        Notify();
+        return false;
+    }
+    if (plan.steps.empty()) return true;
+    BeginPlaylistEdit(std::move(plan), {}, true);
+    return static_cast<bool>(playlistEdit_);
+}
 void PlayerSession::RemovePlaylistItems(std::vector<std::size_t> indices) {
     BeginPlaylistEdit(PlanPlaylistRemove(snapshot_.playlist,indices,snapshot_.playlistRevision));
 }
@@ -143,7 +165,9 @@ void PlayerSession::PlaylistRemove(std::size_t index) {
     RemovePlaylistItems({index});
 }
 void PlayerSession::PlaylistMove(std::size_t from,std::size_t finalIndex) {
-    if(from>=snapshot_.playlist.size() || finalIndex>=snapshot_.playlist.size() || from==finalIndex) return;
+    if(from>=snapshot_.playlist.size() || finalIndex>=snapshot_.playlist.size() || from==finalIndex) {
+        ++playlistEditIntentRevision_; return;
+    }
     std::vector<std::int64_t> desired;
     for(const auto& item:snapshot_.playlist) desired.push_back(item.id);
     const auto moving=desired[from];

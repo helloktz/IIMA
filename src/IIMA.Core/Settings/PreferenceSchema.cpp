@@ -13,6 +13,7 @@
 
 namespace iima::settings {
 namespace {
+constexpr EnumChoice subtitleAutoLoad[]{{0,"disabled"},{1,"filename-contains"},{2,"iina"}};
 constexpr EnumChoice hardware[]{{0,"no"},{1,"auto"},{2,"auto-copy"}};
 constexpr EnumChoice replay[]{{0,"no"},{1,"track"},{2,"album"}};
 constexpr EnumChoice gapless[]{{0,"no"},{1,"weak"},{2,"yes"}};
@@ -106,6 +107,9 @@ std::span<PreferenceDescriptor const> PreferenceSchema() {
         S("defaultEncoding",Area::Subtitles,"auto","sub-codepage",Timing::NextMedia),
         B("displayInLetterBox",Area::Subtitles,true,"sub-use-margins",Timing::Immediate),
         B("subScaleWithWindow",Area::Subtitles,true,"sub-scale-by-window",Timing::Immediate),
+        B("playlistAutoAdd",Area::Interface,true),
+        E("subAutoLoadIINA",Area::Subtitles,2,subtitleAutoLoad),
+        S("subAutoLoadPriorityString",Area::Subtitles,""),
         B("alwaysOpenInNewWindow",Area::Window,true),
         B("groupSimultaneousOpensInPlaylist",Area::Window,false),
         B("allowDuplicatePlayers",Area::Window,false),

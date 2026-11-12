@@ -38,6 +38,12 @@ PlaylistEditPlan PlanPlaylistInsert(std::span<const PlaylistItem> current,
                                    std::span<const std::string> paths,
                                    std::optional<std::size_t> at,
                                    std::uint64_t revision);
+// IINA AutoFileMatcher.addFilesToPlaylist: retain the currently playing entry
+// between naturally ordered earlier/later siblings. One guarded cursor plan.
+PlaylistEditPlan PlanPlaylistAutoExpand(std::span<const PlaylistItem> current,
+                                       std::span<const std::string> before,
+                                       std::span<const std::string> after,
+                                       std::uint64_t revision);
 PlaylistEditPlan PlanPlaylistRemove(std::span<const PlaylistItem> current,
                                    std::span<const std::size_t> indices,
                                    std::uint64_t revision);
