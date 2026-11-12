@@ -108,6 +108,8 @@ MainWindow::MainWindow()
             if (auto self = weak.get(); self && !self->closing_ && self->session_->Snapshot().seekable)
                 self->session_->Seek(seconds);
         });
+        if (!mediaIntegration_->TransportAvailable())
+            ShowError(L"系统媒体控制不可用；窗口内播放和防休眠策略仍可使用。关闭并重新打开播放器可重试系统媒体控制。");
     } catch (hresult_error const& error) { ShowError(error.message()); }
     try { WireWindowPlaybackPolicy(); }
     catch(hresult_error const& error) { ShowError(error.message()); }

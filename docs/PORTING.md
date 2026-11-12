@@ -959,3 +959,11 @@ Windows新增只读`ReadFullscreenInformation`：GetTimeFormatEx按用户区域�
 - 后处理独立记录发布/复制结果：文件写入失败仍尝试解码与复制；保存成功但WIC缺失/剪贴板失败保留已保存文件，并明确报告部分成功。预览只有实际发布成功才提供打开/定位目的路径，其他情况仅显示图像，绝不把暂存或失败目标当成成品。
 - 无自动重试/回滚，避免覆盖另一应用新剪贴板或重新写文件；暂存继续由原reply/关闭屏障与后处理持有期负责清理。Win32在EmptyClipboard之后失败时不能恢复旧剪贴板，这是既有适配限制；UI不宣称复制失败必然无副作用。
 - Windows差异：本端仍通过显式保存选择器选择目的地，不自动写截图目录；无FFmpeg图像解码fallback，缺可选WIC解码器时允许“文件已保存、复制/预览失败”。未生成图片、改剪贴板或编译测试运行。
+
+## 第九十一批：系统媒体控制失败与防休眠隔离
+
+追踪 `SleepPreventer.updateSleepPrevention/preventSleep/allowSleep` 与 `PlayerCore` 对 `NowPlayingInfoManager.updateInfo` 的独立调用。IINA 的播放电源策略不以系统媒体元数据服务成功为前提。Windows `MediaIntegration` 原先在 SMTC 激活/事件订阅失败时整体构造失败，导致其电源请求也不可用。
+
+现在 SMTC 初始化失败仅释放 transport：先清原子 ready、递增 epoch，再分别撤销已成功注册的订阅、停用控件/清状态/时间轴/元数据，最后释放 WinRT 引用。撤销失败也不能通过旧回调操作播放器，工作线程和 UI 队列双重检查 ready/epoch。成功完成全部订阅才设置 ready。窗口保留独立的 PowerCreateRequest 生命周期，Update 仍先应用播放/偏好策略，再在无 transport 时返回；关闭幂等释放两者。UI 一次显示降级提示，不每帧重试激活；重新打开播放器才重新尝试，避免权限/服务故障下反复订阅。
+
+这是故障隔离，不保证 Windows 接受电源请求，也不恢复失效的 SMTC 服务；有效 HWND/UI dispatcher 仍是初始化前置条件。没有修改系统设置。仅静态审阅、diff 空白检查，未编译、测试或调用 Windows 原生接口。

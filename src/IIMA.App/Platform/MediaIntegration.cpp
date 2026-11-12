@@ -24,7 +24,7 @@ struct MediaIntegration::State {
     SystemMediaTransportControls controls{nullptr};
     winrt::event_token buttonToken{}, positionToken{};
     bool subscribed{}, positionSubscribed{};
-    std::atomic<bool> alive{true};
+    std::atomic<bool> alive{true}, transportReady{false};
     std::function<void(SystemMediaCommand)> command;
     std::function<void(double)> seek;
     // UI state is accessed only on the dispatcher. Epoch is the sole field
@@ -84,12 +84,12 @@ struct MediaIntegration::State {
         if (!systemHeld || (display && !displayHeld))
             Report(L"IIMA: playback sleep-prevention request was not fully accepted.\n");
     }
-    void Close() noexcept {
-        if (!alive.exchange(false)) return;
-        SetPower(false, false);
+    // SMTC and sleep prevention are independent services in IINA. A partially
+    // registered transport must be retired without marking the power owner dead.
+    void ReleaseTransport() noexcept {
+        transportReady = false;
         ++epoch;
         active = canSeek = false;
-        command = {}; seek = {};
         if (controls) {
             // Revoke independently: failure of one cleanup must not leave the
             // other handler retaining a dispatcher or receiving new events.
@@ -101,15 +101,19 @@ struct MediaIntegration::State {
                 try { controls.PlaybackPositionChangeRequested(positionToken); } catch (...) {}
                 positionSubscribed = false;
             }
-            try {
-                controls.IsEnabled(false);
-                controls.PlaybackStatus(MediaPlaybackStatus::Closed);
-                controls.UpdateTimelineProperties(SystemMediaTransportControlsTimelineProperties{});
-                controls.DisplayUpdater().ClearAll();
-                controls.DisplayUpdater().Update();
-            } catch (...) { Report(L"IIMA: SMTC cleanup failed.\n"); }
+            // A failed setter must not suppress the remaining best-effort cleanup.
+            try { controls.IsEnabled(false); } catch (...) {}
+            try { controls.PlaybackStatus(MediaPlaybackStatus::Closed); } catch (...) {}
+            try { controls.UpdateTimelineProperties(SystemMediaTransportControlsTimelineProperties{}); } catch (...) {}
+            try { controls.DisplayUpdater().ClearAll(); controls.DisplayUpdater().Update(); } catch (...) {}
         }
         controls = nullptr;
+    }
+    void Close() noexcept {
+        if (!alive.exchange(false)) return;
+        SetPower(false, false);
+        ReleaseTransport();
+        command = {}; seek = {};
     }
     ~State() { Close(); }
 };
@@ -122,6 +126,7 @@ MediaIntegration::MediaIntegration(HWND window,
         throw winrt::hresult_invalid_argument(L"SMTC requires its owning window UI thread");
     state_->command = std::move(command);
     state_->seek = std::move(seek);
+    try {
     auto interop = winrt::get_activation_factory<SystemMediaTransportControls, ISystemMediaTransportControlsInterop>();
     winrt::check_hresult(interop->GetForWindow(window, winrt::guid_of<SystemMediaTransportControls>(),
                                               winrt::put_abi(state_->controls)));
@@ -134,7 +139,7 @@ MediaIntegration::MediaIntegration(HWND window,
     state_->buttonToken = state_->controls.ButtonPressed([weak, dispatcher](auto const&, SystemMediaTransportControlsButtonPressedEventArgs const& args) {
         try {
             auto state = weak.lock();
-            if (!state || !state->alive.load()) return;
+            if (!state || !state->alive.load() || !state->transportReady.load()) return;
             std::optional<SystemMediaCommand> command;
             switch (args.Button()) {
             case SystemMediaTransportControlsButton::Play: command = SystemMediaCommand::Play; break;
@@ -148,7 +153,7 @@ MediaIntegration::MediaIntegration(HWND window,
             dispatcher.TryEnqueue([weak, requested = *command, epoch] {
                 auto current = weak.lock();
                 try {
-                    if (current && current->alive.load() && current->active &&
+                    if (current && current->alive.load() && current->transportReady.load() && current->active &&
                         current->epoch.load() == epoch && current->command) current->command(requested);
                 } catch (...) { Report(L"IIMA: SMTC command failed.\n"); }
             });
@@ -159,14 +164,14 @@ MediaIntegration::MediaIntegration(HWND window,
         [weak, dispatcher](auto const&, PlaybackPositionChangeRequestedEventArgs const& args) {
             try {
                 auto state = weak.lock();
-                if (!state || !state->alive.load()) return;
+                if (!state || !state->alive.load() || !state->transportReady.load()) return;
                 const auto ticks = args.RequestedPlaybackPosition().count();
                 if (ticks < 0) return;
                 const double seconds = static_cast<double>(ticks) / 10000000.0;
                 const auto epoch = state->epoch.load();
                 dispatcher.TryEnqueue([weak, seconds, epoch] {
                     auto current = weak.lock();
-                    if (!current || !current->alive.load() || !current->active ||
+                    if (!current || !current->alive.load() || !current->transportReady.load() || !current->active ||
                         !current->canSeek || current->epoch.load() != epoch || !current->seek) return;
                     try { current->seek(std::clamp(seconds, 0.0, current->duration)); }
                     catch (...) { Report(L"IIMA: SMTC seek failed.\n"); }
@@ -174,10 +179,20 @@ MediaIntegration::MediaIntegration(HWND window,
             } catch (...) { Report(L"IIMA: SMTC seek delivery failed.\n"); }
         });
     state_->positionSubscribed = true;
+    state_->transportReady = true;
+    } catch (...) {
+        // Invalidate queued callbacks before revoking subscriptions. They may
+        // already have reached the UI queue even when initialization failed.
+        state_->ReleaseTransport();
+        Report(L"IIMA: system media controls unavailable; power policy remains active.\n");
+    }
 }
 
 MediaIntegration::~MediaIntegration() { Close(); }
 void MediaIntegration::Close() noexcept { if (state_) state_->Close(); }
+bool MediaIntegration::TransportAvailable() const noexcept {
+    return state_ && state_->alive.load() && state_->transportReady.load();
+}
 
 void MediaIntegration::Update(PlaybackSnapshot const& snapshot, bool preventSleep,
     bool allowDisplaySleepForAudio, bool musicMode) noexcept {
@@ -200,6 +215,9 @@ void MediaIntegration::Update(PlaybackSnapshot const& snapshot, bool preventSlee
         IsNetworkMediaPath(snapshot.path)).kind;
     const bool allowDisplay = allowDisplaySleepForAudio && (musicMode || kind == MusicMediaKind::Audio);
     state_->SetPower(playing && preventSleep, playing && preventSleep && !allowDisplay);
+    // Never dereference a null projected WinRT object after an activation or
+    // subscription failure. Power policy above remains evaluated on every update.
+    if (!state_->controls) return;
     try {
         auto info = MakeSystemMediaInfo(snapshot);
         auto controls = state_->controls;

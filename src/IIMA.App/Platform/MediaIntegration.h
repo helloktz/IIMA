@@ -24,6 +24,9 @@ public:
     // requests; an audio window cannot release another video's display request.
     void Update(PlaybackSnapshot const& state, bool preventSleep = true,
                 bool allowDisplaySleepForAudio = false, bool musicMode = false) noexcept;
+    // Owning UI thread only. False means local playback/power still work, but
+    // system media keys, metadata and timeline are unavailable for this window.
+    bool TransportAvailable() const noexcept;
     void Close() noexcept;
 private:
     struct State;
