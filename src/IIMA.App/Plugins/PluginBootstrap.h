@@ -399,25 +399,35 @@ inline constexpr char PluginBootstrap[] = R"IIMAJS(
     }
     return {json: json + '}', count: keys.length};
   }
-  function httpRequest(method, url, options) {
+  function httpRequest(method, url, options, destination) {
     url = httpString(url, 8192);
     if (!url.length) throw new TypeError('HTTP URL must not be empty');
     options = httpObject(options);
     const keys = ownKeys(options);
-    if (keys.length > 3) throw new TypeError('Unsupported HTTP options');
-    let encoded = '{';
+    const downloading = destination !== undefined;
+    if (downloading) {
+      destination = httpString(destination, 1024);
+      if (!destination.startsWith('@data/') && !destination.startsWith('@tmp/'))
+        throw new TypeError('Downloads require a private @data/ or @tmp/ filename');
+    }
+    if (keys.length > (downloading ? 4 : 3)) throw new TypeError('Unsupported HTTP options');
+    if (downloading && hasOwn(options, 'method')) method = httpString(httpField(options, 'method'), 16);
+    if (method !== 'GET' && method !== 'POST' && method !== 'PUT' && method !== 'PATCH' && method !== 'DELETE')
+      throw new TypeError('Unsupported HTTP method');
+    let encoded = '{', count = 0;
     for (let index = 0; index < keys.length; ++index) {
       const key = keys[index];
+      if (downloading && key === 'method') continue;
       if (key !== 'params' && key !== 'headers' && key !== 'data')
         throw new TypeError('Only params, headers and form data are supported');
       const value = httpMap(httpField(options, key));
       if (method === 'GET' && key === 'data' && value.count)
         throw new TypeError('GET request body is not supported');
-      if (index) encoded += ',';
+      if (count++) encoded += ',';
       encoded += stringify(key) + ':' + value.json;
     }
     encoded += '}';
-    const request = '{"method":' + stringify(method) + ',"url":' + stringify(url) + ',"options":' + encoded + '}';
+    const request = '{"method":' + stringify(method) + ',"url":' + stringify(url) + ',"options":' + encoded + (downloading ? ',"destination":' + stringify(destination) : '') + '}';
     if (utf8Bytes(request) > 131072) throw new RangeError('HTTP request exceeds 128 KiB');
     return host.httpRequest(request);
   }
@@ -428,7 +438,11 @@ inline constexpr char PluginBootstrap[] = R"IIMAJS(
     patch: (url, options) => httpRequest('PATCH', url, options),
     delete: (url, options) => httpRequest('DELETE', url, options),
     xmlrpc: () => missing('http.xmlrpc'),
-    download: () => missing('http.download')
+    // Upstream resolves download with no value, only after the file write.
+    download(url, destination, options) {
+      destination = httpString(destination, 1024); // missing destination must not become a GET
+      return httpRequest('GET', url, options, destination).then(() => undefined);
+    }
   });
   // JavascriptAPIMenu/JavascriptPluginMenuItem. Keep callbacks in the worker's
   // JS heap; only immutable JSON crosses to native UI. A WeakMap does not keep

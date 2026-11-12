@@ -2,6 +2,7 @@
 // Copyright (c) 2018 lhc and IINA contributors. GPL-3.0; references/iina/LICENSE.
 #include "pch.h"
 #include "PluginHttpClient.h"
+#include "PluginFileStore.h"
 #include <winrt/Windows.Data.Json.h>
 #include <winrt/Windows.Storage.Streams.h>
 #include <winrt/Windows.Web.Http.h>
@@ -141,12 +142,19 @@ struct Client {
     }
     ~Client() { try { http.Close(); } catch (...) {} try { filter.Close(); } catch (...) {} }
 };
-std::string Perform(PluginManifest const& manifest, std::string const& json, std::stop_token stop) {
+std::string Perform(PluginManifest const& manifest, std::string const& json, std::stop_token stop, std::shared_ptr<PluginFileStore> const& files) {
     auto deadline = Clock::now() + std::chrono::seconds(30); Check(stop, deadline);
     if (!manifest.HasPermission(PluginPermission::NetworkRequest)) throw std::invalid_argument("Plugin network-request permission is absent.");
     if (json.empty() || json.size() > RequestLimit || !JsonBudget(json, 3, 1024))
         throw std::invalid_argument("Plugin HTTP request exceeds its structural budget.");
     auto input = JsonObject::Parse(Wide(json));
+    std::string destination;
+    bool downloading = input.HasKey(L"destination");
+    if (downloading) {
+        if (!files) throw std::invalid_argument("Private download storage is unavailable.");
+        destination = to_string(input.GetNamedString(L"destination"));
+        PluginFileStore::ValidateDownloadPath(destination); // before any network operation
+    }
     auto method = to_string(input.GetNamedString(L"method"));
     if (method != "GET" && method != "POST" && method != "PUT" && method != "PATCH" && method != "DELETE")
         throw std::invalid_argument("Unsupported plugin HTTP method.");
@@ -197,28 +205,47 @@ std::string Perform(PluginManifest const& manifest, std::string const& json, std
         }
     }
     Check(stop, deadline);
-    auto text = Wide(bytes); JsonValue parsed{nullptr};
+    // HTTP failures never replace a destination. Successful downloads are binary:
+    // no UTF-8/JSON decoding of the bytes and no executable/automatic-open path.
+    bool downloaded = downloading && status >= 200 && status < 300;
+    if (downloaded) {
+        std::vector<std::uint8_t> content(bytes.begin(), bytes.end());
+        files->WriteDownload(destination, content, stop);
+        bytes.clear();
+    }
+    hstring text;
+    bool decodable = true;
+    try { text = Wide(bytes); }
+    catch (std::invalid_argument const&) {
+        if (!downloading) throw;
+        decodable = false; // failed binary download still rejects with HTTP status
+    }
+    JsonValue parsed{nullptr};
     IJsonValue body = JsonValue::CreateNullValue();
     // Large/deep JSON is still returned as text but not expanded into a second
     // unbounded object tree. Invalid JSON likewise maps to data:null as upstream.
-    if (JsonBudget(bytes, 32, 16384) && JsonValue::TryParse(text, parsed)) body = parsed;
+    if (decodable && JsonBudget(bytes, 32, 16384) && JsonValue::TryParse(text, parsed)) body = parsed;
     JsonObject result;
     result.Insert(L"statusCode", JsonValue::CreateNumberValue(status));
     auto reason = response.ReasonPhrase();
     if (reason.size() > 512) reason = L"";
     result.Insert(L"reason", JsonValue::CreateStringValue(reason));
-    result.Insert(L"text", JsonValue::CreateStringValue(text)); result.Insert(L"data", body);
+    result.Insert(L"text", decodable ? JsonValue::CreateStringValue(text) : JsonValue::CreateNullValue()); result.Insert(L"data", body);
     JsonObject envelope;
     envelope.Insert(L"ok", JsonValue::CreateBooleanValue(status >= 200 && status < 300));
     envelope.Insert(L"response", result);
     auto serialized = to_string(envelope.Stringify());
     if (serialized.size() > 16 * ResponseLimit) throw std::runtime_error("Plugin HTTP result exceeds its serialization budget.");
-    Check(stop, deadline); return serialized;
+    // Once the atomic write committed, do not turn its success into a timeout.
+    // Stop may still discard the completion; cancellation is not a rollback.
+    if (!downloaded) Check(stop, deadline);
+    return serialized;
 }
 }
-PluginHttpClient::PluginHttpClient(PluginManifest manifest) : manifest_(std::move(manifest)) {}
+PluginHttpClient::PluginHttpClient(PluginManifest manifest, std::shared_ptr<PluginFileStore> files)
+    : manifest_(std::move(manifest)), files_(std::move(files)) {}
 std::string PluginHttpClient::Request(std::string requestJson, std::stop_token stop) {
-    try { Apartment apartment; return Perform(manifest_, requestJson, stop); }
+    try { Apartment apartment; return Perform(manifest_, requestJson, stop, files_); }
     catch (hresult_error const&) {
         // Windows transport messages may contain URLs or credentials. Do not
         // reflect them into plugin logs, UI, or rejected promise diagnostics.

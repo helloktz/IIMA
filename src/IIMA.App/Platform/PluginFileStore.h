@@ -1,7 +1,11 @@
-// IINA JavascriptAPIFile / JavascriptAPI.parsePath native adaptation.
+// IINA JavascriptAPIFile / JavascriptAPIHttp.download / parsePath adaptation.
 // Copyright (c) 2020 lhc and IINA contributors. GPL-3.0; references/iina/LICENSE.
 #pragma once
 #include <string>
+#include <cstdint>
+#include <mutex>
+#include <stop_token>
+#include <vector>
 
 namespace iima {
 // Synchronous worker-only private storage. Construction performs no filesystem
@@ -15,10 +19,26 @@ public:
     // filenames below @data/ or @tmp/ are supported. list returns filename/path/
     // isDir fields. No implicit subdirectory creation, recursion or external I/O.
     std::string Invoke(std::string const& operation, std::string const& argumentsJson);
-    // Owner calls on worker termination, never UI. Best-effort bounded removal
+    // Pure syntax validation, no file I/O or namespace creation; call before
+    // transmitting a network request. WriteDownload repeats all validation.
+    static void ValidateDownloadPath(std::string const& path);
+    // Native download worker only. The bytes may be binary; the same 1 MiB
+    // per-file, 128-file and 16 MiB namespace quotas apply. Only direct filenames
+    // below @data/ or @tmp/ are accepted. Replaces atomically after cancellation
+    // checks; cancellation racing after the commit does not roll back the file.
+    // Does not execute downloaded content or grant access outside private storage.
+    void WriteDownload(std::string const& path, std::vector<std::uint8_t> const& bytes,
+        std::stop_token stop);
+    // Owner calls after all file/network producers have stopped, never UI.
+    // Marks this instance closed so even a late operation cannot recreate @tmp.
+    // Best-effort bounded removal
     // of ordinary session files; no recursion and no follow of unsafe entries.
     void CleanupTemporary() noexcept;
 private:
+    // Serializes JS file calls, network download commits and shutdown cleanup.
+    // Disk I/O is synchronous; cancellation cannot interrupt a native OS call.
+    std::mutex mutex_;
+    bool closed_{};
     bool temporaryCreated_{};
     std::wstring identity_;
     std::wstring temporary_;

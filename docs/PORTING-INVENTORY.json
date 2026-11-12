@@ -366,7 +366,9 @@
       "reviewTargets": [
         "src/IIMA.App/Platform/PluginHttpClient.cpp",
         "src/IIMA.App/Plugins/PluginRuntime.cpp",
-        "src/IIMA.App/Plugins/PluginBootstrap.h"
+        "src/IIMA.App/Plugins/PluginBootstrap.h",
+        "src/IIMA.App/Platform/PluginFileStore.cpp",
+        "src/IIMA.App/MainWindow.PluginRuntime.cpp"
       ]
     },
     {

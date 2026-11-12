@@ -433,3 +433,14 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 - 保留图形字幕禁用和ASS内置排版警告。字体样式选项共享主副字幕，不伪造独立副字幕色；背景色的视觉效果也受mpv现有边框/阴影样式影响，本批没有自动更改ASS override或阴影尺寸。颜色属性接收不代表视觉一定变化。
 
 仅静态编写、人工审阅、统计与Git核验，未编译、测试、运行或验证字幕画面。
+
+
+### 第三十五批：插件私有文件下载
+
+- `JavascriptAPIHttp.download` → `PluginBootstrap.http.download`、既有HTTP Promise/network worker、`PluginHttpClient` 和 `PluginFileStore.WriteDownload`。保留GET默认、可选method/params/headers/form data、HTTP非2xx拒绝和保存后resolve无返回值。允许GET/POST/PUT/PATCH/DELETE，不补虚构HEAD等方法；支持上限1 MiB的原始二进制，不把JPEG/ZIP错误地当UTF-8解析。文件下载不自动执行、解压或打开。
+- 目标在网络请求前校验为单层`@data/文件`或`@tmp/文件`，拒绝缺失/空目标、其他目录、Windows设备名、非法UTF-8和路径绕过。继承网络声明域名与用户启动确认，不跟随重定向/代理/共享Cookie。本地存储实际可用性和磁盘额度在写入时再次检查；非法目标不发请求，但磁盘不足可能在服务器已完成请求后才失败。
+- HTTP失败不触碰目标；错误内容是有效UTF-8时保留响应字典，否则text/data为空并保留HTTP状态。成功下载按普通文件/链接校验、128文件/16 MiB命名空间额度和临时文件flush+rename原子覆盖保存。不同于上游捕获写入错误后仍可能resolve，IIMA写入失败拒绝Promise，不报告成功。
+- JS文件调用和网络下载可并发，实例mutex及既有跨进程目录锁串行存储事务；网络worker退出后才清理临时文件，cleanup标记closed拒绝迟到写入。写入分块检查取消，rename前是最后可撤销点；提交后取消或实例关闭可能丢弃完成通知，不回滚已保存文件。网络有原有30秒截止，但磁盘/锁及同步OS调用不能即时中断，不能保证总关闭时间30秒。
+- 仍不支持任意用户路径、嵌套目录、超1 MiB大文件/进度回调、重定向、其他编码、二进制file.handle、XML-RPC或完整插件兼容。相同插件identifier共享私有数据，域名许可与QuickJS均不是操作系统安全沙箱。启动说明新增下载与私有覆盖披露。
+
+仅静态编写、人工源码阅读、数量统计和Git核验，未编译、测试、运行、执行插件或发送HTTP请求。

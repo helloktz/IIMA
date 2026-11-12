@@ -1,4 +1,5 @@
-// IINA JavascriptAPIFile.swift read/write/exists/list/delete and parsePath.
+// IINA JavascriptAPIFile.swift read/write/exists/list/delete,
+// JavascriptAPIHttp.download and JavascriptAPI.parsePath.
 // Copyright (c) 2020 lhc and IINA contributors. GPL-3.0; references/iina/LICENSE.
 #include "pch.h"
 #include "PluginFileStore.h"
@@ -85,6 +86,18 @@ void ValidateName(std::wstring_view name) {
          ((base[3] >= L'0' && base[3] <= L'9') || base[3] == L'\u00b9' || base[3] == L'\u00b2' || base[3] == L'\u00b3')))
         throw std::invalid_argument("Reserved Windows filename.");
 }
+struct DownloadPath { bool temporary; std::wstring name; };
+DownloadPath ParseDownloadPath(std::string const& path) {
+    if (path.empty() || path.size() > 512)
+        throw std::invalid_argument("Plugin download path exceeds its limit.");
+    auto wide = Wide(path);
+    bool temporary = wide.starts_with(L"@tmp/");
+    if (!temporary && !wide.starts_with(L"@data/"))
+        throw std::invalid_argument("Only @tmp/ and @data/ download destinations are available.");
+    auto name = wide.substr(temporary ? 5 : 6);
+    ValidateName(name); // actual filesystem link checks remain in Directory/Open
+    return {temporary, std::move(name)};
+}
 struct Directory {
     std::filesystem::path path;
     std::vector<handle> ancestors;
@@ -161,7 +174,12 @@ std::vector<Entry> Scan(Directory const& dir) {
     std::sort(entries.begin(), entries.end(), [](auto const& a, auto const& b) { return a.name < b.name; });
     return entries;
 }
-void WriteAtomic(std::filesystem::path const& path, std::string const& content) {
+void CheckCancelled(std::stop_token stop) {
+    if (stop.stop_requested()) throw std::runtime_error("Plugin download cancelled.");
+}
+void WriteAtomic(std::filesystem::path const& path, std::string_view content,
+    std::stop_token stop = {}) {
+    CheckCancelled(stop);
     auto temporary = path.parent_path() / (L".iima-" + RandomName());
     auto raw = CreateFileW(temporary.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_NEW,
         FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OPEN_REPARSE_POINT, nullptr);
@@ -169,11 +187,33 @@ void WriteAtomic(std::filesystem::path const& path, std::string const& content) 
     handle h{raw};
     try {
         Check(h.get(), false);
-        DWORD done{}; check_bool(WriteFile(h.get(), content.data(), static_cast<DWORD>(content.size()), &done, nullptr));
-        if (done != content.size()) throw std::runtime_error("Incomplete plugin file write.");
+        std::size_t offset{};
+        while (offset < content.size()) {
+            CheckCancelled(stop);
+            auto size = static_cast<DWORD>(std::min<std::size_t>(65536, content.size() - offset));
+            DWORD done{};
+            check_bool(WriteFile(h.get(), content.data() + offset, size, &done, nullptr));
+            if (done != size) throw std::runtime_error("Incomplete plugin file write.");
+            offset += done;
+        }
+        CheckCancelled(stop);
         check_bool(FlushFileBuffers(h.get())); h.close();
+        CheckCancelled(stop); // last reversible point: no cancellation error after rename
         check_bool(MoveFileExW(temporary.c_str(), path.c_str(), MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH));
     } catch (...) { h.close(); DeleteFileW(temporary.c_str()); throw; }
+}
+void StoreBytes(Directory const& directory, std::filesystem::path const& target,
+    std::string_view content, std::stop_token stop = {}) {
+    CheckCancelled(stop);
+    if (content.size() > MaxFile) throw std::invalid_argument("Plugin file exceeds 1 MiB.");
+    auto existing = Open(target, FILE_READ_ATTRIBUTES, true);
+    auto oldSize = existing ? Length(existing.get()) : 0;
+    auto entries = Scan(directory); std::uint64_t total{};
+    for (auto const& entry : entries) total += entry.size;
+    if (total < oldSize || (!existing && entries.size() >= MaxFiles) || total - oldSize + content.size() > MaxTotal)
+        throw std::runtime_error("Plugin storage quota exceeded or changed externally.");
+    existing.close(); // all cooperating API writers hold the directory lock
+    WriteAtomic(target, content, stop);
 }
 }
 PluginFileStore::PluginFileStore(std::string identifier) {
@@ -185,6 +225,8 @@ PluginFileStore::PluginFileStore(std::string identifier) {
     identity_ = Hex(bytes); temporary_ = RandomName();
 }
 std::string PluginFileStore::Invoke(std::string const& operation, std::string const& argumentsJson) {
+    std::lock_guard guard(mutex_);
+    if (closed_) throw std::runtime_error("Plugin storage is closed.");
     Apartment apartment;
     if (operation != "read" && operation != "write" && operation != "exists" && operation != "list" && operation != "delete")
         throw std::invalid_argument("Unsupported plugin file operation.");
@@ -247,21 +289,36 @@ std::string PluginFileStore::Invoke(std::string const& operation, std::string co
         return "null";
     }
     auto content = Utf8(args.GetNamedString(L"content"));
-    if (content.size() > MaxFile) throw std::invalid_argument("Plugin file exceeds 1 MiB.");
-    auto existing = Open(target, FILE_READ_ATTRIBUTES, true);
-    auto oldSize = existing ? Length(existing.get()) : 0;
-    auto entries = Scan(directory); std::uint64_t total{};
-    for (auto const& entry : entries) total += entry.size;
-    if ((!existing && entries.size() >= MaxFiles) || total - oldSize + content.size() > MaxTotal)
-        throw std::runtime_error("Plugin storage quota exceeded.");
-    existing.close(); // atomic replacement needs delete sharing; all API writers hold the lock
-    WriteAtomic(target, content);
+    StoreBytes(directory, target, content);
     return "null";
 }
+void PluginFileStore::ValidateDownloadPath(std::string const& path) {
+    (void)ParseDownloadPath(path);
+}
+void PluginFileStore::WriteDownload(std::string const& path, std::vector<std::uint8_t> const& bytes,
+    std::stop_token stop) {
+    CheckCancelled(stop);
+    if (bytes.size() > MaxFile) throw std::invalid_argument("Plugin download exceeds 1 MiB.");
+    auto [temporary, name] = ParseDownloadPath(path);
+    std::lock_guard guard(mutex_);
+    CheckCancelled(stop);
+    if (closed_) throw std::runtime_error("Plugin storage is closed.");
+    Apartment apartment;
+    Directory directory(identity_, temporary, temporary_);
+    if (temporary) temporaryCreated_ = true;
+    auto lock = Lock(directory);
+    CheckCancelled(stop);
+    auto target = directory.path / name;
+    if (target.native().size() > 240) throw std::invalid_argument("Plugin storage path is too long.");
+    auto data = bytes.empty() ? "" : reinterpret_cast<char const*>(bytes.data());
+    StoreBytes(directory, target, std::string_view(data, bytes.size()), stop);
+}
 void PluginFileStore::CleanupTemporary() noexcept {
-    if (!temporaryCreated_) return;
-    temporaryCreated_ = false;
     try {
+        std::lock_guard guard(mutex_);
+        closed_ = true;
+        if (!temporaryCreated_) return;
+        temporaryCreated_ = false;
         Directory directory(identity_, true, temporary_, false);
         auto lock = Lock(directory);
         WIN32_FIND_DATAW data{};

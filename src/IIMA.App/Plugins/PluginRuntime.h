@@ -22,7 +22,7 @@ struct PluginCommand {
 // This is NOT a security sandbox or complete IINA plugin compatibility layer.
 // No QuickJS std/os modules, arbitrary filesystem, process, native module
 // loader, global controller or HTML capabilities are installed. Private @data/@tmp
-// text-file operations and permitted HTTP are delegated to bounded native hosts. CommonJS require
+// text-file operations, private binary downloads and permitted HTTP are delegated to bounded native hosts. CommonJS require
 // is limited to the caller-supplied immutable package source snapshot.
 class PluginRuntime final {
 public:
@@ -47,7 +47,8 @@ public:
         // a bounded timeout; observe stop and return generic transport failures.
         // Return {ok:boolean,response:{statusCode,reason,text,data}} JSON. HTTP
         // failures settle rejected promises with response; exceptions reject a
-        // generic Error. No QuickJS values/context may cross this callback.
+        // generic Error. Download requests settle only after private-file commit;
+        // the JS wrapper maps success to undefined. No JS values cross this callback.
         std::function<std::string(std::string requestJson, std::stop_token stop)> httpRequest;
         // Best-effort host cleanup on worker exit, after all JS is disposed.
         // Must not reenter runtime or wait for UI. Destructor itself does no I/O.
