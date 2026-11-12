@@ -201,6 +201,7 @@ private:
     std::size_t onlineSubtitleBytes_{};
 
     void WireAudioControls();
+    winrt::fire_and_forget LoadExternalAudio();
     void WireEqualizerEditor();
     std::optional<iima::EQProfile> ReadEqualizerDraft();
     void SetEqualizerDraft(iima::EQProfile const& profile);

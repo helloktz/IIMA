@@ -128,6 +128,7 @@
                             </StackPanel>
                         </Expander>
                         <ComboBox x:Name="AudioBox" Header="音轨" HorizontalAlignment="Stretch" AutomationProperties.Name="音轨"/>
+                        <Button x:Name="LoadExternalAudioButton" Content="载入外置音频…" IsEnabled="False"/>
                         <ComboBox x:Name="AudioEqualizerBox" Header="音频均衡预设" HorizontalAlignment="Stretch"/>
                         <Button x:Name="ApplyAudioEqualizerButton" Content="应用均衡预设"/>
                         <Button x:Name="RemoveAudioEqualizerButton" Content="移除音频均衡"/>

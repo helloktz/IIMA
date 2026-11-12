@@ -71,6 +71,7 @@
     <ClCompile Include="MainWindow.Diagnostics.cpp" />
     <ClCompile Include="MainWindow.SubtitleColorPicker.cpp" />
     <ClCompile Include="MainWindow.SubtitleFontPicker.cpp" />
+    <ClCompile Include="MainWindow.ExternalAudio.cpp" />
     <ClCompile Include="Platform\FontCatalog.cpp" />
     <ClInclude Include="Platform\FontCatalog.h" />
     <ClCompile Include="Platform\FileAssociations.cpp" />

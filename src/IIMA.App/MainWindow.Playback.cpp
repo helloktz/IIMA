@@ -131,6 +131,8 @@ void MainWindow::MoveSelected(int delta)
 void MainWindow::ApplyCollections(iima::PlaybackSnapshot const& state)
 {
     auto editing = session_->PlaylistEditBusy();
+    LoadExternalAudioButton().IsEnabled(!closing_ && !editing &&
+        state.session == iima::SessionState::Ready && state.media == iima::MediaState::Loaded);
     SortPlaylistButton().IsEnabled(!editing);
     ShufflePlaylistButton().IsEnabled(!editing);
     ClearPlaylistButton().IsEnabled(!editing);

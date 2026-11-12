@@ -38,6 +38,8 @@ public:
     void SelectTrack(std::string type, std::int64_t id);
     void SelectChapter(std::size_t index);
     void AddSubtitle(std::string path, bool select = true);
+    // True means queued, not decoded. Actual tracks/errors arrive asynchronously.
+    bool LoadExternalAudio(std::string path);
     void ApplySubtitleStyle(SubtitleStyle const& style, std::vector<std::string> fields = {});
     void SetSubtitleScale(double scale, bool primary = true);
     void SetSubtitlePosition(int percent, bool primary = true);

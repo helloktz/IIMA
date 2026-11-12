@@ -139,6 +139,15 @@ void PlayerSession::AddSubtitle(std::string path, bool select) {
     if(found!=snapshot_.tracks.end()) client_->Command({"sub-reload",std::to_string(found->id)});
     else client_->Command({"sub-add",std::move(path),select ? "select" : "auto"});
 }
+// IINA loadExternalAudioFile uses audio-add with the default select flag.
+bool PlayerSession::LoadExternalAudio(std::string path) {
+    if(snapshot_.session!=SessionState::Ready || snapshot_.media!=MediaState::Loaded ||
+        pauseRequest_ || loadRequest_ || !pendingCommands_.empty() || PlaylistEditBusy() ||
+        path.empty() || path.size()>131072 || path.find('\0')!=std::string::npos) return false;
+    // Pass argv directly, never interpret a chosen filename as a command string.
+    // Preserve upstream behavior: do not silently use cached or deduplicate paths.
+    return client_->Command({"audio-add",std::move(path),"select"}) != 0;
+}
 void PlayerSession::Pause(bool value) {
     if(!value) sleepPauseHeld_=false;
     CancelWindowPausePolicy();

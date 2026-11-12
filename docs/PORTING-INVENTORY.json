@@ -1240,7 +1240,8 @@
       "coverage": "partial-static-unverified",
       "reviewTargets": [
         "src/IIMA.Core/Audio/Equalizations.cpp",
-        "src/IIMA.App/MainWindow.Audio.cpp"
+        "src/IIMA.App/MainWindow.Audio.cpp",
+        "src/IIMA.App/MainWindow.ExternalAudio.cpp"
       ]
     },
     {

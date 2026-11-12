@@ -9,6 +9,9 @@ void MainWindow::WireAudioControls() {
         AudioEqualizerBox().Items().Append(box_value(to_hstring(preset.key)));
     AudioEqualizerBox().SelectedIndex(0);
     auto weak = get_weak();
+    LoadExternalAudioButton().Click([weak](auto const&, auto const&) {
+        if (auto self = weak.get()) self->LoadExternalAudio();
+    });
     ApplyAudioEqualizerButton().Click([weak](auto const&, auto const&) {
         if (auto self = weak.get(); self && !self->closing_) {
             auto index = self->AudioEqualizerBox().SelectedIndex();
