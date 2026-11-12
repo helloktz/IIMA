@@ -578,3 +578,11 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 ### 第五十三批：修正快捷键前置分类遗漏
 
 静态追踪`ClassifyBindingAction` → `MainWindow.DispatchKeyBinding`时发现，第49/51批新增章节/轨道循环/sub-step/sub-seek的分发处理之前仍有旧白名单，导致导入快捷键被提前拒绝；对应按钮路径不受影响。本批补齐前置分类，轨道属性只允许cycle、chapter只允许add，具体数量/slot仍由后置严格校验，不开放任意命令。第49/51批快捷键“已接入”应理解为当时不完整的静态实现，至本修复才贯通源码调用链。未执行编译、测试或运行，不能据此声称实际键盘行为验证通过。
+
+### 第五十四批：命名快捷键配置库
+
+- `SettingsPageKeyBindings.ConfigEditor.newConfFileAction/duplicateConfFileAction/importConfigAction/deleteConfFileAction/loadConfigFile`的命名配置操作链 → `BindingLibrary`、`MainWindow.BindingLibrary.cpp`及现有settings.json持久化。支持编辑区另存、明确覆盖、选择载入、重命名、移除和单步撤销覆盖/移除；空编辑区可成为空配置，默认绑定可复制但不改内建默认。导入/导出仍复用原生选择器，不恢复上游任意目录文件管理。
+- Windows差异：库保存的是完整input.conf文本快照，当前生效inputConf独立。选择下拉不换配置；“载入所选并替换编辑区”明确替换草稿后仍须“保存并应用”才生效，避免浏览库时改变按键。保存快照也不隐式应用。删除库快照不删除当前生效副本或外部文件，不强制回退默认；撤销仅本窗口内存一批，已有后继内容变化时不覆盖。重命名不纳入撤销。
+- Core限制32配置、单份256KiB、全库1MiB；名称1..128 UTF-8字节，拒绝控制字符、分隔符和边界空格，ASCII大小写冲突拒绝，不谎称完整Unicode文件系统等价。保存/覆盖/重命名/恢复时复用input.conf解析；语法错误拒绝，语法正确但未实现的动作保留文本，由运行分发明确拒绝。JSON读取保留文本并验证结构界限，载入不会执行任何配置动作。
+- UserDataStore读取/保存可选bindingLibrary字段，旧设置自然为空库，沿既有原子保存和失败保留；未增加版本号。多窗口按命名条目差分合并，不覆盖其他窗口独立增加的配置；同名创建、修改、删除冲突拒绝整次保存并走已有未保存提醒，不 silently last-wins。当前生效inputConf仍沿原有字段级最后提交策略，库不实时广播到别窗，不能宣称跨窗活动配置同步。
+- UI成功文案仅指内存修改及正在保存，磁盘完成由既有持久化链决定。不是完整IINA行级可视化编辑、多个内建配置集、目录监视或外部文件编辑同步；现有命名目录catalog模型未被伪装成已接文件系统。仅静态源码追踪和编写、数量/Git核验，未编译测试运行。

@@ -103,6 +103,12 @@ UserData LoadUnlocked(bool recover) {
             if (json->HasKey(L"savedVideoFilters")) data.settings.savedVideoFilters = ReadSavedFiltersJson(json->GetNamedArray(L"savedVideoFilters"));
             if (json->HasKey(L"savedAudioFilters")) data.settings.savedAudioFilters = ReadSavedFiltersJson(json->GetNamedArray(L"savedAudioFilters"));
             if (json->HasKey(L"userEqualizers")) data.settings.userEqualizers = ReadEqualizersJson(json->GetNamedObject(L"userEqualizers"));
+            if (json->HasKey(L"bindingLibrary")) {
+                auto library = json->GetNamedObject(L"bindingLibrary");
+                if (library.Size() > 32) throw std::runtime_error("Too many binding configurations");
+                for (auto const& pair : library)
+                    data.settings.bindingLibrary.emplace(to_string(pair.Key()), to_string(pair.Value().GetString()));
+            }
             if (json->HasKey(L"inputConf")) data.settings.inputConf = to_string(json->GetNamedString(L"inputConf"));
             if (json->HasKey(L"watchProperties")) {
                 auto names = json->GetNamedArray(L"watchProperties");
@@ -171,6 +177,10 @@ void SaveUnlocked(UserData const& data) {
     settings.Insert(L"savedAudioFilters", WriteSavedFiltersJson(data.settings.savedAudioFilters));
     settings.Insert(L"userEqualizers", WriteEqualizersJson(data.settings.userEqualizers));
     settings.Insert(L"advancedPreferences", WritePreferenceJson(data.settings.advancedPreferences));
+    JsonObject bindingLibrary;
+    for (auto const& [name, text] : data.settings.bindingLibrary)
+        bindingLibrary.Insert(to_hstring(name), JsonValue::CreateStringValue(to_hstring(text)));
+    settings.Insert(L"bindingLibrary", bindingLibrary);
     if (data.settings.inputConf) settings.Insert(L"inputConf", JsonValue::CreateStringValue(to_hstring(*data.settings.inputConf)));
     JsonArray watchNames;
     for (auto const& name : data.settings.watchProperties) watchNames.Append(JsonValue::CreateStringValue(to_hstring(name)));

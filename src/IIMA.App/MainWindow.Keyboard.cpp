@@ -69,10 +69,12 @@ void MainWindow::ApplyKeyboardConfiguration() {
     auto parsed = iima::ParseInputConf(text);
     keyBindings_ = std::make_unique<iima::KeyBindingSet>(parsed.mappings);
     UpdatePluginKeyBindings();
+    RefreshBindingLibrary();
     KeyBindingsEditor().Text(to_hstring(text));
     KeyBindingsStatus().Text(parsed.issues.empty() ? L"快捷键配置已载入。" : L"配置包含无法解析的行；有效条目已载入，请检查后重新保存。");
 }
 void MainWindow::WireKeyboardControls() {
+    WireBindingLibrary();
     auto weak = get_weak();
     // Tunnelling event replaces hard-coded accelerators, so edited bindings can
     // actually replace defaults. Text entry and modal pickers retain all keys.

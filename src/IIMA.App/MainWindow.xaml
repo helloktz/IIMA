@@ -406,6 +406,16 @@
                                 <Button x:Name="ResetKeyBindingsButton" Content="恢复 Windows 默认快捷键"/>
                                 <Button x:Name="ImportKeyBindingsButton" Content="导入 input.conf"/>
                                 <Button x:Name="ExportKeyBindingsButton" Content="导出 input.conf"/>
+                                <TextBlock Text="命名配置库：保存编辑区为快照；载入只替换编辑区，需另点保存并应用。空编辑区可保存为空配置。" TextWrapping="Wrap"/>
+                                <ComboBox x:Name="BindingSnapshotBox" Header="已保存快照" HorizontalAlignment="Stretch"/>
+                                <TextBox x:Name="BindingSnapshotName" Header="新建或重命名的名称" MaxLength="128"/>
+                                <Button x:Name="SaveBindingSnapshotButton" Content="将编辑区另存为新快照"/>
+                                <Button x:Name="UpdateBindingSnapshotButton" Content="用编辑区覆盖所选快照" IsEnabled="False"/>
+                                <Button x:Name="LoadBindingSnapshotButton" Content="载入所选并替换编辑区" IsEnabled="False"/>
+                                <Button x:Name="RenameBindingSnapshotButton" Content="重命名所选快照" IsEnabled="False"/>
+                                <Button x:Name="DeleteBindingSnapshotButton" Content="移除所选快照" IsEnabled="False"/>
+                                <Button x:Name="UndoBindingSnapshotButton" Content="撤销上次覆盖或移除" IsEnabled="False"/>
+                                <TextBlock x:Name="BindingLibraryStatus" TextWrapping="Wrap"/>
                                 <TextBlock x:Name="KeyBindingsStatus" TextWrapping="Wrap"/>
                             </StackPanel>
                         </Expander>

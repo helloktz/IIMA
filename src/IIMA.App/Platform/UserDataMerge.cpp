@@ -76,6 +76,28 @@ UserData MergeUserData(UserData const& base, UserData const& edited, UserData la
     field(&UserSettings::maxVolume); field(&UserSettings::audioDelay);
     field(&UserSettings::subtitleDelay); field(&UserSettings::repeatMode);
     field(&UserSettings::screenshotMode);
+    // Named input snapshots reject conflicting edits instead of silently losing
+    // another window's work. Active inputConf remains a separate existing field.
+    for (auto const& [name, text] : a.bindingLibrary) {
+        auto edited = b.bindingLibrary.find(name);
+        if (edited != b.bindingLibrary.end() && edited->second == text) continue;
+        auto latest = c.bindingLibrary.find(name);
+        if (latest != c.bindingLibrary.end() && latest->second != text &&
+            (edited == b.bindingLibrary.end() || latest->second != edited->second))
+            throw std::runtime_error("Binding configuration changed in another window: " + name);
+        if (edited == b.bindingLibrary.end()) c.bindingLibrary.erase(name);
+    }
+    for (auto const& [name, text] : b.bindingLibrary) {
+        auto before = a.bindingLibrary.find(name);
+        if (before != a.bindingLibrary.end() && before->second == text) continue;
+        auto latest = c.bindingLibrary.find(name);
+        if (before == a.bindingLibrary.end() && latest != c.bindingLibrary.end() && latest->second != text)
+            throw std::runtime_error("Binding configuration name was created in another window: " + name);
+        if (before != a.bindingLibrary.end() && latest == c.bindingLibrary.end())
+            throw std::runtime_error("Binding configuration was deleted in another window: " + name);
+        c.bindingLibrary.insert_or_assign(name, text);
+    }
+    if (!ValidBindingLibrary(c.bindingLibrary)) throw std::runtime_error("Merged binding configuration library exceeds limits");
     MergeMap(a.advancedPreferences, b.advancedPreferences, c.advancedPreferences);
     MergeMap(a.userEqualizers, b.userEqualizers, c.userEqualizers);
     MergeFilters(a.savedVideoFilters, b.savedVideoFilters, c.savedVideoFilters);

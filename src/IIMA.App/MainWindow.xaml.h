@@ -105,6 +105,17 @@ private:
     void UpdateMediaInformation(iima::PlaybackSnapshot const& state);
     std::optional<std::uint64_t> informationRevision_, audioDevicesRevision_;
     void WireKeyboardControls();
+    void WireBindingLibrary();
+    std::optional<std::string> SelectedBindingSnapshot() const;
+    void RefreshBindingLibrary(std::string selected = {});
+    void SaveBindingSnapshot(bool replace);
+    void RenameBindingSnapshot();
+    void DeleteBindingSnapshot();
+    void UndoBindingSnapshot();
+    void LoadBindingSnapshot();
+    bool projectingBindingLibrary_{};
+    std::optional<std::pair<std::string, std::string>> bindingSnapshotUndo_;
+    std::optional<std::string> bindingSnapshotUndoExpected_;
     void ApplyKeyboardConfiguration();
     bool DispatchKeyBinding(iima::KeyMapping const& binding);
     winrt::fire_and_forget ImportKeyBindings();

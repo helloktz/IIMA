@@ -2,6 +2,7 @@
 // History recency and preference defaults adapted from IINA HistoryController.swift
 // (Copyright © 2017 lhc) and Preference.swift. GPL-3.0; references/iina/LICENSE.
 #include "../Playback/PlaybackSettings.h"
+#include "../Input/BindingLibrary.h"
 #include "../Filters/SavedFilter.h"
 #include "../Audio/Equalizations.h"
 #include "../Settings/PreferenceSchema.h"
@@ -19,6 +20,7 @@ struct UserSettings {
     UserEQProfiles::Profiles userEqualizers;
     // Missing means platform defaults; an empty custom file intentionally unbinds all.
     std::optional<std::string> inputConf;
+    BindingLibrary bindingLibrary; // Named snapshots; inputConf remains the active copy.
     std::vector<std::string> watchProperties; // IINA default is an empty inspector watch list.
     double volume{100};
     double speed{1};
@@ -35,6 +37,7 @@ struct UserSettings {
     ScreenshotMode screenshotMode{ScreenshotMode::Subtitles};
 };
 inline bool ValidUserSettings(UserSettings const& s) {
+    if (!ValidBindingLibrary(s.bindingLibrary)) return false;
     if (s.watchProperties.size() > 32) return false;
     for (auto const& name : s.watchProperties) {
         if (name.empty() || name.size() > 128) return false;
