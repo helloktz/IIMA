@@ -50,6 +50,7 @@ MainWindow::MainWindow()
     WirePluginInspection();
     WirePluginPointer();
     WireMouseWheel();
+    WireControlBarVisibility();
     WireOSD();
     WireAdvancedPlayback();
     OpenButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->ExecuteApplicationCommand(iima::ApplicationCommand::OpenFile); });
@@ -204,6 +205,7 @@ void MainWindow::Apply(iima::PlaybackSnapshot const& state)
     ApplySettingsSnapshot(state);
     UpdateDiagnostics(state);
     UpdateOSD(state);
+    UpdateControlBarPolicy();
     UpdatePlugin(state);
     ApplyUserData(state);
     OpenPendingFiles();
@@ -269,6 +271,7 @@ void MainWindow::BeginClose()
     subtitleMatchStop_.request_stop(); ++subtitleMatchGeneration_;
     HideScreenshotPreview();
     if (osdTimer_) osdTimer_.Stop();
+    if (controlBarTimer_) controlBarTimer_.Stop();
     InvalidateInspectorWatch();
     if (diagnosticTimer_) diagnosticTimer_.Stop();
     if (activationTimer_) activationTimer_.Stop();

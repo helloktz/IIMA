@@ -102,6 +102,7 @@ void MainWindow::ApplyAdvancedSetting(std::string const& key, iima::settings::Pr
     if (!preferences_.Set(key, std::move(value), error)) { ShowError(to_hstring(error)); return; }
     userData_.settings.advancedPreferences = preferences_.Overrides();
     session_->ApplyAdvancedPreferences(preferences_);
+    UpdateControlBarPolicy();
     ApplyWindowPreferences();
     if (key == "screenshotShowPreview" && !preferences_.Boolean(key)) HideScreenshotPreview();
     if (key == "enableThumbnailPreview" || key == "thumbnailWidth" || key == "maxThumbnailPreviewCacheSize") {

@@ -88,6 +88,7 @@ void MainWindow::UpdatePresentationLayout() {
     ExitCompactOverlayButton().Visibility(compact ? Visibility::Visible : Visibility::Collapsed);
     Root().ColumnDefinitions().GetAt(1).Width(GridLength{compact ? 0.0 : 300.0, GridUnitType::Pixel});
     ApplyMusicLayout(compact);
+    ControlBarActivity();
 }
 void MainWindow::ExecuteApplicationCommand(iima::ApplicationCommand command) {
     try {

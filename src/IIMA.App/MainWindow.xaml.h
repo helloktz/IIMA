@@ -274,6 +274,12 @@ private:
     void UpdatePlaylistSelection();
     void WirePlaylistDrag();
     void WireMouseWheel();
+    void WireControlBarVisibility();
+    void ControlBarActivity();
+    void UpdateControlBarPolicy();
+    bool CanHideControlBar();
+    Microsoft::UI::Dispatching::DispatcherQueueTimer controlBarTimer_{nullptr};
+    bool controlBarHovered_{}, controlBarInactive_{};
     void WirePlaylistClipboard();
     void CopyPlaylistPaths(bool networkOnly);
     winrt::fire_and_forget PastePlaylistPaths();

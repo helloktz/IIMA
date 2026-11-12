@@ -657,3 +657,11 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 - 设置通过既有schema驱动的高级设置界面和JSON持久化：verticalScrollAction/horizontalScrollAction/relativeSeekAmount/playbackSpeedScrollAmount/wheelExactSeek。wheelExactSeek默认false保持上游relative默认；尚未接入自动seek延迟选择，不提供伪auto选项。
 - 音量使用 `PlayerSession.AdjustVolumeByWheel` → mpv `add volume`，避免连续滚动用旧观察值覆盖增量；固定mpv `mp_property_volume` 的constricted type按softvol_max限制。倍速保持上游观察值计算，快速连续事件在观察延迟下不保证逐格累计；OSD仍依赖确认属性事件，非乐观状态。
 - Windows未提供此路由的Cocoa手势phase/精确像素语义，因此不模拟触控板开始暂停/结束恢复，也不包含音量/进度滑块override、mini-player弹出层或插件可消费滚轮。未编译、测试、运行，方向和硬件输入需实际确认。
+
+## 第六十四批：控制栏空闲隐藏与键鼠恢复
+
+- 追踪 IINA `MainWindowController.showUI/hideUI/createTimer/destroyTimer/mouseMoved`：单次空闲计时，操作恢复，控制栏悬停不隐藏，PIP有独立可见性策略。此前 `enableControlBarAutoHide/controlBarAutoHideTimeout` 只有schema，本批真正接到WinUI底部控制栏和既有偏好持久化。
+- Root键盘预览、鼠标活动、窗口激活及控制栏焦点显示控制栏并重置单次DispatcherQueueTimer。到期再次核对载入状态、关闭/模态、焦点/悬停、窗口激活及CompactOverlay，只有允许时隐藏。媒体属性高频更新只检查策略，不重置正在运行的截止时间；时间变化重新配置，零延时为最小1ms单次请求而非轮询。
+- 键盘焦点仍在控制栏时保持可见，LostFocus延后一轮重新读取FocusManager。切换CompactOverlay保持现有底栏隐藏规则，返回普通窗口重启可见性策略；关闭停止timer并依靠弱引用丢弃迟到回调。隐藏时取消缩略图预览。
+- 平台差异：只隐藏底部播放控制栏，不隐藏侧栏/系统标题栏，不全局隐藏光标，不加入Cocoa淡入淡出动画，不强迫迁移键盘焦点。暂停时仍可空闲隐藏，遵循上游非仅播放中的策略。未增加独立点击hideOSC动作。
+- 未编译、测试或运行。代码静态接通不代表实际XAML路由、焦点和硬件鼠标交互已验证。
