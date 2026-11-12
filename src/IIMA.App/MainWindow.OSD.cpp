@@ -18,37 +18,34 @@ void MainWindow::WireOSD() {
     });
 }
 void MainWindow::UpdateOSD(iima::PlaybackSnapshot const& state) {
-    if (state.media != iima::MediaState::Loaded) {
-        osdHaveState_ = false;
+    if (state.session != iima::SessionState::Ready || state.media != iima::MediaState::Loaded) {
+        playbackOSD_.Reset();
         OSDBorder().Visibility(Visibility::Collapsed);
         if (osdTimer_) osdTimer_.Stop();
         return;
     }
-    iima::OSDMessage message;
-    bool changed = false;
-    if (osdHaveState_) {
-        if (state.paused != osdPaused_) {
-            message.kind = state.paused ? iima::OSDKind::Pause : iima::OSDKind::Resume; changed = true;
-        } else if (state.volume != osdVolume_) {
-            message.kind = iima::OSDKind::Volume; message.value = state.volume; changed = true;
-        } else if (state.speed != osdSpeed_) {
-            message.kind = iima::OSDKind::Speed; message.value = state.speed; changed = true;
-        } else if (state.muted != osdMuted_) {
-            message.kind = state.muted ? iima::OSDKind::Mute : iima::OSDKind::Unmute; changed = true;
-        }
+    auto changes = playbackOSD_.Observe(state);
+    if (!preferences_.Boolean("enableOSD")) {
+        OSDBorder().Visibility(Visibility::Collapsed);
+        if (osdTimer_) osdTimer_.Stop();
+        return;
     }
-    osdHaveState_ = true; osdPaused_ = state.paused; osdVolume_ = state.volume;
-    osdSpeed_ = state.speed; osdMuted_ = state.muted;
-    if (!changed || !preferences_.Boolean("enableOSD")) return;
-    if ((message.kind == iima::OSDKind::Pause || message.kind == iima::OSDKind::Resume) &&
-        preferences_.Boolean("disableOSDPauseResumeMsgs")) return;
-    if (message.kind == iima::OSDKind::Speed && preferences_.Boolean("disableOSDSpeedMsg")) return;
     iima::OSDPreferences preferences;
     preferences.maximumVolume = state.maxVolume;
+    preferences.disablePauseResume = preferences_.Boolean("disableOSDPauseResumeMsgs");
+    preferences.disableSpeed = preferences_.Boolean("disableOSDSpeedMsg");
     iima::OSDDispatchContext dispatch;
     dispatch.windowLoaded = true; dispatch.playbackActive = true;
     dispatch.miniPlayer = AppWindow().Presenter().Kind() == Microsoft::UI::Windowing::AppWindowPresenterKind::CompactOverlay;
-    if (!message.ShouldDispatch(preferences, dispatch)) return;
+    if (dispatch.miniPlayer) {
+        OSDBorder().Visibility(Visibility::Collapsed);
+        if (osdTimer_) osdTimer_.Stop();
+        return;
+    }
+    std::optional<iima::OSDMessage> selected;
+    for (auto const& change : changes) if (change.ShouldDispatch(preferences, dispatch)) selected = change;
+    if (!selected) return;
+    auto const& message = *selected;
     iima::OSDPlaybackContext context;
     if (state.position) context.position = iima::VideoTime(*state.position);
     if (state.duration) context.duration = iima::VideoTime(*state.duration);

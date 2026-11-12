@@ -215,8 +215,10 @@ std::optional<OSDPresentation> OSDMessage::Present(const OSDPreferences& prefere
         supplemental(OSDType::WithLeftToRightText, "({{currChapter}}/{{chapterCount}}) {{position}} / {{duration}}"); break;
     case OSDKind::Track:
         result.title = Localized(format, trackType == OSDTrackType::Video ? "track.video" :
-            trackType == OSDTrackType::Audio ? "track.audio" : "track.sub",
-            trackType == OSDTrackType::Video ? "Video" : trackType == OSDTrackType::Audio ? "Audio" : "Subtitle")
+            trackType == OSDTrackType::Audio ? "track.audio" :
+            trackType == OSDTrackType::SecondarySubtitle ? "track.secondary_sub" : "track.sub",
+            trackType == OSDTrackType::Video ? "Video" : trackType == OSDTrackType::Audio ? "Audio" :
+            trackType == OSDTrackType::SecondarySubtitle ? "Secondary Subtitle" : "Subtitle")
             + ": " + text;
         break;
     case OSDKind::SubtitleScale: argument("osd.subtitle_scale", "Subtitle Scale: {0}x", Number(value, 6, format)); break;

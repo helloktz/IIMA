@@ -3,6 +3,7 @@
 #include "../IIMA.Core/Playback/PlayerSession.h"
 #include "../IIMA.Core/Commands/ApplicationCommand.h"
 #include "../IIMA.Core/Input/BindingConfiguration.h"
+#include "../IIMA.Core/OSD/PlaybackOSD.h"
 #include "Presentation/VideoPresenter.h"
 #include "../IIMA.Core/Windows/MusicModePolicy.h"
 #include <winrt/Windows.Graphics.h>
@@ -308,8 +309,7 @@ private:
     std::shared_ptr<iima::PlayerSession> session_;
     iima::ApplicationCommandRouter commandRouter_;
     Microsoft::UI::Dispatching::DispatcherQueueTimer osdTimer_{nullptr};
-    bool osdHaveState_{}, osdPaused_{}, osdMuted_{};
-    double osdVolume_{}, osdSpeed_{};
+    iima::PlaybackOSD playbackOSD_;
     std::unique_ptr<iima::VideoPresenter> presenter_;
     std::optional<uint64_t> playlistRevision_, tracksRevision_, chaptersRevision_;
     std::vector<iima::PlaylistItem> playlist_;

@@ -82,6 +82,8 @@
     <ClCompile Include="Network\MediaUrl.cpp" />
     <ClInclude Include="Network\MediaUrl.h" />
     <ClCompile Include="OSD\OSDMessage.cpp" />
+    <ClCompile Include="OSD\PlaybackOSD.cpp" />
+    <ClInclude Include="OSD\PlaybackOSD.h" />
     <ClInclude Include="OSD\OSDMessage.h" />
     <ClCompile Include="Playlist\M3uWriter.cpp" />
     <ClInclude Include="Playlist\M3uWriter.h" />
