@@ -77,7 +77,7 @@ public:
     void ClearPlaylist();
     // shuffled=true asks mpv to undo its last shuffle, false asks to shuffle.
     void ShufflePlaylist(bool shuffled);
-    void InsertPlaylist(std::vector<std::string> paths, std::optional<std::size_t> at = {});
+    bool InsertPlaylist(std::vector<std::string> paths, std::optional<std::size_t> at = {});
     // False means not started. True is accepted/no-op, not completed; playlist
     // events and the existing edit cursor remain the source of truth.
     bool ExpandAutoPlaylist(std::vector<std::string> before, std::vector<std::string> after,

@@ -163,8 +163,15 @@ void PlayerSession::ClearPlaylist() {
 void PlayerSession::ShufflePlaylist(bool shuffled) {
     BeginPlaylistEdit(PlanPlaylistShuffle(snapshot_.playlist,shuffled,snapshot_.playlistRevision),!shuffled);
 }
-void PlayerSession::InsertPlaylist(std::vector<std::string> paths,std::optional<std::size_t> at) {
+bool PlayerSession::InsertPlaylist(std::vector<std::string> paths,std::optional<std::size_t> at) {
+    const bool alreadyEditing = static_cast<bool>(playlistEdit_);
+    const auto expectedIntent = playlistEditIntentRevision_ + 1;
     BeginPlaylistEdit(PlanPlaylistInsert(snapshot_.playlist,paths,at,snapshot_.playlistRevision));
+    // Reject/no-op must not borrow an existing edit's busy state. Notify may
+    // reenter the UI; report only this still-current transaction as accepted.
+    // Acceptance means a fresh-read transaction was queued, not insertion done.
+    return !alreadyEditing && playlistEditIntentRevision_ == expectedIntent &&
+        static_cast<bool>(playlistEdit_);
 }
 bool PlayerSession::ExpandAutoPlaylist(std::vector<std::string> before, std::vector<std::string> after,
                                        std::int64_t expectedEntry, std::uint64_t expectedRevision,

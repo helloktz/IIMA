@@ -2,6 +2,8 @@
 // Copyright (c) 2016 lhc and IINA contributors. GPL-3.0; references/iina/LICENSE.
 #include "pch.h"
 #include "MainWindow.xaml.h"
+#include "../IIMA.Core/Network/MediaUrl.h"
+#include "../IIMA.Core/Input/LocalInputPolicy.h"
 #include <algorithm>
 #include <cmath>
 #include <set>
@@ -12,6 +14,41 @@ using namespace Windows::ApplicationModel::DataTransfer;
 namespace winrt::IIMA::implementation {
 namespace {
 constexpr wchar_t DragKey[] = L"IIMA.Playlist.LocalDrag";
+// Every MainWindow uses the same UI dispatcher. Only a capability and weak
+// owner cross windows; source paths stay in its bounded in-memory snapshot.
+struct ActivePlaylistDrag { guid token; weak_ref<MainWindow> source; };
+std::optional<ActivePlaylistDrag> activePlaylistDrag;
+com_ptr<MainWindow> PlaylistDragSource(DragEventArgs const& args) {
+    if(!activePlaylistDrag || unbox_value<guid>(args.DataView().Properties().Lookup(DragKey))!=activePlaylistDrag->token) return {};
+    return activePlaylistDrag->source.get();
+}
+bool CopyablePlaylistPath(std::string const& path) {
+    if(path.empty() || path.size()>32768 || std::any_of(path.begin(),path.end(),[](unsigned char c){return c<32 || c==127;})) return false;
+    if(path.find("://")!=std::string::npos) {
+        auto prepared=iima::PrepareMediaUrl(path);
+        if(!prepared || !prepared->suppliedScheme || path.front()==' ' || path.back()==' ') return false;
+        Windows::Foundation::Uri uri{to_hstring(path)};
+        return !uri.Host().empty(); // Validate, but do not rewrite signed URL bytes.
+    }
+    if(path.size()<4 || path[1]!=':' || (path[2]!='/' && path[2]!='\\') ||
+        !((path[0]>='A' && path[0]<='Z') || (path[0]>='a' && path[0]<='z')) || path.find(':',2)!=path.npos ||
+        path.find_first_of("<>\"|?*")!=path.npos || iima::IsPlaylistPath(to_hstring(path))) return false;
+    std::size_t begin=3;
+    while(begin<path.size()) {
+        auto end=path.find_first_of("/\\",begin);
+        auto part=path.substr(begin,end==path.npos ? path.size()-begin : end-begin);
+        if(part.empty() || part=="." || part==".." || part.back()=='.' || part.back()==' ') return false;
+        auto stem=part.substr(0,part.find('.'));
+        while(!stem.empty() && stem.back()==' ') stem.pop_back();
+        std::transform(stem.begin(),stem.end(),stem.begin(),[](unsigned char c){return c>='a' && c<='z' ? c-'a'+'A' : c;});
+        if(stem=="CON" || stem=="PRN" || stem=="AUX" || stem=="NUL" || stem=="CONIN$" || stem=="CONOUT$" ||
+            ((stem.starts_with("COM") || stem.starts_with("LPT")) && ((stem.size()==4 && stem[3]>='1' && stem[3]<='9') ||
+                stem.substr(3)=="\xc2\xb9" || stem.substr(3)=="\xc2\xb2" || stem.substr(3)=="\xc2\xb3"))) return false;
+        if(end==path.npos) return true;
+        begin=end+1;
+    }
+    return false;
+}
 bool HasPlaylistDrag(DragEventArgs const& args) {
     return args.DataView().Properties().HasKey(DragKey);
 }
@@ -23,7 +60,8 @@ bool MainWindow::PlaylistDragReady() const {
         state.session==iima::SessionState::Ready && !state.mediaOriginPending && !session_->PlaylistEditBusy();
 }
 void MainWindow::ResetPlaylistDrag() {
-    playlistDragToken_.reset();playlistDragRows_.clear();playlistDragItems_.clear();
+    if(playlistDragToken_ && activePlaylistDrag && activePlaylistDrag->token==*playlistDragToken_) activePlaylistDrag.reset();
+    playlistDragToken_.reset();playlistDragRows_.clear();playlistDragItems_.clear();playlistDragCopyAllowed_=false;
 }
 bool MainWindow::PlaylistDragCurrent(DragEventArgs const& args,bool verifyVisual) {
     try {
@@ -48,6 +86,51 @@ bool MainWindow::PlaylistDragCurrent(DragEventArgs const& args,bool verifyVisual
         }
         return !playlistDragRows_.empty();
     } catch(...) {ResetPlaylistDrag();return false;}
+}
+bool MainWindow::PlaylistDropTargetCurrent(bool verifyVisual) const {
+    if(!PlaylistDragReady()) return false;
+    auto const& items=session_->Snapshot().playlist;
+    if(items.size()!=playlist_.size() || (verifyVisual && PlaylistView().Items().Size()!=items.size())) return false;
+    for(std::size_t i=0;i<items.size();++i) {
+        if(items[i].id!=playlist_[i].id || items[i].path!=playlist_[i].path) return false;
+        if(verifyVisual) {
+            auto item=PlaylistView().Items().GetAt(static_cast<uint32_t>(i)).try_as<Controls::ListViewItem>();
+            if(!item || unbox_value<std::int64_t>(item.Tag())!=items[i].id) return false;
+        }
+    }
+    return true;
+}
+bool MainWindow::CopyPlaylistDrag(MainWindow& target,DragEventArgs const& args,std::size_t row) {
+    auto const& initial=target.session_->Snapshot();
+    const auto revision=initial.playlistRevision,media=initial.mediaGeneration,intent=initial.mediaOpenIntentRevision;
+    const auto input=target.inputGeneration_,edit=target.session_->PlaylistEditIntentRevision();
+    if(!playlistDragCopyAllowed_ || !PlaylistDragCurrent(args,true) || !target.PlaylistDropTargetCurrent(true) || row>initial.playlist.size()) return false;
+    std::vector<std::pair<std::int64_t,std::string>> identities;
+    std::size_t bytes{};
+    constexpr std::size_t budget=32*1024*1024,overhead=sizeof(std::pair<std::int64_t,std::string>);
+    for(auto const& item:initial.playlist) {
+        if(bytes>budget-overhead || item.path.size()>budget-overhead-bytes) {
+            target.ShowError(L"目标列表过大，无法安全保留复制落点快照。");return false;
+        }
+        bytes+=item.path.size()+overhead;identities.emplace_back(item.id,item.path);
+    }
+    std::vector<std::string> paths;bytes=0;
+    if(playlistDragRows_.empty() || playlistDragRows_.size()>1000) return false;
+    for(auto index:playlistDragRows_) {
+        if(index>=playlistDragItems_.size()) return false;
+        auto const& path=playlistDragItems_[index].second;
+        if(path.size()>1024*1024-bytes || !CopyablePlaylistPath(path)) return false;
+        bytes+=path.size();paths.push_back(path); // Keep source visual order and duplicates.
+    }
+    target.CancelAutomaticFiles();
+    auto const& now=target.session_->Snapshot();
+    if(!PlaylistDragCurrent(args,true) || !target.PlaylistDropTargetCurrent(true) ||
+        now.playlistRevision!=revision || now.mediaGeneration!=media || now.mediaOpenIntentRevision!=intent ||
+        target.inputGeneration_!=input || target.session_->PlaylistEditIntentRevision()!=edit || now.playlist.size()!=identities.size()) return false;
+    for(std::size_t i=0;i<identities.size();++i)
+        if(now.playlist[i].id!=identities[i].first || now.playlist[i].path!=identities[i].second) return false;
+    ResetPlaylistDrag(); // Consume the source capability before any synchronous Notify.
+    return target.session_->InsertPlaylist(std::move(paths),row);
 }
 std::optional<std::size_t> MainWindow::PlaylistDropRow(DragEventArgs const& args) const {
     try {
@@ -136,7 +219,18 @@ void MainWindow::WirePlaylistDrag() {
             // and row indices are not placed on the OS drag clipboard.
             args.Data().Properties().Insert(DragKey, box_value(*self->playlistDragToken_));
             args.Data().SetData(DragKey, box_value(*self->playlistDragToken_));
-            args.Data().RequestedOperation(DataPackageOperation::Move);
+            // Preflight copy once; DragOver never reparses every URL.
+            self->playlistDragCopyAllowed_=self->playlistDragRows_.size()<=1000;
+            std::size_t copyBytes{};
+            try {
+                for(auto row:self->playlistDragRows_) {
+                    auto const& path=self->playlistDragItems_[row].second;
+                    if(path.size()>1024*1024-copyBytes || !CopyablePlaylistPath(path)) {self->playlistDragCopyAllowed_=false;break;}
+                    copyBytes+=path.size();
+                }
+            } catch(...) {self->playlistDragCopyAllowed_=false;}
+            activePlaylistDrag=ActivePlaylistDrag{*self->playlistDragToken_,self->get_weak()};
+            args.Data().RequestedOperation(DataPackageOperation::Move | DataPackageOperation::Copy);
         } catch (...) { self->ResetPlaylistDrag(); args.Cancel(true); }
     });
     PlaylistView().DragItemsCompleted([weak](auto const&, auto const&) {
@@ -163,11 +257,15 @@ void MainWindow::WirePlaylistDrag() {
             return;
         }
         args.Handled(true); args.AcceptedOperation(DataPackageOperation::None);
-        if (auto self = weak.get(); self && self->PlaylistDragCurrent(args)) {
-            if (auto row = self->PlaylistDropRow(args)) {
-                args.AcceptedOperation(DataPackageOperation::Move);
-                args.DragUIOverride().Caption(*row == self->playlist_.size() ? L"移动到列表末尾" :
-                    L"移动到第 " + to_hstring(*row + 1) + L" 项之前");
+        auto source=PlaylistDragSource(args);
+        if(auto self=weak.get(); self && source && source->PlaylistDragCurrent(args)) {
+            const bool same=source.get()==self.get();
+            if(!same && (!source->playlistDragCopyAllowed_ || !self->PlaylistDropTargetCurrent(false))) return;
+            if(auto row=self->PlaylistDropRow(args)) {
+                args.AcceptedOperation(same ? DataPackageOperation::Move : DataPackageOperation::Copy);
+                args.DragUIOverride().Caption(same ? (*row==self->playlist_.size() ? hstring(L"移动到列表末尾") :
+                    L"移动到第 "+to_hstring(*row+1)+L" 项之前") :
+                    (*row==self->playlist_.size() ? hstring(L"复制到此窗口列表末尾（不播放）") : L"复制到此窗口第 "+to_hstring(*row+1)+L" 项之前（不播放）"));
                 args.DragUIOverride().IsCaptionVisible(true);
             }
         }
@@ -185,27 +283,49 @@ void MainWindow::WirePlaylistDrag() {
             return;
         }
         args.Handled(true); args.AcceptedOperation(DataPackageOperation::None);
-        if (auto self = weak.get()) {
+        auto source=PlaylistDragSource(args);
+        if(auto self=weak.get();self && source) {
+            const auto originalToken=unbox_value<guid>(args.DataView().Properties().Lookup(DragKey));
+            auto consumeOriginal=[source,originalToken] {
+                if(source->playlistDragToken_ && *source->playlistDragToken_==originalToken) source->ResetPlaylistDrag();
+            };
             try {
-                if (!self->PlaylistDragCurrent(args,true)) {
-                    self->ResetPlaylistDrag();
-                    if (!self->closing_) self->ShowError(L"拖动来源或播放列表已变化，请重新拖动。");
+                if(!source->PlaylistDragCurrent(args,true)) {
+                    consumeOriginal();
+                    if(!self->closing_) self->ShowError(L"拖动来源或播放列表已变化，请重新拖动。");
                     return;
                 }
-                auto row = self->PlaylistDropRow(args);
-                if (!row || !self->PlaylistDragCurrent(args,true)) {self->ResetPlaylistDrag();return;}
-                auto rows = std::move(self->playlistDragRows_);
-                self->ResetPlaylistDrag(); // Consume before Core can synchronously Notify.
-                const bool submitted=self->session_->DropPlaylistItems(std::move(rows), *row);
+                const auto targetRevision=self->session_->Snapshot().playlistRevision;
+                const auto targetInput=self->inputGeneration_,targetEdit=self->session_->PlaylistEditIntentRevision();
+                const auto targetMedia=self->session_->Snapshot().mediaGeneration,targetOpen=self->session_->Snapshot().mediaOpenIntentRevision;
+                auto row=self->PlaylistDropRow(args);
+                if(!row || self->session_->Snapshot().playlistRevision!=targetRevision || self->inputGeneration_!=targetInput ||
+                    self->session_->PlaylistEditIntentRevision()!=targetEdit || self->session_->Snapshot().mediaGeneration!=targetMedia ||
+                    self->session_->Snapshot().mediaOpenIntentRevision!=targetOpen) {consumeOriginal();return;}
+                const bool same=source.get()==self.get();
+                bool submitted{};
+                if(same) {
+                    if(!source->PlaylistDragCurrent(args,true)) {consumeOriginal();return;}
+                    auto rows=std::move(source->playlistDragRows_);
+                    consumeOriginal();
+                    submitted=self->session_->DropPlaylistItems(std::move(rows),*row);
+                } else {
+                    if(!source->playlistDragCopyAllowed_) {
+                        consumeOriginal();
+                        self->ShowError(L"此选择不能跨窗口复制：最多1000项／1MiB，仅普通绝对盘符路径或显式网络URL；不支持本地播放列表、设备路径或特殊协议。");return;
+                    }
+                    submitted=source->CopyPlaylistDrag(*self,args,*row);
+                    consumeOriginal(); // Also consume on a rejected/no-op drop.
+                }
                 self->UpdatePlaylistSelection();
-                if(submitted) args.AcceptedOperation(DataPackageOperation::Move);
-                // Move means the plan was submitted, not that asynchronous mpv
-                // edits are complete. Existing cursor reports partial failures.
-            } catch (std::exception const& error) { self->ResetPlaylistDrag();if(!self->closing_) self->ShowError(to_hstring(error.what())); }
-              catch (hresult_error const& error) { self->ResetPlaylistDrag();if(!self->closing_) self->ShowError(error.message()); }
+                if(submitted) args.AcceptedOperation(same ? DataPackageOperation::Move : DataPackageOperation::Copy);
+                // Accepted means a fresh-read editing transaction was submitted,
+                // never that all mpv mutations completed. Copy never removes source.
+            } catch(std::exception const& error) {consumeOriginal();if(!self->closing_) self->ShowError(to_hstring(error.what()));}
+              catch(hresult_error const& error) {consumeOriginal();if(!self->closing_) self->ShowError(error.message());}
+              catch(...) {consumeOriginal();throw;}
         }
         } catch(...) {
-            if(auto self=weak.get()) self->ResetPlaylistDrag();
             try {args.Handled(true);args.AcceptedOperation(DataPackageOperation::None);}catch(...) {}
         }
     });

@@ -595,10 +595,13 @@ private:
         std::uint64_t operation, std::uint64_t epoch, std::uint64_t revision,
         std::size_t destination);
     bool PlaylistDragReady() const;
+    bool PlaylistDropTargetCurrent(bool verifyVisual) const;
+    bool CopyPlaylistDrag(MainWindow& target, Microsoft::UI::Xaml::DragEventArgs const& args, std::size_t row);
     void ResetPlaylistDrag();
     bool PlaylistDragCurrent(Microsoft::UI::Xaml::DragEventArgs const& args, bool verifyVisual = false);
     std::optional<std::size_t> PlaylistDropRow(Microsoft::UI::Xaml::DragEventArgs const& args) const;
     std::optional<winrt::guid> playlistDragToken_;
+    bool playlistDragCopyAllowed_{};
     std::vector<std::pair<std::int64_t,std::string>> playlistDragItems_;
     std::vector<std::size_t> playlistDragRows_;
     std::uint64_t playlistDragRevision_{}, playlistDragMedia_{}, playlistDragOpenIntent_{}, playlistDragInput_{}, playlistDragEditIntent_{};
