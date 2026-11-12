@@ -168,6 +168,8 @@ private:
     std::string cropDraftPath_;
     int cropDraftWidth_{}, cropDraftHeight_{};
     void WireVideoControls();
+    void WireVideoSize();
+    void ResizeToVideo(std::optional<double> scale);
     void WireVideoAdjustments();
     void UpdateVideoAdjustments(iima::PlaybackSnapshot const& state);
     bool projectingVideoAdjustments_{};

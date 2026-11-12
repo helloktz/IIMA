@@ -21,3 +21,12 @@ struct WindowGeometry final {
         GeometrySize minimum) const noexcept;
 };
 }
+
+namespace iima {
+// MainWindowController.setWindowScale: scale the video, not the sidebar/frame.
+// All geometry is physical pixels. video is aspect-corrected, rotation-adjusted.
+// scale=null selects the largest aspect-preserving video fitting the work area.
+std::optional<GeometryRect> ScaledVideoWindow(GeometrySize video, GeometryRect current,
+    GeometryRect workArea, GeometrySize chrome, GeometrySize minimum,
+    std::optional<double> scale, bool physicalResolution, double dpiScale) noexcept;
+}

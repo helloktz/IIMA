@@ -347,6 +347,20 @@
                             </StackPanel>
                         </Expander>
                         <Slider x:Name="VolumeSlider" Header="音量" Minimum="0" Maximum="100" Value="100" AutomationProperties.Name="音量"/>
+                        <Expander Header="按视频尺寸缩放窗口" HorizontalAlignment="Stretch">
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="普通窗口模式；计入边框和侧栏，超出屏幕时按比例缩小。" TextWrapping="Wrap"/>
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <Button x:Name="HalfVideoSizeButton" Content="0.5×" AutomationProperties.Name="视频半倍尺寸"/>
+                                    <Button x:Name="OriginalVideoSizeButton" Content="1×" AutomationProperties.Name="视频原始尺寸"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <Button x:Name="OneHalfVideoSizeButton" Content="1.5×" AutomationProperties.Name="视频一点五倍尺寸"/>
+                                    <Button x:Name="DoubleVideoSizeButton" Content="2×" AutomationProperties.Name="视频双倍尺寸"/>
+                                </StackPanel>
+                                <Button x:Name="FitVideoSizeButton" Content="画面适合工作区"/>
+                            </StackPanel>
+                        </Expander>
                         <TextBox x:Name="AspectText" Header="视频比例（例如 16:9）"/>
                         <StackPanel Orientation="Horizontal" Spacing="4">
                             <Button x:Name="ApplyAspectButton" Content="应用比例"/>

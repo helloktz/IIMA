@@ -935,3 +935,11 @@ Windows新增只读`ReadFullscreenInformation`：GetTimeFormatEx按用户区域�
 - 两项偏好终于进入可见高级设置与搜索/单项恢复默认；新增NextPlayer时机，标注“下次新播放器”，更改不立即改当前响度，同窗口换片不重置音量。显示继续等待mpv观察；不把初始请求写成已确认音量，也不覆写记忆值。
 - Windows差异：沿用当前端口的音量范围/最大值验证（上游初始选项为int，本端double）；初始化失败继续按既有播放器错误路径处理，不承诺实际响度。既有记忆音量目前主要由滑块用户动作保存，并非完整覆盖所有外部mpv音量来源，这一限制不因接入初始值而消失。
 - 未播放声音、未编译测试运行；源码映射和待验证顺序已记录。
+
+## 第八十八批：按视频显示尺寸手动缩放窗口
+
+- 源码：`MainWindowController.swift::setWindowScale` 以视频1×尺寸、physical-resolution偏好、缩放比、屏幕约束及中心位置调整窗口；`PlayerCore.videoSizeForDisplay` 使用滤镜后显示尺寸及旋转。mpv固定源码 `DOCS/man/input.rst` 的dwidth/dheight/video-out-params与 `video/out/aspect.c` 说明显示尺寸的像素比例校正及VO直角旋转。
+- 核心 `ScaledVideoWindow` 在物理坐标中统一求解：扣除实测非视频边框/侧栏尺寸，按0.5/1/1.5/2倍率或工作区最大适合比例求画面尺寸，保留画面比例、普通缩放保留窗口中心、适合工作区居中，优先保证不超屏，统一缩放达到可容纳的最小窗口尺寸。避免独立钳制视频宽高造成比例扭曲。
+- 新增WinUI原始视频尺寸入口，使用输出dw/dh与rotate（直角旋转后互换），同屏工作区和DPI、SwapChainPanel物理布局测量；接通usePhysicalResolution可编辑偏好，开启1视频像素对应1屏幕像素，关闭按DIP语义乘DPI比例。最终MoveAndResize后记录窗口位置；未写mpv window-scale，因为嵌入式合成面板尺寸由原有呈现桥管理。
+- 全屏/小窗/最大化、音乐模式、编辑裁剪/模态、未配置视频、未知旋转或内建非全幅crop拒绝操作，不猜未知尺寸。普通vf输出尺寸可用时采用滤镜后结果；独立内建crop仍未纳入变换。现有“大/小窗口”和铺满工作区命令保留，不混同本批按视频尺寸的入口。
+- 平台差异：把Windows侧栏/窗口边框作为非视频尺寸明确扣除，超屏时缩小请求的视频比例而不是上游分支缩放旧窗口；适合工作区可放大较小视频。未接自动打开/换片尺寸与initialWindowSizePosition，不以手动缩放冒充这些已完成。未编译测试运行。

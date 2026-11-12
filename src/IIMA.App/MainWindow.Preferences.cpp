@@ -24,7 +24,7 @@ bool HasApplicationAdapter(std::string_view key) {
     static const std::set<std::string_view> keys{
         "enableInitialVolume", "initialVolume", "alwaysOpenInNewWindow", "groupSimultaneousOpensInPlaylist", "allowDuplicatePlayers",
         "autoSwitchToMusicMode", "musicModeShowPlaylist", "musicModeShowAlbumArt",
-        "preventScreenSaver", "allowScreenSaverForAudio", "pauseWhenInactive", "pauseWhenMinimized", "pauseWhenGoesToSleep", "enableThumbnailPreview", "thumbnailWidth", "maxThumbnailPreviewCacheSize",
+        "usePhysicalResolution", "preventScreenSaver", "allowScreenSaverForAudio", "pauseWhenInactive", "pauseWhenMinimized", "pauseWhenGoesToSleep", "enableThumbnailPreview", "thumbnailWidth", "maxThumbnailPreviewCacheSize",
         "displayTimeAndBatteryInFullScreen", "alwaysFloatOnTop", "fullScreenWhenOpen", "playWhenEnteringFullScreen", "pauseWhenLeavingFullScreen",
         "singleClickAction", "doubleClickAction", "rightClickAction", "verticalScrollAction", "horizontalScrollAction",
         "relativeSeekAmount", "playbackSpeedScrollAmount", "wheelExactSeek", "enableControlBarAutoHide", "controlBarAutoHideTimeout",

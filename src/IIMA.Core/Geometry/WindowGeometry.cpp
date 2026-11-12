@@ -79,3 +79,42 @@ std::optional<GeometryRect> WindowGeometry::Resolve(GeometryRect current,
     return ValidRect(current) ? std::optional{current} : std::nullopt;
 }
 }
+
+namespace iima {
+std::optional<GeometryRect> ScaledVideoWindow(GeometrySize video, GeometryRect current,
+    GeometryRect work, GeometrySize chrome, GeometrySize minimum,
+    std::optional<double> scale, bool physicalResolution, double dpiScale) noexcept {
+    auto positive = [](double v) { return std::isfinite(v) && v > 0 && v <= 1000000; };
+    auto nonnegative = [](double v) { return std::isfinite(v) && v >= 0 && v <= 1000000; };
+    if (!positive(video.width) || !positive(video.height) ||
+        !positive(current.width) || !positive(current.height) ||
+        !positive(work.width) || !positive(work.height) ||
+        !std::isfinite(current.x) || !std::isfinite(current.y) ||
+        !std::isfinite(work.x) || !std::isfinite(work.y) ||
+        !nonnegative(chrome.width) || !nonnegative(chrome.height) ||
+        !positive(minimum.width) || !positive(minimum.height) ||
+        !std::isfinite(dpiScale) || dpiScale < 0.5 || dpiScale > 8 ||
+        (scale && (!std::isfinite(*scale) || *scale <= 0 || *scale > 16))) return {};
+    const auto availableWidth = work.width - chrome.width;
+    const auto availableHeight = work.height - chrome.height;
+    if (availableWidth < 1 || availableHeight < 1) return {};
+    const double units = physicalResolution ? 1.0 : dpiScale;
+    const double baseWidth = video.width * units, baseHeight = video.height * units;
+    const auto maximum = std::min(availableWidth / baseWidth, availableHeight / baseHeight);
+    const auto smallest = std::max({0.0, (minimum.width - chrome.width) / baseWidth,
+        (minimum.height - chrome.height) / baseHeight});
+    // A small monitor takes precedence over the preferred minimum. Clamp the
+    // scale once so pixel aspect is preserved; never clamp width/height apart.
+    const auto factor = std::min(maximum, std::max(scale.value_or(maximum), smallest));
+    GeometryRect result{0, 0, baseWidth * factor + chrome.width, baseHeight * factor + chrome.height};
+    if (!positive(result.width) || !positive(result.height)) return {};
+    result.width = std::min(work.width, result.width);
+    result.height = std::min(work.height, result.height);
+    if (result.width < 1 || result.height < 1) return {};
+    const double centerX = scale ? current.x + current.width / 2 : work.x + work.width / 2;
+    const double centerY = scale ? current.y + current.height / 2 : work.y + work.height / 2;
+    result.x = std::clamp(centerX - result.width / 2, work.x, work.x + work.width - result.width);
+    result.y = std::clamp(centerY - result.height / 2, work.y, work.y + work.height - result.height);
+    return result;
+}
+}
