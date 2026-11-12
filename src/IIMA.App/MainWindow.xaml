@@ -97,7 +97,8 @@
                         <Button x:Name="RevealPlaylistButton" Content="定位所选文件"/>
                         <Button x:Name="CopyPlaylistPathsButton" Content="复制所选路径" ToolTipService.ToolTip="含网络URL原文，可能含私密参数"/>
                         <Button x:Name="CopyPlaylistUrlsButton" Content="仅复制所选网络URL"/>
-                        <Button x:Name="PastePlaylistPathsButton" Content="粘贴路径文本到列表" ToolTipService.ToolTip="每行一个绝对文件路径或网络URL，插入首个所选项前；未选择时插入开头"/>
+                        <Button x:Name="PastePlaylistPathsButton" Content="粘贴文件或路径到列表" ToolTipService.ToolTip="支持资源管理器文件/文件夹，或每行一个绝对路径/URL；插入首选项前，无选择则插入开头"/>
+                        <Button x:Name="CancelPlaylistPasteButton" Content="取消待处理粘贴"/>
                         <Button x:Name="MoveUpButton" Content="上移"/>
                         <Button x:Name="MoveDownButton" Content="下移"/>
                     </StackPanel>

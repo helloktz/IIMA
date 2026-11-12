@@ -277,6 +277,11 @@ private:
     void CopyPlaylistPaths(bool networkOnly);
     winrt::fire_and_forget PastePlaylistPaths();
     bool playlistPasteBusy_{};
+    std::stop_source playlistPasteStop_;
+    std::uint64_t playlistPasteGeneration_{};
+    void ResolvePlaylistPaste(std::vector<std::wstring> inputs,
+        std::uint64_t operation, std::uint64_t epoch, std::uint64_t revision,
+        std::size_t destination);
     bool PlaylistDragCurrent(Microsoft::UI::Xaml::DragEventArgs const& args) const;
     std::optional<std::size_t> PlaylistDropRow(Microsoft::UI::Xaml::DragEventArgs const& args) const;
     std::optional<winrt::guid> playlistDragToken_;

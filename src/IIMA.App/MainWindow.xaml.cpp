@@ -253,6 +253,7 @@ void MainWindow::BeginClose()
     if (jumpDialog_) jumpDialog_.Hide();
     fontCatalogStop_.request_stop();
     revealSelectionStop_.request_stop();
+    playlistPasteStop_.request_stop(); ++playlistPasteGeneration_;
     if (subtitleFontDialog_) subtitleFontDialog_.Hide();
     if (subtitleColorDialog_) subtitleColorDialog_.Hide();
     if (openUrlDialog_) openUrlDialog_.Hide();
