@@ -326,8 +326,8 @@
                         <NumberBox x:Name="SubtitlePositionBox" Header="字幕位置（0顶部，100底部）" Value="100" Minimum="0" Maximum="100"/>
                         <Button x:Name="ApplySubtitleLayoutButton" Content="应用字幕位置与缩放"/>
                         <TextBlock x:Name="SubtitleLayoutStatus" TextWrapping="Wrap"/>
-                        <Button x:Name="ScreenshotButton" Content="保存截图…"/>
-                        <TextBlock Text="保存格式由高级设置 screenShotFormat 决定；复制固定使用PNG。部分格式需要配套编码器/预览解码器。" TextWrapping="Wrap"/>
+                        <Button x:Name="ScreenshotButton" Content="截图（按偏好输出）…"/>
+                        <TextBlock Text="高级设置可分别启用截图保存和复制；同时启用时使用同一张图。保存格式由 screenShotFormat 决定，仅复制时使用PNG。部分格式需要配套编码/解码器。" TextWrapping="Wrap"/>
                         <Button x:Name="CopyScreenshotButton" Content="复制视频截图"/>
                         <ComboBox x:Name="ChapterBox" Header="章节" HorizontalAlignment="Stretch" AutomationProperties.Name="章节"/>
                         <StackPanel Orientation="Horizontal" Spacing="6">
