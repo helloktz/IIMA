@@ -9,6 +9,7 @@
 #include <sstream>
 #include <chrono>
 #include <iterator>
+#include <atomic>
 
 using namespace winrt;
 namespace winrt::IIMA::implementation {
@@ -85,7 +86,12 @@ void MainWindow::InitializeDiagnostics()
         try { path = raw; } catch (...) { CoTaskMemFree(raw); throw; }
         CoTaskMemFree(raw);
         auto weak = get_weak(); auto dispatcher = DispatcherQueue();
-        diagnostics_ = std::make_unique<iima::DiagnosticLog>(path / L"IIMA" / L"logs", [weak, dispatcher](std::string error) {
+        // Every window has its own writer/rotation pair. No two independent workers
+        // may rotate or truncate a common player.log.
+        static std::atomic<std::uint64_t> sequence{0};
+        auto stamp = std::chrono::system_clock::now().time_since_epoch().count();
+        auto directory = std::to_wstring(stamp) + L"-" + std::to_wstring(GetCurrentProcessId()) + L"-" + std::to_wstring(++sequence);
+        diagnostics_ = std::make_unique<iima::DiagnosticLog>(path / L"IIMA" / L"logs" / directory, [weak, dispatcher](std::string error) {
             dispatcher.TryEnqueue([weak, error = std::move(error)] {
                 if (auto self = weak.get()) self->ShowError(L"诊断日志不可用：" + to_hstring(error));
             });

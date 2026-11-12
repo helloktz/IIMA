@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "UserDataStore.h"
+#include "UserDataMerge.h"
 #include "../Settings/PreferenceJson.h"
 #include "../Settings/MediaPresetsJson.h"
 #include <winrt/Windows.Data.Json.h>
@@ -11,6 +12,8 @@
 #include <atomic>
 #include <chrono>
 #include <stdexcept>
+#include <map>
+#include <array>
 
 namespace iima {
 namespace {
@@ -18,6 +21,22 @@ using namespace winrt;
 using namespace Windows::Data::Json;
 std::mutex ioMutex;
 std::atomic<unsigned long> serial{};
+// Only documents whose exact bytes were successfully preserved during Load
+// may be replaced with recovered defaults later in this process.
+std::map<std::filesystem::path, std::filesystem::path> preservedDocuments;
+bool PreservedUnchanged(std::filesystem::path const& path) {
+    auto found = preservedDocuments.find(path);
+    if (found == preservedDocuments.end()) return false;
+    std::ifstream current(path, std::ios::binary), backup(found->second, std::ios::binary);
+    if (!current || !backup) return false;
+    std::array<char, 16384> a{}, b{};
+    do {
+        current.read(a.data(), a.size()); backup.read(b.data(), b.size());
+        if (current.bad() || backup.bad() || current.gcount() != backup.gcount() ||
+            !std::equal(a.begin(), a.begin() + current.gcount(), b.begin())) return false;
+    } while (!current.eof() && !backup.eof());
+    return current.eof() && backup.eof();
+}
 std::filesystem::path Root() {
     PWSTR local{};
     check_hresult(SHGetKnownFolderPath(FOLDERID_LocalAppData,KF_FLAG_DEFAULT,nullptr,&local));
@@ -42,6 +61,7 @@ void Preserve(std::filesystem::path const& path) {
     auto backup=path;
     backup+=L".corrupt-"+std::to_wstring(GetTickCount64())+L"-"+std::to_wstring(serial++);
     std::filesystem::copy_file(path,backup); // failure propagates; never overwrite an unreadable file silently
+    preservedDocuments.insert_or_assign(path, backup);
 }
 void AtomicWrite(std::filesystem::path const& path, JsonObject const& json) {
     std::filesystem::create_directories(path.parent_path());
@@ -68,8 +88,8 @@ void AtomicWrite(std::filesystem::path const& path, JsonObject const& json) {
 }
 JsonObject Document() { JsonObject json; json.Insert(L"schemaVersion",JsonValue::CreateNumberValue(1)); return json; }
 }
-UserData UserDataStore::Load() {
-    std::lock_guard lock(ioMutex);
+namespace {
+UserData LoadUnlocked(bool recover) {
     UserData data;
     auto root=Root();
     try {
@@ -108,7 +128,8 @@ UserData UserDataStore::Load() {
             if(!ValidUserSettings(data.settings)) throw std::runtime_error("Invalid settings range");
         }
     } catch(...) {
-        Preserve(root/L"settings.json");
+        if (!recover && !PreservedUnchanged(root/L"settings.json")) throw;
+        if (recover) Preserve(root/L"settings.json");
         data.settings={}; data.warning="设置文件无法读取，已保留原文件并使用默认设置。";
     }
     try {
@@ -130,14 +151,14 @@ UserData UserDataStore::Load() {
             }
         }
     } catch(...) {
-        Preserve(root/L"history.json");
+        if (!recover && !PreservedUnchanged(root/L"history.json")) throw;
+        if (recover) Preserve(root/L"history.json");
         data.history.clear(); data.warning+=" 播放历史无法读取，原文件已保留。";
     }
     return data;
 }
-void UserDataStore::Save(UserData const& data) {
+void SaveUnlocked(UserData const& data) {
     if(!data.writable) throw std::runtime_error("Refusing to overwrite user data that could not be safely loaded");
-    std::lock_guard lock(ioMutex);
     auto root=Root();
     if(!ValidUserSettings(data.settings)) throw std::runtime_error("Invalid settings range");
     auto settings=Document();
@@ -162,6 +183,7 @@ void UserDataStore::Save(UserData const& data) {
     settings.Insert(L"screenshotMode",JsonValue::CreateStringValue(data.settings.screenshotMode==ScreenshotMode::Video ? L"video" :
         data.settings.screenshotMode==ScreenshotMode::Window ? L"window" : L"subtitles"));
     AtomicWrite(root/L"settings.json",settings);
+    preservedDocuments.erase(root/L"settings.json");
     auto history=Document(); JsonArray entries;
     for(auto const& entry:data.history) {
         JsonObject item;
@@ -172,5 +194,24 @@ void UserDataStore::Save(UserData const& data) {
         entries.Append(item);
     }
     history.Insert(L"entries",entries); AtomicWrite(root/L"history.json",history);
+    preservedDocuments.erase(root/L"history.json");
 }
+
+} // namespace
+UserData UserDataStore::Load() {
+    std::lock_guard lock(ioMutex);
+    return LoadUnlocked(true);
 }
+void UserDataStore::Save(UserData const& data) {
+    std::lock_guard lock(ioMutex);
+    SaveUnlocked(data);
+}
+UserData UserDataStore::SaveMerged(UserData const& base, UserData const& edited) {
+    std::lock_guard lock(ioMutex);
+    // Do not recover new corruption here. Only an unchanged document already
+    // backed up by Load may still use its recovered defaults.
+    auto merged = MergeUserData(base, edited, LoadUnlocked(false));
+    SaveUnlocked(merged);
+    return merged;
+}
+} // namespace iima

@@ -28,6 +28,9 @@ struct MainWindow : MainWindowT<MainWindow> {
     MainWindow();
     void QueueFiles(std::vector<std::string> paths, bool append = false);
     void ReceiveActivation(std::vector<std::wstring> paths);
+    void ConfigureWindowActions(std::function<void()> create, std::function<void()> next);
+    void UpdateWindowCount(std::size_t count);
+    bool IsClosing() const noexcept { return closing_; }
     void SetActivationClosing(std::function<void()> callback) { activationClosing_ = std::move(callback); }
 private:
     winrt::fire_and_forget OpenFile(bool append = false);
@@ -175,10 +178,12 @@ private:
     std::vector<std::wstring> activationInputs_;
     bool activationDelayElapsed_{};
     std::function<void()> activationClosing_;
+    std::function<void()> newWindow_, nextWindow_;
     std::unique_ptr<iima::DiagnosticLog> diagnostics_;
     std::string lastDiagnostics_;
     bool diagnosticsClosed_{};
     iima::UserData userData_;
+    iima::UserData savedUserData_; // Last snapshot submitted successfully, not another window's view.
     struct HistorySample { std::int64_t entryId; std::string path; std::optional<double> position, duration; };
     std::optional<HistorySample> lastMedia_;
     std::optional<int64_t> resumedEntry_;

@@ -25,6 +25,7 @@ void MainWindow::LoadUserData()
         dispatcher.TryEnqueue([weak, data = std::move(data)]() mutable {
             if (auto self = weak.get()) {
                 self->userData_ = std::move(data);
+                self->savedUserData_ = self->userData_;
                 self->userDataLoaded_ = true;
                 if (!self->closing_) self->Root().IsEnabled(true);
                 self->updating_ = true;
@@ -108,24 +109,25 @@ void MainWindow::PumpSave()
     if (!userDataLoaded_ || !userData_.writable || discardUserData_ || saving_ || !saveDirty_ || saveFailed_) { FinishClose(); return; }
     saving_ = true; saveDirty_ = false;
     auto data = userData_;
+    auto baseline = savedUserData_;
     auto dispatcher = DispatcherQueue(); auto weak = get_weak();
-    std::thread([weak, dispatcher, data = std::move(data)] {
+    std::thread([weak, dispatcher, data = std::move(data), baseline = std::move(baseline)] {
         std::string error;
         bool initialized = false;
         try {
             init_apartment(apartment_type::multi_threaded); initialized = true;
-            iima::UserDataStore::Save(data);
+            iima::UserDataStore::SaveMerged(baseline, data);
         } catch (std::exception const& e) { error = e.what(); }
           catch (hresult_error const& e) { error = to_string(e.message()); }
         if (initialized) uninit_apartment();
-        dispatcher.TryEnqueue([weak, error = std::move(error)] {
+        dispatcher.TryEnqueue([weak, data = std::move(data), error = std::move(error)] {
             if (auto self = weak.get()) {
                 self->saving_ = false;
                 if (!error.empty()) {
                     self->saveDirty_ = true; self->saveFailed_ = true;
                     self->ShowError(L"设置或历史保存失败：" + to_hstring(error) + L"。本次更改尚未保存。");
                     if (self->closing_) self->ConfirmUnsavedClose();
-                } else self->PumpSave();
+                } else { self->savedUserData_ = data; self->PumpSave(); }
             }
         });
     }).detach();

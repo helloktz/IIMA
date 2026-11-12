@@ -250,7 +250,8 @@
       "coverage": "partial-static-unverified",
       "reviewTargets": [
         "src/IIMA.Core/Persistence/UserData.h",
-        "src/IIMA.Core/History/HistoryBrowser.cpp"
+        "src/IIMA.Core/History/HistoryBrowser.cpp",
+        "src/IIMA.App/Platform/UserDataMerge.cpp"
       ]
     },
     {
@@ -863,7 +864,9 @@
       "physicalLines": 3248,
       "coverage": "partial-static-unverified",
       "reviewTargets": [
-        "src/IIMA.Core/Playback/PlayerSession.cpp"
+        "src/IIMA.Core/Playback/PlayerSession.cpp",
+        "src/IIMA.Core/Windows/PlayerWindowRegistry.cpp",
+        "src/IIMA.App/App.xaml.cpp"
       ]
     },
     {

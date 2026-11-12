@@ -71,6 +71,11 @@
                 </StackPanel>
                 <ScrollViewer Grid.Row="3" MaxHeight="300" HorizontalScrollBarVisibility="Disabled">
                     <StackPanel Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <Button x:Name="NewWindowButton" Content="新建窗口"/>
+                            <Button x:Name="NextWindowButton" Content="下个窗口"/>
+                        </StackPanel>
+                        <TextBlock x:Name="WindowCountText" Text="播放器窗口：1"/>
                         <Button x:Name="RevealFileButton" Content="在资源管理器中显示"/>
                         <Button x:Name="CompactOverlayButton" Content="切换悬浮小窗"/>
                         <Button x:Name="OpenUrlButton" Content="打开网络媒体…"/>

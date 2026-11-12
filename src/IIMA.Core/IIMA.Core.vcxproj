@@ -142,5 +142,9 @@
     <ClInclude Include="OnlineSubtitles\MediaHash.h" />
     <ClCompile Include="OnlineSubtitles\MediaHash.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Windows\PlayerWindowRegistry.cpp" />
+    <ClInclude Include="Windows\PlayerWindowRegistry.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

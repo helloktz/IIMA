@@ -183,3 +183,7 @@ mpv 阅读入口：`include/mpv/client.h`、`include/mpv/render.h`、`include/mp
 - [libmpv 头文件](https://github.com/mpv-player/mpv/tree/master/include/mpv)
 
 本地快照和实际选定依赖的接口契约优先于不匹配版本的在线示例。
+
+## 多窗口静态扩展（2026-11-12）
+
+App持有以单调ID索引的MainWindow强引用集合，并以UI线程PlayerWindowRegistry选择激活目标；单窗口异步关闭完成后才从集合移除。窗口各自拥有播放器/图形/系统媒体资源，关闭一个窗口不停止全局InstanceRouter。并发UserData保存使用窗口基线差分合并，IO锁中读取最新磁盘，避免整份旧快照覆盖其他窗口；UI暂不实时同步其他窗口偏好。此扩展尚未编译或运行验证，不撤销原验收条件。
