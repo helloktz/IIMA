@@ -12,6 +12,7 @@ using namespace Microsoft::UI::Xaml;
 namespace {
 bool HasApplicationAdapter(std::string_view key) {
     static const std::set<std::string_view> keys{
+        "alwaysOpenInNewWindow", "groupSimultaneousOpensInPlaylist", "allowDuplicatePlayers",
         "autoSwitchToMusicMode", "musicModeShowPlaylist", "musicModeShowAlbumArt",
         "pauseWhenInactive", "pauseWhenMinimized", "pauseWhenGoesToSleep", "enableThumbnailPreview", "thumbnailWidth", "maxThumbnailPreviewCacheSize",
         "alwaysFloatOnTop", "fullScreenWhenOpen", "playWhenEnteringFullScreen", "pauseWhenLeavingFullScreen",

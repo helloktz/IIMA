@@ -44,6 +44,7 @@
       "coverage": "partial-static-unverified",
       "reviewTargets": [
         "src/IIMA.App/App.xaml.cpp",
+        "src/IIMA.App/App.OpenPolicy.cpp",
         "src/IIMA.App/Platform/InstanceRouter.cpp"
       ]
     },
@@ -924,6 +925,8 @@
         "src/IIMA.Core/Playback/PlayerSession.cpp",
         "src/IIMA.Core/Windows/PlayerWindowRegistry.cpp",
         "src/IIMA.App/App.xaml.cpp",
+        "src/IIMA.App/App.OpenPolicy.cpp",
+        "src/IIMA.App/MainWindow.OpenPolicy.cpp",
         "src/IIMA.App/MainWindow.ABLoop.cpp",
         "src/IIMA.Core/Playback/PlayerSession.Actions.cpp"
       ]

@@ -48,7 +48,7 @@ void MainWindow::FlushActivation()
         std::vector<std::string> paths;
         for (auto const& path : activationInputs_) paths.push_back(to_string(path));
         activationInputs_.clear(); activationDelayElapsed_ = false;
-        QueueFiles(std::move(paths));
+        QueueFiles(std::move(paths), false, true);
     } catch (hresult_error const& error) {
         activationInputs_.clear(); activationDelayElapsed_ = false; ShowError(error.message());
     } catch (std::exception const& error) {

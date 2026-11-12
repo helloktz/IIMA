@@ -38,8 +38,9 @@ winrt::fire_and_forget MainWindow::OpenNetworkUrl() {
             auto prepared = iima::PrepareMediaUrl(to_string(input.Text()));
             if (prepared) {
                 Windows::Foundation::Uri uri(to_hstring(prepared->value));
-                inputStop_.request_stop(); ++inputGeneration_;
+                inputStop_.request_stop(); ++inputGeneration_; inputResolving_ = false;
                 pendingFiles_.clear();
+                inputAssigned_ = true;
                 session_->Open(to_string(uri.AbsoluteUri()));
             }
         }

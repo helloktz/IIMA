@@ -132,7 +132,7 @@ winrt::fire_and_forget MainWindow::OpenFile(bool append)
         if (files.Size() && !closing_) {
             std::vector<std::string> paths;
             for (auto const& file : files) paths.push_back(to_string(file.Path()));
-            QueueFiles(std::move(paths), append);
+            QueueFiles(std::move(paths), append, !append);
         }
     } catch (hresult_error const& error) { if (!closing_) ShowError(error.message()); }
     pickerOpen_ = false;

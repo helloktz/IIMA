@@ -28,6 +28,10 @@ winrt::com_ptr<MainWindow> App::CreatePlayerWindow()
         }, [weak, id = *id] {
             if (auto app = weak.get()) app->ActivateNext(id);
         });
+        window->SetOpenInputRouter([weak, id = *id](std::vector<std::string> paths,
+                bool newWindow, bool group, bool duplicates) {
+            if (auto app = weak.get()) app->RouteResolvedInput(id, std::move(paths), newWindow, group, duplicates);
+        });
         window->SetActivationClosing([weak, id = *id] {
             if (auto app = weak.get()) {
                 app->windowRegistry_.MarkClosing(id);

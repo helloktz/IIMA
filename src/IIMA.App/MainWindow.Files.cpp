@@ -24,7 +24,7 @@ void MainWindow::WireFileActions()
     ScreenshotButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->SaveScreenshot(); });
 
 }
-void MainWindow::QueueFiles(std::vector<std::string> paths, bool append)
+void MainWindow::QueueFiles(std::vector<std::string> paths, bool append, bool useWindowPolicy)
 {
     if (closing_ || paths.empty()) return;
     if (activationTimer_) activationTimer_.Stop();
@@ -34,15 +34,30 @@ void MainWindow::QueueFiles(std::vector<std::string> paths, bool append)
     // New user input supersedes old unresolved/pending input, not active playback.
     pendingFiles_.clear();
     try {
+    const bool singleSource = paths.size() == 1;
+    inputResolving_ = true;
     std::vector<std::wstring> inputs;
     for (auto const& path : paths) inputs.emplace_back(to_hstring(path));
     auto weak = get_weak();
     inputStop_ = iima::LocalInputResolver::Resolve(std::move(inputs), DispatcherQueue(),
-        [weak, generation, append](iima::LocalInputResult result) {
+        [weak, generation, append, useWindowPolicy, singleSource](iima::LocalInputResult result) {
             if (auto self = weak.get(); self && !self->closing_ && self->inputGeneration_ == generation && !result.cancelled) {
-                self->pendingFiles_ = std::move(result.paths);
-                self->pendingAppend_ = append;
-                self->OpenPendingFiles();
+                self->inputResolving_ = false;
+                try {
+                    if (!append && useWindowPolicy && self->openInputRouter_ && !result.paths.empty()) {
+                        // A single folder remains one source. Splitting its expanded
+                        // contents into separate windows would differ from openURLs.
+                        self->openInputRouter_(std::move(result.paths),
+                            self->preferences_.Boolean("alwaysOpenInNewWindow"),
+                            singleSource || self->preferences_.Boolean("groupSimultaneousOpensInPlaylist"),
+                            self->preferences_.Boolean("allowDuplicatePlayers"));
+                    } else {
+                        self->pendingFiles_ = std::move(result.paths);
+                        self->pendingAppend_ = append;
+                        self->OpenPendingFiles();
+                    }
+                } catch (hresult_error const& error) { self->ShowError(error.message()); }
+                  catch (std::exception const& error) { self->ShowError(to_hstring(error.what())); }
                 if (!result.warnings.empty()) {
                     std::wstring warning;
                     for (auto const& line : result.warnings) { if (!warning.empty()) warning += L"\n"; warning += line; }
@@ -50,8 +65,8 @@ void MainWindow::QueueFiles(std::vector<std::string> paths, bool append)
                 }
             }
         });
-    } catch (hresult_error const& error) { ShowError(error.message()); }
-      catch (std::exception const& error) { ShowError(to_hstring(error.what())); }
+    } catch (hresult_error const& error) { inputResolving_ = false; ShowError(error.message()); }
+      catch (std::exception const& error) { inputResolving_ = false; ShowError(to_hstring(error.what())); }
 }
 void MainWindow::OpenPendingFiles()
 {
@@ -62,6 +77,7 @@ void MainWindow::OpenPendingFiles()
     if (state.session != iima::SessionState::Ready || !state.compositionAvailable) {
         ShowError(L"播放内核尚不可用，请安装配套的 libmpv 后重新打开文件。"); return;
     }
+    inputAssigned_ = true;
     session_->OpenMultiple(std::move(paths), pendingAppend_);
 }
 winrt::fire_and_forget MainWindow::DropFiles(DragEventArgs args)

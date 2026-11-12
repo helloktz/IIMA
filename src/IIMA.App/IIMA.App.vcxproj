@@ -60,6 +60,8 @@
     <ClCompile Include="Presentation\VideoPresenter.cpp" />
     <ClCompile Include="MainWindow.Playback.cpp" />
     <ClCompile Include="MainWindow.PlaylistSelection.cpp" />
+    <ClCompile Include="App.OpenPolicy.cpp" />
+    <ClCompile Include="MainWindow.OpenPolicy.cpp" />
     <ClCompile Include="MainWindow.UserData.cpp" />
     <ClCompile Include="MainWindow.Files.cpp" />
     <ClCompile Include="MainWindow.Settings.cpp" />

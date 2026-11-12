@@ -33,10 +33,15 @@
 namespace winrt::IIMA::implementation {
 struct MainWindow : MainWindowT<MainWindow> {
     MainWindow();
-    void QueueFiles(std::vector<std::string> paths, bool append = false);
+    void QueueFiles(std::vector<std::string> paths, bool append = false, bool useWindowPolicy = false);
     void ReceiveActivation(std::vector<std::wstring> paths);
     void ConfigureWindowActions(std::function<void()> create, std::function<void()> next);
     void UpdateWindowCount(std::size_t count);
+    using OpenInputRouter = std::function<void(std::vector<std::string>, bool, bool, bool)>;
+    void SetOpenInputRouter(OpenInputRouter router) { openInputRouter_ = std::move(router); }
+    void ReceiveResolvedInput(std::vector<std::string> paths);
+    bool CanReuseForInput() const;
+    bool HasOpenInput(std::string const& path) const;
     bool IsClosing() const noexcept { return closing_; }
     void SetActivationClosing(std::function<void()> callback) { activationClosing_ = std::move(callback); }
 private:
@@ -259,7 +264,8 @@ private:
     std::shared_ptr<void> swapChain_;
     std::unique_ptr<iima::MediaIntegration> mediaIntegration_;
     std::vector<std::string> pendingFiles_;
-    bool pendingAppend_{};
+    bool pendingAppend_{}, inputResolving_{}, inputAssigned_{};
+    OpenInputRouter openInputRouter_;
     std::stop_source inputStop_;
     std::stop_source subtitleMatchStop_;
     std::uint64_t subtitleMatchGeneration_{};

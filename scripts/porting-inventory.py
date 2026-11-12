@@ -8,6 +8,7 @@ import json
 from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 MAPPING = {
+    'PlaySliderLoopKnob.swift': ['src/IIMA.App/MainWindow.ABLoop.cpp', 'src/IIMA.Core/Playback/PlayerSession.Actions.cpp'],
     'JavascriptAPIPlaylist.swift': ['src/IIMA.App/Plugins/PluginRuntime.cpp', 'src/IIMA.App/Plugins/PluginBootstrap.h', 'src/IIMA.App/MainWindow.PluginPlaylist.cpp'],
     'JavascriptAPIInput.swift': ['src/IIMA.App/Plugins/PluginRuntime.cpp', 'src/IIMA.App/MainWindow.PluginInput.cpp', 'src/IIMA.App/MainWindow.PluginPointer.cpp'],
     'PluginInputManager.swift': ['src/IIMA.App/Plugins/PluginRuntime.cpp', 'src/IIMA.App/MainWindow.Keyboard.cpp'],
@@ -29,8 +30,8 @@ MAPPING = {
     'OnlineSubtitle.swift': ['src/IIMA.Core/OnlineSubtitles/SearchTransaction.cpp', 'src/IIMA.App/MainWindow.OnlineSubtitles.cpp'],
     'AssrtSubtitle.swift': ['src/IIMA.App/Platform/AssrtClient.cpp', 'src/IIMA.App/Platform/SubtitleStaging.cpp'],
     'SubChooseViewController.swift': ['src/IIMA.App/MainWindow.OnlineSubtitles.cpp'],
-    'AppDelegate.swift': ['src/IIMA.App/App.xaml.cpp', 'src/IIMA.App/Platform/InstanceRouter.cpp'],
-    'PlayerCore.swift': ['src/IIMA.Core/Playback/PlayerSession.cpp', 'src/IIMA.Core/Windows/PlayerWindowRegistry.cpp', 'src/IIMA.App/App.xaml.cpp'],
+    'AppDelegate.swift': ['src/IIMA.App/App.xaml.cpp', 'src/IIMA.App/App.OpenPolicy.cpp', 'src/IIMA.App/Platform/InstanceRouter.cpp'],
+    'PlayerCore.swift': ['src/IIMA.Core/Playback/PlayerSession.cpp', 'src/IIMA.Core/Windows/PlayerWindowRegistry.cpp', 'src/IIMA.App/App.xaml.cpp', 'src/IIMA.App/App.OpenPolicy.cpp', 'src/IIMA.App/MainWindow.OpenPolicy.cpp', 'src/IIMA.App/MainWindow.ABLoop.cpp', 'src/IIMA.Core/Playback/PlayerSession.Actions.cpp'],
     'PlaybackInfo.swift': ['src/IIMA.Core/Playback/PlaybackState.h'],
     'MPVCommand.swift': ['src/IIMA.Core/Mpv/Catalog/MPVCommand.h'],
     'MPVOption.swift': ['src/IIMA.Core/Mpv/Catalog/MPVOption.h'],
@@ -40,7 +41,7 @@ MAPPING = {
     'MPVController.swift': ['src/IIMA.Core/Mpv/MpvClient.cpp'],
     'MPVNode.swift': ['src/IIMA.Core/Mpv/MpvNodes.cpp'],
     'MainWindowController.swift': ['src/IIMA.App/MainWindow.xaml.cpp', 'src/IIMA.Core/Geometry/WindowGeometry.cpp', 'src/IIMA.App/Platform/WindowPlacement.cpp', 'src/IIMA.App/MainWindow.Placement.cpp'],
-    'PlayerWindowController.swift': ['src/IIMA.App/MainWindow.Commands.cpp', 'src/IIMA.App/MainWindow.Keyboard.cpp', 'src/IIMA.App/Platform/PowerLifecycle.cpp', 'src/IIMA.App/MainWindow.WindowPolicy.cpp'],
+    'PlayerWindowController.swift': ['src/IIMA.App/MainWindow.Commands.cpp', 'src/IIMA.App/MainWindow.Keyboard.cpp', 'src/IIMA.App/Platform/PowerLifecycle.cpp', 'src/IIMA.App/MainWindow.WindowPolicy.cpp', 'src/IIMA.App/MainWindow.ABLoop.cpp', 'src/IIMA.Core/Playback/PlayerSession.Actions.cpp'],
     'VideoView.swift': ['src/IIMA.App/Presentation/VideoPresenter.cpp'],
     'MPVFilter.swift': ['src/IIMA.Core/Filters/MPVFilter.cpp'],
     'FilterPresets.swift': ['src/IIMA.Core/Filters/FilterPresets.cpp'],
@@ -52,7 +53,7 @@ MAPPING = {
     'IINACommand.swift': ['src/IIMA.Core/Commands/ApplicationCommand.cpp'],
     'MPVCommandWrappers.swift': ['src/IIMA.Core/Commands/PlaylistCommands.cpp'],
     'MainMenuActions.swift': ['src/IIMA.App/MainWindow.Playlist.cpp', 'src/IIMA.App/Platform/ShellFileActions.cpp', 'src/IIMA.App/MainWindow.OnlineSubtitleSave.cpp'],
-    'SidebarPlaylistPane.swift': ['src/IIMA.Core/Playlist/PlaylistPlan.cpp'],
+    'SidebarPlaylistPane.swift': ['src/IIMA.Core/Playlist/PlaylistPlan.cpp', 'src/IIMA.App/MainWindow.PlaylistSelection.cpp'],
     'VideoTime.swift': ['src/IIMA.Core/Media/VideoTime.cpp'],
     'MPVChapter.swift': ['src/IIMA.Core/Media/MediaChapter.cpp'],
     'SidebarChaptersPane.swift': ['src/IIMA.Core/Media/MediaChapter.cpp'],
