@@ -25,7 +25,7 @@ bool MainWindow::CanReloadInspectedTrack() {
     const auto track=SelectedRemovableTrack();
     return !closing_ && userDataLoaded_ && !pickerOpen_ && !externalReloadStarting_ &&
         !interactiveCrop_.Active() && !cropOriginal_ && !session_->PlaylistEditBusy() &&
-        !session_->ExternalTrackReloadBusy() && !session_->ExternalTrackRemovalBusy() && !session_->ExternalAVLoadBusy() && !session_->SubtitleReloadBusy() &&
+        !session_->ExternalTrackReloadBusy() && !session_->ExternalTrackRemovalBusy() && !session_->ExternalAVLoadBusy() && !session_->SubtitleReloadBusy() && !session_->SubtitleLoadBusy() &&
         session_->Snapshot().session==iima::SessionState::Ready && session_->Snapshot().media==iima::MediaState::Loaded && track && (track->type=="audio" || track->type=="video");
 }
 winrt::fire_and_forget MainWindow::ReloadInspectedTrack() {
@@ -68,13 +68,13 @@ winrt::fire_and_forget MainWindow::ReloadInspectedTrack() {
         dialog.Content(text);dialog.PrimaryButtonText(L"重载轨道");dialog.CloseButtonText(L"取消");
         dialog.DefaultButton(Controls::ContentDialogButton::Close);
         dialog.PrimaryButtonClick([&](auto const&,Controls::ContentDialogButtonClickEventArgs const& args) {
-            if(!current() || session_->ExternalTrackReloadBusy() || session_->ExternalTrackRemovalBusy() || session_->ExternalAVLoadBusy() || session_->SubtitleReloadBusy()) args.Cancel(true);
+            if(!current() || session_->ExternalTrackReloadBusy() || session_->ExternalTrackRemovalBusy() || session_->ExternalAVLoadBusy() || session_->SubtitleReloadBusy() || session_->SubtitleLoadBusy()) args.Cancel(true);
         });
         UpdateExternalTrackReload();
         const auto result=co_await dialog.ShowAsync();
         externalReloadDialog_=nullptr;pickerOpen_=false;
         if(closing_) co_return;
-        if(result==Controls::ContentDialogResult::Primary && current() && !session_->ExternalTrackReloadBusy() && !session_->ExternalTrackRemovalBusy() && !session_->ExternalAVLoadBusy() && !session_->SubtitleReloadBusy()) {
+        if(result==Controls::ContentDialogResult::Primary && current() && !session_->ExternalTrackReloadBusy() && !session_->ExternalTrackRemovalBusy() && !session_->ExternalAVLoadBusy() && !session_->SubtitleReloadBusy() && !session_->SubtitleLoadBusy()) {
             externalReloadRevision_=session_->ExternalTrackReload().revision+1;
             externalReloadStarting_=true;
             try {session_->ReloadExternalTrack(track.type,track.id,track.externalPath);}
@@ -113,7 +113,7 @@ void MainWindow::UpdateExternalTrackReload() {
         trackInspectionSelectionRevision_!=externalReloadSelection_ || !TrackInspectorExpander().IsExpanded())) externalReloadDialog_.Hide();
     if(externalReloadDialog_) externalReloadDialog_.IsPrimaryButtonEnabled(!unavailable && !wrongMedia && !newInput &&
         s.tracksRevision==externalReloadTracks_ && session_->TrackEditIntentRevision()==externalReloadTrackIntent_ && trackInspectionSelectionRevision_==externalReloadSelection_ &&
-        !session_->ExternalTrackReloadBusy() && !session_->ExternalTrackRemovalBusy() && !session_->ExternalAVLoadBusy() && !session_->SubtitleReloadBusy());
+        !session_->ExternalTrackReloadBusy() && !session_->ExternalTrackRemovalBusy() && !session_->ExternalAVLoadBusy() && !session_->SubtitleReloadBusy() && !session_->SubtitleLoadBusy());
     const auto status=session_->ExternalTrackReload();
     const bool busy=session_->ExternalTrackReloadBusy();
     ReloadInspectedTrackButton().IsEnabled(CanReloadInspectedTrack());

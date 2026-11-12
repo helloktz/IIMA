@@ -7,8 +7,7 @@
 #include <string_view>
 #include <utility>
 namespace iima {
-namespace {
-bool LocalAVPath(std::string_view path) {
+bool PlayerSession::LocalTrackPath(std::string_view path) {
     if (path.size() < 4 || path.size() > 131072 ||
         !((path[0] >= 'A' && path[0] <= 'Z') || (path[0] >= 'a' && path[0] <= 'z')) ||
         path[1] != ':' || (path[2] != '\\' && path[2] != '/') || path.find(':', 2) != path.npos ||
@@ -30,7 +29,6 @@ bool LocalAVPath(std::string_view path) {
     }
     return false;
 }
-}
 void PlayerSession::CancelExternalAVLoad() {
     if (externalAVLoadCancelled_) externalAVLoadCancelled_->store(true);
     if (externalAVLoadStatus_.phase != ExternalAVLoadStatus::Phase::Loading) return;
@@ -46,12 +44,12 @@ bool PlayerSession::LoadExternalVideo(std::string path) {
 bool PlayerSession::LoadExternalAV(std::string type, std::string path) {
     BeginTrackEditIntent();
     CancelScrub();
-    CancelSubtitleReload();
-    if ((type != "audio" && type != "video") || ExternalTrackReloadBusy() || ExternalAVLoadBusy() || ExternalTrackRemovalBusy() || SubtitleReloadBusy() ||
+    CancelSubtitleLoad(); CancelSubtitleReload();
+    if (SubtitleLoadBusy() || (type != "audio" && type != "video") || ExternalTrackReloadBusy() || ExternalAVLoadBusy() || ExternalTrackRemovalBusy() || SubtitleReloadBusy() ||
         snapshot_.session != SessionState::Ready || snapshot_.media != MediaState::Loaded ||
         waitingForStart_ || snapshot_.mediaOriginPending || pauseRequest_ || loadRequest_ ||
         !pendingCommands_.empty() || playlistEdit_ || snapshot_.entryId < 0 ||
-        snapshot_.path.empty() || snapshot_.path.size() > 131072 || !LocalAVPath(path)) return false;
+        snapshot_.path.empty() || snapshot_.path.size() > 131072 || !LocalTrackPath(path)) return false;
     // No presentationReady_ requirement: adding an external track can repair
     // a source whose audio/video output is not currently ready.
     externalAVLoadGeneration_ = snapshot_.mediaGeneration;

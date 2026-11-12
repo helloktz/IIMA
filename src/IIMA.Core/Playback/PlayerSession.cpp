@@ -30,7 +30,7 @@ void PlayerSession::BeginMediaOriginIntent(bool explicitOpen) {
     CancelExternalTrackReload();
     CancelExternalAVLoad();
     CancelExternalTrackRemoval();
-    CancelSubtitleReload();
+    CancelSubtitleLoad(); CancelSubtitleReload();
     CancelScrub();
     if (snapshot_.networkOpenAttempt.phase != OpenAttemptPhase::None &&
         snapshot_.networkOpenAttempt.phase != OpenAttemptPhase::Cancelled)
@@ -131,7 +131,7 @@ void PlayerSession::OpenMultiple(std::vector<std::string> paths,bool append) {
     if(std::any_of(paths.begin(),paths.end(),[](auto const& p) { return p.empty() || p.find('\0')!=std::string::npos; })) {
         snapshot_.error="A media path is empty or contains a NUL character"; Notify(); return;
     }
-    if(!append) { CancelSubtitleReload(); sleepPauseHeld_=false; CancelWindowPausePolicy(); }
+    if(!append) { CancelSubtitleLoad(); CancelSubtitleReload(); sleepPauseHeld_=false; CancelWindowPausePolicy(); }
     CancelPlaylistEdits();
     playlistShuffled_=false;
     // No shell or command string parsing: UTF-8 paths remain individual API arguments.
@@ -164,7 +164,7 @@ void PlayerSession::OpenMultiple(std::vector<std::string> paths,bool append) {
 void PlayerSession::PausedCommand(std::vector<std::string> command) {
     if(!CanOpen()) return;
     BeginMediaOriginIntent(false);
-    CancelSubtitleReload();
+    CancelSubtitleLoad(); CancelSubtitleReload();
     sleepPauseHeld_=false;
     CancelWindowPausePolicy();
     CancelPlaylistEdits();
@@ -194,7 +194,7 @@ void PlayerSession::PlaylistPlay(std::size_t index) {
 }
 void PlayerSession::SelectTrack(std::string type,std::int64_t id) {
     BeginTrackEditIntent();
-    if (type=="sub") { CancelSubtitleReload(); ++subtitleEditIntentRevision_; }
+    if (type=="sub") { CancelSubtitleLoad(); CancelSubtitleReload(); ++subtitleEditIntentRevision_; }
     if(snapshot_.session!=SessionState::Ready || snapshot_.media!=MediaState::Loaded ||
         waitingForStart_ || playlistEdit_ || id<0) return;
     std::string property=type=="audio" ? "aid" : type=="sub" ? "sid" : type=="video" ? "vid" : "";
@@ -205,7 +205,7 @@ void PlayerSession::SelectTrack(std::string type,std::int64_t id) {
 // IINA MainMenuActions.menuCycleTrack delegates order and off-slot to mpv.
 void PlayerSession::CycleTrack(std::string type) {
     BeginTrackEditIntent();
-    if (type=="sub") { CancelSubtitleReload(); ++subtitleEditIntentRevision_; }
+    if (type=="sub") { CancelSubtitleLoad(); CancelSubtitleReload(); ++subtitleEditIntentRevision_; }
     if (snapshot_.session != SessionState::Ready || snapshot_.media != MediaState::Loaded ||
         waitingForStart_ || playlistEdit_) return;
     if (type != "video" && type != "audio" && type != "sub") return;
@@ -261,15 +261,6 @@ void PlayerSession::ScreenshotToFile(std::string path, ScreenshotCompleted compl
     screenshotPath_ = std::move(path); screenshotMode_ = mode;
     screenshotCompleted_ = std::move(completion);
 }
-void PlayerSession::AddSubtitle(std::string path, bool select) {
-    BeginTrackEditIntent();
-    CancelSubtitleReload();
-    ++subtitleEditIntentRevision_;
-    if(snapshot_.session!=SessionState::Ready || path.empty() || path.find('\0')!=std::string::npos) return;
-    auto found=std::find_if(snapshot_.tracks.begin(),snapshot_.tracks.end(),[&](auto const& t){return t.type=="sub" && t.externalPath==path;});
-    if(found!=snapshot_.tracks.end()) client_->Command({"sub-reload",std::to_string(found->id)});
-    else client_->Command({"sub-add",std::move(path),select ? "select" : "auto"});
-}
 void PlayerSession::Pause(bool value) {
     CancelScrub();
     if(!value) sleepPauseHeld_=false;
@@ -286,7 +277,7 @@ void PlayerSession::Seek(double seconds) {
 }
 void PlayerSession::Stop() {
     BeginMediaOriginIntent(false);
-    CancelSubtitleReload();
+    CancelSubtitleLoad(); CancelSubtitleReload();
     CancelWatchedProperties();
     CancelFilterEditCallbacks();
     CancelWindowPausePolicy();
@@ -680,9 +671,11 @@ void PlayerSession::OnEvent(MpvEvent e) {
         CancelExternalTrackReload();
         CancelExternalAVLoad();
         CancelExternalTrackRemoval();
-        CancelSubtitleReload();
+        CancelSubtitleLoad(); CancelSubtitleReload();
     }
     if (e.kind == MpvEvent::Kind::Failure || e.kind == MpvEvent::Kind::Shutdown) {
+        subtitleLoadRequest_ = 0; subtitleLoadStatus_.inFlight = false;
+        subtitleLoadItems_.clear(); subtitleLoadCancelled_.reset();
         externalTrackReloadRequest_ = 0;
         externalTrackReloadStatus_.inFlight = false;
         externalTrackReloadStatus_.targetPresentConfirmed = false;
@@ -697,6 +690,7 @@ void PlayerSession::OnEvent(MpvEvent e) {
         subtitleReloadRequest_ = 0;
         subtitleReloadStatus_.inFlight = false;
     }
+    if (HandleSubtitleLoadReply(e)) return;
     if (HandleExternalTrackReloadReply(e)) return;
     if (HandleExternalAVLoadReply(e)) return;
     if (HandleExternalTrackRemovalReply(e)) return;
@@ -823,7 +817,7 @@ void PlayerSession::OnEvent(MpvEvent e) {
 void PlayerSession::CloseAsync(std::function<void()> completion) {
     pendingAudioDevice_.reset(); audioDeviceWrite_=0; audioDeviceRecovery_=0;
     BeginMediaOriginIntent(false);
-    CancelSubtitleReload();
+    CancelSubtitleLoad(); CancelSubtitleReload();
     // Mark closing before cancellation so reentrant UI callbacks cannot enqueue work.
     if (snapshot_.session != SessionState::Closed) snapshot_.session = SessionState::Closing;
     CancelWatchedProperties();
@@ -840,6 +834,8 @@ void PlayerSession::CloseAsync(std::function<void()> completion) {
                          screenshotCompletion=std::move(screenshotCompletion)] {
         dispatch([weak,completion,screenshotCompletion] {
             if(auto self=weak.lock()) {
+                self->subtitleLoadRequest_=0; self->subtitleLoadStatus_.inFlight=false;
+                self->subtitleLoadItems_.clear(); self->subtitleLoadCancelled_.reset();
                 self->externalTrackReloadRequest_=0; self->externalTrackReloadStatus_.inFlight=false;
                 self->externalTrackReloadCancelled_.reset();
                 self->externalAVLoadRequest_=0; self->externalAVLoadStatus_.inFlight=false;

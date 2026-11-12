@@ -64,6 +64,7 @@ fire_and_forget MainWindow::DropFiles(DragEventArgs args, std::optional<std::siz
     const auto inputRevision = inputGeneration_;
     const auto generation = session_->Snapshot().mediaGeneration;
     const auto intent = session_->Snapshot().mediaOpenIntentRevision;
+    const auto trackIntent=session_->TrackEditIntentRevision();
     const auto revision=session_->Snapshot().playlistRevision;
     const auto editIntent=session_->PlaylistEditIntentRevision();
     // Shared immutable identity avoids copying all paths into resolver closures.
@@ -184,7 +185,7 @@ fire_and_forget MainWindow::DropFiles(DragEventArgs args, std::optional<std::siz
             co_return;
         }
         auto weak = get_weak();
-        auto finish = [weak, operation, inputRevision, generation, intent,
+        auto finish = [weak, operation, inputRevision, generation, intent, trackIntent,
             current, playlistRow, subtitles = std::move(subtitles), skippedLut, invalidSubtitle, singleSource = inputs.size() == 1](iima::LocalInputResult result) {
             auto self = weak.get();
             if (!self || self->closing_ || result.cancelled || !self->userDataLoaded_ || self->pickerOpen_ ||
@@ -213,6 +214,7 @@ fire_and_forget MainWindow::DropFiles(DragEventArgs args, std::optional<std::siz
                 self->ShowError(L"播放列表行只接收媒体；字幕请拖到播放区域或使用添加字幕。");
                 return;
             } else if (!subtitles.empty()) {
+                if(self->session_->TrackEditIntentRevision()!=trackIntent) return;
                 if (self->inputResolving_ || !self->pendingFiles_.empty() || !self->activationInputs_.empty()) {
                     self->ShowError(L"另一次媒体打开尚未完成，请等待后重新拖放字幕。"); return;
                 }
@@ -224,7 +226,9 @@ fire_and_forget MainWindow::DropFiles(DragEventArgs args, std::optional<std::siz
                 }
                 // Sub-add remains asynchronous: observed tracks own selection
                 // and errors. Never mark a subtitle selected optimistically.
-                for (auto const& path : subtitles) self->session_->AddSubtitle(path);
+                std::vector<iima::SubtitleLoadItem> batch;
+                for(auto const& path:subtitles) batch.push_back({path,true});
+                if(!self->StartSubtitleLoad(std::move(batch))) self->ShowError(L"字幕批次未确认提交；请等待当前轨道操作后重试。");
             } else self->ShowError(L"拖放内容中没有可打开的媒体或字幕。");
             std::wstring warning;
             for (auto const& line : result.warnings) { if (!warning.empty()) warning += L"\n"; warning += line; }

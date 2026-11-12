@@ -51,7 +51,7 @@ struct Chapter {
 // Owns all payloads; never exports mpv's borrowed event memory.
 struct MpvEvent {
     enum class Kind { Ready, Failure, StartFile, Loaded, EndFile, Seek, Restart, SeekMeasurement,
-                      Property, CommandReply, PlaylistReply, ExternalTrackStateReply, ExternalTrackEditReply, ExternalAVLoadReply, ExternalTrackRemovalReply, SubtitleStateReply, PauseReply, VideoGeometryReply, WindowScaleReply, WatchedPropertiesReply, VideoReconfig, Shutdown } kind;
+                      Property, CommandReply, PlaylistReply, ExternalTrackStateReply, ExternalTrackEditReply, SubtitleLoadReply, ExternalAVLoadReply, ExternalTrackRemovalReply, SubtitleStateReply, PauseReply, VideoGeometryReply, WindowScaleReply, WatchedPropertiesReply, VideoReconfig, Shutdown } kind;
     std::string name, text;
     std::optional<double> number;
     std::optional<bool> flag;
@@ -64,6 +64,7 @@ struct MpvEvent {
     std::vector<MediaTrack> tracks;
     // Fresh bounded subtitle transaction read, not ordinary observations.
     bool subtitleStateComplete{};
+    bool subtitleLoadSubmitted{}, subtitleLoadCommandSucceeded{}, subtitleLoadConfirmed{}, subtitleLoadSkipped{};
     bool externalTrackStateComplete{}, externalTrackEditSubmitted{}, externalTrackEditCommandSucceeded{};
     std::optional<std::int64_t> audioTrack, videoTrack; // Fresh AV slots; 0 means off.
     bool externalTrackRemovalSubmitted{}, externalTrackRemovedConfirmed{};
@@ -112,6 +113,10 @@ public:
     std::uint64_t RemoveExternalTrackAsync(std::string type, std::int64_t id,
         std::string externalPath, std::int64_t expectedEntry, std::string mediaPath,
         std::shared_ptr<std::atomic_bool> cancelled = {});
+    // One bounded subtitle item, serialized with all commands. Existing unique
+    // paths reload when selected, or skip unchanged when select=false.
+    std::uint64_t LoadSubtitleAsync(std::string path, bool select, std::int64_t expectedEntry,
+        std::string mediaPath, std::shared_ptr<std::atomic_bool> cancelled = {});
     // audio/video-add select with fresh media checks and actual aid/vid readback.
     // Confirmation is track selection, not output binding or frame presentation.
     std::uint64_t LoadExternalAVAsync(std::string type, std::string path, std::int64_t expectedEntry,

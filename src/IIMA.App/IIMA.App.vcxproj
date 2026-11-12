@@ -143,6 +143,7 @@
     <ClCompile Include="MainWindow.PlaylistSubtitles.cpp" />
     <ClCompile Include="MainWindow.Subtitles.cpp" />
     <ClCompile Include="MainWindow.SubtitleEncoding.cpp" />
+    <ClCompile Include="MainWindow.SubtitleLoad.cpp" />
     <ClCompile Include="MainWindow.SubtitleStyle.cpp" />
     <ClCompile Include="MainWindow.SecondarySubtitles.cpp" />
     <ClCompile Include="MainWindow.Navigation.cpp" />

@@ -35,7 +35,7 @@ std::optional<iima::MediaTrack> MainWindow::SelectedRemovableTrack() {
 bool MainWindow::CanRemoveInspectedTrack() {
     return !closing_ && userDataLoaded_ && !pickerOpen_ && !externalRemovalStarting_ &&
         !interactiveCrop_.Active() && !cropOriginal_ && !session_->PlaylistEditBusy() &&
-        !session_->ExternalTrackRemovalBusy() && !session_->ExternalTrackReloadBusy() && !session_->ExternalAVLoadBusy() && !session_->SubtitleReloadBusy() &&
+        !session_->ExternalTrackRemovalBusy() && !session_->ExternalTrackReloadBusy() && !session_->ExternalAVLoadBusy() && !session_->SubtitleReloadBusy() && !session_->SubtitleLoadBusy() &&
         session_->Snapshot().session==iima::SessionState::Ready && session_->Snapshot().media==iima::MediaState::Loaded && SelectedRemovableTrack().has_value();
 }
 winrt::fire_and_forget MainWindow::RemoveInspectedTrack() {
@@ -76,13 +76,13 @@ winrt::fire_and_forget MainWindow::RemoveInspectedTrack() {
         dialog.Content(text);dialog.PrimaryButtonText(L"移除轨道");dialog.CloseButtonText(L"取消");
         dialog.DefaultButton(Controls::ContentDialogButton::Close);
         dialog.PrimaryButtonClick([&](auto const&,Controls::ContentDialogButtonClickEventArgs const& args) {
-            if(!current() || session_->ExternalTrackRemovalBusy() || session_->SubtitleReloadBusy()) args.Cancel(true);
+            if(!current() || session_->ExternalTrackRemovalBusy() || session_->SubtitleReloadBusy() || session_->SubtitleLoadBusy()) args.Cancel(true);
         });
         UpdateExternalTrackRemoval();
         const auto result=co_await dialog.ShowAsync();
         externalRemovalDialog_=nullptr;pickerOpen_=false;
         if(closing_) co_return;
-        if(result==Controls::ContentDialogResult::Primary && current() && !session_->ExternalTrackRemovalBusy() && !session_->ExternalTrackReloadBusy() && !session_->ExternalAVLoadBusy() && !session_->SubtitleReloadBusy()) {
+        if(result==Controls::ContentDialogResult::Primary && current() && !session_->ExternalTrackRemovalBusy() && !session_->ExternalTrackReloadBusy() && !session_->ExternalAVLoadBusy() && !session_->SubtitleReloadBusy() && !session_->SubtitleLoadBusy()) {
             externalRemovalRevision_=session_->ExternalTrackRemoval().revision+1;
             externalRemovalStarting_=true;
             try {session_->RemoveExternalTrack(track.type,track.id,track.externalPath);}
@@ -119,7 +119,7 @@ void MainWindow::UpdateExternalTrackRemoval() {
         trackInspectionSelectionRevision_!=externalRemovalSelection_ || !TrackInspectorExpander().IsExpanded())) externalRemovalDialog_.Hide();
     if(externalRemovalDialog_) externalRemovalDialog_.IsPrimaryButtonEnabled(!wrongMedia && !newInput &&
         s.tracksRevision==externalRemovalTracks_ && session_->TrackEditIntentRevision()==externalRemovalTrackIntent_ && trackInspectionSelectionRevision_==externalRemovalSelection_ &&
-        !session_->ExternalTrackRemovalBusy() && !session_->ExternalTrackReloadBusy() && !session_->ExternalAVLoadBusy() && !session_->SubtitleReloadBusy());
+        !session_->ExternalTrackRemovalBusy() && !session_->ExternalTrackReloadBusy() && !session_->ExternalAVLoadBusy() && !session_->SubtitleReloadBusy() && !session_->SubtitleLoadBusy());
     const auto status=session_->ExternalTrackRemoval();
     const bool busy=session_->ExternalTrackRemovalBusy();
     RemoveInspectedTrackButton().IsEnabled(CanRemoveInspectedTrack());

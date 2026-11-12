@@ -87,18 +87,14 @@ void MainWindow::UpdatePlaylistSubtitleAssociations() {
     auto owned=std::find_if(state.playlist.begin(),state.playlist.end(),
         [&](auto const& item) { return item.id==state.entryId && SameSubtitlePath(item.path,state.path); });
     if (owned==state.playlist.end()) return;
+    if(!CanStartSubtitleLoad()) return;
     auto match=playlistSubtitleAssociations_.Find(owned->id,owned->path);
     playlistSubtitleSeenGeneration_=state.mediaGeneration;
     if (!match) return;
     auto paths=*match; // Own values across any reentrant snapshot callback.
-    const auto generation=state.mediaGeneration, intent=state.mediaOpenIntentRevision;
-    for (auto const& path:paths) {
-        auto const& latest=session_->Snapshot();
-        if (latest.mediaGeneration!=generation || latest.mediaOpenIntentRevision!=intent) break;
-        if (std::any_of(latest.tracks.begin(),latest.tracks.end(),[&](auto const& track) {
-            return track.type=="sub" && !track.externalPath.empty() && SameSubtitlePath(track.externalPath,path);
-        })) continue;
-        session_->AddSubtitle(path,false); // Observations, not a guessed sid, own selection.
-    }
+    std::vector<iima::SubtitleLoadItem> batch;
+    for(auto const& path:paths) batch.push_back({path,false});
+    if(!batch.empty() && !StartSubtitleLoad(std::move(batch))) ShowError(L"队列关联字幕未确认提交；当前轨道操作未就绪，可手动加载。");
+
 }
 }

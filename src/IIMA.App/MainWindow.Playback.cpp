@@ -53,6 +53,7 @@ void MainWindow::WirePlaybackControls()
         if (auto self = weak.get()) self->ExecuteApplicationCommand(iima::ApplicationCommand::SavePlaylist);
     });
     AppendButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->OpenFile(true); });
+    CancelSubtitleLoadButton().Click([weak](auto const&,auto const&) {if(auto self=weak.get();self && !self->closing_) {self->session_->CancelSubtitleLoad();self->UpdateSubtitleLoad();}});
     SubtitleButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->OpenSubtitle(); });
     PreviousButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->session_->PlaylistPrevious(); });
     NextButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->session_->PlaylistNext(); });

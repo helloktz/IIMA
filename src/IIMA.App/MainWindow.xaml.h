@@ -69,6 +69,13 @@ private:
     winrt::fire_and_forget OpenFile(bool append = false, bool invertWindowPolicy = false);
     winrt::fire_and_forget OpenFolder(bool append = false, bool invertWindowPolicy = false);
     winrt::fire_and_forget OpenSubtitle();
+    static bool RegularLocalExternalFile(std::wstring const& value) noexcept;
+    bool CanStartSubtitleLoad() const;
+    bool StartSubtitleLoad(std::vector<iima::SubtitleLoadItem> items);
+    void UpdateSubtitleLoad();
+    void InvalidateSubtitleLoad();
+    bool subtitleLoadStarting_{},subtitleLoadUpdating_{};
+    std::uint64_t subtitleLoadRevision_{},subtitleLoadGeneration_{},subtitleLoadIntent_{},subtitleLoadInput_{},subtitleLoadObservedInput_{};
     winrt::fire_and_forget OpenNetworkUrl(bool invertWindowPolicy = false, bool editFailedAttempt = false);
     Microsoft::UI::Xaml::Controls::ContentDialog openUrlDialog_{nullptr};
     void WireWindowPlacement();
@@ -441,6 +448,9 @@ private:
     std::vector<iima::MediaSubtitleMatch> automaticSubtitleMatches_;
     std::vector<iima::PlaylistItem> automaticSubtitleQueue_;
     bool automaticSubtitlePending_{};
+    std::vector<iima::SubtitleLoadItem> automaticSubtitleInitial_;
+    std::uint64_t automaticSubtitleInitialGeneration_{},automaticSubtitleInitialUserIntent_{};
+    std::chrono::steady_clock::time_point automaticSubtitleInitialDeadline_{};
     std::uint64_t automaticSubtitleExpansion_{}, automaticSubtitleExpansionGeneration_{}, automaticSubtitleIntent_{}, automaticSubtitleInput_{}, automaticSubtitleEditIntent_{};
     std::uint64_t automaticSubtitleSeenGeneration_{}, automaticSubtitleWaitingGeneration_{}, automaticSubtitleUserIntent_{};
     std::chrono::steady_clock::time_point automaticSubtitleDeadline_{};

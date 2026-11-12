@@ -1,6 +1,7 @@
 #pragma once
 #include "PlaybackState.h"
 #include "PlaybackActions.h"
+#include <string_view>
 #include "../Subtitles/SubtitleStyle.h"
 #include "../Audio/Equalizations.h"
 #include "../Persistence/UserData.h"
@@ -20,6 +21,17 @@ struct AutoPlaylistExpansionState {
 };
 // Command acknowledgements, not proof that new subtitle text has been rendered.
 // A cancelled in-flight command cannot be recalled and may still change tracks.
+struct SubtitleLoadItem { std::string path; bool select{true}; };
+struct SubtitleLoadStatus {
+    enum class Phase { Idle, Loading, Completed, Cancelled, Failed };
+    Phase phase{Phase::Idle};
+    std::uint64_t revision{};
+    bool inFlight{};
+    // Reply facts: confirmed includes skipped; failed can overlap confirmed.
+    // Enqueue rejection does not increment processed/failed. No rendering claim.
+    std::size_t total{}, processed{}, submitted{}, confirmed{}, skipped{}, failed{};
+    std::string error;
+};
 struct SubtitleReloadStatus {
     enum class Phase { Idle, Reading, Encoding, Reloading, Restoring, Completed, Cancelled, Failed };
     Phase phase{Phase::Idle};
@@ -97,7 +109,11 @@ public:
     void CycleTrack(std::string type);
     void SelectChapter(std::size_t index);
     void StepChapter(int direction);
-    void AddSubtitle(std::string path, bool select = true);
+    bool AddSubtitle(std::string path, bool select = true);
+    bool AddSubtitles(std::vector<SubtitleLoadItem> items);
+    void CancelSubtitleLoad();
+    bool SubtitleLoadBusy() const noexcept { return subtitleLoadStatus_.inFlight; }
+    SubtitleLoadStatus const& SubtitleLoad() const noexcept { return subtitleLoadStatus_; }
     std::uint64_t SubtitleEditIntentRevision() const noexcept { return subtitleEditIntentRevision_; }
     // True means queued, not decoded. Actual tracks/errors arrive asynchronously.
     bool LoadExternalAudio(std::string path);
@@ -220,6 +236,16 @@ public:
 private:
     PlayerSession(Dispatch dispatch, Changed changed);
     void OnEvent(MpvEvent event);
+    static bool LocalTrackPath(std::string_view path);
+    bool SubtitleLoadContextValid() const;
+    bool SubmitSubtitleLoad();
+    bool HandleSubtitleLoadReply(MpvEvent const& event);
+    SubtitleLoadStatus subtitleLoadStatus_;
+    std::vector<SubtitleLoadItem> subtitleLoadItems_;
+    std::shared_ptr<std::atomic_bool> subtitleLoadCancelled_;
+    std::uint64_t subtitleLoadRequest_{}, subtitleLoadGeneration_{}, subtitleLoadOpenIntent_{}, subtitleLoadEditIntent_{};
+    std::int64_t subtitleLoadEntry_{-1};
+    std::string subtitleLoadMediaPath_;
     void BeginTrackEditIntent();
     bool HandleExternalTrackReloadReply(MpvEvent const& event);
     void FailExternalTrackReload(std::string error);

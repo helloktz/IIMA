@@ -30,7 +30,7 @@ void PlayerSession::BeginPlaylistEdit(PlaylistEditPlan plan, std::optional<bool>
     CancelExternalTrackReload();
     CancelExternalAVLoad();
     CancelExternalTrackRemoval();
-    CancelSubtitleReload();
+    CancelSubtitleLoad(); CancelSubtitleReload();
     CancelScrub();
     // Intent, not observed mutation: even rejected/no-op user edits supersede
     // background automatic discovery that started before this action.

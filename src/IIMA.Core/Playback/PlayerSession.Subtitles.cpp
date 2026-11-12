@@ -57,7 +57,7 @@ void PlayerSession::SetSecondarySubtitleDelay(double seconds) {
 }
 void PlayerSession::SelectSecondarySubtitle(std::int64_t id) {
     BeginTrackEditIntent();
-    CancelSubtitleReload();
+    CancelSubtitleLoad(); CancelSubtitleReload();
     ++subtitleEditIntentRevision_;
     if (snapshot_.session != SessionState::Ready || id < 0) return;
     if (id && std::none_of(snapshot_.tracks.begin(), snapshot_.tracks.end(), [id](auto const& track) {
@@ -93,7 +93,7 @@ void PlayerSession::StepSubtitleTiming(int direction, bool primary) {
 // Pinned mpv cmd_track_reload removes/re-adds tracks and switches the primary
 // slot. Use fresh serialized state reads; never infer IDs from old observations.
 bool PlayerSession::SetSubtitleEncoding(std::string encoding) {
-    if (!IsSubtitleEncoding(encoding)) { BeginTrackEditIntent(); CancelSubtitleReload(); ++subtitleEditIntentRevision_; return false; }
+    if (!IsSubtitleEncoding(encoding)) { BeginTrackEditIntent(); CancelSubtitleLoad(); CancelSubtitleReload(); ++subtitleEditIntentRevision_; return false; }
     return BeginSubtitleReload(std::move(encoding));
 }
 bool PlayerSession::SubtitleReloadContextValid() const {
@@ -137,8 +137,8 @@ void PlayerSession::SubmitSubtitleReloadCommand(std::vector<std::string> command
 }
 bool PlayerSession::BeginSubtitleReload(std::optional<std::string> encoding) {
     BeginTrackEditIntent();
-    if (ExternalTrackReloadBusy() || ExternalAVLoadBusy() || ExternalTrackRemovalBusy()) return false;
-    if (SubtitleReloadBusy()) { CancelSubtitleReload(); ++subtitleEditIntentRevision_; return false; }
+    if (SubtitleLoadBusy() || ExternalTrackReloadBusy() || ExternalAVLoadBusy() || ExternalTrackRemovalBusy()) return false;
+    if (SubtitleReloadBusy()) { CancelSubtitleLoad(); CancelSubtitleReload(); ++subtitleEditIntentRevision_; return false; }
     if (snapshot_.session != SessionState::Ready || snapshot_.media != MediaState::Loaded ||
         waitingForStart_ || playlistEdit_ || snapshot_.mediaOriginPending || pauseRequest_ || loadRequest_ ||
         !pendingCommands_.empty() || snapshot_.entryId < 0 || snapshot_.path.empty()) return false;

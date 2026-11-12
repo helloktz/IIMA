@@ -203,7 +203,7 @@ void MainWindow::WirePlayerMenus() {
     secondaryTrackMenu_ = sub(subtitles, L"第二字幕");
     add(subtitles, L"显示字幕", [this] { session_->SetSubtitlesVisible(!session_->Snapshot().subtitlesVisible); }, loaded,
         {"cycle","sub-visibility"}, false, [this] { return session_->Snapshot().subtitlesVisible; });
-    add(subtitles, L"加载字幕…", [this] { OpenSubtitle(); }, loaded);
+    add(subtitles, L"加载字幕…", [this] { OpenSubtitle(); }, [this] {return CanStartSubtitleLoad();});
     add(subtitles, L"重新载入字幕", [this] { StartSubtitleReload(); }, [this] {return CanStartSubtitleReload();});
     app(subtitles, L"查找在线字幕…", iima::ApplicationCommand::FindOnlineSubtitles);
     app(subtitles, L"另存下载的字幕…", iima::ApplicationCommand::SaveDownloadedSubtitle);

@@ -11,7 +11,8 @@ namespace winrt::IIMA::implementation {
 void MainWindow::FindLocalSubtitle() {
     CancelAutomaticFiles(); // Explicit matching supersedes background auto matching.
     auto const& snapshot = session_->Snapshot();
-    if (closing_ || snapshot.media != iima::MediaState::Loaded || snapshot.path.empty()) return;
+    if (!CanStartSubtitleLoad()) return;
+    const auto mediaGeneration=snapshot.mediaGeneration,openIntent=snapshot.mediaOpenIntentRevision,input=inputGeneration_,trackIntent=session_->TrackEditIntentRevision();
     std::filesystem::path media(to_hstring(snapshot.path).c_str());
     // This explicit local action never interprets a URL as a filesystem path.
     if (!media.is_absolute()) { ShowError(L"此功能仅支持本地媒体路径。"); return; }
@@ -23,7 +24,7 @@ void MainWindow::FindLocalSubtitle() {
     auto weak = get_weak();
     auto dispatcher = DispatcherQueue();
     StatusText().Text(L"正在匹配同目录字幕…");
-    std::thread([media = std::move(media), token, generation, entryId, weak, dispatcher]() mutable {
+    std::thread([media = std::move(media), token, generation, entryId, mediaGeneration,openIntent,input,trackIntent, weak, dispatcher]() mutable {
         std::vector<std::filesystem::path> subtitles;
         std::wstring errorText;
         iima::SubtitleMatchResult result;
@@ -52,7 +53,7 @@ void MainWindow::FindLocalSubtitle() {
         } catch (...) { errorText = L"匹配字幕失败。"; }
         if (token.stop_requested()) return;
         try {
-            dispatcher.TryEnqueue([weak, token, generation, entryId, media = std::move(media),
+            dispatcher.TryEnqueue([weak, token, generation, entryId, mediaGeneration,openIntent,input,trackIntent, media = std::move(media),
                 result = std::move(result), errorText = std::move(errorText)]() {
                 auto self = weak.get();
                 if (!self || self->closing_ || token.stop_requested() ||
@@ -60,7 +61,8 @@ void MainWindow::FindLocalSubtitle() {
                 auto const& current = self->session_->Snapshot();
                 // Entry ID plus path rejects stale results across replacement or
                 // repeated opening of a different item, even if its name matches.
-                if (current.entryId != entryId || current.media != iima::MediaState::Loaded ||
+                if (!self->CanStartSubtitleLoad() || current.mediaGeneration!=mediaGeneration || current.mediaOpenIntentRevision!=openIntent ||
+                    self->inputGeneration_!=input || self->session_->TrackEditIntentRevision()!=trackIntent || current.entryId != entryId || current.media != iima::MediaState::Loaded ||
                     std::filesystem::path(to_hstring(current.path).c_str()) != media) return;
                 if (!errorText.empty()) { self->ShowError(hstring(errorText)); return; }
                 if (result.media.empty() || result.media.front().subtitles.empty()) {
@@ -68,7 +70,8 @@ void MainWindow::FindLocalSubtitle() {
                 }
                 // The explicit action selects only the highest-ranked candidate;
                 // avoid repeatedly overriding selection while adding all matches.
-                self->session_->AddSubtitle(to_string(result.media.front().subtitles.front().native()));
+                if(!self->StartSubtitleLoad({{to_string(result.media.front().subtitles.front().native()),true}}))
+                    self->ShowError(L"匹配字幕加载未确认提交；请等待当前轨道操作后重试。");
             });
         } catch (...) { /* Dispatcher is closing; discard owned results. */ }
     }).detach();

@@ -20,6 +20,31 @@ static_assert(MPV_CLIENT_API_VERSION == ((2UL << 16) | 6UL), "Review pinned C AB
 
 namespace iima {
 namespace {
+bool OrdinaryTrackPath(std::string const& path) {
+    if(path.size()<4 || path.size()>131072 || path.find('\0')!=std::string::npos ||
+        !((path[0]>='A' && path[0]<='Z') || (path[0]>='a' && path[0]<='z')) ||
+        path[1]!=':' || (path[2]!='\\' && path[2]!='/') || path.find(':',2)!=std::string::npos) return false;
+    if(std::any_of(path.begin(),path.end(),[](unsigned char ch) {
+        return ch<32 || ch==127 || ch=='|' || ch=='?' || ch=='*' || ch=='<' || ch=='>' || ch=='"';
+    })) return false;
+    // Ordinary drive paths only: reject dot/trailing components and DOS devices,
+    // including reserved names with an extension or a space before the dot.
+    for(std::size_t begin=3;begin<path.size();) {
+        const auto end=path.find_first_of("/\\",begin);
+        const auto part=std::string_view(path).substr(begin,end==path.npos ? path.size()-begin : end-begin);
+        if(part.empty() || part=="." || part==".." || part.back()=='.' || part.back()==' ') return false;
+        auto stem=std::string(part.substr(0,part.find('.')));
+        while(!stem.empty() && stem.back()==' ') stem.pop_back();
+        for(auto& ch:stem) if(ch>='a' && ch<='z') ch-='a'-'A';
+        if(stem=="CON" || stem=="PRN" || stem=="AUX" || stem=="NUL" || stem=="CONIN$" || stem=="CONOUT$" ||
+            ((stem.starts_with("COM") || stem.starts_with("LPT")) && ((stem.size()==4 && stem[3]>='1' && stem[3]<='9') ||
+                stem.substr(3)=="\xc2\xb9" || stem.substr(3)=="\xc2\xb2" || stem.substr(3)=="\xc2\xb3"))) return false;
+        if(end==path.npos) break;
+        begin=end+1;
+        if(begin==path.size()) return false;
+    }
+    return true;
+}
 struct Api {
     HMODULE module{};
     std::shared_ptr<void> moduleLease;
@@ -62,6 +87,12 @@ struct MpvClient::State {
         std::int64_t entry{-1};
         std::shared_ptr<std::atomic_bool> cancelled;
     };
+    struct SubtitleLoad {
+        std::string path, mediaPath;
+        std::int64_t entry{-1};
+        bool select{};
+        std::shared_ptr<std::atomic_bool> cancelled;
+    };
     struct TrackEdit {
         TrackRemoval target;
         bool reload{};
@@ -85,6 +116,7 @@ struct MpvClient::State {
         std::optional<std::pair<std::int64_t,std::string>> externalTrackState;
         std::optional<TrackEdit> trackEdit;
         std::optional<ExternalAVLoad> externalAVLoad;
+        std::optional<SubtitleLoad> subtitleLoad;
         std::optional<std::string> recoverAudioDevice;
     };
     std::deque<Request> commands;
@@ -144,6 +176,7 @@ struct MpvClient::State {
             std::optional<TrackRemoval> inFlightRemoval;
             std::optional<TrackEdit> inFlightTrackEdit;
             std::optional<ExternalAVLoad> inFlightAVLoad;
+            std::optional<SubtitleLoad> inFlightSubtitleLoad;
             auto readFilterResult = [&](MpvEvent& event, std::string const& name) {
                 event.name = name;
                 mpv_node value{};
@@ -218,6 +251,70 @@ struct MpvClient::State {
                     return false;
                 }
             };
+            // slots: 0 identities only, 1 primary, 2 full legacy reload state.
+            // Initial loads must not depend on an uninitialized secondary slot.
+            auto readSubtitleState=[&](MpvEvent& result, std::int64_t expectedEntry=-1, std::string const& expectedPath=std::string{}, int slots=2) {
+                try {
+                    auto require=[&](int code) {
+                        if(code<0) { result.error=code; throw std::runtime_error(api.error_string(code)); }
+                    };
+                    auto identity=[&]() {
+                        std::int64_t position{-1},entry{-1};
+                        require(api.get_property(handle,"playlist-playing-pos",MPV_FORMAT_INT64,&position));
+                        if(position<0) throw std::runtime_error("No current media entry for subtitle state");
+                        const auto property="playlist/"+std::to_string(position)+"/id";
+                        require(api.get_property(handle,property.c_str(),MPV_FORMAT_INT64,&entry));
+                        if(entry<0) throw std::runtime_error("Invalid current media entry for subtitle state");
+                        char* raw{};
+                        const auto code=api.get_property(handle,"path",MPV_FORMAT_STRING,&raw);
+                        std::unique_ptr<char,decltype(api.free)> owned(raw,api.free);
+                        require(code);
+                        std::size_t size{};
+                        if(raw) while(size<=131072 && raw[size]) ++size;
+                        if(!raw || !size || size>131072) throw std::runtime_error("Invalid media path for subtitle state");
+                        return std::pair{entry,std::string(raw,size)};
+                    };
+                    const auto before=identity();
+                    if(expectedEntry>=0 && (before.first!=expectedEntry || before.second!=expectedPath))
+                        throw std::runtime_error("Media differs from subtitle load request");
+                    mpv_node node{};
+                    const auto code=api.get_property(handle,"track-list",MPV_FORMAT_NODE,&node);
+                    auto release=[&](mpv_node* value){api.free_node_contents(value);};
+                    std::unique_ptr<mpv_node,decltype(release)> owned(code>=0 ? &node : nullptr,release);
+                    require(code);
+                    if(!CopySubtitleStateTracks(result,node))
+                        throw std::runtime_error("Subtitle track state is malformed, ambiguous or exceeds limits");
+                    auto slot=[&](char const* name) {
+                        std::int64_t value{-1};
+                        require(api.get_property(handle,name,MPV_FORMAT_INT64,&value));
+                        // mp_property_switch_track GET: initialized off=-2,
+                        // uninitialized auto=-1. Never reinterpret auto as off.
+                        if(value==-2) return std::int64_t{0};
+                        if(value<=0 || std::none_of(result.tracks.begin(),result.tracks.end(),
+                            [&](auto const& track){return track.id==value;}))
+                            throw std::runtime_error("Subtitle selection does not match fresh tracks");
+                        return value;
+                    };
+                    if(slots>=1) result.primarySubtitle=slot("sid");
+                    if(slots==2) result.secondarySubtitle=slot("secondary-sid");
+                    if(slots==2 && *result.primarySubtitle && result.primarySubtitle==result.secondarySubtitle)
+                        throw std::runtime_error("Ambiguous duplicate subtitle selections");
+                    const auto after=identity();
+                    if(before!=after) throw std::runtime_error("Media changed during subtitle state read");
+                    result.entryId=after.first;
+                    result.properties["path"]=after.second;
+                    result.subtitleStateComplete=slots==2;
+                    // Separate GETs are not an atomic snapshot. A change
+                    // after these reads still requires Session intent guards.
+                    return true;
+                } catch(std::exception const& failure) {
+                    if(result.error>=0) result.error=MPV_ERROR_PROPERTY_ERROR;
+                    result.text=failure.what();
+                    result.tracks.clear();result.primarySubtitle.reset();result.secondarySubtitle.reset();
+                    result.properties.clear();result.entryId=-1;result.subtitleStateComplete=false;
+                }
+                return false;
+            };
             auto removalTargetPresent=[](MpvEvent const& event, TrackRemoval const& target) {
                 return std::any_of(event.tracks.begin(),event.tracks.end(),[&](auto const& track) {
                     return track.type==target.type && track.id==target.id && track.external && track.externalPath==target.externalPath;
@@ -250,7 +347,33 @@ struct MpvClient::State {
                     inFlightWindowScale = pending->windowScaleQuery;
                     inFlightPause = pending->pauseQuery;
                     int error{};
-                    if(pending->externalTrackState) {
+                    if(pending->subtitleLoad) {
+                        auto target=std::move(*pending->subtitleLoad);
+                        MpvEvent result{MpvEvent::Kind::SubtitleLoadReply};result.requestId=request;
+                        auto cancelled=[&] {std::lock_guard lock(mutex);return closing || (target.cancelled && target.cancelled->load());};
+                        if(cancelled()) {result.error=MPV_ERROR_COMMAND;result.text="Subtitle load cancelled before submission";}
+                        else if(readSubtitleState(result,target.entry,target.mediaPath,0)) {
+                            auto found=std::find_if(result.tracks.begin(),result.tracks.end(),[&](auto const& track) {
+                                return track.external && track.externalPath==target.path;
+                            });
+                            // Strict parsing rejects duplicate external subtitle paths.
+                            if(cancelled()) {result.error=MPV_ERROR_COMMAND;result.text="Subtitle load cancelled before submission";}
+                            else if(found!=result.tracks.end() && !target.select) {
+                                result.subtitleLoadSkipped=true;result.subtitleLoadConfirmed=true;
+                            } else {
+                                // IINA PlayerCore.loadExternalSubFile: a selected
+                                // existing path reloads its fresh ID; no cached ID.
+                                const bool reload=found!=result.tracks.end();
+                                const auto value=reload ? std::to_string(found->id) : target.path;
+                                const char* args[]{reload ? "sub-reload" : "sub-add",value.c_str(),
+                                    reload ? nullptr : target.select ? "select" : "auto",nullptr};
+                                const auto code=api.command_async(handle,request,args);
+                                if(code>=0) {inFlightSubtitleLoad=std::move(target);inFlight=request;continue;}
+                                result.error=code;result.text=api.error_string(code);
+                            }
+                        }
+                        Emit(std::move(result));continue;
+                    } else if(pending->externalTrackState) {
                         MpvEvent result{MpvEvent::Kind::ExternalTrackStateReply};result.requestId=request;
                         readTrackState(result,pending->externalTrackState->first,pending->externalTrackState->second,true);
                         Emit(std::move(result));continue;
@@ -345,62 +468,7 @@ struct MpvClient::State {
                         // Synchronous GETs run only after the previous lane reply.
                         // No async request is outstanding and this branch never
                         // claims inFlight; both success/failure emit one owned reply.
-                        try {
-                            auto require=[&](int code) {
-                                if(code<0) { result.error=code; throw std::runtime_error(api.error_string(code)); }
-                            };
-                            auto identity=[&]() {
-                                std::int64_t position{-1},entry{-1};
-                                require(api.get_property(handle,"playlist-playing-pos",MPV_FORMAT_INT64,&position));
-                                if(position<0) throw std::runtime_error("No current media entry for subtitle state");
-                                const auto property="playlist/"+std::to_string(position)+"/id";
-                                require(api.get_property(handle,property.c_str(),MPV_FORMAT_INT64,&entry));
-                                if(entry<0) throw std::runtime_error("Invalid current media entry for subtitle state");
-                                char* raw{};
-                                const auto code=api.get_property(handle,"path",MPV_FORMAT_STRING,&raw);
-                                std::unique_ptr<char,decltype(api.free)> owned(raw,api.free);
-                                require(code);
-                                std::size_t size{};
-                                if(raw) while(size<=131072 && raw[size]) ++size;
-                                if(!raw || !size || size>131072) throw std::runtime_error("Invalid media path for subtitle state");
-                                return std::pair{entry,std::string(raw,size)};
-                            };
-                            const auto before=identity();
-                            mpv_node node{};
-                            const auto code=api.get_property(handle,"track-list",MPV_FORMAT_NODE,&node);
-                            auto release=[&](mpv_node* value){api.free_node_contents(value);};
-                            std::unique_ptr<mpv_node,decltype(release)> owned(code>=0 ? &node : nullptr,release);
-                            require(code);
-                            if(!CopySubtitleStateTracks(result,node))
-                                throw std::runtime_error("Subtitle track state is malformed, ambiguous or exceeds limits");
-                            auto slot=[&](char const* name) {
-                                std::int64_t value{-1};
-                                require(api.get_property(handle,name,MPV_FORMAT_INT64,&value));
-                                // mp_property_switch_track GET: initialized off=-2,
-                                // uninitialized auto=-1. Never reinterpret auto as off.
-                                if(value==-2) return std::int64_t{0};
-                                if(value<=0 || std::none_of(result.tracks.begin(),result.tracks.end(),
-                                    [&](auto const& track){return track.id==value;}))
-                                    throw std::runtime_error("Subtitle selection does not match fresh tracks");
-                                return value;
-                            };
-                            result.primarySubtitle=slot("sid");
-                            result.secondarySubtitle=slot("secondary-sid");
-                            if(*result.primarySubtitle && result.primarySubtitle==result.secondarySubtitle)
-                                throw std::runtime_error("Ambiguous duplicate subtitle selections");
-                            const auto after=identity();
-                            if(before!=after) throw std::runtime_error("Media changed during subtitle state read");
-                            result.entryId=after.first;
-                            result.properties["path"]=after.second;
-                            result.subtitleStateComplete=true;
-                            // Separate GETs are not an atomic snapshot. A change
-                            // after these reads still requires Session intent guards.
-                        } catch(std::exception const& failure) {
-                            if(result.error>=0) result.error=MPV_ERROR_PROPERTY_ERROR;
-                            result.text=failure.what();
-                            result.tracks.clear();result.primarySubtitle.reset();result.secondarySubtitle.reset();
-                            result.properties.clear();result.entryId=-1;result.subtitleStateComplete=false;
-                        }
+                        readSubtitleState(result);
                         bool cancelled{};
                         { std::lock_guard lock(mutex); cancelled=closing; }
                         if(!cancelled) Emit(std::move(result));
@@ -559,6 +627,25 @@ struct MpvClient::State {
                     break;
                 case MPV_EVENT_COMMAND_REPLY: {
                     e.kind=MpvEvent::Kind::CommandReply;
+                    if(e.requestId==inFlight && inFlightSubtitleLoad) {
+                        e.kind=MpvEvent::Kind::SubtitleLoadReply;e.subtitleLoadSubmitted=true;
+                        const auto commandError=e.error;e.subtitleLoadCommandSucceeded=commandError>=0;
+                        // Failure/cancellation can follow removal of the old track.
+                        // Always drain and read back, never imply a rollback.
+                        auto const& target=*inFlightSubtitleLoad;
+                        if(readSubtitleState(e,target.entry,target.mediaPath,target.select ? 1 : 0)) {
+                            auto found=std::find_if(e.tracks.begin(),e.tracks.end(),[&](auto const& track) {
+                                return track.external && track.externalPath==target.path;
+                            });
+                            e.subtitleLoadConfirmed=found!=e.tracks.end() && (!target.select ||
+                                (e.primarySubtitle && *e.primarySubtitle==found->id));
+                            if(!e.subtitleLoadConfirmed) {
+                                if(e.error>=0) e.error=MPV_ERROR_COMMAND;
+                                e.text="Subtitle load was submitted, but the requested path/selection was not confirmed";
+                            } else if(commandError<0) e.text="mpv reported an error, but fresh state confirms the requested subtitle outcome";
+                        } else e.text="Subtitle load was submitted, but fresh state is unavailable: "+e.text;
+                        inFlightSubtitleLoad.reset();inFlight=0;break;
+                    }
                     if(e.requestId==inFlight && inFlightTrackEdit) {
                         e.kind=MpvEvent::Kind::ExternalTrackEditReply;e.externalTrackEditSubmitted=true;
                         const auto commandError=e.error;
@@ -825,33 +912,22 @@ std::uint64_t MpvClient::GetVideoGeometryAsync() {
     state_->commands.push_back(std::move(request));
     return id;
 }
+std::uint64_t MpvClient::LoadSubtitleAsync(std::string path, bool select, std::int64_t expectedEntry,
+    std::string mediaPath, std::shared_ptr<std::atomic_bool> cancelled) {
+    if(expectedEntry<0 || !OrdinaryTrackPath(path) || mediaPath.empty() || mediaPath.size()>131072 ||
+        mediaPath.find('\0')!=std::string::npos) return 0;
+    std::lock_guard lock(state_->mutex);
+    if(state_->closing || !state_->started || state_->commands.size()>=256) return 0;
+    State::Request request{state_->nextId++,{},false};
+    request.subtitleLoad=State::SubtitleLoad{std::move(path),std::move(mediaPath),expectedEntry,select,std::move(cancelled)};
+    const auto id=request.id;state_->commands.push_back(std::move(request));return id;
+}
 std::uint64_t MpvClient::LoadExternalAVAsync(std::string type, std::string path, std::int64_t expectedEntry,
     std::string mediaPath, std::shared_ptr<std::atomic_bool> cancelled) {
     // The Session/picker enforce ordinary local-file policy. Repeat bounded
     // lexical checks here, without reopening a path or introducing disk IO.
-    if((type!="audio" && type!="video") || expectedEntry<0 || path.size()<4 || path.size()>131072 || path.find('\0')!=std::string::npos ||
-        !((path[0]>='A' && path[0]<='Z') || (path[0]>='a' && path[0]<='z')) ||
-        path[1]!=':' || (path[2]!='\\' && path[2]!='/') || path.find(':',2)!=std::string::npos ||
+    if((type!="audio" && type!="video") || expectedEntry<0 || !OrdinaryTrackPath(path) ||
         mediaPath.empty() || mediaPath.size()>131072 || mediaPath.find('\0')!=std::string::npos) return 0;
-    if(std::any_of(path.begin(),path.end(),[](unsigned char ch) {
-        return ch<32 || ch==127 || ch=='|' || ch=='?' || ch=='*' || ch=='<' || ch=='>' || ch=='"';
-    })) return 0;
-    // Ordinary drive paths only: reject dot/trailing components and DOS devices,
-    // including reserved names with an extension or a space before the dot.
-    for(std::size_t begin=3;begin<path.size();) {
-        const auto end=path.find_first_of("/\\",begin);
-        const auto part=std::string_view(path).substr(begin,end==path.npos ? path.size()-begin : end-begin);
-        if(part.empty() || part=="." || part==".." || part.back()=='.' || part.back()==' ') return 0;
-        auto stem=std::string(part.substr(0,part.find('.')));
-        while(!stem.empty() && stem.back()==' ') stem.pop_back();
-        for(auto& ch:stem) if(ch>='a' && ch<='z') ch-='a'-'A';
-        if(stem=="CON" || stem=="PRN" || stem=="AUX" || stem=="NUL" || stem=="CONIN$" || stem=="CONOUT$" ||
-            ((stem.starts_with("COM") || stem.starts_with("LPT")) && ((stem.size()==4 && stem[3]>='1' && stem[3]<='9') ||
-                stem.substr(3)=="\xc2\xb9" || stem.substr(3)=="\xc2\xb2" || stem.substr(3)=="\xc2\xb3"))) return 0;
-        if(end==path.npos) break;
-        begin=end+1;
-        if(begin==path.size()) return 0;
-    }
     std::lock_guard lock(state_->mutex);
     if(state_->closing || !state_->started || state_->commands.size()>=256) return 0;
     State::Request request{state_->nextId++,{},false};

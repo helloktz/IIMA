@@ -161,22 +161,6 @@ winrt::fire_and_forget MainWindow::OpenFile(bool append, bool invertWindowPolicy
     pickerOpen_ = false;
     UpdateInitialWindow();
 }
-winrt::fire_and_forget MainWindow::OpenSubtitle()
-{
-    auto lifetime = get_strong();
-    if (closing_ || pickerOpen_) co_return;
-    pickerOpen_ = true;
-    try {
-        Windows::Storage::Pickers::FileOpenPicker picker;
-        HWND hwnd{};
-        check_hresult(this->as<::IWindowNative>()->get_WindowHandle(&hwnd));
-        check_hresult(picker.as<::IInitializeWithWindow>()->Initialize(hwnd));
-        picker.FileTypeFilter().Append(L"*");
-        auto file = co_await picker.PickSingleFileAsync();
-        if (file && !closing_) session_->AddSubtitle(to_string(file.Path()));
-    } catch (hresult_error const& error) { if (!closing_) ShowError(error.message()); }
-    pickerOpen_ = false;
-}
 void MainWindow::Apply(iima::PlaybackSnapshot const& state)
 {
     if (state.media != iima::MediaState::Loaded) {
@@ -212,6 +196,7 @@ void MainWindow::Apply(iima::PlaybackSnapshot const& state)
         fullscreenPreferenceEntry_ = state.entryId;
         if (userDataLoaded_ && !musicMode_.IsMusic() && preferences_.Boolean("fullScreenWhenOpen") && !fullscreen_) ToggleFullscreen();
     }
+    UpdateSubtitleLoad();
     UpdateExternalAVLoad();
     ApplyCollections(state);
     UpdateSecondarySubtitles(state);
@@ -281,6 +266,7 @@ void MainWindow::BeginClose()
     ClearChapterMarkers();
     ResetPlaylistDrag();
     UpdatePlaylistProgress();
+    InvalidateSubtitleLoad();
     InvalidateExternalAVLoad();
     InvalidateExternalTrackReload();
     InvalidateExternalTrackRemoval();

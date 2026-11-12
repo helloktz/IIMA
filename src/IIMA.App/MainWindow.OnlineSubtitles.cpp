@@ -228,6 +228,7 @@ void MainWindow::DownloadOnlineSubtitle() {
     auto const& media = session_->Snapshot();
     if (media.media != iima::MediaState::Loaded ||
         !onlineSubtitleTransaction_.MatchesMedia({media.entryId, media.path})) { CancelOnlineSubtitles(); return; }
+    const auto loadGeneration=media.mediaGeneration,loadIntent=media.mediaOpenIntentRevision,loadInput=inputGeneration_,loadTrackIntent=session_->TrackEditIntentRevision();
     constexpr std::size_t sessionBudget = 64 * 1024 * 1024;
     if (onlineSubtitleFiles_.size() >= 8 || onlineSubtitleBytes_ >= sessionBudget) {
         OnlineSubtitleStatusText().Text(L"此窗口已达到临时字幕限额，请关闭窗口后重试。"); return;
@@ -258,7 +259,7 @@ void MainWindow::DownloadOnlineSubtitle() {
     OnlineSubtitleStatusText().Text(L"正在下载字幕…");
     RefreshOnlineSubtitleButtons();
     try {
-        std::thread([weak, queue, stop, ticket = *ticket, openSub, shooter, shooterFile = std::move(shooterFile), apiKey = std::move(apiKey), token = std::move(token), id, budget] {
+        std::thread([weak, queue, stop, ticket = *ticket, loadGeneration,loadIntent,loadInput,loadTrackIntent, openSub, shooter, shooterFile = std::move(shooterFile), apiKey = std::move(apiKey), token = std::move(token), id, budget] {
             struct Completed {
                 std::shared_ptr<iima::SubtitleStaging> staging;
                 std::vector<std::filesystem::path> files;
@@ -314,7 +315,7 @@ void MainWindow::DownloadOnlineSubtitle() {
             if (stop.stop_requested() || !completed.error.empty()) {
                 completed.files.clear(); completed.staging.reset(); completed.bytes = 0;
             }
-            try { queue.TryEnqueue([weak, stop, ticket, completed = std::move(completed)]() mutable {
+            try { queue.TryEnqueue([weak, stop, ticket, loadGeneration,loadIntent,loadInput,loadTrackIntent, completed = std::move(completed)]() mutable {
                 auto self = weak.get();
                 if (!self || self->closing_) return;
                 self->onlineSubtitleWorkerActive_ = false;
@@ -322,7 +323,8 @@ void MainWindow::DownloadOnlineSubtitle() {
                     self->RefreshOnlineSubtitleButtons(); return;
                 }
                 auto const& current = self->session_->Snapshot();
-                if (current.media != iima::MediaState::Loaded ||
+                if (current.mediaGeneration!=loadGeneration || current.mediaOpenIntentRevision!=loadIntent || self->inputGeneration_!=loadInput ||
+                    current.media != iima::MediaState::Loaded ||
                     !self->onlineSubtitleTransaction_.MatchesMedia({current.entryId, current.path})) {
                     self->CancelOnlineSubtitles(); return;
                 }
@@ -339,14 +341,16 @@ void MainWindow::DownloadOnlineSubtitle() {
                     self->onlineSubtitleFiles_.push_back(completed.staging);
                     self->onlineSubtitleBytes_ += completed.bytes;
                     bool first = true;
+                    std::vector<iima::SubtitleLoadItem> batch;
                     for (auto const& path : completed.files) {
                         self->downloadedSubtitles_.push_back({path, completed.staging});
                         self->DownloadedSubtitleBox().Items().Append(box_value(hstring(path.filename().wstring())));
-                        self->session_->AddSubtitle(to_string(path.native()), first);
+                        batch.push_back({to_string(path.native()),first});
                         first = false;
                     }
                     self->DownloadedSubtitleBox().SelectedIndex(static_cast<int>(self->downloadedSubtitles_.size() - completed.files.size()));
-                    self->OnlineSubtitleStatusText().Text(L"下载完成，已向播放器提交字幕。加载错误会在播放器状态栏显示。" + to_hstring(completed.quota));
+                    const bool submitted=self->session_->TrackEditIntentRevision()==loadTrackIntent && self->StartSubtitleLoad(std::move(batch));
+                    self->OnlineSubtitleStatusText().Text((submitted ? hstring(L"下载完成，字幕批次已提交；实际加载结果见字幕载入状态。") : hstring(L"下载完成，但字幕批次未确认提交；文件仍保留，可另存或稍后手动加载。"))+to_hstring(completed.quota));
                 }
                 self->RefreshOnlineSubtitleButtons();
             }); } catch (...) { /* Closing dispatcher releases the staged files. */ }

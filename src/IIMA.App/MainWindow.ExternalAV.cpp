@@ -11,8 +11,8 @@
 #include <algorithm>
 #include <filesystem>
 using namespace winrt;
-namespace {
-bool RegularLocalAV(std::wstring const& value) noexcept {
+namespace winrt::IIMA::implementation {
+bool MainWindow::RegularLocalExternalFile(std::wstring const& value) noexcept {
     try {
         auto path=std::filesystem::path(value).lexically_normal();
         auto current=path.root_path();
@@ -36,7 +36,7 @@ bool MainWindow::CanLoadExternalAV() {
     auto const& s=session_->Snapshot();
     return !closing_ && !externalAVStarting_ && userDataLoaded_ && !pickerOpen_ && !inputResolving_ && pendingFiles_.empty() &&
         activationInputs_.empty() && !interactiveCrop_.Active() && !cropOriginal_ && !session_->PlaylistEditBusy() &&
-        !session_->ExternalAVLoadBusy() && !session_->ExternalTrackRemovalBusy() && !session_->ExternalTrackReloadBusy() && !session_->SubtitleReloadBusy() &&
+        !session_->ExternalAVLoadBusy() && !session_->ExternalTrackRemovalBusy() && !session_->ExternalTrackReloadBusy() && !session_->SubtitleReloadBusy() && !session_->SubtitleLoadBusy() &&
         s.session==iima::SessionState::Ready && s.media==iima::MediaState::Loaded && !s.mediaOriginPending && s.entryId>=0 && !s.path.empty();
 }
 fire_and_forget MainWindow::LoadExternalAV(bool video) {
@@ -58,7 +58,7 @@ fire_and_forget MainWindow::LoadExternalAV(bool video) {
         pickerOpen_=false;
         auto current=[&] {auto const& now=session_->Snapshot();return !closing_ && !inputResolving_ && pendingFiles_.empty() && activationInputs_.empty() &&
             !interactiveCrop_.Active() && !cropOriginal_ && !session_->PlaylistEditBusy() && !session_->ExternalAVLoadBusy() &&
-            !session_->ExternalTrackRemovalBusy() && !session_->ExternalTrackReloadBusy() && !session_->SubtitleReloadBusy() && now.session==iima::SessionState::Ready &&
+            !session_->ExternalTrackRemovalBusy() && !session_->ExternalTrackReloadBusy() && !session_->SubtitleReloadBusy() && !session_->SubtitleLoadBusy() && now.session==iima::SessionState::Ready &&
             now.media==iima::MediaState::Loaded && !now.mediaOriginPending && generation==now.mediaGeneration && intent==now.mediaOpenIntentRevision &&
             input==inputGeneration_ && trackIntent==session_->TrackEditIntentRevision() && entry==now.entryId && path==now.path;};
         if(file && current()) {
@@ -73,7 +73,7 @@ fire_and_forget MainWindow::LoadExternalAV(bool video) {
                 auto ui=apartment_context();
                 co_await resume_background();
                 // Point-in-time check only; mpv later reopens this path.
-                const bool regular=RegularLocalAV(normalized);
+                const bool regular=RegularLocalExternalFile(normalized);
                 try { co_await ui; } catch(...) {co_return;}
                 pickerOpen_=false;
                 if(!current()) {if(!closing_){UpdateExternalAVLoad();OpenPendingFiles();FlushActivation();}co_return;}

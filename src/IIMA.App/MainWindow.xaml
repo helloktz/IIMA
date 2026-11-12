@@ -382,6 +382,9 @@
                                 <TextBlock x:Name="OnlineSubtitleStatusText" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite"/>
                             </StackPanel>
                         </Expander>
+                        <Button x:Name="CancelSubtitleLoadButton" Content="取消后续字幕载入" IsEnabled="False"/>
+                        <TextBlock x:Name="SubtitleLoadStatusText" TextWrapping="Wrap" FontSize="12"/>
+                        <TextBlock Text="确认按每项完成时的轨道事实统计，含已有跳过，不表示同时选中所有字幕；失败可与确认重叠。未结项包含在途请求，不代表尚未提交。" TextWrapping="Wrap" FontSize="12"/>
                         <Button x:Name="ReloadSubtitlesButton" Content="重新加载外部字幕"/>
                         <Button x:Name="CancelSubtitleReloadButton" Content="取消后续字幕重载" IsEnabled="False"/>
                         <TextBlock x:Name="SubtitleReloadStatusText" TextWrapping="Wrap" FontSize="12" AutomationProperties.LiveSetting="Polite"/>

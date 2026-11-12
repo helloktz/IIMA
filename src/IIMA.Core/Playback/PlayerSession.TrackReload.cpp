@@ -19,8 +19,8 @@ void PlayerSession::FailExternalTrackReload(std::string error) {
     externalTrackReloadStatus_.error = std::move(error);
 }
 bool PlayerSession::ReloadExternalTrack(std::string type, std::int64_t id, std::string externalPath) {
-    BeginTrackEditIntent(); CancelScrub(); CancelSubtitleReload();
-    if (ExternalTrackReloadBusy() || ExternalAVLoadBusy() || ExternalTrackRemovalBusy() || SubtitleReloadBusy() ||
+    BeginTrackEditIntent(); CancelScrub(); CancelSubtitleLoad(); CancelSubtitleReload();
+    if (SubtitleLoadBusy() || ExternalTrackReloadBusy() || ExternalAVLoadBusy() || ExternalTrackRemovalBusy() || SubtitleReloadBusy() ||
         snapshot_.session != SessionState::Ready || snapshot_.media != MediaState::Loaded || waitingForStart_ ||
         snapshot_.mediaOriginPending || pauseRequest_ || loadRequest_ || !pendingCommands_.empty() || playlistEdit_ ||
         snapshot_.entryId < 0 || snapshot_.path.empty() || snapshot_.path.size() > 131072 ||
