@@ -71,6 +71,8 @@ private:
     winrt::fire_and_forget RetirePlugin(std::unique_ptr<iima::plugins::PluginRuntime> runtime);
     void ApplyPluginMenu(std::string const& json);
     void ClearPluginMenu();
+    bool InvokePluginMenuShortcut(std::string const& key, bool repeated);
+    std::map<std::string, std::pair<std::string, std::string>, std::less<>> pluginMenuShortcuts_;
     std::string PluginKeyBindingsJson() const;
     void UpdatePluginKeyBindings();
     void PublishPluginKey(std::string const& key, bool down, bool repeat);

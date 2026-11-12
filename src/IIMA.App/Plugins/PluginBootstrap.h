@@ -501,7 +501,13 @@ inline constexpr char PluginBootstrap[] = R"IIMAJS(
   }
   function menuKey(value) {
     if (value === null || value === undefined || value === '') return null;
-    throw new TypeError('Plugin menu keyBinding is not implemented in IIMA');
+    if (typeof value !== 'string' || value.length > 256 || utf8Bytes(value) > 256)
+      throw new TypeError('Menu keyBinding must be a string up to 256 UTF-8 bytes');
+    for (let index = 0; index < value.length; ++index) {
+      const code = charCode(value, index);
+      if (code < 33 || code === 127) throw new TypeError('Use mpv key names without whitespace or control characters');
+    }
+    return host.inputNormalize(value);
   }
   function menuBoolean(value) {
     if (typeof value !== 'boolean') throw new TypeError('Menu flag must be boolean');
@@ -528,7 +534,8 @@ inline constexpr char PluginBootstrap[] = R"IIMAJS(
         append('{"id":' + stringify(record.id) + ',"title":' + stringify(record.title) +
           ',"enabled":' + (record.enabled ? 'true' : 'false') +
           ',"selected":' + (record.selected ? 'true' : 'false') +
-          ',"separator":' + (record.separator ? 'true' : 'false') + ',"keyBinding":null,"items":');
+          ',"separator":' + (record.separator ? 'true' : 'false') +
+          ',"keyBinding":' + stringify(record.keyBinding) + ',"items":');
         if (record.children.length) list(record.children, depth + 1, enabled);
         else append('[]');
         append('}');

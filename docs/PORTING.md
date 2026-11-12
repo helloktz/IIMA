@@ -911,3 +911,11 @@ Windows新增只读`ReadFullscreenInformation`：GetTimeFormatEx按用户区域�
 - 最多4096项、3秒合作式预算、stop_token；限额在原生调用之间检查，不声称可以中断慢驱动调用或严格三秒返回。窗口单worker，连续刷新/路径变化取消旧快照并合并为一次后续扫描；取消/关闭丢弃结果，无无限并发或自动失败重试。
 - 初次历史载入和路径集合变化检查；搜索/分类/播放进度变化复用快照，不反复I/O。手动刷新、停止、状态计数及“上次检查缺失”文本可见；缺失项仍可选择移除/定位，打开按钮和双击经核心PlayableHistoryPaths排除Missing。历史磁盘删除后独立重新扫描，不从系统删除成功永久推断Missing。
 - 非本地/不可访问项保持Unknown并允许原有打开路径尝试；无后台持续监控，外部文件恢复需手动刷新，缓存不持久化。保留选择与现有历史记录/撤销语义；没有执行真实文件探测、删除或编译测试运行。
+
+## 第八十五批：插件菜单快捷键
+
+- 源码：`JavascriptAPIMenu.swift::item` 读取options.keyBinding；`JavascriptPluginMenuItem.swift::keyBinding.didSet` 通过KeyCodeHelper映射原生菜单快捷键；`callAction` 调用JS动作并传入菜单项。Windows接入已有窗口按键路由，不安装系统级hook或独立原生accelerator。
+- bootstrap 接受有限长mpv键字符串/null，拒绝空白和控制字符，复用NormalizeMpvKey；菜单快照携带keyBinding，修改/清空通过原修订发布与回滚链生效。UI重复验证、显示快捷键提示与可访问说明，仅启用叶节点且所有祖先启用时参与索引。
+- 路由顺序明确为input.conf → 保存滤镜 → 插件菜单；不抢文本/密码/模态、控件自身导航/激活、Tab、Windows键、AltGr等既有保留输入。重复keydown只消费而不反复调用动作，低优先级插件观察仍独立接收允许事件。重复插件快捷键按可见树先序首个启用叶节点生效。
+- 动作复用InvokeMenu(id,revision)，worker重新校验修订、可达性、祖先启用及叶节点；停止/关闭清除映射，旧发布仍受pluginGeneration保护。菜单点击和快捷键均不乐观切换selected，继续由JS决定状态。
+- Windows差异：没有macOS Cmd映射或系统菜单抢占，快捷键提示不保证系统保留/未知键或多键序列可触发；用户配置冲突时插件项仍可鼠标点击。新增启动说明披露窗口局部快捷键。未编译测试运行或执行插件。

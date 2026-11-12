@@ -2,6 +2,7 @@
 // Copyright (c) 2018 lhc and IINA contributors. GPL-3.0; references/iina/LICENSE.
 #include "pch.h"
 #include "MainWindow.xaml.h"
+#include "../IIMA.Core/Input/KeyMapping.h"
 #include <winrt/Windows.Data.Json.h>
 #include <winrt/Microsoft.UI.Xaml.Automation.h>
 #include <functional>
@@ -20,6 +21,7 @@ using namespace Microsoft::UI::Xaml::Controls;
 struct MenuNode {
     std::string id;
     hstring title;
+    std::string keyBinding;
     bool enabled{}, selected{}, separator{};
     std::vector<MenuNode> children;
 };
@@ -86,9 +88,15 @@ MenuSnapshot ParseMenu(std::string const& json) {
             node.selected = object.GetNamedBoolean(L"selected");
             node.separator = object.GetNamedBoolean(L"separator");
             auto key = object.GetNamedValue(L"keyBinding");
-            Require(key.ValueType() == JsonValueType::Null ||
-                (key.ValueType() == JsonValueType::String && key.GetString().empty()),
-                "Plugin menu keyboard bindings are not supported by this adapter.");
+            Require(key.ValueType() == JsonValueType::Null || key.ValueType() == JsonValueType::String,
+                "Plugin menu key must be a string or null.");
+            if (key.ValueType() == JsonValueType::String) {
+                auto raw = to_string(key.GetString());
+                Require(raw.size() <= 256, "Plugin menu key exceeds its byte budget.");
+                for (unsigned char c : raw) Require(c > 32 && c != 127, "Invalid plugin menu key character.");
+                node.keyBinding = iima::NormalizeMpvKey(raw);
+                Require(node.keyBinding.size() <= 256, "Normalized plugin menu key is too long.");
+            }
             node.children = read(object.GetNamedArray(L"items"), depth + 1);
             Require(!node.separator || node.children.empty(), "Plugin menu separator cannot own a submenu.");
             nodes.push_back(std::move(node));
@@ -102,6 +110,7 @@ MenuSnapshot ParseMenu(std::string const& json) {
 
 namespace winrt::IIMA::implementation {
 void MainWindow::ClearPluginMenu() {
+    pluginMenuShortcuts_.clear();
     // Stop/close may run while a flyout is open. Release the entire previous tree
     // and its handlers; weak captures and generation checks guard late clicks.
     try {
@@ -131,6 +140,7 @@ void MainWindow::ApplyPluginMenu(std::string const& json) {
                 }
             }
         };
+        std::map<std::string, std::pair<std::string, std::string>, std::less<>> shortcuts;
         std::function<MenuFlyoutItemBase(MenuNode const&, bool)> build;
         build = [&](MenuNode const& node, bool ancestorEnabled) -> MenuFlyoutItemBase {
             if (node.separator) return MenuFlyoutSeparator{};
@@ -148,6 +158,16 @@ void MainWindow::ApplyPluginMenu(std::string const& json) {
             }
             ToggleMenuFlyoutItem item;
             item.Text(node.title); item.IsEnabled(enabled); item.IsChecked(node.selected);
+            if (!node.keyBinding.empty()) {
+                // Visual hint only: a native KeyboardAccelerator would bypass
+                // the player's text-entry/conflict policy and may fire twice.
+                item.Text(node.title + L" [" + to_hstring(iima::DisplayMpvKey(node.keyBinding)) + L"]");
+                Automation::AutomationProperties::SetName(item, node.title);
+                Automation::AutomationProperties::SetHelpText(item,
+                    L"快捷键 " + to_hstring(iima::DisplayMpvKey(node.keyBinding)) +
+                    L"。仅播放器输入区生效，用户配置和保存滤镜优先；系统保留键与多键序列不支持。");
+                if (enabled) shortcuts.try_emplace(node.keyBinding, node.id, snapshot.revision);
+            }
             item.Click([invoke, id = node.id, selected = node.selected, enabled](auto const& sender, auto const&) {
                 // Native toggling is not authoritative. IINA lets the JS action
                 // change `selected`; restore the snapshot until it publishes one.
@@ -164,10 +184,29 @@ void MainWindow::ApplyPluginMenu(std::string const& json) {
         auto button = PluginMenuButton();
         if (auto previous = button.Flyout()) previous.Hide();
         button.Flyout(replacement);
+        pluginMenuShortcuts_ = std::move(shortcuts);
         button.IsEnabled(!snapshot.items.empty());
     } catch (...) {
         StopLocalPlugin();
         if (!closing_) PluginRuntimeStatus().Text(L"插件菜单数据无效或无法显示，插件已停止。");
     }
 }
+bool MainWindow::InvokePluginMenuShortcut(std::string const& key, bool repeated) {
+    if (closing_ || pickerOpen_ || pluginStopPending_ || !pluginRuntime_ || !KeyboardPlaybackAllowed()) return false;
+    auto found = pluginMenuShortcuts_.find(key);
+    if (found == pluginMenuShortcuts_.end()) return false;
+    // One action per physical press; the existing low-priority input observer
+    // may still receive repeated key events, but cannot consume native input.
+    if (repeated) return true;
+    auto identity = found->second; // StopLocalPlugin may clear the map below.
+    try {
+        if (!pluginRuntime_->InvokeMenu(identity.first, identity.second))
+            PluginRuntimeStatus().Text(L"插件菜单已更新或队列不可用，快捷键操作未提交。");
+    } catch (...) {
+        StopLocalPlugin();
+        PluginRuntimeStatus().Text(L"插件菜单快捷键提交失败，插件已停止。");
+    }
+    return true;
+}
+
 }

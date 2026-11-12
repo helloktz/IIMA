@@ -94,6 +94,8 @@ void MainWindow::WireKeyboardControls() {
             if (auto saved = self->savedFilterLibrary_.FindShortcut(*key)) {
                 args.Handled(true);
                 if (!status.WasKeyDown) self->ApplySavedFilter(saved->first, saved->second);
+            } else if (self->InvokePluginMenuShortcut(*key, status.WasKeyDown)) {
+                args.Handled(true);
             }
         } else if (status.WasKeyDown && (binding->IsIinaCommand() || binding->RawAction() == "quit" ||
             binding->RawAction().starts_with("screenshot"))) {
