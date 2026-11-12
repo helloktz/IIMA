@@ -251,6 +251,10 @@
                         </Expander>
                         <CheckBox x:Name="RecordHistoryCheck" Content="记录播放历史" IsChecked="True"/>
                         <CheckBox x:Name="ResumeCheck" Content="从上次位置继续" IsChecked="True"/>
+                        <TextBlock Text="缩略图缓存"/>
+                        <TextBlock Text="本地预览图会保存在当前用户缓存目录。高级选项 maxThumbnailPreviewCacheSize 为 MiB，0 禁用磁盘缓存。" TextWrapping="Wrap"/>
+                        <Button x:Name="ClearThumbnailCacheButton" Content="清空缩略图缓存…"/>
+                        <TextBlock x:Name="ThumbnailCacheStatusText" TextWrapping="Wrap"/>
                         <TextBlock Text="IINA 插件检查"/>
                         <Button x:Name="InspectPluginButton" Content="检查本地插件目录…"/>
                         <TextBlock x:Name="PluginInspectionText" Text="仅检查清单与文件；当前不运行插件。" TextWrapping="Wrap" IsTextSelectionEnabled="True"/>

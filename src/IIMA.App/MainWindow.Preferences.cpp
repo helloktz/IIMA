@@ -13,7 +13,7 @@ namespace {
 bool HasApplicationAdapter(std::string_view key) {
     static const std::set<std::string_view> keys{
         "autoSwitchToMusicMode", "musicModeShowPlaylist", "musicModeShowAlbumArt",
-        "pauseWhenInactive", "pauseWhenMinimized", "enableThumbnailPreview", "thumbnailWidth",
+        "pauseWhenInactive", "pauseWhenMinimized", "enableThumbnailPreview", "thumbnailWidth", "maxThumbnailPreviewCacheSize",
         "alwaysFloatOnTop", "fullScreenWhenOpen", "playWhenEnteringFullScreen", "pauseWhenLeavingFullScreen",
         "enableOSD", "disableOSDPauseResumeMsgs", "disableOSDSpeedMsg", "osdAutoHideTimeout", "osdTextSize"
     };
@@ -102,7 +102,7 @@ void MainWindow::ApplyAdvancedSetting(std::string const& key, iima::settings::Pr
     userData_.settings.advancedPreferences = preferences_.Overrides();
     session_->ApplyAdvancedPreferences(preferences_);
     ApplyWindowPreferences();
-    if (key == "enableThumbnailPreview" || key == "thumbnailWidth") {
+    if (key == "enableThumbnailPreview" || key == "thumbnailWidth" || key == "maxThumbnailPreviewCacheSize") {
         CancelThumbnailPreview(); thumbnailMemory_.clear();
     }
     if (key == "autoSwitchToMusicMode" || key.starts_with("musicMode")) { UpdateMusicMode(); UpdatePresentationLayout(); }

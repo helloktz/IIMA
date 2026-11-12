@@ -2,6 +2,7 @@
 // Copyright (c) lhc and contributors. SPDX-License-Identifier: GPL-3.0-or-later
 #include "pch.h"
 #include "MainWindow.xaml.h"
+#include "Platform/ThumbnailDiskCache.h"
 #include "../IIMA.Core/Media/VideoTime.h"
 #include <winrt/Microsoft.UI.Xaml.Media.Imaging.h>
 #include <winrt/Windows.Storage.Streams.h>
@@ -13,6 +14,9 @@ using namespace Microsoft::UI::Xaml;
 namespace winrt::IIMA::implementation {
 void MainWindow::WireThumbnailPreview() {
     auto weak = get_weak();
+    ClearThumbnailCacheButton().Click([weak](auto const&, auto const&) {
+        if (auto self = weak.get(); self && !self->closing_) self->ClearThumbnailCache();
+    });
     thumbnailTimer_ = DispatcherQueue().CreateTimer();
     thumbnailTimer_.IsRepeating(false);
     thumbnailTimer_.Interval(std::chrono::milliseconds(180));
@@ -84,16 +88,17 @@ void MainWindow::BeginThumbnailRequest() {
     auto weak = get_weak();
     auto queue = DispatcherQueue();
     auto stop = thumbnailStop_.get_token();
+    auto maximumCacheMiB = preferences_.Integer("maxThumbnailPreviewCacheSize");
     try {
-        std::thread([weak, queue, request = std::move(request), stop] {
-            auto result = iima::ExtractThumbnail(request, stop);
+        std::thread([weak, queue, request = std::move(request), stop, maximumCacheMiB] {
+            auto result = iima::ExtractThumbnailCached(request, maximumCacheMiB, stop);
             queue.TryEnqueue([weak, result = std::move(result)]() mutable {
                 if (auto self = weak.get(); self && !self->closing_) {
                     self->thumbnailBusy_ = false;
                     if (result.generation == self->thumbnailGeneration_ && self->thumbnailWanted_) {
                         if (result.status == iima::ThumbnailExtractionStatus::Ready) {
-                            // Bounded memory cache, not a claim of persistent cache
-                            // parity. Never retain stale images across media change.
+                            // Memory tier complements the source-keyed disk cache.
+                            // Never retain these entries across media change.
                             self->thumbnailMemory_.push_back(result);
                             std::size_t bytes{};
                             for (auto const& image : self->thumbnailMemory_) bytes += image.jpeg.size();

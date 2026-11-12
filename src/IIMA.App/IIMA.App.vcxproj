@@ -172,4 +172,9 @@
     <ClCompile Include="Platform\PluginInspection.cpp" />
     <ClInclude Include="Platform\PluginInspection.h" />
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="MainWindow.ThumbnailCache.cpp" />
+    <ClCompile Include="Platform\ThumbnailDiskCache.cpp" />
+    <ClInclude Include="Platform\ThumbnailDiskCache.h" />
+  </ItemGroup>
 </Project>

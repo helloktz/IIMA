@@ -42,7 +42,7 @@ winrt::fire_and_forget MainWindow::InspectPlugin() {
         catch (hresult_error const& e) { report = L"插件检查失败：" + std::wstring(e.message()); }
         catch (std::exception const& e) { report = L"插件检查失败：" + std::wstring(to_hstring(e.what())); }
         catch (...) { report = L"插件检查失败。"; }
-        co_await apartment;
+        try { co_await apartment; } catch (...) { co_return; }
     } catch (hresult_error const& e) { report = L"无法选择插件目录：" + std::wstring(e.message()); }
       catch (...) { report = L"无法检查插件目录。"; }
     pickerOpen_ = false; pluginInspectionBusy_ = false;

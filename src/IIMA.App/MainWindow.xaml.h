@@ -69,6 +69,8 @@ private:
     winrt::fire_and_forget ExportKeyBindings();
     std::unique_ptr<iima::KeyBindingSet> keyBindings_;
     void WireThumbnailPreview();
+    winrt::fire_and_forget ClearThumbnailCache();
+    bool clearingThumbnailCache_{};
     void UpdateThumbnailMedia(iima::PlaybackSnapshot const& state);
     void CancelThumbnailPreview();
     void BeginThumbnailRequest();
