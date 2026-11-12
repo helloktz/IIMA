@@ -269,6 +269,25 @@ struct MpvClient::State {
                     // query both actual slots after FILE_LOADED on this worker.
                     // This is not an atomic pair; later observations remain
                     // authoritative if scripts change tracks concurrently.
+                    // Re-read persistent loop options after clearing the old media
+                    // snapshot; unchanged values may not emit an observer event.
+                    for (auto const* name : {"ab-loop-a", "ab-loop-b"}) {
+                        MpvEvent point{MpvEvent::Kind::Property};
+                        point.name = name;
+                        double value{};
+                        point.error = api.get_property(handle, name, MPV_FORMAT_DOUBLE, &value);
+                        if (point.error >= 0) point.number = value;
+                        Emit(std::move(point));
+                    }
+                    {
+                        MpvEvent count{MpvEvent::Kind::Property};
+                        count.name = "ab-loop-count";
+                        char* value{};
+                        count.error = api.get_property(handle, "ab-loop-count", MPV_FORMAT_STRING, &value);
+                        std::unique_ptr<char, decltype(api.free)> owned(value, api.free);
+                        if (count.error >= 0 && value) count.text = value;
+                        Emit(std::move(count));
+                    }
                     for (auto const* name : {"sid", "secondary-sid"}) {
                         MpvEvent selection{MpvEvent::Kind::Property};
                         selection.name = name;

@@ -68,6 +68,9 @@ public:
     void StepFrame(bool backwards = false);
     void CycleABLoop();
     void ClearABLoop();
+    // UI-thread draft guard; returns submission acceptance, not mpv success.
+    bool EditABLoopPoint(bool pointB, double seconds,
+        std::optional<double> expectedA, std::optional<double> expectedB);
     void Stop();
     void SetVolume(double value);
     void SetSpeed(double value);

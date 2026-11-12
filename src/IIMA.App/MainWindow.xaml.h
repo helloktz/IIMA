@@ -139,6 +139,12 @@ private:
     void EditSelectedFilter(int operation);
     iima::FilterChainSnapshot displayedFilters_;
     std::optional<std::uint64_t> filterRevision_;
+    void WireABLoopEditor();
+    void UpdateABLoopEditor(iima::PlaybackSnapshot const& state);
+    void LoadABLoopDraft();
+    void ApplyABLoopDraft(bool pointB);
+    std::optional<std::uint64_t> abDraftEpoch_;
+    std::optional<double> abDraftA_, abDraftB_;
     void WireNavigationControls();
     void UpdateNavigationControls(iima::PlaybackSnapshot const& state);
     void ApplyCustomSpeed(double requested);

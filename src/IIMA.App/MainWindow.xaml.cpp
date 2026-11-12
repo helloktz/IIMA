@@ -72,6 +72,7 @@ MainWindow::MainWindow()
     WireSubtitleControls();
     WireSecondarySubtitles();
     WireNavigationControls();
+    WireABLoopEditor();
     WireOnlineSubtitles();
     WireAudioControls();
     WireEqualizerEditor();
@@ -190,6 +191,7 @@ void MainWindow::Apply(iima::PlaybackSnapshot const& state)
     ApplyCollections(state);
     UpdateSecondarySubtitles(state);
     UpdateNavigationControls(state);
+    UpdateABLoopEditor(state);
     UpdateMediaInformation(state);
     UpdateVideoAdjustments(state);
     UpdateFilterEditor(state);

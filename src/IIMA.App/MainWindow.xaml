@@ -101,6 +101,17 @@
                             <Button x:Name="ABLoopButton" Content="A-B 循环"/>
                             <Button x:Name="ClearABLoopButton" Content="清除 A-B"/>
                         </StackPanel>
+                        <Expander Header="精确调整 A-B 端点" HorizontalAlignment="Stretch">
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="先用 A-B 循环建立端点，再读取并分别调整秒数。允许 A 在 B 之后。" TextWrapping="Wrap"/>
+                                <Button x:Name="LoadABDraftButton" Content="读取当前端点"/>
+                                <NumberBox x:Name="ABPointABox" Header="A 点（秒）" Minimum="0" SpinButtonPlacementMode="Compact"/>
+                                <Button x:Name="ApplyABPointAButton" Content="应用 A 点"/>
+                                <NumberBox x:Name="ABPointBBox" Header="B 点（秒）" Minimum="0" SpinButtonPlacementMode="Compact"/>
+                                <Button x:Name="ApplyABPointBButton" Content="应用 B 点"/>
+                                <TextBlock x:Name="ABEditStatus" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Expander>
                         <ComboBox x:Name="AudioBox" Header="音轨" HorizontalAlignment="Stretch" AutomationProperties.Name="音轨"/>
                         <ComboBox x:Name="AudioEqualizerBox" Header="音频均衡预设" HorizontalAlignment="Stretch"/>
                         <Button x:Name="ApplyAudioEqualizerButton" Content="应用均衡预设"/>

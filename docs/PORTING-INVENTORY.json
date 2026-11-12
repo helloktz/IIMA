@@ -894,8 +894,11 @@
     {
       "source": "references/iina/iina/PlaySliderLoopKnob.swift",
       "physicalLines": 198,
-      "coverage": "not-mapped",
-      "reviewTargets": []
+      "coverage": "partial-static-unverified",
+      "reviewTargets": [
+        "src/IIMA.App/MainWindow.ABLoop.cpp",
+        "src/IIMA.Core/Playback/PlayerSession.Actions.cpp"
+      ]
     },
     {
       "source": "references/iina/iina/PlaybackHistory.swift",
@@ -920,7 +923,9 @@
       "reviewTargets": [
         "src/IIMA.Core/Playback/PlayerSession.cpp",
         "src/IIMA.Core/Windows/PlayerWindowRegistry.cpp",
-        "src/IIMA.App/App.xaml.cpp"
+        "src/IIMA.App/App.xaml.cpp",
+        "src/IIMA.App/MainWindow.ABLoop.cpp",
+        "src/IIMA.Core/Playback/PlayerSession.Actions.cpp"
       ]
     },
     {
@@ -937,7 +942,9 @@
         "src/IIMA.App/MainWindow.Commands.cpp",
         "src/IIMA.App/MainWindow.Keyboard.cpp",
         "src/IIMA.App/Platform/PowerLifecycle.cpp",
-        "src/IIMA.App/MainWindow.WindowPolicy.cpp"
+        "src/IIMA.App/MainWindow.WindowPolicy.cpp",
+        "src/IIMA.App/MainWindow.ABLoop.cpp",
+        "src/IIMA.Core/Playback/PlayerSession.Actions.cpp"
       ]
     },
     {

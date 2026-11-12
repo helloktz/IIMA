@@ -28,6 +28,7 @@ void ApplyPlaybackEvent(PlaybackSnapshot& s, MpvEvent const& e) {
     case MpvEvent::Kind::StartFile:
         s.media=MediaState::Loading; s.entryId=e.entryId; s.swapChain.reset();
         s.position.reset(); s.duration.reset(); s.path.clear();
+        s.abLoopA.reset(); s.abLoopB.reset(); s.abLoopCount.clear();
         s.seekable=false; s.mediaTitle.clear(); s.metadataTitle.clear(); s.metadataAlbum.clear(); s.metadataArtist.clear();
         s.metadata.clear(); s.videoParameters.clear(); s.audioParameters.clear();
         s.videoBitrate.reset(); s.audioBitrate.reset(); s.fileSize.reset(); ++s.informationRevision;
