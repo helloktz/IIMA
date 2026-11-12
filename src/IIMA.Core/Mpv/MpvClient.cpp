@@ -25,7 +25,7 @@ struct Api {
 #define API(name) decltype(&mpv_##name) name{};
     API(client_api_version) API(create) API(initialize) API(terminate_destroy)
     API(set_option_string) API(command_async) API(observe_property) API(wait_event)
-    API(error_string) API(set_property_string) API(get_property_async)
+    API(error_string) API(set_property_string) API(get_property_async) API(get_property) API(free_node_contents) API(set_property_async)
 #undef API
     ~Api() = default;
     void Load(std::wstring const& path) {
@@ -35,7 +35,7 @@ struct Api {
         moduleLease=std::shared_ptr<void>(module,[](void* p) { FreeLibrary(static_cast<HMODULE>(p)); });
 #define API(name) name = reinterpret_cast<decltype(name)>(GetProcAddress(module, "mpv_" #name)); if (!name) throw std::runtime_error("Missing libmpv export: mpv_" #name);
         API(client_api_version) API(create) API(initialize) API(terminate_destroy)
-        API(set_option_string) API(command_async) API(observe_property) API(wait_event) API(error_string) API(set_property_string) API(get_property_async)
+        API(set_option_string) API(command_async) API(observe_property) API(wait_event) API(error_string) API(set_property_string) API(get_property_async) API(get_property) API(free_node_contents) API(set_property_async)
 #undef API
         acquireSwapChain = reinterpret_cast<AcquireSwapChain>(GetProcAddress(module,"mpv_iima_acquire_d3d11_swapchain_v1"));
         const auto version = client_api_version();
@@ -52,6 +52,8 @@ struct MpvClient::State {
         std::uint64_t id;
         std::vector<std::string> arguments;
         bool playlistQuery{};
+        bool audioFilters{};
+        std::optional<FilterEditPlan> filterEdit;
     };
     std::deque<Request> commands;
     std::vector<std::function<void()>> closedCallbacks;
@@ -85,7 +87,7 @@ struct MpvClient::State {
                 check(api.observe_property(handle, id++, name, MPV_FORMAT_FLAG), name);
             for(auto const* name : {"path", "mpv-version", "current-tracks/video/codec-desc", "hwdec-current", "current-vo", "loop-file", "loop-playlist", "keep-open", "ab-loop-count", "media-title", "audio-device"})
                 check(api.observe_property(handle,id++,name,MPV_FORMAT_STRING),name);
-            for(auto const* name : {"playlist", "track-list", "chapter-list", "metadata", "video-params", "audio-params", "audio-device-list"})
+            for(auto const* name : {"playlist", "track-list", "chapter-list", "metadata", "video-params", "audio-params", "audio-device-list", "vf", "af"})
                 check(api.observe_property(handle,id++,name,MPV_FORMAT_NODE),name);
             check(api.observe_property(handle,id++,"chapter",MPV_FORMAT_INT64),"chapter");
             MpvEvent ready{MpvEvent::Kind::Ready}; ready.flag=api.acquireSwapChain!=nullptr; ready.integer=api.client_api_version(); Emit(std::move(ready));
@@ -99,7 +101,21 @@ struct MpvClient::State {
                 if(pending) {
                     const auto request=pending->id;
                     int error{};
-                    if(pending->playlistQuery) {
+                    if (pending->filterEdit) {
+                        auto name = pending->audioFilters ? "af" : "vf";
+                        mpv_node fresh{};
+                        error = api.get_property(handle, name, MPV_FORMAT_NODE, &fresh);
+                        if (error >= 0) {
+                            auto snapshot = ParseFilterChain(fresh);
+                            api.free_node_contents(&fresh);
+                            if (!pending->filterEdit->FreshMatches(snapshot)) error = MPV_ERROR_PROPERTY_ERROR;
+                            else {
+                                FilterNodeView view(pending->filterEdit->after);
+                                auto node = view.Get();
+                                error = api.set_property_async(handle, request, name, MPV_FORMAT_NODE, &node);
+                            }
+                        }
+                    } else if(pending->playlistQuery) {
                         error=api.get_property_async(handle,request,"playlist",MPV_FORMAT_NODE);
                     } else {
                         std::vector<char const*> argv;
@@ -132,6 +148,10 @@ struct MpvClient::State {
                 case MPV_EVENT_SEEK: e.kind=MpvEvent::Kind::Seek; break;
                 case MPV_EVENT_PLAYBACK_RESTART: e.kind=MpvEvent::Kind::Restart; break;
                 case MPV_EVENT_VIDEO_RECONFIG: e.kind=MpvEvent::Kind::VideoReconfig; break;
+                case MPV_EVENT_SET_PROPERTY_REPLY:
+                    e.kind = MpvEvent::Kind::CommandReply;
+                    if (e.requestId == inFlight) inFlight = 0;
+                    break;
                 case MPV_EVENT_COMMAND_REPLY: {
                     e.kind=MpvEvent::Kind::CommandReply; if(e.requestId==inFlight) inFlight=0;
                     if(raw->data) {
@@ -239,6 +259,16 @@ std::uint64_t MpvClient::GetPlaylistAsync() {
     if(state_->closing || !state_->started) return 0;
     const auto id=state_->nextId++;
     state_->commands.push_back({id,{},true});
+    return id;
+}
+std::uint64_t MpvClient::EditFilterChainAsync(bool audio, FilterEditPlan plan) {
+    std::lock_guard lock(state_->mutex);
+    if (state_->closing || !state_->started || !plan.valid) return 0;
+    const auto id = state_->nextId++;
+    State::Request request{id, {}, false};
+    request.audioFilters = audio;
+    request.filterEdit = std::move(plan);
+    state_->commands.push_back(std::move(request));
     return id;
 }
 void MpvClient::CloseAsync(std::function<void()> completion) {

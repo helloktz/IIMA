@@ -68,6 +68,8 @@ public:
     void SetVideoEqualizer(std::string property, int value);
     void AddVideoFilter(std::string filter);
     void RemoveVideoFilter(std::string label);
+    void AddFilter(bool audio, std::string expression);
+    void EditFilters(bool audio, FilterEditPlan plan);
     void SetCompositionSize(unsigned width, unsigned height);
     // Local preferences never overwrite observed playback fields. Call on UI thread.
     void ApplySettings(UserSettings const& settings);

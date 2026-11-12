@@ -127,6 +127,12 @@
     <ClCompile Include="Platform\WindowLifecycle.cpp" />
     <ClInclude Include="Platform\WindowLifecycle.h" />
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="MainWindow.Filters.cpp" />
+    <ClCompile Include="MainWindow.Thumbnails.cpp" />
+    <ClInclude Include="Platform\ThumbnailExtractor.h" />
+    <ClCompile Include="Platform\ThumbnailExtractor.cpp" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Import Project="..\..\build\NuGet.targets" />
 </Project>

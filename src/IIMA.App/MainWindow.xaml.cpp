@@ -60,6 +60,8 @@ MainWindow::MainWindow()
     WirePlaybackControls();
     WireMediaInformation();
     WireVideoControls();
+    WireFilterEditor();
+    WireThumbnailPreview();
     WireSubtitleControls();
     WireAudioControls();
     WireUserDataControls();
@@ -170,6 +172,8 @@ void MainWindow::Apply(iima::PlaybackSnapshot const& state)
     }
     ApplyCollections(state);
     UpdateMediaInformation(state);
+    UpdateFilterEditor(state);
+    UpdateThumbnailMedia(state);
     ApplySettingsSnapshot(state);
     UpdateDiagnostics(state);
     UpdateOSD(state);
@@ -216,6 +220,7 @@ void MainWindow::BeginClose()
     }
     if (closing_) { FinishClose(); return; }
     closing_ = true;
+    CancelThumbnailPreview();
     if(windowLifecycle_) windowLifecycle_->Close();
     inputStop_.request_stop(); ++inputGeneration_;
     subtitleMatchStop_.request_stop(); ++subtitleMatchGeneration_;

@@ -51,7 +51,13 @@ void ApplyPlaybackEvent(PlaybackSnapshot& s, MpvEvent const& e) {
     case MpvEvent::Kind::Seek: s.seeking=true; break;
     case MpvEvent::Kind::Restart: s.seeking=false; break;
     case MpvEvent::Kind::Property:
-        if(e.name=="metadata") {
+        if (e.name == "vf" || e.name == "af") {
+            auto& filters = e.name == "vf" ? s.videoFilters : s.audioFilters;
+            auto revision = filters.revision + 1;
+            filters = e.filters;
+            filters.revision = revision;
+        }
+        else if(e.name=="metadata") {
             s.metadata=e.properties;
             s.metadataTitle=MetadataValue(s.metadata,"title");
             s.metadataAlbum=MetadataValue(s.metadata,"album");

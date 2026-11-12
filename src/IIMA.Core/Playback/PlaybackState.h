@@ -30,6 +30,7 @@ struct PlaybackSnapshot {
     std::shared_ptr<void> swapChain;
     // Revisions let high-frequency position updates skip O(n) UI comparisons.
     std::uint64_t playlistRevision{}, tracksRevision{}, chaptersRevision{};
+    FilterChainSnapshot videoFilters, audioFilters;
     std::vector<PlaylistItem> playlist;
     std::vector<MediaTrack> tracks;
     std::vector<Chapter> chapters;

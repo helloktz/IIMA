@@ -182,3 +182,12 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 - `InspectorWindowController.GeneralVC/FileVC` / `PlayerCore.getMusicMetadata` / mpv `metadata/video-params/audio-params/audio-device-list/seekable` → `MediaInformation`、有界节点拷贝、快照与 WinUI 信息折叠面板：媒体标签、码率、格式、像素/色彩参数、音频参数、真实输出设备列表与选用。节点数据在下一 mpv event 前复制，metadata限1024项/256KiB，超大项跳过。只展示内核报告，不据此宣称 HDR 或硬件功能正确。面板未覆盖上游全部 inspector 状态字段或任意属性观察编辑。
 
 仍只完成静态代码/接线。没有编译、自动化测试、Windows 运行或系统交互验证；前批和既往验证记录不覆盖本批。完整移植及文件/行数硬指标仍未达到。
+
+### 第七批：可操作滤镜链与本地悬停缩略图
+
+- `FilterWindowController.reloadTable/removeFilterAction/tableView(setObjectValue)`、`MPVController.getFilters/removeFilter/setNode` → `Filters/FilterChain.*`、`PlayerSession.Filters.cpp`、`MainWindow.Filters.cpp`：观察 vf/af 真实节点，显示未知坏行；按 revision/index 生成删除、移动、启停、结构化替换。复制整棵拥有型树保留未知字段，限制4096行/32768节点/1MiB载荷/深度8。编辑先核对UI选择，再在串行mpv worker新读列表核对，使用原生node属性写入和SET_PROPERTY_REPLY；不通过逗号拼接丢参数。mpv没有CAS，外部脚本仍可能在最终读取与写入之间修改，不承诺原子事务。raw参数仅能添加，结构化替换明确拒绝，完整保存滤镜预设管理仍待接线。
+- `PlayerCore.generateThumbnails`、`FFmpegController.getPeeksForFile`、主窗悬停预览 → `Platform/ThumbnailExtractor.*`、`MainWindow.Thumbnails.cpp`：实际本地文件句柄读取、Media Foundation单帧解码、WIC JPEG质量0.75、像素比例/旋转和缩放、WinUI进度条悬停图像。180ms防抖，同窗口最多一个原生提取任务，停止源和代次丢弃过期结果；离开/换片/关闭隐藏图像并取消，不在UI等待原生解码。内存缓存最多24张/16MiB，不保存路径或图像到外部服务。
+- 明确差异：按需单帧而非IINA的全片FFmpeg预生成；仅本地固定/可移动磁盘普通文件，拒绝网络、离线和重解析路径，不实现远程缩略图偏好；codec覆盖取决于Windows，不与libmpv等价。最多128MiB原帧/1024px输出/180次读取/合作式3秒预算，原生codec阻塞不能硬中断。实际缩略图时间标签来自解码时间；不保证色彩/HDR等价。已有磁盘缓存格式尚未连接这条按需链；内存缓存只在当前媒体使用，外部原地修改文件不会实时失效。
+- `enableThumbnailPreview`与`thumbnailWidth`接入设置；提取宽高上限1024px，UI显示240×135等比框，不把上游2048设置范围当作无限解码许可。预览失败不影响主播放器，也不自动反复请求同一位置。
+
+本批只完成静态源码及人工接口/生命周期审阅，未编译、测试或运行。完整滤镜管理、缩略图缓存及全部IINA移植仍未完成。

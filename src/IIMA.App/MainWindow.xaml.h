@@ -7,6 +7,8 @@
 #include "Platform/WindowLifecycle.h"
 #include "Platform/LocalInputResolver.h"
 #include "Platform/ScreenshotStaging.h"
+#include "Platform/ThumbnailExtractor.h"
+#include <deque>
 #include "../IIMA.Core/History/HistoryBrowser.h"
 #include "../IIMA.Core/Diagnostics/DiagnosticLog.h"
 #include <winrt/Microsoft.UI.Dispatching.h>
@@ -35,7 +37,25 @@ private:
     winrt::fire_and_forget ImportKeyBindings();
     winrt::fire_and_forget ExportKeyBindings();
     std::unique_ptr<iima::KeyBindingSet> keyBindings_;
+    void WireThumbnailPreview();
+    void UpdateThumbnailMedia(iima::PlaybackSnapshot const& state);
+    void CancelThumbnailPreview();
+    void BeginThumbnailRequest();
+    winrt::fire_and_forget DisplayThumbnail(iima::ThumbnailExtractionResult result);
+    Microsoft::UI::Dispatching::DispatcherQueueTimer thumbnailTimer_{nullptr};
+    std::stop_source thumbnailStop_;
+    std::uint64_t thumbnailGeneration_{};
+    bool thumbnailBusy_{}, thumbnailWanted_{};
+    std::string thumbnailPath_;
+    std::int64_t thumbnailEntry_{-1};
+    double thumbnailSeconds_{};
+    std::deque<iima::ThumbnailExtractionResult> thumbnailMemory_;
     void WireVideoControls();
+    void WireFilterEditor();
+    void UpdateFilterEditor(iima::PlaybackSnapshot const& state);
+    void EditSelectedFilter(int operation);
+    iima::FilterChainSnapshot displayedFilters_;
+    std::optional<std::uint64_t> filterRevision_;
     void WireSubtitleControls();
     void FindLocalSubtitle();
     void WireAudioControls();

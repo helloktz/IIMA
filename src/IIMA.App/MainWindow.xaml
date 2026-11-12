@@ -19,6 +19,14 @@
         <Border x:Name="TopStatusBorder" Background="#DD202020" VerticalAlignment="Top" Padding="16">
             <TextBlock x:Name="StatusText" Text="正在初始化播放器…" Foreground="White" TextWrapping="Wrap" />
         </Border>
+        <Border x:Name="ThumbnailPreviewBorder" Visibility="Collapsed" Canvas.ZIndex="8"
+                VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,100"
+                Background="#EE202020" Padding="6">
+            <StackPanel Spacing="4">
+                <Image x:Name="ThumbnailPreviewImage" Width="240" Height="135" Stretch="Uniform"/>
+                <TextBlock x:Name="ThumbnailPreviewTime" HorizontalAlignment="Center"/>
+            </StackPanel>
+        </Border>
         <Border x:Name="BottomControlsBorder" Background="#DD202020" VerticalAlignment="Bottom" Padding="12">
             <Grid ColumnSpacing="12" RowSpacing="6">
                 <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
@@ -110,6 +118,24 @@
                             <ComboBoxItem Content="180°"/><ComboBoxItem Content="270°"/>
                         </ComboBox>
                         <Button x:Name="ApplyRotationButton" Content="应用旋转"/>
+                        <ComboBox x:Name="FilterTypeBox" Header="滤镜链" SelectedIndex="0">
+                            <ComboBoxItem Content="视频"/><ComboBoxItem Content="音频"/>
+                        </ComboBox>
+                        <ListView x:Name="FilterChainView" MaxHeight="200" SelectionMode="Single" AutomationProperties.Name="当前滤镜"/>
+                        <TextBlock x:Name="FilterChainError" TextWrapping="Wrap"/>
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <Button x:Name="ToggleChainFilterButton" Content="启用/停用"/>
+                            <Button x:Name="RemoveChainFilterButton" Content="移除"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <Button x:Name="MoveChainFilterUpButton" Content="上移"/>
+                            <Button x:Name="MoveChainFilterDownButton" Content="下移"/>
+                        </StackPanel>
+                        <TextBox x:Name="ChainFilterExpression" Header="滤镜表达式"/>
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <Button x:Name="AddChainFilterButton" Content="添加"/>
+                            <Button x:Name="ReplaceChainFilterButton" Content="替换选中"/>
+                        </StackPanel>
                         <TextBox x:Name="VideoFilterText" Header="视频滤镜" PlaceholderText="@iima_flip:flip"/>
                         <Button x:Name="ApplyFilterButton" Content="添加或替换滤镜"/>
                         <TextBox x:Name="VideoFilterLabelText" Header="要移除的滤镜标签" PlaceholderText="iima_flip"/>

@@ -41,6 +41,10 @@ bool Flag(mpv_node const& node,char const* key) {
 }
 }
 void CopyCollectionProperty(MpvEvent& e, mpv_node const& root) {
+    if (e.name == "vf" || e.name == "af") {
+        e.filters = ParseFilterChain(root);
+        return;
+    }
     if (e.name == "metadata" || e.name == "video-params" || e.name == "audio-params") {
         if (root.format != MPV_FORMAT_NODE_MAP || !root.u.list || root.u.list->num < 0 ||
             !root.u.list->keys || !root.u.list->values) return;

@@ -12,7 +12,7 @@ using namespace Microsoft::UI::Xaml;
 namespace {
 bool HasApplicationAdapter(std::string_view key) {
     static const std::set<std::string_view> keys{
-        "pauseWhenInactive", "pauseWhenMinimized",
+        "pauseWhenInactive", "pauseWhenMinimized", "enableThumbnailPreview", "thumbnailWidth",
         "alwaysFloatOnTop", "fullScreenWhenOpen", "playWhenEnteringFullScreen", "pauseWhenLeavingFullScreen",
         "enableOSD", "disableOSDPauseResumeMsgs", "disableOSDSpeedMsg", "osdAutoHideTimeout", "osdTextSize"
     };
@@ -101,6 +101,9 @@ void MainWindow::ApplyAdvancedSetting(std::string const& key, iima::settings::Pr
     userData_.settings.advancedPreferences = preferences_.Overrides();
     session_->ApplyAdvancedPreferences(preferences_);
     ApplyWindowPreferences();
+    if (key == "enableThumbnailPreview" || key == "thumbnailWidth") {
+        CancelThumbnailPreview(); thumbnailMemory_.clear();
+    }
     MarkUserDataDirty();
 }
 void MainWindow::ApplyWindowPreferences() {

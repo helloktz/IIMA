@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include "../Media/MediaInformation.h"
+#include "../Filters/FilterChain.h"
 #include <functional>
 #include <memory>
 #include <optional>
@@ -44,6 +45,7 @@ struct MpvEvent {
     std::vector<PlaylistItem> playlist;
     std::vector<MediaTrack> tracks;
     std::vector<Chapter> chapters;
+    FilterChainSnapshot filters;
     MediaProperties properties;
     std::vector<AudioDevice> audioDevices;
     // Exact IDXGISwapChain interface, owning one reference; never a borrowed address.
@@ -63,6 +65,8 @@ public:
     // Queued in the SAME serialized worker lane as commands. PlaylistReply
     // owns a fresh node copy; ordinary observed properties are not substitutes.
     std::uint64_t GetPlaylistAsync();
+    // Fresh read/compare and typed node write in the serialized worker.
+    std::uint64_t EditFilterChainAsync(bool audio, FilterEditPlan plan);
     // Nonblocking; completion runs on worker AFTER terminate_destroy and DLL release.
     void CloseAsync(std::function<void()> completion = {});
 private:
