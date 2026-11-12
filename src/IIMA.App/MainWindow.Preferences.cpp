@@ -24,7 +24,7 @@ struct EditorRefreshScope {
 };
 bool HasApplicationAdapter(std::string_view key) {
     static const std::set<std::string_view> keys{
-        "prefetchPlaylistVideoDuration", "playlistShowMetadata", "playlistShowMetadataInMusicMode", "playlistAutoAdd", "subAutoLoadIINA", "subAutoLoadPriorityString", "subAutoLoadSearchPath", "initialWindowSizePosition", "enableInitialVolume", "initialVolume", "alwaysOpenInNewWindow", "groupSimultaneousOpensInPlaylist", "allowDuplicatePlayers",
+        "showChapterPos", "prefetchPlaylistVideoDuration", "playlistShowMetadata", "playlistShowMetadataInMusicMode", "playlistAutoAdd", "subAutoLoadIINA", "subAutoLoadPriorityString", "subAutoLoadSearchPath", "initialWindowSizePosition", "enableInitialVolume", "initialVolume", "alwaysOpenInNewWindow", "groupSimultaneousOpensInPlaylist", "allowDuplicatePlayers",
         "autoSwitchToMusicMode", "musicModeShowPlaylist", "musicModeShowAlbumArt",
         "resizeWindowTiming", "resizeWindowOption", "usePhysicalResolution", "unlockWindowAspectRatio", "preventScreenSaver", "allowScreenSaverForAudio", "pauseWhenPip", "pauseWhenInactive", "pauseWhenMinimized", "pauseWhenGoesToSleep", "enableThumbnailPreview", "thumbnailWidth", "maxThumbnailPreviewCacheSize",
         "displayTimeAndBatteryInFullScreen", "alwaysFloatOnTop", "fullScreenWhenOpen", "playWhenEnteringFullScreen", "pauseWhenLeavingFullScreen",
@@ -52,6 +52,7 @@ void MainWindow::PopulateAdvancedSettings() {
         if (!sessionAdapter && !HasApplicationAdapter(descriptor.key)) continue;
         auto key = std::string(descriptor.key);
         auto label = to_hstring(key);
+        if(key=="showChapterPos") label+=L"（显示章节刻度；最多512章）";
         if (descriptor.timing == iima::settings::ApplyTiming::NextMedia)
             label = label + L"（下次打开）";
         else if (descriptor.timing == iima::settings::ApplyTiming::NextPlayer)
@@ -181,6 +182,7 @@ void MainWindow::PopulateAdvancedSettings() {
         auto row=panel.Children().GetAt(panel.Children().Size()-1).as<FrameworkElement>();
         std::string searchable=key+" "+std::string(iima::settings::PreferenceAreaTitle(descriptor.area))+" "+
             std::string(descriptor.mpvProperty);
+        if(key=="showChapterPos") searchable+=" 章节 刻度 进度条 chapter markers";
         for (auto const& choice:descriptor.choices) searchable+=" "+std::string(choice.token);
         searchable += descriptor.timing == iima::settings::ApplyTiming::NextMedia ? " 下次打开 next media" :
             descriptor.timing == iima::settings::ApplyTiming::NextPlayer ? " 下次新播放器 startup initial player" : " 即时 immediate";
@@ -229,6 +231,7 @@ void MainWindow::ApplyAdvancedSetting(std::string const& key, iima::settings::Pr
     UpdateMediaIntegration();
     if (key == "prefetchPlaylistVideoDuration") UpdatePlaylistDurations(true);
     if (key == "playlistShowMetadata" || key == "playlistShowMetadataInMusicMode") UpdatePlaylistMetadata();
+    if (key == "showChapterPos") UpdateChapterMarkers();
     if (key == "screenShotFolder") UpdateScreenshotSettings();
     if (key == "screenshotShowPreview" && !preferences_.Boolean(key)) HideScreenshotPreview();
     if (key == "enableThumbnailPreview" || key == "thumbnailWidth" || key == "maxThumbnailPreviewCacheSize") {

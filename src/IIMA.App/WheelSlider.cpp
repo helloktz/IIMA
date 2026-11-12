@@ -149,3 +149,18 @@ std::optional<std::pair<double,double>> WheelSlider::HorizontalTravel() {
     } catch(...) { return {}; }
 }
 }
+
+namespace winrt::IIMA::implementation {
+std::optional<double> WheelSlider::HorizontalTrackCenterY() {
+    try {
+        if(Orientation()!=Microsoft::UI::Xaml::Controls::Orientation::Horizontal) return {};
+        for(auto const& hooks:thumbs_) if(hooks.thumb.Name()==L"HorizontalThumb") {
+            const auto height=hooks.thumb.ActualHeight();
+            if(!std::isfinite(height) || height<=0) return {};
+            auto origin=hooks.thumb.TransformToVisual(*this).TransformPoint({0,0});
+            if(std::isfinite(origin.Y)) return origin.Y+height/2;
+        }
+    } catch(...) {}
+    return {};
+}
+}

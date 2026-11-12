@@ -179,6 +179,14 @@ private:
     winrt::fire_and_forget ClearThumbnailCache();
     bool clearingThumbnailCache_{};
     void UpdateThumbnailMedia(iima::PlaybackSnapshot const& state);
+    bool ThumbnailPreviewCurrent();
+    void UpdateThumbnailTime(double seconds);
+    std::uint64_t thumbnailMediaGeneration_{},thumbnailOpenIntent_{},thumbnailInput_{},thumbnailTemplate_{};
+    double thumbnailDuration_{},thumbnailTravelStart_{},thumbnailTravel_{},thumbnailScale_{};
+    Windows::Foundation::Point thumbnailOrigin_{};
+    Microsoft::UI::Windowing::AppWindowPresenterKind thumbnailPresenter_{};
+    bool thumbnailMusic_{},thumbnailFullscreen_{};
+    std::int64_t thumbnailOscPosition_{};
     void CancelThumbnailPreview();
     void BeginThumbnailRequest();
     winrt::fire_and_forget DisplayThumbnail(iima::ThumbnailExtractionResult result);
@@ -363,6 +371,11 @@ private:
     iima::FilterChainSnapshot displayedFilters_;
     std::optional<std::uint64_t> filterRevision_;
     void WireABLoopEditor();
+    void ClearChapterMarkers();
+    void UpdateChapterMarkers();
+    bool chapterMarkersUpdating_{};
+    std::vector<double> chapterMarkerPositions_;
+    double chapterMarkerY_{}, chapterMarkerScale_{};
     void WireABLoopMarkers();
     void UpdateABLoopMarkers();
     bool ABMarkerAvailable();

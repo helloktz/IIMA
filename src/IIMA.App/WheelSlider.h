@@ -18,6 +18,7 @@ struct WheelSlider : WheelSliderT<WheelSlider> {
     bool Tracking() const noexcept { return tracking_; }
     void CancelTracking();
     std::optional<std::pair<double,double>> HorizontalTravel();
+    std::optional<double> HorizontalTrackCenterY();
     std::uint64_t TemplateRevision() const noexcept {return templateRevision_;}
     winrt::event_token TrackingStarted(Windows::Foundation::EventHandler<bool> const& handler);
     void TrackingStarted(winrt::event_token const& token) noexcept;

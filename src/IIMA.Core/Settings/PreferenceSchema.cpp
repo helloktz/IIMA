@@ -175,6 +175,8 @@ std::span<PreferenceDescriptor const> PreferenceSchema() {
         B("screenshotCopyToClipboard",Area::Interface,false),
         E("screenShotFormat",Area::Interface,0,screenshotFormats),
         B("screenshotShowPreview",Area::Interface,true),
+        // IINA Preference.showChapterPos (false), consumed by PlaySliderCell.drawChapters.
+        B("showChapterPos",Area::Interface,false),
         B("enableThumbnailPreview",Area::Interface,true),
         B("enableThumbnailForRemoteFiles",Area::Interface,false),
         I("maxThumbnailPreviewCacheSize",Area::Interface,500,0,102400),

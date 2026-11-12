@@ -147,6 +147,7 @@
     <ClCompile Include="MainWindow.Navigation.cpp" />
     <ClCompile Include="MainWindow.ABLoop.cpp" />
     <ClCompile Include="MainWindow.ABLoopMarkers.cpp" />
+    <ClCompile Include="MainWindow.ChapterMarkers.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MainWindow.Commands.cpp" />

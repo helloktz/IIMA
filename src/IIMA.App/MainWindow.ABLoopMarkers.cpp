@@ -43,6 +43,7 @@ void MainWindow::WireABLoopMarkers() {
         thumb.PointerWheelChanged([](auto const&,Input::PointerRoutedEventArgs const& e){e.Handled(true);});
     };
     wire(ABLoopThumbA(),false);wire(ABLoopThumbB(),true);
+    PositionSlider().Unloaded([weak](auto const&,auto const&) {if(auto self=weak.get()) self->ClearChapterMarkers();});
     PositionSlider().LayoutUpdated([weak](auto const&,auto const&) {if(auto self=weak.get()) self->UpdateABLoopMarkers();});
 }
 void MainWindow::BeginABMarker(bool pointB) {
@@ -84,6 +85,7 @@ void MainWindow::FinishABMarker(bool cancelled) {
     UpdateABLoopMarkers();UpdateControlBarPolicy();
 }
 void MainWindow::UpdateABLoopMarkers() {
+    UpdateChapterMarkers();
     if(abMarkerUpdating_) return;
     struct Guard {bool& value;~Guard(){value=false;}} guard{abMarkerUpdating_};abMarkerUpdating_=true;
     auto const& s=session_->Snapshot();
