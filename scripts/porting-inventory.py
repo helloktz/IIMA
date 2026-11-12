@@ -74,7 +74,7 @@ MAPPING = {
     'OSDMessage.swift': ['src/IIMA.Core/OSD/OSDMessage.cpp'],
     'OSDView.swift': ['src/IIMA.Core/OSD/OSDMessage.cpp', 'src/IIMA.App/MainWindow.OSD.cpp'],
     'HistoryController.swift': ['src/IIMA.Core/Persistence/UserData.h', 'src/IIMA.Core/History/HistoryBrowser.cpp', 'src/IIMA.App/Platform/UserDataMerge.cpp'],
-    'HistoryWindowController.swift': ['src/IIMA.Core/History/HistoryBrowser.cpp', 'src/IIMA.App/MainWindow.History.cpp'],
+    'HistoryWindowController.swift': ['src/IIMA.Core/History/HistoryBrowser.cpp', 'src/IIMA.App/MainWindow.History.cpp', 'src/IIMA.App/App.xaml.cpp', 'src/IIMA.App/Platform/LocalInputResolver.cpp'],
     'PlaybackHistory.swift': ['src/IIMA.Core/History/HistoryBrowser.cpp'],
     'InspectorWindowController.swift': ['src/IIMA.Core/Media/MediaInformation.cpp', 'src/IIMA.App/MainWindow.Information.cpp', 'src/IIMA.App/MainWindow.InspectorWatch.cpp'],
     'Preference.swift': ['src/IIMA.Core/Persistence/UserData.h', 'src/IIMA.Core/Subtitles/SubtitleStyle.h', 'src/IIMA.Core/Settings/PreferenceSchema.cpp', 'src/IIMA.App/MainWindow.Preferences.cpp'],

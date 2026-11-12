@@ -32,6 +32,16 @@ winrt::com_ptr<MainWindow> App::CreatePlayerWindow()
                 bool newWindow, bool group, bool duplicates, bool singleExplicitMedia) {
             if (auto app = weak.get()) app->RouteResolvedInput(id, std::move(paths), newWindow, group, duplicates, singleExplicitMedia);
         });
+        // History explicitly requests a fresh player, not activeOrNew/idle reuse.
+        // Keep the whole selection together and never re-enable folder auto-add.
+        window->SetHistoryNewWindowRouter([weak, id = *id](std::vector<std::string> paths) {
+            if (auto app=weak.get()) {
+                auto origin=app->windows_.find(id);
+                if (origin==app->windows_.end() || origin->second->IsClosing() || paths.empty()) return;
+                auto target=app->CreatePlayerWindow(); // Registry enforces the 16-window limit.
+                target->ReceiveResolvedInput(std::move(paths),false);
+            }
+        });
         window->SetActivationClosing([weak, id = *id] {
             if (auto app = weak.get()) {
                 app->windowRegistry_.MarkClosing(id);

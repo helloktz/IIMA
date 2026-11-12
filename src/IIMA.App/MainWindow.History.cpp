@@ -17,7 +17,10 @@ void MainWindow::WireHistoryControls() {
         if (auto self = weak.get()) self->RevealSelection(true);
     });
     HistoryView().SelectionChanged([weak](auto const&, auto const&) {
-        if (auto self = weak.get(); self && !self->projectingHistory_) self->UpdateHistorySelection();
+        if (auto self = weak.get(); self && !self->projectingHistory_) {
+            ++self->historySelectionRevision_;
+            self->UpdateHistorySelection();
+        }
     });
     HistoryView().DoubleTapped([weak](auto const&, Input::DoubleTappedRoutedEventArgs const& args) {
         if (auto self = weak.get(); self && !self->closing_ && !self->projectingHistory_) {
@@ -44,6 +47,9 @@ void MainWindow::WireHistoryControls() {
     });
     OpenHistoryButton().Click([weak](auto const&, auto const&) {
         if (auto self = weak.get()) self->OpenSelectedHistory();
+    });
+    OpenHistoryNewWindowButton().Click([weak](auto const&, auto const&) {
+        if (auto self = weak.get()) self->OpenSelectedHistory(true);
     });
     RemoveHistoryButton().Click([weak](auto const&, auto const&) {
         if (auto self = weak.get(); self && self->userDataLoaded_ && !self->closing_) {
@@ -91,16 +97,77 @@ void MainWindow::UpdateHistorySelection() {
     const bool enabled = !closing_ && userDataLoaded_ && !rows.empty();
     auto identities = iima::SelectHistoryRows(historyProjection_, rows);
     OpenHistoryButton().IsEnabled(enabled && !iima::PlayableHistoryPaths(historyProjection_, identities).empty());
+    OpenHistoryNewWindowButton().IsEnabled(enabled && static_cast<bool>(historyNewWindowRouter_) &&
+        !iima::PlayableHistoryPaths(historyProjection_, identities).empty());
     RemoveHistoryButton().IsEnabled(enabled);
     RevealHistoryButton().IsEnabled(enabled && !revealSelectionBusy_);
     DeleteHistoryFilesButton().IsEnabled(enabled && !historyDeletionBusy_ && !playlistDeletionBusy_ && !pickerOpen_);
 }
-void MainWindow::OpenSelectedHistory() {
-    if (closing_ || !userDataLoaded_ || projectingHistory_) return;
-    auto rows = SelectedHistoryRows();
-    auto identities = iima::SelectHistoryRows(historyProjection_, rows);
-    auto paths = iima::PlayableHistoryPaths(historyProjection_, identities);
-    if (!paths.empty()) QueueFiles(std::move(paths));
+// IINA HistoryWindowController.playAction/playInNewWindowAction both pass
+// shouldAutoLoad:false. Do not send history through generic single-file open.
+void MainWindow::OpenSelectedHistory(bool newWindow) {
+    if (closing_ || !userDataLoaded_ || projectingHistory_ || pickerOpen_ ||
+        interactiveCrop_.Active() || cropOriginal_ || (newWindow && !historyNewWindowRouter_)) return;
+    auto identities=iima::SelectHistoryRows(historyProjection_,SelectedHistoryRows());
+    auto paths=iima::PlayableHistoryPaths(historyProjection_,identities);
+    if (paths.empty()) return;
+    if (paths.size()>1000) { ShowError(L"每次最多打开1000条历史，请减少选择。"); return; }
+    std::size_t inputBytes{};
+    for (auto const& path:paths) {
+        if (path.size()>1024*1024-inputBytes) { ShowError(L"所选历史路径超过1MiB，未打开。"); return; }
+        inputBytes+=path.size();
+    }
+    if (activationTimer_) activationTimer_.Stop();
+    activationInputs_.clear(); activationDelayElapsed_=false;
+    inputStop_.request_stop();
+    const auto input=++inputGeneration_, selection=historySelectionRevision_;
+    const auto media=session_->Snapshot().mediaGeneration, intent=session_->Snapshot().mediaOpenIntentRevision;
+    const auto playlistRevision=session_->Snapshot().playlistRevision, editIntent=session_->PlaylistEditIntentRevision();
+    pendingFiles_.clear(); pendingAutoFileMatch_=false;
+    CancelAutomaticFiles(); UpdateNetworkOpen(session_->Snapshot());
+    inputResolving_=true;
+    try {
+        std::vector<std::wstring> inputs;
+        for (auto const& path:paths) inputs.emplace_back(to_hstring(path));
+        auto weak=get_weak();
+        inputStop_=iima::LocalInputResolver::Resolve(std::move(inputs),DispatcherQueue(),
+            [weak,input,selection,media,intent,playlistRevision,editIntent,newWindow,identities=std::move(identities),paths=std::move(paths)]
+            (iima::LocalInputResult result) {
+                auto self=weak.get();
+                if (!self || self->closing_ || self->inputGeneration_!=input) return;
+                self->inputResolving_=false;
+                if (result.cancelled) return;
+                auto const& state=self->session_->Snapshot();
+                auto selected=iima::SelectHistoryRows(self->historyProjection_,self->SelectedHistoryRows());
+                const bool same=selected.size()==identities.size() && std::equal(selected.begin(),selected.end(),identities.begin(),
+                    [](auto const& a,auto const& b) {
+                        return a.path==b.path && a.playedAt==b.playedAt && a.position==b.position && a.duration==b.duration;
+                    });
+                if (!same || self->historySelectionRevision_!=selection || state.mediaGeneration!=media ||
+                    state.mediaOpenIntentRevision!=intent || state.playlistRevision!=playlistRevision ||
+                    self->session_->PlaylistEditIntentRevision()!=editIntent || self->session_->PlaylistEditBusy() || self->pickerOpen_ || self->interactiveCrop_.Active() ||
+                    self->cropOriginal_ || !self->activationInputs_.empty() ||
+                    iima::PlayableHistoryPaths(self->historyProjection_,identities)!=paths) {
+                    self->ShowError(L"解析期间历史选择、文件状态或播放请求已变化，未打开；请重新选择。"); return;
+                }
+                if (result.paths.empty()) { self->ShowError(L"所选历史中没有可打开的文件，请刷新文件状态。"); return; }
+                std::size_t bytes{};
+                if (result.paths.size()>1000) { self->ShowError(L"解析后超过1000项，未打开。"); return; }
+                for (auto const& path:result.paths) {
+                    if (path.size()>1024*1024-bytes) { self->ShowError(L"解析后路径超过1MiB，未打开。"); return; }
+                    bytes+=path.size();
+                }
+                try {
+                    // Ignore singleExplicitMedia deliberately: history provenance
+                    // survives resolution and both receiving-window routes.
+                    if (newWindow) self->historyNewWindowRouter_(std::move(result.paths));
+                    else self->ReceiveResolvedInput(std::move(result.paths),false);
+                    if (!result.warnings.empty()) self->ShowError(L"部分历史文件无法打开或被跳过；其余文件已请求打开。");
+                } catch (hresult_error const& error) { self->ShowError(error.message()); }
+                  catch (std::exception const& error) { self->ShowError(to_hstring(error.what())); }
+            },true); // History resolves regular files only, never replacement directories/playlists.
+    } catch (hresult_error const& error) { inputResolving_=false; ShowError(error.message()); }
+      catch (std::exception const& error) { inputResolving_=false; ShowError(to_hstring(error.what())); }
 }
 void MainWindow::RefreshHistory() {
     playerRecentMenuDirty_ = true;

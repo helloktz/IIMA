@@ -37,6 +37,7 @@
             <StackPanel Orientation="Horizontal" Spacing="8">
                 <Button x:Name="CancelNetworkOpenButton" Content="取消加载"/>
                 <Button x:Name="RetryNetworkOpenButton" Content="重试"/>
+                <Button x:Name="EditNetworkOpenButton" Content="编辑地址"/>
                 <Button x:Name="DismissNetworkOpenButton" Content="关闭提示"/>
             </StackPanel>
         </StackPanel>
@@ -605,7 +606,10 @@
                         <TextBlock x:Name="HistoryCountText"/>
                         <ListView x:Name="HistoryView" MaxHeight="160" SelectionMode="Extended" AutomationProperties.Name="播放历史"/>
                         <StackPanel Orientation="Horizontal" Spacing="6">
-                            <Button x:Name="OpenHistoryButton" Content="打开历史"/>
+                            <Button x:Name="OpenHistoryButton" Content="在当前窗口播放"/>
+                            <Button x:Name="OpenHistoryNewWindowButton" Content="在新窗口播放"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="6">
                             <Button x:Name="RevealHistoryButton" Content="定位文件"/>
                             <Button x:Name="ClearHistoryButton" Content="清空历史"/>
                         </StackPanel>

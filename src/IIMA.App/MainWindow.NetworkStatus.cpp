@@ -11,6 +11,9 @@ void MainWindow::WireNetworkOpen() {
     auto weak=get_weak();
     CancelNetworkOpenButton().Click([weak](auto const&,auto const&) { if(auto self=weak.get()) self->CancelNetworkOpen(); });
     RetryNetworkOpenButton().Click([weak](auto const&,auto const&) { if(auto self=weak.get()) self->RetryNetworkOpen(); });
+    EditNetworkOpenButton().Click([weak](auto const&,auto const&) {
+        if(auto self=weak.get()) self->OpenNetworkUrl(false,true);
+    });
     DismissNetworkOpenButton().Click([weak](auto const&,auto const&) {
         if(auto self=weak.get(); self && self->networkOpenFailed_) {
             self->networkOpenUrl_.clear(); self->UpdateNetworkOpen(self->session_->Snapshot());
@@ -66,13 +69,15 @@ void MainWindow::UpdateNetworkOpen(iima::PlaybackSnapshot const& state) {
     const bool visible=!networkOpenUrl_.empty();
     NetworkOpenPanel().Visibility(visible ? Visibility::Visible : Visibility::Collapsed);
     if (!visible) return;
-    NetworkOpenStatus().Text(networkOpenFailed_ ? L"网络媒体打开失败。可在此窗口重试原地址。" :
+    NetworkOpenStatus().Text(networkOpenFailed_ ? L"网络媒体打开失败。可重试原地址或编辑后在此窗口重试。" :
         redirect ? L"网络媒体正在重定向或等待确认，可取消。" : L"正在此窗口打开网络媒体…");
     const bool allowed=!pickerOpen_ && !interactiveCrop_.Active() && !cropOriginal_;
     CancelNetworkOpenButton().Visibility(waiting ? Visibility::Visible : Visibility::Collapsed);
     CancelNetworkOpenButton().IsEnabled(allowed);
     RetryNetworkOpenButton().Visibility(networkOpenFailed_ ? Visibility::Visible : Visibility::Collapsed);
     RetryNetworkOpenButton().IsEnabled(allowed && state.session==iima::SessionState::Ready && state.compositionAvailable);
+    EditNetworkOpenButton().Visibility(networkOpenFailed_ ? Visibility::Visible : Visibility::Collapsed);
+    EditNetworkOpenButton().IsEnabled(allowed && state.session==iima::SessionState::Ready && state.compositionAvailable);
     DismissNetworkOpenButton().Visibility(networkOpenFailed_ ? Visibility::Visible : Visibility::Collapsed);
 }
 void MainWindow::CancelNetworkOpen() {

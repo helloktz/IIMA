@@ -272,7 +272,9 @@
       "coverage": "partial-static-unverified",
       "reviewTargets": [
         "src/IIMA.Core/History/HistoryBrowser.cpp",
-        "src/IIMA.App/MainWindow.History.cpp"
+        "src/IIMA.App/MainWindow.History.cpp",
+        "src/IIMA.App/App.xaml.cpp",
+        "src/IIMA.App/Platform/LocalInputResolver.cpp"
       ]
     },
     {

@@ -8,7 +8,7 @@
 namespace iima {
 namespace {
 namespace fs = std::filesystem;
-LocalInputResult Enumerate(std::vector<std::wstring> const& inputs, std::stop_token stop) {
+LocalInputResult Enumerate(std::vector<std::wstring> const& inputs, std::stop_token stop, bool regularMediaOnly) {
     LocalInputResult result;
     std::vector<std::wstring> files;
     auto warn = [&](std::wstring const& path, wchar_t const* message) {
@@ -28,6 +28,10 @@ LocalInputResult Enumerate(std::vector<std::wstring> const& inputs, std::stop_to
         if(error || !root.is_absolute()) { warn(input,L"无法解析绝对路径"); continue; }
         auto attributes=GetFileAttributesW(root.c_str());
         if(attributes==INVALID_FILE_ATTRIBUTES) { warn(input,L"无法访问路径"); continue; }
+        if (regularMediaOnly && ((attributes & (FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_REPARSE_POINT|FILE_ATTRIBUTE_DEVICE)) ||
+            IsPlaylistPath(root.native()) || !fs::is_regular_file(root,error) || error)) {
+            warn(input,L"历史目标不再是普通媒体文件，已跳过且不展开目录/播放列表"); continue;
+        }
         if(!(attributes & FILE_ATTRIBUTE_DIRECTORY)) {
             // IINA openURLs passes a single source playlist straight to mpv.
             if((inputs.size()==1 && IsPlaylistPath(root.native())) || AcceptExplicitFile(root.native())) {
@@ -76,12 +80,12 @@ LocalInputResult Enumerate(std::vector<std::wstring> const& inputs, std::stop_to
 }
 std::stop_source LocalInputResolver::Resolve(std::vector<std::wstring> inputs,
     winrt::Microsoft::UI::Dispatching::DispatcherQueue dispatcher,
-    std::function<void(LocalInputResult)> completion) {
+    std::function<void(LocalInputResult)> completion, bool regularMediaOnly) {
     std::stop_source source;
-    std::thread([inputs=std::move(inputs),dispatcher=std::move(dispatcher),completion=std::move(completion),token=source.get_token()]() mutable {
+    std::thread([inputs=std::move(inputs),dispatcher=std::move(dispatcher),completion=std::move(completion),token=source.get_token(),regularMediaOnly]() mutable {
         LocalInputResult result;
         bool apartment{};
-        try { winrt::init_apartment(winrt::apartment_type::multi_threaded); apartment=true; result=Enumerate(inputs,token); }
+        try { winrt::init_apartment(winrt::apartment_type::multi_threaded); apartment=true; result=Enumerate(inputs,token,regularMediaOnly); }
         catch(...) { result.warnings.push_back(L"枚举本地媒体失败。"); }
         if(token.stop_requested()) { if(apartment) winrt::uninit_apartment(); return; }
         try {

@@ -52,6 +52,7 @@ struct MainWindow : MainWindowT<MainWindow> {
     using OpenInputRouter = std::function<void(std::vector<std::string>, bool, bool, bool, bool)>;
     void SetOpenInputRouter(OpenInputRouter router) { openInputRouter_ = std::move(router); }
     void ReceiveResolvedInput(std::vector<std::string> paths, bool singleExplicitMedia = false);
+    void SetHistoryNewWindowRouter(std::function<void(std::vector<std::string>)> router) { historyNewWindowRouter_ = std::move(router); }
     bool CanReuseForInput() const;
     bool HasOpenInput(std::string const& path) const;
     bool IsClosing() const noexcept { return closing_; }
@@ -60,7 +61,7 @@ private:
     winrt::fire_and_forget OpenFile(bool append = false, bool invertWindowPolicy = false);
     winrt::fire_and_forget OpenFolder(bool append = false, bool invertWindowPolicy = false);
     winrt::fire_and_forget OpenSubtitle();
-    winrt::fire_and_forget OpenNetworkUrl(bool invertWindowPolicy = false);
+    winrt::fire_and_forget OpenNetworkUrl(bool invertWindowPolicy = false, bool editFailedAttempt = false);
     Microsoft::UI::Xaml::Controls::ContentDialog openUrlDialog_{nullptr};
     void WireWindowPlacement();
     void CapturePlacement();
@@ -495,7 +496,9 @@ private:
     void WireHistoryControls();
     std::vector<std::size_t> SelectedHistoryRows() const;
     void UpdateHistorySelection();
-    void OpenSelectedHistory();
+    void OpenSelectedHistory(bool newWindow = false);
+    std::uint64_t historySelectionRevision_{};
+    std::function<void(std::vector<std::string>)> historyNewWindowRouter_;
     bool projectingHistory_{};
     winrt::fire_and_forget RevealSelection(bool history);
     void WirePlaylistDeletion();
