@@ -11,11 +11,15 @@ inline constexpr char PluginBootstrap[] = R"IIMAJS(
   const freeze = Object.freeze;
   const stringify = JSON.stringify;
   const toString = String;
+  const hasOwn = Function.prototype.call.bind(Object.prototype.hasOwnProperty);
+  const includes = Function.prototype.call.bind(Array.prototype.includes);
+  const slice = Function.prototype.call.bind(Array.prototype.slice);
+  const isArray = Array.isArray;
   const missing = name => { throw new Error('IIMA plugin API not implemented: ' + name); };
   const namespace = (name, values) => new Proxy(freeze(values), {
     get(target, key) {
       if (typeof key === 'symbol') return undefined;
-      if (Object.prototype.hasOwnProperty.call(target, key)) return target[key];
+      if (hasOwn(target, key)) return target[key];
       return missing(name + '.' + key);
     },
     set() { throw new TypeError('IIMA API objects are read-only'); }
@@ -25,23 +29,69 @@ inline constexpr char PluginBootstrap[] = R"IIMAJS(
   const status = new Proxy(Object.create(null), {
     get(_, key) {
       if (typeof key === 'symbol') return undefined;
-      if (key === 'toJSON') return () => host.status();
-      if (!statusKeys.includes(key)) return missing('core.status.' + key);
+      if (key === 'toJSON') return () => {
+        const snapshot = host.status(); const result = {};
+        for (let index = 0; index < statusKeys.length; ++index) {
+          const property = statusKeys[index]; result[property] = snapshot[property] ?? null;
+        }
+        return result;
+      };
+      if (!includes(statusKeys, key)) return missing('core.status.' + key);
       const value = host.status();
-      return Object.prototype.hasOwnProperty.call(value, key) ? value[key] : null;
+      return hasOwn(value, key) ? value[key] : null;
     },
     set() { throw new TypeError('core.status is read-only'); },
-    ownKeys() { return statusKeys.slice(); },
+    defineProperty() { return false; }, deleteProperty() { return false; }, preventExtensions() { return false; },
+    ownKeys() { return slice(statusKeys); },
     getOwnPropertyDescriptor(_, key) {
-      return statusKeys.includes(key) ? {configurable: true, enumerable: true} : undefined;
+      return includes(statusKeys, key) ? {configurable: true, enumerable: true} : undefined;
     }
   });
+  function mediaProperties(name, writable, readOnly = []) {
+    const keys = freeze([...Object.keys(writable), ...readOnly]);
+    return new Proxy(Object.create(null), {
+      get(_, key) {
+        if (typeof key === 'symbol') return undefined;
+        if (key === 'toJSON') return () => {
+          const snapshot = host.status()[name] ?? {}; const result = {};
+          for (let index = 0; index < keys.length; ++index) {
+            const property = keys[index]; result[property] = snapshot[property] ?? null;
+          }
+          return result;
+        };
+        if (!includes(keys, key)) return missing('core.' + name + '.' + key);
+        return host.status()[name]?.[key] ?? null;
+      },
+      set(_, key, value) {
+        if (!includes(keys, key)) return missing('core.' + name + '.' + toString(key));
+        if (!hasOwn(writable, key)) throw new TypeError('Track information is read-only');
+        writable[key](value);
+        return true; // command accepted for enqueue, not synchronous mpv state
+      },
+      defineProperty() { return false; }, deleteProperty() { return false; }, preventExtensions() { return false; },
+      ownKeys() { return slice(keys); },
+      getOwnPropertyDescriptor(_, key) {
+        return includes(keys, key) ? {configurable: true, enumerable: true} : undefined;
+      }
+    });
+  }
+  const audio = mediaProperties('audio', {
+    id: host.audioId, delay: host.audioDelay, volume: host.audioVolume, muted: host.audioMuted
+  }, ['tracks', 'currentTrack']);
+  const subtitle = mediaProperties('subtitle', {id: host.subtitleId, delay: host.subtitleDelay}, ['tracks', 'currentTrack', 'secondID']);
+  const video = mediaProperties('video', {id: host.videoId}, ['tracks', 'currentTrack']);
   const core = namespace('core', {
     pause: () => host.pause(), resume: () => host.resume(), stop: () => host.stop(),
     seek: (seconds, exact = false) => host.seek(seconds, exact),
     seekTo: seconds => host.seekTo(seconds),
     setSpeed: speed => host.setSpeed(speed), osd: message => host.osd(message),
-    status
+    getChapters: () => {
+      const chapters = host.status().chapters;
+      if (!isArray(chapters)) throw new Error('Chapter snapshot is unavailable');
+      return chapters;
+    },
+    playChapter: index => host.playChapter(index),
+    status, audio, subtitle, video
   });
   function render(value) {
     if (value === undefined) return '<undefined>';
@@ -69,7 +119,7 @@ inline constexpr char PluginBootstrap[] = R"IIMAJS(
   globalThis.setInterval = (callback, ms = 0) => host.interval(callback, ms);
   globalThis.clearTimeout = id => host.clearTimer(id);
   globalThis.clearInterval = id => host.clearTimer(id);
-  globalThis.require = () => missing('require');
+  globalThis.require = path => host.require(path);
 })();
 )IIMAJS";
 }

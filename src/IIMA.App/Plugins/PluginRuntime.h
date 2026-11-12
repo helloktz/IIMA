@@ -4,6 +4,7 @@
 #pragma once
 #include <functional>
 #include <memory>
+#include <map>
 #include <string>
 #include <string_view>
 
@@ -13,12 +14,14 @@ struct PluginCommand {
     double number{};
     bool flag{};
     std::string text;
+    std::string mediaToken; // host snapshot identity for track/chapter actions
 };
 
 // One explicitly started, local, trusted plugin entry per owner/window.
 // This is NOT a security sandbox or complete IINA plugin compatibility layer.
 // No QuickJS std/os modules, host filesystem, network, process, native module
-// loader, global controller, CommonJS require or HTML capabilities are installed.
+// loader, global controller or HTML capabilities are installed. CommonJS require
+// is limited to the caller-supplied immutable package source snapshot.
 class PluginRuntime final {
 public:
     struct Callbacks {
@@ -29,9 +32,14 @@ public:
         std::function<void(std::string level, std::string message)> log;
         std::function<void(bool running, std::string message)> state;
     };
+    // Modules use canonical package-relative keys, exact filenames, no automatic
+    // extensions; at most 128 modules, 1 MiB each and 8 MiB including the entry.
+    // Caller reads the entire snapshot before asking the user to run it.
     static std::unique_ptr<PluginRuntime> Start(std::string source,
         std::string pluginName, bool allowOsd, Callbacks callbacks,
-        std::string initialStatusJson = "{}");
+        std::string initialStatusJson = "{}",
+        std::string entryRelativePath = "main.js",
+        std::map<std::string, std::string> modules = {});
     ~PluginRuntime();
     PluginRuntime(PluginRuntime const&) = delete;
     PluginRuntime& operator=(PluginRuntime const&) = delete;

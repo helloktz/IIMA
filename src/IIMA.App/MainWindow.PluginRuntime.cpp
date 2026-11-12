@@ -8,6 +8,7 @@
 #include <winrt/Windows.Storage.Pickers.h>
 #include <chrono>
 #include <atomic>
+#include <algorithm>
 #include <stdexcept>
 #include <cmath>
 using namespace winrt;
@@ -60,12 +61,12 @@ winrt::fire_and_forget MainWindow::StartLocalPlugin() {
                 std::wstring message = L"名称：" + std::wstring(to_hstring(program->manifest.name)) +
                     L"\n作者：" + std::wstring(to_hstring(program->manifest.authorName)) +
                     L"\n标识：" + std::wstring(to_hstring(program->manifest.identifier)) +
-                    L"\n\n该插件可暂停、继续、停止、跳转或调整此窗口的播放速度，读取播放时间和状态。";
+                    L"\n\n该插件可暂停、继续、停止、跳转或调整此窗口的播放速度，读取播放时间、状态、轨道和章节元数据，并可调整音量、静音、延迟、轨道和章节。";
                 pluginOsdAllowed_ = program->manifest.HasPermission(iima::PluginPermission::ShowOSD);
                 if (pluginOsdAllowed_) message += L"它还申请在播放器画面上显示文字。";
                 message += L"\n不提供网络、任意文件、进程、HTML 或完整 IINA 插件 API。"
                     L"只有部分插件可以使用。运行时不是操作系统安全沙箱，请只运行你信任的来源。"
-                    L"\n此次仅运行已读入的入口文本，不安装、不自动启动；可随时停止。";
+                    L"\n此次仅运行已读入的入口和目录内 JS 模块快照，不安装、不自动启动；可随时停止。";
                 consent.Content(box_value(message));
                 consent.PrimaryButtonText(L"运行此插件"); consent.CloseButtonText(L"取消");
                 consent.DefaultButton(Controls::ContentDialogButton::Close);
@@ -123,10 +124,14 @@ winrt::fire_and_forget MainWindow::StartLocalPlugin() {
                         });
                     };
                     pluginLog_.clear(); PluginRuntimeLog().Text(L"");
+                    pluginMediaEntry_ = session_->Snapshot().entryId;
+                    pluginMediaState_ = session_->Snapshot().media;
+                    ++pluginMediaEpoch_;
                     pluginProjection_.Reset(session_->Snapshot(), musicMode_.IsMusic());
                     pluginRuntime_ = iima::plugins::PluginRuntime::Start(std::move(program->source),
                         program->manifest.name, pluginOsdAllowed_, std::move(callbacks),
-                        iima::plugins::PlaybackStatusJson(session_->Snapshot()));
+                        iima::plugins::PlaybackStatusJson(session_->Snapshot(), pluginMediaEpoch_),
+                        program->manifest.entry, std::move(program->modules));
                     StopPluginButton().IsEnabled(true);
                     PluginRuntimeStatus().Text(L"正在启动受限插件…");
                     // No synthetic window-loaded/file-loaded event: this plugin was
@@ -166,7 +171,10 @@ winrt::fire_and_forget MainWindow::RetirePlugin(std::unique_ptr<iima::plugins::P
 void MainWindow::UpdatePlugin(iima::PlaybackSnapshot const& state) {
     if (!pluginRuntime_ || closing_) return;
     try {
-        auto snapshot = iima::plugins::PlaybackStatusJson(state);
+        if (pluginMediaEntry_ != state.entryId || (state.media == iima::MediaState::Loading &&
+            pluginMediaState_ != iima::MediaState::Loading)) ++pluginMediaEpoch_;
+        pluginMediaEntry_ = state.entryId; pluginMediaState_ = state.media;
+        auto snapshot = iima::plugins::PlaybackStatusJson(state, pluginMediaEpoch_);
         auto events = pluginProjection_.Update(state, musicMode_.IsMusic());
         bool accepted = true;
         if (events.empty()) accepted = pluginRuntime_->Update(std::move(snapshot));
@@ -178,11 +186,14 @@ void MainWindow::UpdatePlugin(iima::PlaybackSnapshot const& state) {
             PluginRuntimeStatus().Text(L"插件事件队列已满或运行时已结束；已停止，未继续遗漏事件。");
         }
     } catch (...) {
-        PluginRuntimeStatus().Text(L"无法投影播放状态，插件已停止。"); StopLocalPlugin();
+        StopLocalPlugin(); PluginRuntimeStatus().Text(L"无法投影播放状态，插件已停止。");
     }
 }
 void MainWindow::DispatchPluginCommand(iima::plugins::PluginCommand command) {
     if (closing_ || !pluginRuntime_) return;
+    if ((command.name == "playChapter" || command.name == "audio.id" ||
+        command.name == "subtitle.id" || command.name == "video.id") &&
+        command.mediaToken != std::to_string(pluginMediaEpoch_)) return;
     // Exactly the same typed session operations as local controls. Acceptance is
     // asynchronous, not evidence that mpv has completed or accepted a command.
     if (command.name == "pause") session_->Pause(true);
@@ -193,6 +204,25 @@ void MainWindow::DispatchPluginCommand(iima::plugins::PluginCommand command) {
     else if (command.name == "seekTo" && std::isfinite(command.number) && session_->Snapshot().seekable)
         session_->Seek(command.number);
     else if (command.name == "setSpeed" && std::isfinite(command.number)) session_->SetSpeed(command.number);
+    else if (command.name == "playChapter" && std::isfinite(command.number) && command.number >= 0 &&
+        command.number < static_cast<double>(session_->Snapshot().chapters.size()))
+        session_->SelectChapter(static_cast<std::size_t>(command.number));
+    else if (command.name == "audio.volume" && std::isfinite(command.number)) session_->SetVolume(command.number);
+    else if (command.name == "audio.muted") session_->SetMuted(command.flag);
+    else if (command.name == "audio.delay" && std::isfinite(command.number)) session_->SetAudioDelay(command.number);
+    else if (command.name == "subtitle.delay" && std::isfinite(command.number)) session_->SetSubtitleDelay(command.number);
+    else if ((command.name == "audio.id" || command.name == "subtitle.id" || command.name == "video.id") &&
+        std::isfinite(command.number) && command.number >= 0 && command.number <= 9007199254740991.0 &&
+        std::floor(command.number) == command.number) {
+        auto type = command.name == "audio.id" ? "audio" : command.name == "video.id" ? "video" : "sub";
+        auto id = static_cast<std::int64_t>(command.number);
+        // Track IDs belong to the current media. Never silently select a missing
+        // track when the UI consumes a queued script command after a media switch.
+        auto const& tracks = session_->Snapshot().tracks;
+        if (id == 0 || std::any_of(tracks.begin(), tracks.end(), [&](auto const& track) {
+            return track.type == type && track.id == id;
+        })) session_->SelectTrack(type, id);
+    }
     else if (command.name == "osd" && pluginOsdAllowed_ && command.text.size() <= 4096 &&
         preferences_.Boolean("enableOSD")) {
         OSDTitle().Text(PluginDisplayText(command.text)); OSDDetail().Text(L"来自本地插件");

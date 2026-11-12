@@ -264,3 +264,12 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 - `JavascriptAPIConsole` → 控制台多参数/类型显示、可序列化对象和环回回退；日志只显示在当前窗口有界文本框，不落磁盘。循环对象用 `<unserializable>` 回退。计时/入站事件/出站日志命令均有限额；64MiB引擎内存、1MiB JS 栈，入口500ms、每事件/定时器100ms预算，Promise job共享预算。溢出或超时停止并反馈，不悄悄假设所有事件送达。
 
 这些限制不是 OS 安全沙箱，也不能保证面对引擎漏洞的不可信代码隔离；产品只允许用户明确选择受信任来源。没有链接 QuickJS std/os 模块，不代表全部 JS 特性或任何插件已实际可运行。QuickJS 源、MSVC CI及 API 契约只做静态阅读；本批未编译、测试、执行脚本或联网运行插件。MIT 依赖许可证及固定来源随打包保留，IINA 转写继续保留 GPL 来源。完整插件 API 和全量移植目标仍未完成。
+
+### 第十六批：本地插件模块、轨道/章节 API 与属性事件
+
+- `JavascriptPolyfill.register(require)` / `JavascriptPluginInstance.evaluateFile(asModule)` → `PluginModulePath`、`PluginInspection.ReadModules`、运行时模块缓存。选择目录时在后台对普通本地 `.js` 文件做 UTF-8 源快照，确认后 worker 只使用快照、不任意读盘；每文件1MiB、总量8MiB、128模块、16层/128目录，跳过重解析点、离线文件和`.git`。`require`按调用模块目录解析`./`和`../`，不得越根；不自动补扩展、index、node_modules搜索、JSON模块或ES Module，文件名/大小写按快照键精确匹配，缺模块明确抛错。
+- 保留上游`const module = {}`和`module.exports`返回，不伪造Node的`exports`别名。缓存采用规范相对键并缓存undefined/falsy，修正上游按原请求查缓存/按绝对路径存缓存的重复求值风险；32层限制和循环依赖显式报错。每个模块捕获词法require，使定时器/事件回调后仍按定义模块解析，不依赖上游临时currentFileStack在回调后已为空的状态；属于有意缺陷修复。嵌套求值、Promise及回调共享原预算，不因require重新计时。
+- `JavascriptAPICore.getChapters/playChapter`、`AudioAPI/SubtitleAPI/VideoAPI` → 状态投影新增轨道/章节以及已接入typed会话命令：音量、静音、音频/字幕延迟、音频/字幕/视频轨道ID、章节跳转。`tracks/currentTrack`只读；未知数据仍null，不声称全部代理属性已实现；`secondID`无可靠主次来源时null，设置暂不支持。`loadTrack/open/history/recentDocuments/任意mpv`等仍未接。轨道选择和章节命令携带worker观察到的媒体代次，UI消费时再次核对，换片后丢弃旧ID命令；不是同步内核完成承诺。
+- `MPVController`属性事件与上述API → 增加`mpv.volume.changed/mute.changed/audio-delay.changed/sub-delay.changed`；读取均来自有界已复制快照。轨道/章节元数据读取已加入运行确认，外部轨道路径、完整媒体URL和媒体title仍不投影。256轨、2048章、单文本4096字节、总JSON64KiB上限，超限明确停止插件，不静默截断为“完整列表”。同时选择多个同类型轨而无法判主次时`id/currentTrack`为null，不猜测。
+
+本批继续仅静态源码编写和人工阅读；没有编译、测试、执行任何JS或运行Windows。已写模块与API不表示插件整体兼容；偏好持久化、菜单、HTTP/文件/HTML、全局控制器、完整字幕提供商和任意mpv接口仍缺失。数量和全量功能目标仍未达到。

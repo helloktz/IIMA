@@ -152,6 +152,8 @@
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ItemGroup>
+    <ClInclude Include="Plugins\PluginModulePath.h" />
+    <ClCompile Include="Plugins\PluginModulePath.cpp" />
     <ClInclude Include="Plugins\PluginManifest.h" />
     <ClCompile Include="Plugins\PluginManifest.cpp" />
   </ItemGroup>

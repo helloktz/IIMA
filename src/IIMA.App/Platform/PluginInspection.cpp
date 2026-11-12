@@ -83,12 +83,12 @@ struct LocalFolder {
     }
 };
 
-std::string ReadProgram(LocalFolder const& folder, std::string const& path, std::stop_token stop) {
+std::string ReadProgram(LocalFolder const& folder, std::string const& path, std::stop_token stop, bool allowEmpty = false) {
     auto file = folder.Open(path);
     LARGE_INTEGER size{};
     check_bool(GetFileSizeEx(file.get(), &size));
-    if (size.QuadPart <= 0 || size.QuadPart > 1024 * 1024)
-        throw hresult_invalid_argument(L"插件入口必须是 1 MiB 以内的非空 UTF-8 文本。");
+    if (size.QuadPart < 0 || (!allowEmpty && size.QuadPart == 0) || size.QuadPart > 1024 * 1024)
+        throw hresult_invalid_argument(L"插件源文件须为 1 MiB 以内的 UTF-8 文本，入口不能为空。");
     std::string source(static_cast<std::size_t>(size.QuadPart), '\0');
     for (std::size_t offset{}; offset < source.size();) {
         CheckStop(stop);
@@ -99,10 +99,65 @@ std::string ReadProgram(LocalFolder const& folder, std::string const& path, std:
         offset += read;
     }
     if (source.starts_with("\xef\xbb\xbf")) source.erase(0, 3);
+    if (source.empty() && allowEmpty) return source;
     if (source.find('\0') != source.npos || !MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS,
         source.data(), static_cast<int>(source.size()), nullptr, 0))
         throw hresult_invalid_argument(L"插件入口不是有效 UTF-8 文本。");
     return source;
+}
+
+// Snapshot only ordinary .js package files before showing execution consent.
+// The runtime receives bytes, never a filesystem handle or arbitrary path API.
+std::map<std::string, std::string> ReadModules(LocalFolder const& package,
+    std::string const& entry, std::string const& source, std::stop_token stop) {
+    std::map<std::string, std::string> result;
+    std::size_t bytes = source.size(), directories{};
+    auto walk = [&](auto&& self, std::filesystem::path const& relative, unsigned depth) -> void {
+        CheckStop(stop);
+        if (depth > 16 || ++directories > 128)
+            throw hresult_invalid_argument(L"插件目录超过 16 层或 128 个目录，不能建立完整源快照。");
+        // Holds all directory ancestors against replacement for this enumeration.
+        LocalFolder held(package.root / relative);
+        WIN32_FIND_DATAW data{};
+        auto raw = FindFirstFileExW((held.root / L"*").c_str(), FindExInfoBasic, &data,
+            FindExSearchNameMatch, nullptr, FIND_FIRST_EX_LARGE_FETCH);
+        if (raw == INVALID_HANDLE_VALUE) {
+            if (GetLastError() == ERROR_FILE_NOT_FOUND) return;
+            throw_last_error();
+        }
+        struct FindHandle { HANDLE handle; ~FindHandle() { FindClose(handle); } } finder{raw};
+        for (;;) {
+            CheckStop(stop);
+            std::wstring name(data.cFileName);
+            if (name != L"." && name != L"..") {
+                auto child = relative / name;
+                if (data.dwFileAttributes & (FILE_ATTRIBUTE_REPARSE_POINT | FILE_ATTRIBUTE_OFFLINE)) {
+                    // No require can read a skipped target from the immutable map.
+                } else if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+                    // Package metadata is not part of the executable source snapshot.
+                    if (name != L".git") self(self, child, depth + 1);
+                } else if (CompareStringOrdinal(child.extension().c_str(), -1, L".js", -1, TRUE) == CSTR_EQUAL) {
+                    auto key = to_string(child.generic_wstring());
+                    auto normalized = NormalizePluginRelativePath(key);
+                    if (!normalized) throw hresult_invalid_argument(L"插件模块包含不安全的文件名。");
+                    if (*normalized != entry) {
+                        if (result.size() >= 128) throw hresult_invalid_argument(L"插件最多支持 128 个本地 JS 模块。");
+                        auto text = ReadProgram(package, *normalized, stop, true);
+                        if (text.size() > 8 * 1024 * 1024 - bytes)
+                            throw hresult_invalid_argument(L"插件源快照总量超过 8 MiB。");
+                        bytes += text.size();
+                        result.emplace(std::move(*normalized), std::move(text));
+                    }
+                }
+            }
+            if (!FindNextFileW(raw, &data)) {
+                if (GetLastError() != ERROR_NO_MORE_FILES) throw_last_error();
+                break;
+            }
+        }
+    };
+    walk(walk, {}, 0);
+    return result;
 }
 
 std::string ReadManifest(LocalFolder const& folder, std::stop_token stop) {
@@ -243,7 +298,8 @@ PluginProgram LoadPluginProgram(std::filesystem::path const& root, std::stop_tok
     }
     auto source = ReadProgram(folder, manifest.entry, stop);
     CheckStop(stop);
-    return {std::move(manifest), std::move(source)};
+    auto modules = ReadModules(folder, manifest.entry, source, stop);
+    return {std::move(manifest), std::move(source), std::move(modules)};
 }
 
 }

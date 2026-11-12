@@ -55,7 +55,9 @@ private:
     void DispatchPluginCommand(iima::plugins::PluginCommand command);
     std::unique_ptr<iima::plugins::PluginRuntime> pluginRuntime_;
     iima::plugins::PlaybackProjection pluginProjection_;
-    std::uint64_t pluginGeneration_{};
+    std::uint64_t pluginGeneration_{}, pluginMediaEpoch_{};
+    std::int64_t pluginMediaEntry_{-1};
+    iima::MediaState pluginMediaState_{iima::MediaState::Empty};
     bool pluginStarting_{}, pluginStopPending_{}, pluginOsdAllowed_{};
     std::wstring pluginLog_;
 

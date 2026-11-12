@@ -4,6 +4,7 @@
 #include "pch.h"
 #include "PluginRuntime.h"
 #include "PluginBootstrap.h"
+#include "../../IIMA.Core/Plugins/PluginModulePath.h"
 #include <quickjs.h>
 #include <algorithm>
 #include <array>
@@ -26,6 +27,9 @@ namespace iima::plugins {
 namespace {
 using Clock = std::chrono::steady_clock;
 constexpr std::size_t MaxSource = 1024 * 1024;
+constexpr std::size_t MaxModuleBytes = 8 * 1024 * 1024;
+constexpr std::size_t MaxModules = 128;
+constexpr std::size_t MaxModuleDepth = 32;
 constexpr std::size_t MaxJson = 64 * 1024;
 constexpr std::size_t MaxEventBytes = 2 * 1024 * 1024;
 constexpr std::size_t MaxEvents = 128;
@@ -35,15 +39,26 @@ constexpr std::array EventNames{
     std::string_view("iina.file-loaded"), std::string_view("iina.file-started"),
     std::string_view("iina.music-mode.changed"), std::string_view("mpv.pause.changed"),
     std::string_view("mpv.time-pos.changed"), std::string_view("mpv.duration.changed"),
-    std::string_view("mpv.speed.changed")
+    std::string_view("mpv.speed.changed"), std::string_view("mpv.volume.changed"),
+    std::string_view("mpv.mute.changed"), std::string_view("mpv.audio-delay.changed"),
+    std::string_view("mpv.sub-delay.changed")
 };
-std::string BoundedUtf8(std::string_view value, std::size_t maximum) {
+std::size_t Utf8PrefixSize(std::string_view value, std::size_t maximum) noexcept {
     auto size = std::min(value.size(), maximum);
     if (size < value.size()) {
         // Do not cut a multi-byte codepoint when limiting exception text.
         while (size && (static_cast<unsigned char>(value[size]) & 0xc0) == 0x80) --size;
     }
-    return std::string(value.substr(0, size));
+    return size;
+}
+std::string BoundedUtf8(std::string_view value, std::size_t maximum) {
+    return std::string(value.substr(0, Utf8PrefixSize(value, maximum)));
+}
+JSValue NativeException(JSContext* context, std::exception const& error, bool typeError) noexcept {
+    auto text = error.what();
+    auto size = static_cast<int>(Utf8PrefixSize(text, 4096));
+    return typeError ? JS_ThrowTypeError(context, "%.*s", size, text)
+        : JS_ThrowInternalError(context, "%.*s", size, text);
 }
 struct Value {
     JSContext* context{};
@@ -69,14 +84,16 @@ struct PluginRuntime::Impl {
     std::size_t queuedBytes{};
     std::string latestStatus;
     std::uint64_t statusRevision{1};
-    std::string source, name;
+    std::string source, name, entryPath;
+    std::map<std::string, std::string> modules;
     bool allowOsd{};
     Callbacks callbacks;
     std::jthread thread;
 
-    Impl(std::string text, std::string pluginName, bool grant, Callbacks cb, std::string status)
+    Impl(std::string text, std::string pluginName, bool grant, Callbacks cb, std::string status,
+         std::string entry, std::map<std::string, std::string> package)
         : latestStatus(std::move(status)), source(std::move(text)), name(std::move(pluginName)),
-          allowOsd(grant), callbacks(std::move(cb)) {}
+          entryPath(std::move(entry)), modules(std::move(package)), allowOsd(grant), callbacks(std::move(cb)) {}
     ~Impl() {
         stop.store(true); changed.notify_all();
         // The public ownership contract prevents destruction from a callback.
@@ -84,7 +101,10 @@ struct PluginRuntime::Impl {
     }
     void State(bool active, std::string message) noexcept {
         running.store(active);
-        try { if (callbacks.state) callbacks.state(active, std::move(message)); }
+        try {
+            if (message.size() > 8192) message = BoundedUtf8(message, 8192);
+            if (callbacks.state) callbacks.state(active, std::move(message));
+        }
         catch (...) { stop.store(true); }
     }
     void Report(std::string level, std::string message) noexcept {
@@ -104,13 +124,16 @@ struct PluginRuntime::Impl {
         };
         enum Function {
             Pause, Resume, StopPlayback, Seek, SeekTo, Speed, Osd,
-            Log, Warn, Error, Status, On, Off, Timeout, Interval, ClearTimer
+            Log, Warn, Error, Status, On, Off, Timeout, Interval, ClearTimer, Require,
+            PlayChapter, AudioVolume, AudioMuted, AudioDelay, AudioId, SubtitleDelay, SubtitleId, VideoId
         };
         Impl& owner;
         JSRuntime* runtime{};
         JSContext* context{};
         std::map<std::string, Listener> listeners;
         std::map<std::string, Timer> timers;
+        std::map<std::string, JSValue> moduleCache;
+        std::vector<std::string> moduleStack;
         std::uint64_t nextIdentity{1};
         std::string status;
         Clock::time_point deadline{Clock::now()};
@@ -133,6 +156,7 @@ struct PluginRuntime::Impl {
             JS_SetHostPromiseRejectionTracker(runtime, Rejected, this);
         }
         ~Worker() {
+            for (auto const& [path, exports] : moduleCache) JS_FreeValue(context, exports);
             for (auto const& [id, item] : timers) JS_FreeValue(context, item.callback);
             for (auto const& [id, item] : listeners) JS_FreeValue(context, item.callback);
             if (context) { JS_SetContextOpaque(context, nullptr); JS_FreeContext(context); }
@@ -193,9 +217,11 @@ struct PluginRuntime::Impl {
                 Value ignored(context, JS_GetException(context));
                 return "Plugin JavaScript exception.";
             }
-            auto result = BoundedUtf8(std::string_view(text, size), 8192);
-            JS_FreeCString(context, text);
-            return result;
+            try {
+                auto result = BoundedUtf8(std::string_view(text, size), 8192);
+                JS_FreeCString(context, text);
+                return result;
+            } catch (...) { JS_FreeCString(context, text); throw; }
         }
         bool Result(JSValue value) {
             Value result(context, value);
@@ -242,15 +268,76 @@ struct PluginRuntime::Impl {
             auto self = static_cast<Worker*>(JS_GetContextOpaque(context));
             if (!self || self->owner.stop.load()) return JS_ThrowInternalError(context, "Plugin is stopping.");
             try { return self->Call(static_cast<Function>(magic), argc, argv); }
-            catch (std::invalid_argument const& e) { return JS_ThrowTypeError(context, "%s", e.what()); }
-            catch (std::exception const& e) { return JS_ThrowInternalError(context, "%s", e.what()); }
+            catch (std::invalid_argument const& e) { return NativeException(context, e, true); }
+            catch (std::exception const& e) { return NativeException(context, e, false); }
             catch (...) { return JS_ThrowInternalError(context, "Native plugin API failed."); }
+        }
+        static JSValue ModuleRequireDispatch(JSContext* context, JSValueConst, int argc,
+                JSValueConst* argv, int, JSValueConst* data) noexcept {
+            auto self = static_cast<Worker*>(JS_GetContextOpaque(context));
+            if (!self || self->owner.stop.load()) return JS_ThrowInternalError(context, "Plugin is stopping.");
+            try {
+                if (argc < 1) throw std::invalid_argument("require expects a package-relative path.");
+                return self->RequireModule(String(context, data[0], 4096), String(context, argv[0], 4096));
+            } catch (std::invalid_argument const& e) { return NativeException(context, e, true); }
+              catch (std::exception const& e) { return NativeException(context, e, false); }
+              catch (...) { return JS_ThrowInternalError(context, "Plugin module evaluation failed."); }
+        }
+        JSValue RequireModule(std::string const& currentFile, std::string const& request) {
+            if (owner.stop.load() || interrupted || Clock::now() >= deadline)
+                return JS_ThrowInternalError(context, "Plugin module evaluation was interrupted.");
+            auto resolved = ResolvePluginModulePath(currentFile, request);
+            if (!resolved) return JS_ThrowTypeError(context, "require path escapes the plugin or is invalid.");
+            if (auto cached = moduleCache.find(*resolved); cached != moduleCache.end())
+                return JS_DupValue(context, cached->second);
+            if (moduleStack.size() >= MaxModuleDepth)
+                return JS_ThrowRangeError(context, "Plugin module nesting exceeds 32 files.");
+            if (std::find(moduleStack.begin(), moduleStack.end(), *resolved) != moduleStack.end())
+                return JS_ThrowTypeError(context, "Circular plugin require is not supported.");
+            auto module = owner.modules.find(*resolved);
+            if (module == owner.modules.end())
+                return JS_ThrowReferenceError(context, "Module is not in the approved source snapshot: %s", resolved->c_str());
+            moduleStack.push_back(*resolved);
+            struct StackPop {
+                std::vector<std::string>& stack;
+                ~StackPop() { stack.pop_back(); }
+            } pop{moduleStack};
+            // IINA evaluateFile(asModule) supplies only `module = {}` and returns
+            // module.exports, not the Node.js exports alias or module metadata.
+            // Pass a lexical require so module callbacks can safely load siblings
+            // after evaluation; IINA's transient currentFile stack cannot do so.
+            auto text = "(function(require) {\nconst module = {};\n" + module->second +
+                "\n;return module.exports;\n})";
+            Value function(context, JS_Eval(context, text.data(), text.size(), resolved->c_str(), JS_EVAL_TYPE_GLOBAL));
+            if (JS_IsException(function.value)) return JS_EXCEPTION;
+            Value fileName(context, JS_NewStringLen(context, resolved->data(), resolved->size()));
+            if (JS_IsException(fileName.value)) return JS_EXCEPTION;
+            Value require(context, JS_NewCFunctionData(context, ModuleRequireDispatch, 1, 0, 1, &fileName.value));
+            if (JS_IsException(require.value)) return JS_EXCEPTION;
+            Value exports(context, JS_Call(context, function.value, JS_UNDEFINED, 1, &require.value));
+            if (JS_IsException(exports.value)) return JS_EXCEPTION;
+            // Undefined/falsy exports are cached too; do not repeat side effects
+            // merely because IINA's old JS truthiness-based cache would miss them.
+            auto retained = JS_DupValue(context, exports.value);
+            try { moduleCache.emplace(*resolved, retained); }
+            catch (...) { JS_FreeValue(context, retained); throw; }
+            return JS_DupValue(context, exports.value);
+        }
+        std::string MediaToken() {
+            Value snapshot(context, JS_ParseJSON(context, status.data(), status.size(), "iima-media-identity"));
+            if (JS_IsException(snapshot.value)) {
+                Value ignored(context, JS_GetException(context));
+                throw std::runtime_error("Cannot read host media identity.");
+            }
+            Value token(context, JS_GetPropertyStr(context, snapshot.value, "_mediaToken"));
+            return String(context, token.value, 64);
         }
         JSValue Call(Function function, int argc, JSValueConst* argv) {
             auto argument = [&](int index) -> JSValueConst {
                 if (index >= argc) throw std::invalid_argument("Missing API argument.");
                 return argv[index];
             };
+            if (function == Require) return RequireModule(owner.entryPath, String(context, argument(0), 4096));
             if (function == Status) {
                 // Parse anew: JavaScript never holds the host's mutable snapshot
                 // and changes to a returned object cannot mutate PlayerSession.
@@ -306,6 +393,31 @@ struct PluginRuntime::Impl {
             }
             PluginCommand command;
             switch (function) {
+            case PlayChapter:
+                command.name = "playChapter"; command.number = Number(context, argument(0));
+                if (command.number < 0 || command.number > 2147483647.0 || std::floor(command.number) != command.number)
+                    throw std::invalid_argument("Chapter index must be a non-negative 32-bit integer.");
+                break;
+            case AudioVolume:
+                command.name = "audio.volume"; command.number = Number(context, argument(0));
+                if (command.number < 0 || command.number > 1000) throw std::invalid_argument("Volume must be between zero and 1000; the player also clamps to its configured maximum.");
+                break;
+            case AudioMuted:
+                command.name = "audio.muted";
+                if (!JS_IsBool(argument(0))) throw std::invalid_argument("Mute must be a boolean.");
+                command.flag = JS_ToBool(context, argv[0]) != 0;
+                break;
+            case AudioDelay: case SubtitleDelay:
+                command.name = function == AudioDelay ? "audio.delay" : "subtitle.delay";
+                command.number = Number(context, argument(0));
+                if (std::abs(command.number) > 3600) throw std::invalid_argument("Plugin track delay must be within one hour.");
+                break;
+            case AudioId: case SubtitleId: case VideoId:
+                command.name = function == AudioId ? "audio.id" : function == SubtitleId ? "subtitle.id" : "video.id";
+                command.number = Number(context, argument(0));
+                if (command.number < 0 || command.number > 9007199254740991.0 || std::floor(command.number) != command.number)
+                    throw std::invalid_argument("Track ID must be a non-negative safe integer; zero disables the track.");
+                break;
             case Pause: command.name = "pause"; break;
             case Resume: command.name = "resume"; break;
             case StopPlayback: command.name = "stop"; break;
@@ -329,6 +441,8 @@ struct PluginRuntime::Impl {
                 break;
             default: throw std::invalid_argument("Plugin API is not implemented.");
             }
+            if (function == PlayChapter || function == AudioId || function == SubtitleId || function == VideoId)
+                command.mediaToken = MediaToken();
             if (!owner.callbacks.command) throw std::runtime_error("Player command host is unavailable.");
             if (!TakeOutbound()) throw std::invalid_argument("Plugin outbound command rate limit exceeded.");
             owner.callbacks.command(std::move(command));
@@ -345,12 +459,16 @@ struct PluginRuntime::Impl {
             Value global(context, JS_GetGlobalObject(context));
             Value host(context, JS_NewObject(context));
             if (JS_IsException(host.value)) { Fail(ExceptionText()); return false; }
-            constexpr std::array<std::tuple<char const*, int, Function>, 16> definitions{{
+            constexpr std::array<std::tuple<char const*, int, Function>, 25> definitions{{
                 {"pause", 0, Pause}, {"resume", 0, Resume}, {"stop", 0, StopPlayback},
                 {"seek", 2, Seek}, {"seekTo", 1, SeekTo}, {"setSpeed", 1, Speed}, {"osd", 1, Osd},
                 {"log", 1, Log}, {"warn", 1, Warn}, {"error", 1, Error}, {"status", 0, Status},
                 {"on", 2, On}, {"off", 2, Off}, {"timeout", 2, Timeout}, {"interval", 2, Interval},
-                {"clearTimer", 1, ClearTimer}
+                {"clearTimer", 1, ClearTimer}, {"require", 1, Require},
+                {"playChapter", 1, PlayChapter}, {"audioVolume", 1, AudioVolume},
+                {"audioMuted", 1, AudioMuted}, {"audioDelay", 1, AudioDelay},
+                {"audioId", 1, AudioId}, {"subtitleDelay", 1, SubtitleDelay},
+                {"subtitleId", 1, SubtitleId}, {"videoId", 1, VideoId}
             }};
             for (auto const& [name, arity, function] : definitions) {
                 if (!SetFunction(host.value, name, arity, function)) return false;
@@ -361,8 +479,11 @@ struct PluginRuntime::Impl {
             if (!Result(JS_Eval(context, PluginBootstrap, sizeof(PluginBootstrap) - 1,
                 "iima-plugin-bootstrap", JS_EVAL_TYPE_GLOBAL))) return false;
             if (!ValidateStatus()) return false;
-            if (!Result(JS_Eval(context, owner.source.data(), owner.source.size(),
-                "plugin-entry.js", JS_EVAL_TYPE_GLOBAL))) return false;
+            moduleStack.push_back(owner.entryPath);
+            auto result = JS_Eval(context, owner.source.data(), owner.source.size(),
+                owner.entryPath.c_str(), JS_EVAL_TYPE_GLOBAL);
+            moduleStack.pop_back();
+            if (!Result(result)) return false;
             owner.source.clear();
             return Jobs();
         }
@@ -465,13 +586,27 @@ bool PluginRuntime::SupportsEvent(std::string_view name) noexcept {
 }
 PluginRuntime::PluginRuntime(std::unique_ptr<Impl> impl) : impl_(std::move(impl)) {}
 std::unique_ptr<PluginRuntime> PluginRuntime::Start(std::string source, std::string pluginName,
-    bool allowOsd, Callbacks callbacks, std::string initialStatusJson) {
+    bool allowOsd, Callbacks callbacks, std::string initialStatusJson,
+    std::string entryRelativePath, std::map<std::string, std::string> modules) {
     if (source.empty() || source.size() > MaxSource || source.find('\0') != source.npos)
         throw std::invalid_argument("Plugin entry must contain 1 byte to 1 MiB of UTF-8 source without NUL.");
     if (pluginName.size() > 512 || initialStatusJson.empty() || initialStatusJson.size() > MaxJson)
         throw std::invalid_argument("Plugin name or initial status exceeds limits.");
+    auto entry = ResolvePluginModulePath("__iima_root__.js", entryRelativePath);
+    if (!entry || *entry != entryRelativePath) throw std::invalid_argument("Plugin entry path must be canonical and package-relative.");
+    if (modules.size() > MaxModules) throw std::invalid_argument("Plugin module snapshot has too many files.");
+    auto bytes = source.size();
+    for (auto const& [path, text] : modules) {
+        auto normalized = ResolvePluginModulePath("__iima_root__.js", path);
+        if (!normalized || *normalized != path || path == *entry)
+            throw std::invalid_argument("Plugin module path is invalid or duplicates the entry.");
+        if (text.size() > MaxSource || text.find('\0') != text.npos || text.size() > MaxModuleBytes - bytes)
+            throw std::invalid_argument("Plugin source snapshot exceeds the size limit or contains NUL.");
+        bytes += text.size();
+    }
     auto instance = std::unique_ptr<PluginRuntime>(new PluginRuntime(std::make_unique<Impl>(
-        std::move(source), std::move(pluginName), allowOsd, std::move(callbacks), std::move(initialStatusJson))));
+        std::move(source), std::move(pluginName), allowOsd, std::move(callbacks), std::move(initialStatusJson),
+        std::move(entryRelativePath), std::move(modules))));
     auto impl = instance->impl_.get();
     impl->thread = std::jthread([impl] { impl->Run(); });
     return instance;
