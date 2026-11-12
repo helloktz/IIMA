@@ -1,6 +1,6 @@
 // Derived from IINA JavascriptPluginInstance.createJSContext,
 // JavascriptAPICore.extraSetup, JavascriptAPIPreferences, JavascriptAPIMenu,
-// JavascriptPluginMenuItem and JavascriptPolyfill.register.
+// JavascriptPluginMenuItem, JavascriptAPIFile and JavascriptPolyfill.register.
 // Copyright (c) 2018-2020 lhc and IINA contributors. GPL-3.0.
 #pragma once
 namespace iima::plugins {
@@ -252,6 +252,89 @@ inline constexpr char PluginBootstrap[] = R"IIMAJS(
     },
     sync() { host.preferenceSync(preferenceDocument()); }
   });
+  // JavascriptAPIFile is synchronous. Only private flat @data/@tmp UTF-8
+  // files are supported here. The native host repeats path/size validation and
+  // owns ordinary-file checks, quota, locking and atomic publication.
+  function fileUnicode(text) {
+    for (let index = 0; index < text.length; ++index) {
+      const code = charCode(text, index);
+      if (code >= 0xd800 && code <= 0xdbff) {
+        const next = index + 1 < text.length ? charCode(text, index + 1) : 0;
+        if (next < 0xdc00 || next > 0xdfff) throw new TypeError('File text contains an unpaired surrogate');
+        ++index;
+      } else if (code >= 0xdc00 && code <= 0xdfff) {
+        throw new TypeError('File text contains an unpaired surrogate');
+      }
+    }
+    return text;
+  }
+  function filePath(path) {
+    if (typeof path !== 'string' || path.length === 0 || path.length > 4096 ||
+        utf8Bytes(path) > 4096 || includes(path, '\0'))
+      throw new TypeError('File path must be a nonempty string of at most 4096 UTF-8 bytes');
+    return fileUnicode(path);
+  }
+  function fileOptions(options, permitted) {
+    if (options === undefined || options === null) return create(null);
+    if (typeof options !== 'object' || isArray(options) ||
+        (getPrototype(options) !== null && getPrototype(options) !== objectPrototype))
+      throw new TypeError('File options must be an ordinary object');
+    const keys = ownKeys(options), result = create(null);
+    if (keys.length > 1) throw new TypeError('Unsupported file options');
+    for (let index = 0; index < keys.length; ++index) {
+      const key = keys[index];
+      if (key !== permitted) throw new TypeError('Unsupported file option');
+      const field = descriptor(options, key);
+      if (!field || !hasOwn(field, 'value') || !field.enumerable)
+        throw new TypeError('File options require enumerable data properties');
+      result[key] = field.value;
+    }
+    return result;
+  }
+  function fileCall(operation, path, content, options) {
+    // Build a primitive-only envelope. No plugin toJSON/accessor runs during
+    // serialization, including inherited Object.prototype.toJSON changes.
+    let json = '{"path":' + stringify(filePath(path));
+    if (content !== undefined) json += ',"content":' + stringify(content);
+    if (options !== undefined) json += ',"options":' + options;
+    json += '}';
+    return host.fileOperation(operation, json);
+  }
+  const file = namespace('file', {
+    exists: path => {
+      const value = fileCall('exists', path);
+      if (typeof value !== 'boolean') throw new TypeError('Invalid file.exists host result');
+      return value;
+    },
+    read(path, options) {
+      options = fileOptions(options, 'encoding');
+      const encoding = hasOwn(options, 'encoding') ? options.encoding : 'utf8';
+      if (encoding !== 'utf8' && encoding !== 'utf-8' && encoding !== 'UTF-8')
+        throw new TypeError('IIMA file.read currently supports UTF-8 only');
+      const value = fileCall('read', path, undefined, '{"encoding":"utf8"}');
+      if (typeof value !== 'string' || utf8Bytes(value) > 1048576)
+        throw new TypeError('Invalid or oversized file.read host result');
+      return value;
+    },
+    write(path, content) {
+      if (typeof content !== 'string' || content.length > 1048576 || utf8Bytes(content) > 1048576)
+        throw new TypeError('File content must be a string of at most 1 MiB UTF-8');
+      fileCall('write', path, fileUnicode(content));
+    },
+    list(path, options) {
+      options = fileOptions(options, 'includeSubDir');
+      if (hasOwn(options, 'includeSubDir') && options.includeSubDir !== false)
+        throw new TypeError('Recursive plugin file listing is not supported');
+      const value = fileCall('list', path, undefined, '{"includeSubDir":false}');
+      if (!isArray(value) || value.length > 128) throw new TypeError('Invalid file.list host result');
+      return value;
+    },
+    delete(path) { fileCall('delete', path); },
+    trash: () => missing('file.trash'),
+    handle: () => missing('file.handle'),
+    showInFinder: () => missing('file.showInFinder'),
+    move: () => missing('file.move')
+  });
   // JavascriptAPIMenu/JavascriptPluginMenuItem. Keep callbacks in the worker's
   // JS heap; only immutable JSON crosses to native UI. A WeakMap does not keep
   // detached menu objects alive when the plugin releases them.
@@ -454,7 +537,7 @@ inline constexpr char PluginBootstrap[] = R"IIMAJS(
     if (result === true) host.warn('Mouse callback return cannot consume input in IIMA');
   });
   Object.defineProperty(globalThis, 'iina', {
-    value: namespace('iina', {core, console: consoleApi, event, preferences, menu, input}),
+    value: namespace('iina', {core, console: consoleApi, event, preferences, menu, input, file}),
     writable: false, configurable: false
   });
   Object.defineProperty(globalThis, 'console', {value: consoleApi, configurable: false});

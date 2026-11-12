@@ -180,6 +180,8 @@
     <ClInclude Include="Plugins\PluginPlaybackProjection.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Platform\PluginFileStore.h" />
+    <ClCompile Include="Platform\PluginFileStore.cpp" />
     <ClInclude Include="Platform\PluginPreferenceStore.h" />
     <ClCompile Include="Platform\PluginPreferenceStore.cpp" />
   </ItemGroup>

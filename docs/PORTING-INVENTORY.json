@@ -343,8 +343,12 @@
     {
       "source": "references/iina/iina/JavascriptAPIFile.swift",
       "physicalLines": 243,
-      "coverage": "not-mapped",
-      "reviewTargets": []
+      "coverage": "partial-static-unverified",
+      "reviewTargets": [
+        "src/IIMA.App/Platform/PluginFileStore.cpp",
+        "src/IIMA.App/Plugins/PluginBootstrap.h",
+        "src/IIMA.App/Plugins/PluginRuntime.cpp"
+      ]
     },
     {
       "source": "references/iina/iina/JavascriptAPIGlobal.swift",

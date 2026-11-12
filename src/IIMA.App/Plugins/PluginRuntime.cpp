@@ -1,5 +1,6 @@
 // IINA JavascriptPluginInstance / JavascriptPolyfill / JavascriptAPIEvent /
-// JavascriptAPICore / JavascriptAPIConsole / JavascriptAPIPreferences / JavascriptAPIMenu adaptation,
+// JavascriptAPICore / JavascriptAPIConsole / JavascriptAPIPreferences / JavascriptAPIMenu /
+// JavascriptAPIFile adaptation,
 // not full API compatibility.
 // Copyright (c) 2018-2020 lhc and IINA contributors. GPL-3.0.
 #include "pch.h"
@@ -33,6 +34,7 @@ constexpr std::size_t MaxModuleBytes = 8 * 1024 * 1024;
 constexpr std::size_t MaxModules = 128;
 constexpr std::size_t MaxModuleDepth = 32;
 constexpr std::size_t MaxJson = 64 * 1024;
+constexpr std::size_t MaxFileJson = 6 * 1024 * 1024 + 8192; // escaped 1 MiB UTF-8 + envelope
 constexpr std::size_t MaxBindingsJson = 256 * 1024;
 constexpr std::size_t MaxEventBytes = 2 * 1024 * 1024;
 constexpr std::size_t MaxEvents = 128;
@@ -139,7 +141,7 @@ struct PluginRuntime::Impl {
             Log, Warn, Error, Status, On, Off, Timeout, Interval, ClearTimer, Require,
             PlayChapter, AudioVolume, AudioMuted, AudioDelay, AudioId, SubtitleDelay, SubtitleId, VideoId,
             PreferenceDefaults, PreferenceStored, PreferenceSync, MenuInstall, MenuPublish,
-            InputInstall, InputNormalize, InputBindings, MouseInstall
+            InputInstall, InputNormalize, InputBindings, MouseInstall, FileOperation
         };
         Impl& owner;
         JSRuntime* runtime{};
@@ -157,6 +159,8 @@ struct PluginRuntime::Impl {
         Clock::time_point deadline{Clock::now()};
         Clock::time_point rateWindow{Clock::now()};
         Clock::time_point lastPreferenceSync{};
+        Clock::time_point fileRateWindow{Clock::now()};
+        unsigned fileCalls{}, fileMutations{};
         unsigned outboundInWindow{}, callbacksInWindow{}, outboundInTurn{};
         bool interrupted{}, failed{};
         std::string failure;
@@ -434,6 +438,40 @@ struct PluginRuntime::Impl {
                 owner.callbacks.preferencesSync(std::move(json));
                 return JS_UNDEFINED;
             }
+            if (function == FileOperation) {
+                auto operation = String(context, argument(0), 16);
+                bool mutation = operation == "write" || operation == "delete";
+                if (!mutation && operation != "read" && operation != "exists" && operation != "list")
+                    throw std::invalid_argument("Unsupported plugin file operation.");
+                auto json = String(context, argument(1), MaxFileJson);
+                if (!owner.callbacks.fileOperation)
+                    throw std::runtime_error("Plugin private file storage is unavailable.");
+                if (owner.stop.load()) throw std::runtime_error("Plugin stopped.");
+                auto now = Clock::now();
+                if (now - fileRateWindow >= std::chrono::seconds(1)) {
+                    fileRateWindow = now; fileCalls = 0; fileMutations = 0;
+                }
+                if (fileCalls >= 32 || (mutation && fileMutations >= 4) || !TakeOutbound())
+                    throw std::invalid_argument("Plugin file operation rate limit exceeded.");
+                ++fileCalls;
+                if (mutation) ++fileMutations;
+                // Same synchronous semantics as IINA's Foundation file APIs.
+                // Native time is excluded from JS work budget, but cancellation
+                // is checked before/after the call and no further JS is admitted.
+                std::string result;
+                {
+                    struct NativeCallBudget {
+                        Clock::time_point& deadline;
+                        Clock::time_point started{Clock::now()};
+                        ~NativeCallBudget() { deadline += Clock::now() - started; }
+                    } budget{deadline};
+                    result = owner.callbacks.fileOperation(std::move(operation), std::move(json));
+                }
+                if (owner.stop.load()) throw std::runtime_error("Plugin stopped during native file operation.");
+                if (result.empty() || result.size() > MaxFileJson || result.find('\0') != result.npos)
+                    throw std::runtime_error("Invalid or oversized private file result.");
+                return JS_ParseJSON(context, result.data(), result.size(), "iima-private-file-result");
+            }
             if (function == Require) return RequireModule(owner.entryPath, String(context, argument(0), 4096));
             if (function == Status) {
                 // Parse anew: JavaScript never holds the host's mutable snapshot
@@ -556,7 +594,7 @@ struct PluginRuntime::Impl {
             Value global(context, JS_GetGlobalObject(context));
             Value host(context, JS_NewObject(context));
             if (JS_IsException(host.value)) { Fail(ExceptionText()); return false; }
-            constexpr std::array<std::tuple<char const*, int, Function>, 34> definitions{{
+            constexpr std::array<std::tuple<char const*, int, Function>, 35> definitions{{
                 {"pause", 0, Pause}, {"resume", 0, Resume}, {"stop", 0, StopPlayback},
                 {"seek", 2, Seek}, {"seekTo", 1, SeekTo}, {"setSpeed", 1, Speed}, {"osd", 1, Osd},
                 {"log", 1, Log}, {"warn", 1, Warn}, {"error", 1, Error}, {"status", 0, Status},
@@ -569,7 +607,7 @@ struct PluginRuntime::Impl {
                 {"preferenceDefaults", 0, PreferenceDefaults}, {"preferenceStored", 0, PreferenceStored},
                 {"preferenceSync", 1, PreferenceSync}, {"menuInstall", 1, MenuInstall}, {"menuPublish", 2, MenuPublish},
                 {"inputInstall", 1, InputInstall}, {"inputNormalize", 1, InputNormalize}, {"inputBindings", 0, InputBindings},
-                {"mouseInstall", 1, MouseInstall}
+                {"mouseInstall", 1, MouseInstall}, {"fileOperation", 2, FileOperation}
             }};
             for (auto const& [name, arity, function] : definitions) {
                 if (!SetFunction(host.value, name, arity, function)) return false;
@@ -720,6 +758,7 @@ struct PluginRuntime::Impl {
         } catch (std::exception const& e) { finalMessage = e.what(); }
           catch (...) { finalMessage = "Plugin worker failed."; }
         stop.store(true);
+        try { if (callbacks.cleanup) callbacks.cleanup(); } catch (...) { /* best-effort private temporary cleanup */ }
         { std::lock_guard lock(mutex); events.clear(); queuedBytes = 0; latestStatus.clear(); }
         State(false, std::move(finalMessage));
     }

@@ -19,8 +19,9 @@ struct PluginCommand {
 
 // One explicitly started, local, trusted plugin entry per owner/window.
 // This is NOT a security sandbox or complete IINA plugin compatibility layer.
-// No QuickJS std/os modules, host filesystem, network, process, native module
-// loader, global controller or HTML capabilities are installed. CommonJS require
+// No QuickJS std/os modules, arbitrary filesystem, network, process, native module
+// loader, global controller or HTML capabilities are installed. Private @data/@tmp
+// text-file operations are delegated to the bounded native host. CommonJS require
 // is limited to the caller-supplied immutable package source snapshot.
 class PluginRuntime final {
 public:
@@ -35,6 +36,14 @@ public:
         // worker, never UI; return means durable host save succeeded. Throw to
         // report failure to JavaScript. Do not wait for UI or reenter runtime.
         std::function<void(std::string json)> preferencesSync;
+        // Synchronous, worker-only private file operation. Arguments and return
+        // are bounded JSON. The host validates paths/quotas and throws on errors;
+        // it must not wait for UI or reenter this runtime. Native disk I/O cannot
+        // be interrupted by the JavaScript deadline. No arbitrary paths allowed.
+        std::function<std::string(std::string operation, std::string argumentsJson)> fileOperation;
+        // Best-effort host cleanup on worker exit, after all JS is disposed.
+        // Must not reenter runtime or wait for UI. Destructor itself does no I/O.
+        std::function<void()> cleanup;
         // Immutable tree snapshot {revision,items}; coalesced once per JS turn.
         // Enqueue UI work and return promptly; do not invoke native UI here.
         std::function<void(std::string json)> menuChanged;

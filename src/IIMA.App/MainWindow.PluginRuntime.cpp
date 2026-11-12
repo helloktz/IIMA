@@ -4,6 +4,7 @@
 #include "MainWindow.xaml.h"
 #include "Platform/PluginInspection.h"
 #include "Platform/PluginPreferenceStore.h"
+#include "Platform/PluginFileStore.h"
 #include <ShObjIdl_core.h>
 #include <microsoft.ui.xaml.window.h>
 #include <winrt/Windows.Storage.Pickers.h>
@@ -70,6 +71,7 @@ winrt::fire_and_forget MainWindow::StartLocalPlugin() {
                 pluginOsdAllowed_ = program->manifest.HasPermission(iima::PluginPermission::ShowOSD);
                 if (pluginOsdAllowed_) message += L"它还申请在播放器画面上显示文字。";
                 message += L"\n它还可读取并保存此标识对应的插件偏好；相同标识的其他插件可读取这些值，请勿用于保存密码或令牌。它还可在此窗口的插件菜单中添加命令，读取当前快捷键配置的完整动作文本，并观察播放器区域按键（不含文本输入、密码输入和对话框）及视频区域鼠标操作。请勿把秘密写在快捷键动作中。"
+                    L"\n它可读取、覆盖和删除此标识的私有 @data 文件，并读写本次运行的 @tmp 文件；相同标识可共享 @data，不应保存密码或令牌。只支持有界文本及普通文件，不开放你的其他文件。"
                     L"\n不提供网络、任意文件、进程、HTML 或完整 IINA 插件 API。"
                     L"只有部分插件可以使用。运行时不是操作系统安全沙箱，请只运行你信任的来源。"
                     L"\n此次仅运行已读入的入口和目录内 JS 模块快照，不安装、不自动启动；可随时停止。";
@@ -102,6 +104,11 @@ winrt::fire_and_forget MainWindow::StartLocalPlugin() {
                         }
                     };
                     iima::plugins::PluginRuntime::Callbacks callbacks;
+                    auto files = std::make_shared<iima::PluginFileStore>(program->manifest.identifier);
+                    callbacks.cleanup = [files] { files->CleanupTemporary(); };
+                    callbacks.fileOperation = [files](std::string operation, std::string arguments) {
+                        return files->Invoke(operation, arguments);
+                    };
                     callbacks.menuChanged = [weak, post, generation](std::string json) {
                         post([weak, generation, json = std::move(json)] {
                             if (auto self = weak.get(); self && !self->closing_ && self->pluginRuntime_ &&
