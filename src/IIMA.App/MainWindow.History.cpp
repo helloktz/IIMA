@@ -126,6 +126,7 @@ void MainWindow::OpenSelectedHistory(bool newWindow) {
     pendingFiles_.clear(); pendingAutoFileMatch_=false;
     CancelAutomaticFiles(); UpdateNetworkOpen(session_->Snapshot());
     inputResolving_=true;
+    UpdateInitialWindow();
     try {
         std::vector<std::wstring> inputs;
         for (auto const& path:paths) inputs.emplace_back(to_hstring(path));
@@ -170,6 +171,7 @@ void MainWindow::OpenSelectedHistory(bool newWindow) {
       catch (std::exception const& error) { inputResolving_=false; ShowError(to_hstring(error.what())); }
 }
 void MainWindow::RefreshHistory() {
+    UpdateInitialWindow(true);
     playerRecentMenuDirty_ = true;
     RefreshPlayerMenus();
     if (projectingHistory_) return;

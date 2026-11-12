@@ -54,6 +54,7 @@ void MainWindow::QueueFiles(std::vector<std::string> paths, bool append, bool us
     try {
     const bool singleSource = paths.size() == 1;
     inputResolving_ = true;
+    UpdateInitialWindow();
     std::vector<std::wstring> inputs;
     for (auto const& path : paths) inputs.emplace_back(to_hstring(path));
     auto weak = get_weak();

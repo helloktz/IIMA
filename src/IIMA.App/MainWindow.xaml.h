@@ -240,6 +240,13 @@ private:
     void WireVideoAdjustments();
     void UpdateVideoAdjustments(iima::PlaybackSnapshot const& state);
     bool projectingVideoAdjustments_{};
+    void WireInitialWindow();
+    bool InitialWindowEligible() const;
+    void UpdateInitialWindow(bool invalidate = false);
+    void OpenInitialHistory(iima::HistoryEntry entry, std::uint64_t epoch);
+    bool initialWindowVisible_{}, initialWindowResume_{};
+    std::uint64_t initialWindowEpoch_{};
+    std::vector<iima::HistoryEntry> initialWindowEntries_;
     void WireFilterEditor();
     void WireQuickLut();
     void UpdateQuickLut();

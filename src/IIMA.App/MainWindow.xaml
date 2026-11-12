@@ -8,6 +8,20 @@
     <Grid Grid.Row="1" x:Name="Root" Background="{ThemeResource IimaVideoBackgroundBrush}" RequestedTheme="Dark" AllowDrop="True">
         <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="300"/></Grid.ColumnDefinitions>
         <local:VideoSurface x:Name="VideoPanel" />
+        <Border x:Name="InitialWindowPanel" Visibility="Collapsed" Canvas.ZIndex="5"
+                HorizontalAlignment="Center" VerticalAlignment="Center" Margin="24" MaxWidth="520" MaxHeight="520"
+                Padding="20" Background="{ThemeResource IimaOverlayBackgroundBrush}" CornerRadius="8">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel Spacing="10">
+                    <TextBlock Text="开始播放" FontSize="24"/>
+                    <Button x:Name="InitialOpenFileButton" Content="打开文件…"/>
+                    <Button x:Name="InitialOpenUrlButton" Content="打开网络地址…"/>
+                    <TextBlock Text="最近播放" FontSize="18"/>
+                    <StackPanel x:Name="InitialRecentItems" Spacing="6"/>
+                    <TextBlock x:Name="InitialRecentHint" TextWrapping="Wrap"/>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
         <Border x:Name="FullscreenInformationBorder" Grid.Column="0" Visibility="Collapsed" Canvas.ZIndex="6"
                 HorizontalAlignment="Right" VerticalAlignment="Top" Margin="16" MaxWidth="360"
                 Background="{ThemeResource IimaOverlayBackgroundBrush}" CornerRadius="8" Padding="12" IsHitTestVisible="False">

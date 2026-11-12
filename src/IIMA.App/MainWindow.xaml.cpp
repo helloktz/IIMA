@@ -85,6 +85,7 @@ MainWindow::MainWindow()
     WireOnlineSubtitles();
     WireAudioControls();
     WireEqualizerEditor();
+    WireInitialWindow();
     WireUserDataControls();
     WireSettingsControls();
     WireAssociationControls();
@@ -139,6 +140,7 @@ winrt::fire_and_forget MainWindow::OpenFile(bool append, bool invertWindowPolicy
     auto lifetime = get_strong();
     if (closing_ || pickerOpen_) co_return;
     pickerOpen_ = true;
+    UpdateInitialWindow();
     try {
         Windows::Storage::Pickers::FileOpenPicker picker;
         HWND hwnd{};
@@ -153,6 +155,7 @@ winrt::fire_and_forget MainWindow::OpenFile(bool append, bool invertWindowPolicy
         }
     } catch (hresult_error const& error) { if (!closing_) ShowError(error.message()); }
     pickerOpen_ = false;
+    UpdateInitialWindow();
 }
 winrt::fire_and_forget MainWindow::OpenSubtitle()
 {
@@ -262,6 +265,7 @@ void MainWindow::BeginClose()
     SaveWindowPlacement();
     FinishInteractiveCrop(false, false);
     closing_ = true;
+    UpdateInitialWindow(true);
     ApplicationMenuBar().IsEnabled(false);
     CloseFullscreenInformation();
     CloseVideoCursor();

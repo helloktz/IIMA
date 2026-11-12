@@ -69,6 +69,7 @@ void MainWindow::WireUserDataControls()
         if (auto self = weak.get(); self && self->userDataLoaded_ && !self->updating_ && !self->closing_) {
             self->userData_.settings.recordHistory = self->RecordHistoryCheck().IsChecked().Value();
             self->userData_.settings.resumePosition = self->ResumeCheck().IsChecked().Value();
+            self->UpdateInitialWindow(true);
             self->MarkUserDataDirty();
         }
     };

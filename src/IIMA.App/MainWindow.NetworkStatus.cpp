@@ -39,6 +39,7 @@ void MainWindow::BindNetworkOpenAttempt(std::vector<std::string> const& paths,bo
     networkOpenIntent_=session_->Snapshot().mediaOpenIntentRevision+1;
 }
 void MainWindow::UpdateNetworkOpen(iima::PlaybackSnapshot const& state) {
+    UpdateInitialWindow();
     using Phase=iima::OpenAttemptPhase;
     if (closing_ || inputGeneration_!=networkOpenInputRevision_) networkOpenUrl_.clear();
     bool waiting=networkOpenPending_, redirect=false;

@@ -51,6 +51,7 @@ winrt::fire_and_forget MainWindow::OpenNetworkUrl(bool invertWindowPolicy, bool 
     };
     if (editFailedAttempt && !editCurrent()) co_return;
     pickerOpen_ = true;
+    UpdateInitialWindow();
     UpdateNetworkOpen(session_->Snapshot());
     try {
         Controls::ContentDialog dialog;
@@ -109,6 +110,7 @@ winrt::fire_and_forget MainWindow::OpenNetworkUrl(bool invertWindowPolicy, bool 
     } catch (...) { if (!closing_) ShowError(L"打开网络媒体失败。"); }
     openUrlDialog_ = nullptr;
     pickerOpen_ = false;
+    UpdateInitialWindow();
     if (!closing_) { UpdateNetworkOpen(session_->Snapshot()); OpenPendingFiles(); FlushActivation(); }
 }
 }

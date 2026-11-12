@@ -1191,3 +1191,10 @@ Windows新增只读`ReadFullscreenInformation`：GetTimeFormatEx按用户区域�
 - 新增受限结构化append，保留完整旧链并核对整链资源预算；替换保留原位置，导入启用快捷LUT。所有变更走EditFiltersWithCompletion的新鲜读/比较/写/读回，UI只根据实际观察显示状态和结果，不把提交命令当成功。
 - 异步picker/文件检查及提交前校验输入、媒体与队列/滤镜修订，单笔inflight防重复；换片后的旧回调不能更新新媒体的成功状态。mpv没有compare-and-swap，外部脚本仍可能在最后比较和写入之间竞争；未知结果不自动回滚或重试覆盖。
 - 文件格式是否有效由FFmpeg最终解码确认，不宣称扩展名验证等于LUT解析成功。仅静态实现/审阅、Git差异检查和数量统计，未编译、测试或运行。
+
+## 首次空窗口的最近项目入口（2026-11-12）
+
+- IINA InitialWindowController.loadLastPlaybackInfo/reloadData/openRecentItemFromTable → Windows首次空窗口中的打开文件、打开URL、继续播放及有限最近项目入口。继续项目仅来自最新历史记录，并要求记录与恢复偏好开启、已有可用性检查确认本地文件及有效未完成位置；最新项目缺失时不将更早项目冒称上次播放。
+- 复用既有异步HistoryAvailability缓存与单worker，不增加启动扫描器。Unknown不是存在或缺失；UNC、链接、离线及非固定盘不会通过该自动检查。点击再由regularMediaOnly解析器确认普通媒体文件，复验完整历史身份与输入/媒体/队列意图，随后进入当前窗口既有打开及恢复位置链，不另发seek。
+- 有意差异：不建立Cocoa独立欢迎窗口、系统最近文档或独立lastPlayed持久化；最近项目来自应用历史且禁用记录时隐藏。历史打开保持禁应用层同目录自动扩展的来源，区别于上游初始窗口openURL默认自动匹配。已使用窗口停止后不重新出现启动面板；多窗口历史仍为现有快照，不新增实时同步。
+- 本批仅静态实现/审阅、Git差异检查和数量统计，未编译、测试或运行。
