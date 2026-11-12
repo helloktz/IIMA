@@ -64,6 +64,7 @@ struct MpvEvent {
     MediaProperties properties;
     std::vector<WatchedPropertyValue> watchedProperties;
     std::vector<AudioDevice> audioDevices;
+    bool audioDevicesComplete{}; // Full valid array, never a truncated/partial parse.
     // Exact IDXGISwapChain interface, owning one reference; never a borrowed address.
     std::shared_ptr<void> swapChain;
 };
@@ -84,6 +85,8 @@ public:
     // Genuine async GET reply through mpv's event queue, not cached observation.
     std::uint64_t GetVideoGeometryAsync();
     std::uint64_t GetWindowScaleAsync();
+    // Serialized compare-before-set: recover only this still-missing selection.
+    std::uint64_t RecoverAudioDeviceAsync(std::string expectedDevice);
     // Read-only, serialized with commands. Does not install persistent observers.
     // Each property may fail independently. 0 means rejected before enqueue.
     std::uint64_t ReadWatchedPropertiesAsync(std::vector<std::string> names);

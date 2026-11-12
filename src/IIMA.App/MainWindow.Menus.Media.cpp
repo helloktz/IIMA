@@ -45,7 +45,7 @@ void MainWindow::FillAudioDeviceMenu(Controls::MenuFlyoutSubItem const& menu) {
     const auto revision = state.audioDevicesRevision;
     auto weak = get_weak();
     auto append = [&](std::string name, std::string description) {
-        auto item = MediaMenuItem(to_hstring(description.empty() ? name : description), enabled,
+        auto item = MediaMenuItem(to_hstring(description.empty() ? name : description), enabled && (name == "auto" || state.audioDevicesObserved),
             state.audioDeviceObserved && state.audioDevice == name);
         Controls::ToolTipService::SetToolTip(item, box_value(to_hstring(name)));
         item.Click([weak, generation, intent, revision, name, description](auto const&, auto const&) {
@@ -58,8 +58,8 @@ void MainWindow::FillAudioDeviceMenu(Controls::MenuFlyoutSubItem const& menu) {
                 current.audioDevicesRevision != revision || self->session_->PlaylistEditBusy()) {
                 self->ShowError(L"媒体或音频设备列表已变化，请重新打开设备菜单。"); return;
             }
-            if (name != "auto" && std::none_of(current.audioDevices.begin(), current.audioDevices.end(),
-                [&](auto const& device) { return device.name == name && device.description == description; })) {
+            if (name != "auto" && (!current.audioDevicesObserved || std::none_of(current.audioDevices.begin(), current.audioDevices.end(),
+                [&](auto const& device) { return device.name == name && device.description == description; }))) {
                 self->ShowError(L"此音频设备已不可用，请重新打开设备菜单。"); return;
             }
             // Same typed preference path as the existing audio-device selector.

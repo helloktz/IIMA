@@ -103,7 +103,11 @@ void ApplyPlaybackEvent(PlaybackSnapshot& s, MpvEvent const& e) {
         else if(e.name=="osd-dimensions") s.osdDimensions=e.properties;
         else if(e.name=="video-rotate") s.videoRotation=e.error>=0 ? e.integer : std::nullopt;
         else if(e.name=="audio-params") { s.audioParameters=e.properties; ++s.informationRevision; }
-        else if(e.name=="audio-device-list") { s.audioDevices=e.audioDevices; ++s.audioDevicesRevision; }
+        else if(e.name=="audio-device-list") {
+            const bool observed=e.error>=0 && e.audioDevicesComplete;
+            if (s.audioDevices!=e.audioDevices || s.audioDevicesObserved!=observed) ++s.audioDevicesRevision;
+            s.audioDevices=e.audioDevices; s.audioDevicesObserved=observed;
+        }
         else if(e.name=="audio-device") {
             s.audioDevice=e.text;
             s.audioDeviceObserved=e.error>=0 && !e.text.empty();

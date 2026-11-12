@@ -582,6 +582,12 @@ void PlayerSession::CancelWatchedProperties() {
 }
 void PlayerSession::OnEvent(MpvEvent e) {
     if(snapshot_.session==SessionState::Closing || snapshot_.session==SessionState::Closed) return;
+    // A newer user selection owns the outcome; a failed superseded fallback
+    // must not replace its error state or imply the user's selection failed.
+    if (e.kind==MpvEvent::Kind::CommandReply && audioDeviceRecovery_ &&
+        e.requestId==audioDeviceRecovery_ && audioDeviceRecoveryIntent_!=audioDeviceIntent_) {
+        e.error=0; e.text.clear();
+    }
     if (HandleWindowScaleEvent(e)) return;
     if (e.kind == MpvEvent::Kind::VideoGeometryReply) {
         if (!videoGeometryRequest_ || e.requestId != videoGeometryRequest_) return;
@@ -719,6 +725,7 @@ void PlayerSession::OnEvent(MpvEvent e) {
     const bool wasPlaying=!snapshot_.paused;
     ApplyPlaybackEvent(snapshot_,e);
     ObserveMediaOrigin(e);
+    UpdateAudioDeviceRecovery(e);
     const bool geometryWake = e.kind == MpvEvent::Kind::Restart ||
         (snapshot_.mediaPlaybackRestarted && (e.kind == MpvEvent::Kind::VideoReconfig ||
             (e.kind == MpvEvent::Kind::Property && e.name == "video-out-params")));
@@ -758,6 +765,7 @@ void PlayerSession::OnEvent(MpvEvent e) {
     if(e.kind==MpvEvent::Kind::Shutdown) CloseAsync();
 }
 void PlayerSession::CloseAsync(std::function<void()> completion) {
+    pendingAudioDevice_.reset(); audioDeviceWrite_=0; audioDeviceRecovery_=0;
     BeginMediaOriginIntent(false);
     subtitleEncodingRequest_=0; subtitleEncodingTracks_.clear();
     // Mark closing before cancellation so reentrant UI callbacks cannot enqueue work.

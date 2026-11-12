@@ -5,6 +5,7 @@
 #include <Windows.h>
 #include "include/mpv/client.h"
 #include <atomic>
+#include <algorithm>
 #include <deque>
 #include <mutex>
 #include <thread>
@@ -61,6 +62,7 @@ struct MpvClient::State {
         bool measureSeek{};
         bool videoGeometryQuery{};
         bool windowScaleQuery{};
+        std::optional<std::string> recoverAudioDevice;
     };
     std::deque<Request> commands;
     std::vector<std::function<void()>> closedCallbacks;
@@ -178,6 +180,39 @@ struct MpvClient::State {
                         { std::lock_guard lock(mutex); cancelled = closing; }
                         if (!cancelled) Emit(std::move(result));
                         continue;
+                    } else if (pending->recoverAudioDevice) {
+                        char* rawDevice{};
+                        error=api.get_property(handle,"audio-device",MPV_FORMAT_STRING,&rawDevice);
+                        std::unique_ptr<char,decltype(api.free)> device(rawDevice,api.free);
+                        bool matches=false;
+                        if (error>=0 && rawDevice) {
+                            std::size_t length{};
+                            while(length<=4096 && rawDevice[length]) ++length;
+                            matches=length<=4096 && std::string_view(rawDevice,length)==*pending->recoverAudioDevice;
+                        }
+                        MpvEvent list{MpvEvent::Kind::Property}; list.name="audio-device-list";
+                        if (error>=0 && matches) {
+                            mpv_node node{};
+                            error=api.get_property(handle,"audio-device-list",MPV_FORMAT_NODE,&node);
+                            auto release=[&](mpv_node* value) { api.free_node_contents(value); };
+                            std::unique_ptr<mpv_node,decltype(release)> owned(error>=0 ? &node : nullptr,release);
+                            if (error>=0) CopyCollectionProperty(list,node);
+                        }
+                        const bool missing=matches && list.audioDevicesComplete && !list.audioDevices.empty() &&
+                            std::none_of(list.audioDevices.begin(),list.audioDevices.end(),[&](auto const& item) {
+                                return item.name==*pending->recoverAudioDevice;
+                            });
+                        if (error>=0 && !missing) {
+                            MpvEvent skipped{MpvEvent::Kind::CommandReply}; skipped.requestId=request;
+                            Emit(std::move(skipped)); continue;
+                        }
+                        if (error>=0) {
+                            // UI device selections use this same serialized lane.
+                            // A newer selection queued after this check executes
+                            // after auto; one queued earlier defeats the compare.
+                            char const* args[]{"set","audio-device","auto",nullptr};
+                            error=api.command_async(handle,request,args);
+                        }
                     } else if (pending->filterEdit) {
                         auto name = pending->audioFilters ? "af" : "vf";
                         inFlightFilter = name;
@@ -448,6 +483,17 @@ std::uint64_t MpvClient::GetWindowScaleAsync() {
     State::Request request{state_->nextId++, {}, false};
     request.windowScaleQuery = true;
     const auto id = request.id;
+    state_->commands.push_back(std::move(request));
+    return id;
+}
+std::uint64_t MpvClient::RecoverAudioDeviceAsync(std::string expectedDevice) {
+    if(expectedDevice.empty() || expectedDevice=="auto" || expectedDevice.size()>4096 ||
+        expectedDevice.find('\0')!=std::string::npos) return 0;
+    std::lock_guard lock(state_->mutex);
+    if(state_->closing || !state_->started || state_->commands.size()>=256) return 0;
+    State::Request request{state_->nextId++,{},false};
+    request.recoverAudioDevice=std::move(expectedDevice);
+    const auto id=request.id;
     state_->commands.push_back(std::move(request));
     return id;
 }

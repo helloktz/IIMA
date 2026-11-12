@@ -25,8 +25,15 @@ void MainWindow::WireMediaInformation() {
     });
     AudioDeviceBox().SelectionChanged([weak](auto const&, auto const&) {
         if (auto self = weak.get(); self && !self->closing_ && !self->updating_)
-            if (auto item = self->AudioDeviceBox().SelectedItem().try_as<Controls::ComboBoxItem>())
-                self->ApplyAdvancedSetting("audioDevice", to_string(unbox_value<hstring>(item.Tag())));
+            if (auto item = self->AudioDeviceBox().SelectedItem().try_as<Controls::ComboBoxItem>()) {
+                auto name = to_string(unbox_value<hstring>(item.Tag()));
+                if (name != "auto" && !self->session_->Snapshot().audioDevicesObserved) {
+                    self->UpdateMediaInformation(self->session_->Snapshot());
+                    self->ShowError(L"音频设备列表尚未完整读取，请稍后重新选择。");
+                    return;
+                }
+                self->ApplyAdvancedSetting("audioDevice", std::move(name));
+            }
     });
 }
 void MainWindow::UpdateMediaInformation(iima::PlaybackSnapshot const& state) {
@@ -38,7 +45,7 @@ void MainWindow::UpdateMediaInformation(iima::PlaybackSnapshot const& state) {
         automatic.Content(box_value(L"系统默认音频输出")); automatic.Tag(box_value(L"auto")); box.Items().Append(automatic);
         std::set<std::string> inserted{"auto"};
         for (auto const& device : state.audioDevices) {
-            if (!inserted.insert(device.name).second) continue;
+            if (device.name.empty() || !inserted.insert(device.name).second) continue;
             Controls::ComboBoxItem item;
             item.Content(box_value(to_hstring(device.description.empty() ? device.name : device.description)));
             item.Tag(box_value(to_hstring(device.name))); box.Items().Append(item);
@@ -50,7 +57,8 @@ void MainWindow::UpdateMediaInformation(iima::PlaybackSnapshot const& state) {
     int selected = -1;
     for (std::uint32_t index = 0; index < AudioDeviceBox().Items().Size(); ++index) {
         auto item = AudioDeviceBox().Items().GetAt(index).as<Controls::ComboBoxItem>();
-        if (to_string(unbox_value<hstring>(item.Tag())) == state.audioDevice) selected = static_cast<int>(index);
+        if (state.audioDeviceObserved && to_string(unbox_value<hstring>(item.Tag())) == state.audioDevice)
+            selected = static_cast<int>(index);
     }
     AudioDeviceBox().SelectedIndex(selected);
     if (!MediaInformationExpander().IsExpanded() || informationRevision_ == state.informationRevision) return;

@@ -8,6 +8,7 @@
 #include <iomanip>
 #include <locale>
 #include <algorithm>
+#include <set>
 namespace iima {
 namespace {
 std::optional<std::size_t> BoundedLength(const char* text, std::size_t maximum) {
@@ -73,14 +74,28 @@ void CopyCollectionProperty(MpvEvent& e, mpv_node const& root) {
     }
     if(root.format!=MPV_FORMAT_NODE_ARRAY || !root.u.list || root.u.list->num<0 ||
        (root.u.list->num && !root.u.list->values)) return;
-    const int count=e.name=="audio-device-list" ? std::min(root.u.list->num,1024) : root.u.list->num;
+    if (e.name=="audio-device-list") {
+        // Absence from a partial list cannot prove that a device disappeared.
+        if (root.u.list->num > 1024) return;
+        std::set<std::string, std::less<>> names;
+        for (int i=0; i<root.u.list->num; ++i) {
+            auto const& node=root.u.list->values[i];
+            auto name=BoundedText(node,"name",4096);
+            auto description=BoundedText(node,"description",4096);
+            auto descField=Field(node,"description");
+            if (name.empty() || !names.insert(name).second || !descField ||
+                descField->format!=MPV_FORMAT_STRING || !BoundedLength(descField->u.string,4096)) {
+                e.audioDevices.clear(); return;
+            }
+            e.audioDevices.push_back({std::move(name),std::move(description)});
+        }
+        e.audioDevicesComplete=true;
+        return;
+    }
+    const int count=root.u.list->num;
     for(int i=0;i<count;++i) {
         auto const& node=root.u.list->values[i];
-        if(e.name=="audio-device-list") {
-            auto name = BoundedText(node,"name",4096), description = BoundedText(node,"description",4096);
-            if (!name.empty())
-                e.audioDevices.push_back({std::move(name), std::move(description)});
-        } else if(e.name=="playlist") {
+        if(e.name=="playlist") {
             auto id=Integer(node,"id"); if(!id) continue;
             e.playlist.push_back({*id,Text(node,"filename"),Text(node,"title"),Flag(node,"current")});
         } else if(e.name=="track-list") {

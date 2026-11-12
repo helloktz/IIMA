@@ -195,7 +195,7 @@ void MainWindow::ApplyAdvancedSetting(std::string const& key, iima::settings::Pr
     std::string error;
     if (!preferences_.Set(key, std::move(value), error)) { ShowError(to_hstring(error)); return; }
     userData_.settings.advancedPreferences = preferences_.Overrides();
-    session_->ApplyAdvancedPreferences(preferences_);
+    session_->ApplyAdvancedPreferences(preferences_, key == "audioDevice");
     UpdateControlBarPolicy();
     RefreshAccessibility();
     UpdateTimeDisplay(session_->Snapshot());

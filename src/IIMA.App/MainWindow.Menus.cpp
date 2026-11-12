@@ -262,7 +262,7 @@ void MainWindow::RefreshPlayerMenus(bool shortcuts) {
         << ':' << s.videoId.value_or(-9) << ':' << s.audioId.value_or(-9) << ':' << s.subtitleId.value_or(-9)
         << ':' << s.secondarySubtitleId.value_or(-9) << ':' << s.seekable << ':' << userDataLoaded_ << ':' << pickerOpen_
         << ':' << session_->PlaylistEditBusy() << ':' << s.audioDevicesRevision << ':' << s.audioDevice
-        << ':' << s.audioDeviceObserved << ':' << s.audioFilters.revision << ':' << s.videoFilters.revision
+        << ':' << s.audioDeviceObserved << ':' << s.audioDevicesObserved << ':' << s.audioFilters.revision << ':' << s.videoFilters.revision
         << ':' << s.audioFilters.complete << ':' << s.videoFilters.complete
         << ':' << savedFilterLibrary_.Revision() << ':' << interactiveCrop_.Active() << ':' << cropOriginal_.has_value();
     // Never replace an open menu's targets under the pointer. Its captured

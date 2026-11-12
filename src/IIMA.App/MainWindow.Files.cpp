@@ -30,9 +30,8 @@ void MainWindow::WireFileActions()
     OpenUrlAlternativeItem().Click([weak](auto const&, auto const&) {
         if (auto self = weak.get()) self->OpenNetworkUrl(true);
     });
-    Root().DragOver([](auto const&, DragEventArgs const& args) {
-        if (args.DataView().Contains(Windows::ApplicationModel::DataTransfer::StandardDataFormats::StorageItems()))
-            args.AcceptedOperation(Windows::ApplicationModel::DataTransfer::DataPackageOperation::Copy);
+    Root().DragOver([weak](auto const&, DragEventArgs const& args) {
+        if (auto self = weak.get()) self->DragOverFiles(args);
     });
     Root().Drop([weak](auto const&, DragEventArgs const& args) { if (auto self = weak.get()) self->DropFiles(args); });
     CopyScreenshotButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->SaveScreenshot(true); });
@@ -95,19 +94,6 @@ void MainWindow::OpenPendingFiles()
     }
     inputAssigned_ = true;
     session_->OpenMultiple(std::move(paths), pendingAppend_);
-}
-winrt::fire_and_forget MainWindow::DropFiles(DragEventArgs args)
-{
-    auto lifetime = get_strong();
-    if (closing_) co_return;
-    auto deferral = args.GetDeferral();
-    try {
-        auto items = co_await args.DataView().GetStorageItemsAsync();
-        std::vector<std::string> paths;
-        for (auto const& item : items) paths.push_back(to_string(item.Path()));
-        if (!closing_) QueueFiles(std::move(paths));
-    } catch (hresult_error const& error) { if (!closing_) ShowError(error.message()); }
-    deferral.Complete();
 }
 winrt::fire_and_forget MainWindow::SaveScreenshot(bool clipboardOnly)
 {

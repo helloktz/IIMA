@@ -450,6 +450,9 @@ private:
     void UpdateDiagnostics(iima::PlaybackSnapshot const& state);
     void CloseDiagnostics();
     void OpenPendingFiles();
+    void DragOverFiles(Microsoft::UI::Xaml::DragEventArgs const& args);
+    std::uint64_t dropReadGeneration_{};
+    std::stop_source dropResolveStop_;
     winrt::fire_and_forget DropFiles(Microsoft::UI::Xaml::DragEventArgs args);
     winrt::fire_and_forget SaveScreenshot(bool clipboardOnly = false);
     winrt::fire_and_forget FinishScreenshot(std::shared_ptr<iima::ScreenshotStaging> staging,

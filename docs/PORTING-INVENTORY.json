@@ -133,8 +133,11 @@
     {
       "source": "references/iina/iina/DraggingDetect.swift",
       "physicalLines": 239,
-      "coverage": "not-mapped",
-      "reviewTargets": []
+      "coverage": "partial-static-unverified",
+      "reviewTargets": [
+        "src/IIMA.App/MainWindow.Drop.cpp",
+        "src/IIMA.Core/Input/LocalInputPolicy.cpp"
+      ]
     },
     {
       "source": "references/iina/iina/DurationDisplayTextField.swift",
@@ -944,6 +947,7 @@
       "physicalLines": 3248,
       "coverage": "partial-static-unverified",
       "reviewTargets": [
+        "src/IIMA.Core/Playback/PlayerSession.AudioDevice.cpp",
         "src/IIMA.Core/Playback/PlayerSession.cpp",
         "src/IIMA.Core/Windows/PlayerWindowRegistry.cpp",
         "src/IIMA.App/App.xaml.cpp",

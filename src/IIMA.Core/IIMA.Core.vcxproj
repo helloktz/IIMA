@@ -117,6 +117,7 @@
     <ClInclude Include="Input\BindingLibrary.h" />
     <ClInclude Include="Input\BindingConfiguration.h" />
     <ClCompile Include="Playback\PlayerSession.Preferences.cpp" />
+    <ClCompile Include="Playback\PlayerSession.AudioDevice.cpp" />
     <ClCompile Include="Screenshots\ScreenshotOptions.cpp" />
     <ClInclude Include="Screenshots\ScreenshotOptions.h" />
     <ClCompile Include="Settings\PreferenceSchema.cpp" />

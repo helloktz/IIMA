@@ -6,7 +6,7 @@
 #include <iterator>
 
 namespace iima {
-void PlayerSession::ApplyAdvancedPreferences(settings::PreferenceStore const& preferences) {
+void PlayerSession::ApplyAdvancedPreferences(settings::PreferenceStore const& preferences, bool explicitAudioDevice) {
     // The store can only contain validated values. Capture desired preferences,
     // not a claim about what libmpv or the current decoder is actually using.
     const bool first=!hasAdvancedPreferences_;
@@ -15,11 +15,17 @@ void PlayerSession::ApplyAdvancedPreferences(settings::PreferenceStore const& pr
     advancedPreferences_=preferences;
     hasAdvancedPreferences_=true;
     if(snapshot_.session!=SessionState::Ready) {
+        startupAudioDeviceProtection_=startupAudioDeviceProtection_ || explicitAudioDevice;
         applyAdvancedOnReady_=snapshot_.session==SessionState::Initializing;
         return;
     }
+    if (explicitAudioDevice) SubmitAudioDevicePreference(preferences.String("audioDevice"));
     for(auto const& change:changes) {
         if(change.timing!=settings::ApplyTiming::Immediate) continue;
+        if (change.property=="audio-device") {
+            if (!explicitAudioDevice) SubmitAudioDevicePreference(change.value, !first);
+            continue;
+        }
         if(!client_->Command({"set",change.property,change.value})) {
             snapshot_.error="Player is closing; some advanced preferences were not submitted";
             Notify();
@@ -33,9 +39,13 @@ void PlayerSession::ApplyAdvancedPreferences(settings::PreferenceStore const& pr
 void PlayerSession::ApplyAdvancedPreferencesOnReady() {
     if(!applyAdvancedOnReady_ || !hasAdvancedPreferences_) return;
     applyAdvancedOnReady_=false;
+    const bool protectAudioDevice=startupAudioDeviceProtection_;
+    startupAudioDeviceProtection_=false;
     for(auto const& option:settings::MpvPreferenceOptions(advancedPreferences_)) {
-        if(option.timing==settings::ApplyTiming::Immediate)
-            client_->Command({"set",option.property,option.value});
+        if(option.timing==settings::ApplyTiming::Immediate) {
+            if (option.property=="audio-device") SubmitAudioDevicePreference(option.value, protectAudioDevice);
+            else client_->Command({"set",option.property,option.value});
+        }
     }
 }
 void PlayerSession::PrependNextMediaPreferences() {

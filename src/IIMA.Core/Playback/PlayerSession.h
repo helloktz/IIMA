@@ -108,7 +108,8 @@ public:
     // Immediate values are submitted now (or at Ready). NextMedia values are
     // submitted before the next explicit Open/Playlist switch, not at START_FILE.
     // This method does not claim that asynchronous commands succeeded.
-    void ApplyAdvancedPreferences(settings::PreferenceStore const& preferences);
+    void ApplyAdvancedPreferences(settings::PreferenceStore const& preferences,
+        bool explicitAudioDevice = false);
     void SetPauseWhenOpen(bool value);
     void SetAutoPlayNext(bool value);
     void SetMuted(bool value);
@@ -131,6 +132,13 @@ private:
     std::uint64_t subtitleEncodingRequest_{}, subtitleEncodingGeneration_{};
     std::vector<std::pair<std::int64_t, std::string>> subtitleEncodingTracks_;
     void Notify();
+    void SubmitAudioDevicePreference(std::string device, bool protectSelection = true);
+    void PumpAudioDevicePreference();
+    void UpdateAudioDeviceRecovery(MpvEvent const& event);
+    std::optional<std::string> pendingAudioDevice_;
+    bool pendingAudioDeviceProtection_{}, audioDeviceWriteProtection_{}, startupAudioDeviceProtection_{};
+    std::uint64_t audioDeviceIntent_{}, audioDeviceWrite_{}, audioDeviceRecovery_{};
+    std::uint64_t audioDeviceRecoveryIntent_{}, audioDeviceRecoveryListRevision_{};
     void PumpWindowScale();
     void BlockWindowScaleRetry();
     bool HandleWindowScaleEvent(MpvEvent const& event);
