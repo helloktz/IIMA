@@ -323,6 +323,11 @@ private:
     Microsoft::UI::Dispatching::DispatcherQueueTimer singleClickTimer_{nullptr};
     std::optional<std::int64_t> pendingClickAction_;
     std::uint64_t pendingClickEpoch_{};
+    void WireFullscreenInformation();
+    void UpdateFullscreenInformation(bool refreshTelemetry = false);
+    void CloseFullscreenInformation();
+    Microsoft::UI::Dispatching::DispatcherQueueTimer fullscreenInfoTimer_{nullptr};
+    std::optional<std::int64_t> fullscreenInfoVisibilityToken_;
     void WireControlBarVisibility();
     void ControlBarActivity();
     void UpdateControlBarPolicy();

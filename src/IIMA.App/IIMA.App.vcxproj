@@ -120,6 +120,9 @@
     <ClCompile Include="MainWindow.Network.cpp" />
     <ClCompile Include="MainWindow.OSD.cpp" />
     <ClCompile Include="MainWindow.Buffering.cpp" />
+    <ClCompile Include="MainWindow.FullscreenInformation.cpp" />
+    <ClCompile Include="Platform\FullscreenInformation.cpp" />
+    <ClInclude Include="Platform\FullscreenInformation.h" />
     <ClCompile Include="MainWindow.Playlist.cpp" />
     <ClCompile Include="MainWindow.MouseWheel.cpp" />
     <ClCompile Include="MainWindow.InteractiveCrop.cpp" />

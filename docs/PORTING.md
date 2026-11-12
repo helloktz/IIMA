@@ -848,3 +848,13 @@ MpvClient为首次自动请求标记测量窗口，在worker用steady_clock记�
 两个上游默认true偏好进入高级编辑/搜索；showBufferingThrobber在Windows也控制打开阶段。结束/失败/关闭、CompactOverlay及交互区域编辑隐藏浮层并停动画；正常播放不持续占位。以demuxer-via-network观察为准，未知时才按路径分类；网络路径未公布时不猜测打开状态。与上游一样不为本地普通seek显示该网络指示。未复现Cocoa模糊材质或全部区域排版，数值采用稳定小数点而非系统数值区域格式。
 
 未编译测试运行，缓存事件顺序、观察子属性支持及真实网络缓冲行为仍待Windows验证。
+
+## 第七十八批：全屏时间、电池及标题辅助信息
+
+`AdditionalInfoView.update`显示系统区域格式短时间、representedURL文件名/窗口标题及内部电池容量；`MainWindowController`将其加入fadeableViews，只在全屏且displayTimeAndBatteryInFullScreen=true时按控制栏显隐。Preference.swift默认false。本批保留该默认和可选行为，接入已存在的控制栏隐藏/恢复链。
+
+Windows新增只读`ReadFullscreenInformation`：GetTimeFormatEx按用户区域短时间，GetSystemPowerStatus读取电池。无电池、未知状态、超范围容量不显示电池，不把桌面机解释为0%或100%；充电位单独显示，不猜测剩余续航。应用浮层只在实际FullScreen presenter、已加载、非音乐/区域编辑、窗口活动且底栏可见时显示。底栏Visibility回调立即联动自动/手动隐藏，鼠标/键盘恢复控制栏时同步恢复；退出全屏/关闭隐藏并停定时器，关闭注销属性回调。
+
+可见期间一秒定时刷新本地时间与电源，暂停播放仍更新；隐藏时停止，不依赖高频time-pos轮询电源。标题本地只显示文件叶名，限制200 UTF-16单元并保护末尾代理项，过滤控制字符；网络媒体使用通用标签，避免将URL凭据或私密参数投射到全屏。与上游使用实际网络标题不同，为隐私刻意收窄。浮层无交互，不拦截播放器输入，不每秒作为辅助技术live-region播报。
+
+新偏好进入高级编辑和搜索。不复制Cocoa图标、玻璃材质、动画或macOS电源源列表，Windows显示系统汇总电池信息。未编译测试运行。

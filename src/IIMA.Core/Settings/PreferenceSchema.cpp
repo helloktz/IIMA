@@ -109,6 +109,7 @@ std::span<PreferenceDescriptor const> PreferenceSchema() {
         B("groupSimultaneousOpensInPlaylist",Area::Window,false),
         B("allowDuplicatePlayers",Area::Window,false),
         B("fullScreenWhenOpen",Area::Window,false),
+        B("displayTimeAndBatteryInFullScreen",Area::Window,false),
         B("autoSwitchToMusicMode",Area::Window,true),
         B("musicModeShowPlaylist",Area::Window,false),
         B("musicModeShowAlbumArt",Area::Window,true),

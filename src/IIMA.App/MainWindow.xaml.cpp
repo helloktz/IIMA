@@ -51,6 +51,7 @@ MainWindow::MainWindow()
     WirePluginPointer();
     WireMouseWheel();
     WireControlBarVisibility();
+    WireFullscreenInformation();
     WireMouseClicks();
     WireTimeDisplay();
     WireInteractiveCrop();
@@ -209,6 +210,7 @@ void MainWindow::Apply(iima::PlaybackSnapshot const& state)
     UpdateOnlineSubtitleMedia(state);
     ApplySettingsSnapshot(state);
     UpdateDiagnostics(state);
+    UpdateFullscreenInformation();
     UpdateOSD(state);
     UpdateBufferingIndicator(state);
     UpdateControlBarPolicy();
@@ -260,6 +262,7 @@ void MainWindow::BeginClose()
     SaveWindowPlacement();
     FinishInteractiveCrop(false, false);
     closing_ = true;
+    CloseFullscreenInformation();
     BufferingSpinner().IsActive(false); BufferingOverlay().Visibility(Visibility::Collapsed);
     recordingBindingKey_ = false;
     if (jumpDialog_) jumpDialog_.Hide();

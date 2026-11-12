@@ -82,6 +82,7 @@ void MainWindow::ControlBarActivity() {
 void MainWindow::UpdateControlBarPolicy() {
     if (!controlBarTimer_ || closing_) return;
     UpdateBufferingIndicator(session_->Snapshot());
+    UpdateFullscreenInformation();
     const bool compact = AppWindow().Presenter().Kind() ==
         Microsoft::UI::Windowing::AppWindowPresenterKind::CompactOverlay;
     if (compact || interactiveCrop_.Active() || cropOriginal_) {

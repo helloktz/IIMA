@@ -4,6 +4,17 @@
     <Grid x:Name="Root" Background="Black" RequestedTheme="Dark" AllowDrop="True">
         <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="300"/></Grid.ColumnDefinitions>
         <SwapChainPanel x:Name="VideoPanel" />
+        <Border x:Name="FullscreenInformationBorder" Grid.Column="0" Visibility="Collapsed" Canvas.ZIndex="6"
+                HorizontalAlignment="Right" VerticalAlignment="Top" Margin="16" MaxWidth="360"
+                Background="#D9202020" CornerRadius="8" Padding="12" IsHitTestVisible="False">
+            <StackPanel Spacing="6">
+                <TextBlock x:Name="FullscreenInformationTitle" FontSize="18" TextTrimming="CharacterEllipsis" MaxLines="1"/>
+                <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
+                    <TextBlock x:Name="FullscreenClockText" FontSize="18" AutomationProperties.Name="当前本地时间"/>
+                    <TextBlock x:Name="FullscreenBatteryText" FontSize="14"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
         <Border x:Name="BufferingOverlay" Grid.Column="0" Visibility="Collapsed" Canvas.ZIndex="7"
                 HorizontalAlignment="Center" VerticalAlignment="Center" MinWidth="180" MaxWidth="300"
                 Background="#E6202020" CornerRadius="8" Padding="16" IsHitTestVisible="False">
