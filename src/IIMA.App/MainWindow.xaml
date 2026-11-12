@@ -84,6 +84,22 @@
         </Border>
         <Button x:Name="ExitCompactOverlayButton" Content="返回播放器" Visibility="Collapsed"
                 HorizontalAlignment="Right" VerticalAlignment="Top" Canvas.ZIndex="10"/>
+        <Border x:Name="CompactOverlayControls" Visibility="Collapsed" Canvas.ZIndex="10"
+                VerticalAlignment="Bottom" Margin="6" Padding="6" CornerRadius="6"
+                Background="{ThemeResource IimaOverlayBackgroundBrush}">
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled"
+                          HorizontalScrollMode="Enabled" VerticalScrollMode="Disabled">
+                <StackPanel Spacing="4">
+                    <TextBlock x:Name="CompactTimeText" Text="--:-- / --:--" FontSize="12"/>
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <Button x:Name="CompactBackButton" Content="−10秒" Padding="6,4" AutomationProperties.Name="后退10秒"/>
+                        <Button x:Name="CompactPlayPauseButton" Content="播放" Padding="6,4"/>
+                        <Button x:Name="CompactForwardButton" Content="+10秒" Padding="6,4" AutomationProperties.Name="前进10秒"/>
+                        <Button x:Name="CompactPauseReturnButton" Content="暂停并返回" Padding="6,4"/>
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
         <TextBlock x:Name="EmptyLabel" Text="打开视频，开始播放" Foreground="{ThemeResource IimaTextBrush}"
                    HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="24" />
         <Border x:Name="OSDBorder" Visibility="Collapsed" Background="{ThemeResource IimaOverlayBackgroundBrush}" Padding="12"

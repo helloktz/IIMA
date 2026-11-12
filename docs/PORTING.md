@@ -1247,3 +1247,11 @@ Windows新增只读`ReadFullscreenInformation`：GetTimeFormatEx按用户区域�
 - 自定义Slider跟踪入口在默认ValueChanged之前启动；原生Thumb与轨道点击结束归并，防止一次输入多次收尾。拖动时控制条不自动隐藏、旧缩略图失效；播放上下文或窗口模式变化撤销旧草稿。此实现不增加独立视频窗口或乐观修改PlaybackSnapshot。
 - 限制：mpv无跨客户端pause比较交换，外部同值暂停可能没有属性事件；本应用可控命令路径撤权，不能声称识别所有第三方同值意图。取消只能阻止尚未提交的恢复，已进入mpv命令队列的恢复无法撤回。原生事件顺序、暂停/seek实际响应仍待Windows验证。
 - 本批仅静态实现/审阅、Git差异检查及数量统计，未编译、测试或运行。
+
+## CompactOverlay播放控制（2026-11-12）
+
+- IINA MainWindowController.enterPIP、pipActionPlay/Pause/Stop、pipAction(skipInterval)、syncPIPPlaybackState → WinUI CompactOverlay专用播放条与观察状态投影。上游pipActionStop仅暂停，因此Windows按钮明确为“暂停并返回”，不执行stop、不卸载媒体；普通返回仅改变窗口呈现，退出不自动恢复。
+- Windows原生CompactOverlay不自动提供IINA的系统PiP媒体按钮，本批在同一视频窗口加入播放/暂停、固定前后10秒及时间信息。相对跳转走既有typed relative命令；状态来自PlaybackSnapshot，不乐观修改播放真相。固定跳转间隔是平台适配，不声称完整复制macOS动态skipInterval。
+- pauseWhenPip为默认false的真实偏好，仅成功进入小窗后对仍相同的已加载媒体请求暂停，失败或退出不套用。小窗与普通模式共用播放器、交换链及生命周期策略，不创建第二个视频窗口，也不模拟隐藏原窗口的windowBehaviorWhenPip。
+- 本批不新增独立的PiP前窗口几何恢复记录，退出仍依赖WinUI默认Presenter恢复；最大化、跨屏/DPI的完整恢复及音乐/FitToScreen等旁路的统一出口仍是后续缺口。
+- 本批仅静态实现/审阅、Git差异检查及数量统计，未编译、测试或运行；原生呈现切换、焦点、极小尺寸及键盘交互仍待Windows验证。

@@ -236,6 +236,7 @@ void MainWindow::Apply(iima::PlaybackSnapshot const& state)
     bool loaded = state.media == iima::MediaState::Loaded || state.media == iima::MediaState::Ended;
     PauseButton().IsEnabled(loaded && outputReady);
     PauseButton().Content(box_value(state.paused ? L"播放" : L"暂停"));
+    UpdateCompactOverlayControls();
     auto seekable = loaded && state.seekable && state.duration && *state.duration > 0;
     PositionSlider().IsEnabled(seekable && outputReady);
     UpdateScrubbing();

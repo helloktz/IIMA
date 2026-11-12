@@ -122,6 +122,7 @@ std::span<PreferenceDescriptor const> PreferenceSchema() {
         B("musicModeShowPlaylist",Area::Window,false),
         B("musicModeShowAlbumArt",Area::Window,true),
         B("alwaysFloatOnTop",Area::Window,false),
+        B("pauseWhenPip",Area::Window,false),
         B("pauseWhenMinimized",Area::Window,false),
         B("pauseWhenInactive",Area::Window,false),
         B("pauseWhenGoesToSleep",Area::Window,true),

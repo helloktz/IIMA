@@ -26,7 +26,7 @@ bool HasApplicationAdapter(std::string_view key) {
     static const std::set<std::string_view> keys{
         "playlistAutoAdd", "subAutoLoadIINA", "subAutoLoadPriorityString", "subAutoLoadSearchPath", "initialWindowSizePosition", "enableInitialVolume", "initialVolume", "alwaysOpenInNewWindow", "groupSimultaneousOpensInPlaylist", "allowDuplicatePlayers",
         "autoSwitchToMusicMode", "musicModeShowPlaylist", "musicModeShowAlbumArt",
-        "resizeWindowTiming", "resizeWindowOption", "usePhysicalResolution", "unlockWindowAspectRatio", "preventScreenSaver", "allowScreenSaverForAudio", "pauseWhenInactive", "pauseWhenMinimized", "pauseWhenGoesToSleep", "enableThumbnailPreview", "thumbnailWidth", "maxThumbnailPreviewCacheSize",
+        "resizeWindowTiming", "resizeWindowOption", "usePhysicalResolution", "unlockWindowAspectRatio", "preventScreenSaver", "allowScreenSaverForAudio", "pauseWhenPip", "pauseWhenInactive", "pauseWhenMinimized", "pauseWhenGoesToSleep", "enableThumbnailPreview", "thumbnailWidth", "maxThumbnailPreviewCacheSize",
         "displayTimeAndBatteryInFullScreen", "alwaysFloatOnTop", "fullScreenWhenOpen", "playWhenEnteringFullScreen", "pauseWhenLeavingFullScreen",
         "singleClickAction", "doubleClickAction", "rightClickAction", "verticalScrollAction", "horizontalScrollAction", "disablePlaySliderScrolling", "disableVolumeSliderScrolling",
         "relativeSeekAmount", "playbackSpeedScrollAmount", "wheelExactSeek", "enableControlBarAutoHide", "controlBarAutoHideTimeout", "controlBarToolbarButtons", "oscPosition", "controlBarPositionHorizontal", "controlBarPositionVertical", "controlBarStickToCenter",

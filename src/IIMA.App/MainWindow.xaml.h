@@ -435,6 +435,10 @@ private:
     bool KeyboardPlaybackAllowed() const;
     void UpdateOSD(iima::PlaybackSnapshot const& state);
     void UpdatePresentationLayout();
+    void WireCompactOverlayControls();
+    void UpdateCompactOverlayControls();
+    bool CompactTransportAvailable();
+    bool compactTransition_{};
     void ExecuteApplicationCommand(iima::ApplicationCommand command);
     void ApplyCollections(iima::PlaybackSnapshot const& state);
     void PlaySelected();

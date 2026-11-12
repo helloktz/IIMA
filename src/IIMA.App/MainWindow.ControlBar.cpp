@@ -88,6 +88,7 @@ void MainWindow::UpdateControlBarPolicy() {
     if (!controlBarTimer_ || closing_) return;
     UpdateScrubbing();
     UpdateControlBarToolbar();
+    UpdateCompactOverlayControls();
     UpdateControlBarLayout();
     UpdateVideoCursor();
     UpdateBufferingIndicator(session_->Snapshot());

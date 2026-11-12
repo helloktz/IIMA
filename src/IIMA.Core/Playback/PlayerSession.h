@@ -30,6 +30,7 @@ public:
     MpvLogSnapshot SnapshotMpvLogs() const { return client_->SnapshotMpvLogs(); }
     // Only a presenter with a verified owned swapchain lifetime may grant this.
     void SetPresentationReady(bool ready);
+    bool PresentationReady() const noexcept { return presentationReady_; }
     void Open(std::string utf8Path);
     bool CancelNetworkOpen(std::uint64_t expectedIntent);
     void OpenMultiple(std::vector<std::string> paths, bool append = false);
