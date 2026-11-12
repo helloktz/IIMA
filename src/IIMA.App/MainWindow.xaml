@@ -4,6 +4,32 @@
     <Grid x:Name="Root" Background="Black" RequestedTheme="Dark" AllowDrop="True">
         <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="300"/></Grid.ColumnDefinitions>
         <SwapChainPanel x:Name="VideoPanel" />
+        <Canvas x:Name="InteractiveCropCanvas" Background="Transparent" Visibility="Collapsed" Canvas.ZIndex="20">
+            <Border x:Name="InteractiveCropRectangle" BorderBrush="Yellow" BorderThickness="2" IsHitTestVisible="False"/>
+        </Canvas>
+        <Border x:Name="InteractiveCropToolbar" Grid.Column="1" Background="#FF242424" Padding="12"
+                Visibility="Collapsed" Canvas.ZIndex="21">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="10">
+                <TextBlock Text="交互裁剪" FontSize="22"/>
+                <TextBlock Text="拖动边缘或角点调整；内部拖动移动；外部拖动新建。Enter确认，Esc取消。" TextWrapping="Wrap"/>
+                <TextBlock x:Name="InteractiveCropStatus" TextWrapping="Wrap"/>
+                <ComboBox x:Name="InteractiveCropAspect" Header="居中比例" SelectedIndex="0">
+                    <ComboBoxItem Content="全画面"/><ComboBoxItem Content="4:3"/><ComboBoxItem Content="16:9"/>
+                    <ComboBoxItem Content="16:10"/><ComboBoxItem Content="21:9"/><ComboBoxItem Content="3:2"/><ComboBoxItem Content="5:4"/>
+                </ComboBox>
+                <Button x:Name="InteractiveCropAspectButton" Content="应用比例到草稿"/>
+                <NumberBox x:Name="InteractiveCropX" Header="X（源像素）" Minimum="0"/>
+                <NumberBox x:Name="InteractiveCropY" Header="Y（源像素）" Minimum="0"/>
+                <NumberBox x:Name="InteractiveCropWidth" Header="宽（源像素）" Minimum="1"/>
+                <NumberBox x:Name="InteractiveCropHeight" Header="高（源像素）" Minimum="1"/>
+                <Button x:Name="InteractiveCropNumbersButton" Content="更新坐标草稿"/>
+                <CheckBox x:Name="InteractiveCropResume" Content="退出时恢复进入前的播放状态" IsChecked="True"/>
+                <Button x:Name="InteractiveCropConfirmButton" Content="确认裁剪"/>
+                <Button x:Name="InteractiveCropCancelButton" Content="取消"/>
+            </StackPanel>
+            </ScrollViewer>
+        </Border>
         <Button x:Name="ExitCompactOverlayButton" Content="返回播放器" Visibility="Collapsed"
                 HorizontalAlignment="Right" VerticalAlignment="Top" Canvas.ZIndex="10"/>
         <TextBlock x:Name="EmptyLabel" Text="打开视频，开始播放" Foreground="White"
@@ -317,6 +343,7 @@
                         <Expander Header="源像素裁剪" HorizontalAlignment="Stretch">
                             <StackPanel Spacing="6">
                                 <Button x:Name="LoadCropSizeButton" Content="读取当前视频尺寸"/>
+                                <Button x:Name="StartInteractiveCropButton" Content="在视频上交互裁剪…"/>
                                 <TextBox x:Name="CropAspectText" Header="居中比例（源像素）" PlaceholderText="16:9、4:3、1:1、2.35:1"/>
                                 <Button x:Name="PrepareCropAspectButton" Content="生成比例裁剪草稿"/>
                                 <TextBlock x:Name="CropSourceLabel" TextWrapping="Wrap"/>

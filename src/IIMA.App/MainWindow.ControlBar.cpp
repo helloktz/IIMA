@@ -83,7 +83,7 @@ void MainWindow::UpdateControlBarPolicy() {
     if (!controlBarTimer_ || closing_) return;
     const bool compact = AppWindow().Presenter().Kind() ==
         Microsoft::UI::Windowing::AppWindowPresenterKind::CompactOverlay;
-    if (compact) {
+    if (compact || interactiveCrop_.Active()) {
         controlBarTimer_.Stop(); controlBarHovered_ = false;
         BottomControlsBorder().Visibility(Visibility::Collapsed); return;
     }

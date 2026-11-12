@@ -88,12 +88,12 @@ struct MpvClient::State {
                 check(api.observe_property(handle, id++, name, MPV_FORMAT_FLAG), name);
             for(auto const* name : {"path", "mpv-version", "current-tracks/video/codec-desc", "hwdec", "hwdec-current", "current-vo", "loop-file", "loop-playlist", "keep-open", "ab-loop-count", "media-title", "audio-device", "deinterlace", "sub-codepage", "sub-font", "sub-font-size", "sub-bold", "sub-italic", "sub-color", "sub-outline-color", "sub-outline-size", "sub-back-color"})
                 check(api.observe_property(handle,id++,name,MPV_FORMAT_STRING),name);
-            for(auto const* name : {"playlist", "track-list", "chapter-list", "metadata", "video-params", "audio-params", "audio-device-list", "vf", "af"})
+            for(auto const* name : {"playlist", "track-list", "chapter-list", "metadata", "video-params", "video-out-params", "osd-dimensions", "audio-params", "audio-device-list", "vf", "af"})
                 check(api.observe_property(handle,id++,name,MPV_FORMAT_NODE),name);
             // IINA MPVController observes selection/chapter/equalizers as
             // INT64. Selection has mpv's -2=no/-1=auto sentinels; equalizers
             // use -100..100. Unavailable observations remain unknown.
-            for (auto const* name : {"chapter", "vid", "aid", "sid", "secondary-sid", "brightness", "contrast", "saturation", "gamma", "hue"})
+            for (auto const* name : {"video-rotate", "chapter", "vid", "aid", "sid", "secondary-sid", "brightness", "contrast", "saturation", "gamma", "hue"})
                 check(api.observe_property(handle, id++, name, MPV_FORMAT_INT64), name);
             MpvEvent ready{MpvEvent::Kind::Ready}; ready.flag=api.acquireSwapChain!=nullptr; ready.integer=api.client_api_version(); Emit(std::move(ready));
             std::uint64_t inFlight{};

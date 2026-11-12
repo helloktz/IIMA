@@ -53,6 +53,7 @@ MainWindow::MainWindow()
     WireControlBarVisibility();
     WireMouseClicks();
     WireTimeDisplay();
+    WireInteractiveCrop();
     WireOSD();
     WireAdvancedPlayback();
     OpenButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->ExecuteApplicationCommand(iima::ApplicationCommand::OpenFile); });
@@ -208,6 +209,7 @@ void MainWindow::Apply(iima::PlaybackSnapshot const& state)
     UpdateDiagnostics(state);
     UpdateOSD(state);
     UpdateControlBarPolicy();
+    UpdateInteractiveCrop(state);
     UpdatePlugin(state);
     ApplyUserData(state);
     OpenPendingFiles();
@@ -253,6 +255,7 @@ void MainWindow::BeginClose()
     if (closing_) { FinishClose(); return; }
     CapturePlacement();
     SaveWindowPlacement();
+    FinishInteractiveCrop(false, false);
     closing_ = true;
     recordingBindingKey_ = false;
     if (jumpDialog_) jumpDialog_.Hide();

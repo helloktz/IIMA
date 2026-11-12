@@ -40,6 +40,8 @@ struct PlaybackSnapshot {
     bool seekable{};
     std::string mediaTitle, metadataTitle, metadataAlbum, metadataArtist;
     MediaProperties metadata, videoParameters, audioParameters;
+    MediaProperties videoOutputParameters, osdDimensions;
+    std::optional<std::int64_t> videoRotation;
     std::optional<double> videoBitrate, audioBitrate, fileSize;
     std::vector<AudioDevice> audioDevices;
     std::string audioDevice{"auto"};

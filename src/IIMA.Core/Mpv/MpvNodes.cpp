@@ -45,7 +45,7 @@ void CopyCollectionProperty(MpvEvent& e, mpv_node const& root) {
         e.filters = ParseFilterChain(root);
         return;
     }
-    if (e.name == "metadata" || e.name == "video-params" || e.name == "audio-params") {
+    if (e.name == "metadata" || e.name == "video-params" || e.name == "video-out-params" || e.name == "osd-dimensions" || e.name == "audio-params") {
         if (root.format != MPV_FORMAT_NODE_MAP || !root.u.list || root.u.list->num < 0 ||
             !root.u.list->keys || !root.u.list->values) return;
         std::size_t budget = 256 * 1024;

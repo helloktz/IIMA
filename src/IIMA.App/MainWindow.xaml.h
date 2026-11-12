@@ -5,6 +5,7 @@
 #include "../IIMA.Core/Input/BindingConfiguration.h"
 #include "../IIMA.Core/OSD/PlaybackOSD.h"
 #include "../IIMA.Core/Filters/FilterPresets.h"
+#include "../IIMA.Core/Geometry/CropSelection.h"
 #include "Presentation/VideoPresenter.h"
 #include "../IIMA.Core/Windows/MusicModePolicy.h"
 #include <winrt/Windows.Graphics.h>
@@ -274,6 +275,19 @@ private:
     void UpdatePlaylistSelection();
     void WirePlaylistDrag();
     void WireMouseWheel();
+    void WireInteractiveCrop();
+    void StartInteractiveCrop();
+    void FinishInteractiveCrop(bool commit, bool restorePlayback = true);
+    void UpdateInteractiveCrop(iima::PlaybackSnapshot const& state);
+    void PaintInteractiveCrop();
+    std::optional<iima::CropMapping> InteractiveCropMapping() const;
+    iima::CropSelection interactiveCrop_;
+    std::optional<iima::CropMapping> cropMapping_;
+    std::optional<std::uint32_t> cropPointer_;
+    std::uint64_t interactiveCropEpoch_{}, interactiveCropFilterRevision_{};
+    std::int64_t interactiveCropEntry_{-1};
+    bool interactiveCropWasPlaying_{};
+    std::vector<Microsoft::UI::Xaml::Controls::Border> cropHandles_;
     void WireTimeDisplay();
     void UpdateTimeDisplay(iima::PlaybackSnapshot const& state);
     void WireMouseClicks();
