@@ -61,6 +61,7 @@ private:
     std::uint64_t pauseRequest_{}, loadRequest_{};
     std::int64_t expectedEntry_{-1};
     bool resumePending_{};
+    bool transitionIssued_{}, waitingForStart_{}, loadReturnsEntry_{};
     std::vector<std::vector<std::string>> pendingCommands_;
 };
 }

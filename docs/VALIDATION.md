@@ -106,3 +106,14 @@ Windows 新增验收步骤：
 ## 大列表进度投影收尾
 
 源级审阅发现每次 time-pos 更新会比较整个列表，历史采样还复制完整 PlaybackSnapshot。现改为集合 revision 驱动 UI/SMTC 更新，历史只保留 entryId/path/position/duration 标量；纯归约测试确认无关进度/时长事件不改变列表 revision。七组 portable tests 再次通过。此项消除可见的 O(n) 高频比较/拷贝，不代替真实大列表 WinUI 性能测试；列表本身改变时仍需重建对应 UI 项。
+
+## 手动换片事务回归（2026-11-12）
+
+限定 goal：完成可在云端验证的手动换片暂停/恢复事务修复，不扩展为 Windows 播放完成。
+
+- 新回归测试配合修复前 `PlayerSession.cpp`：失败于“重选当前项、旧交换链重新绑定后不得恢复”的断言，证实原缺陷可重现。
+- 修复后 `python3 scripts/test-portable.py`：七组通过，player-session 新增同项重播、事件/回复两种顺序、失败和提交拒绝、快速替换、迟到回复、暂停/Stop/Close 取消场景。
+- `python3 scripts/check-source.py` 与 `git diff --check`：通过。
+- 未执行 Windows/MSVC/XAML、真实 libmpv、GPU/音视频测试。以上测试使用 MpvClient 替身，检验会话发出的命令，不是实际播放证据。
+
+Windows 后续验收：播放 A 后重新双击 A，在加载期间反复缩放；快速选择 B、C；加载损坏/不存在文件；换片尚未就绪时暂停、停止或关闭。记录命令回复、START_FILE/FILE_LOADED 和交换链绑定次序，确认旧画面不提前恢复，失败有错误提示，取消后无意外播放且正常退出。

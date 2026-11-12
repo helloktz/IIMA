@@ -107,3 +107,13 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 ## 有界本地诊断
 
 `DiagnosticLog` 在后台串行写 `%LOCALAPPDATA%/IIMA/logs`，队列最多256条，单项截断512字节，文件1MiB轮转保留两份。关闭等待flush；日志失败不阻断播放。不发送遥测，不记录媒体路径/带令牌URL/用户配置，只记录生命周期、API/实际mpv版本、codec、hwdec和VO等技术状态变化。纯测试覆盖轮转、flush、关闭后拒绝写。
+
+## 手动换片异步事务修复（2026-11-12）
+
+目标：手动打开和播放列表切换不因旧画面重新绑定或迟到命令回复而提前自动恢复。
+
+- 来源：IINA `PlayerCore.openMainWindow` 先暂停再加载；`playFileInPlaylist` 使用 `playlist-play-index`，即使选中当前条目也重新加载；`navigateInPlaylist` 暂停后切换；`notifyWindowVideoSizeChanged` 在媒体加载且画面就绪后按 `pauseWhenOpen` 恢复。默认自动恢复；手动暂停取消本次恢复。
+- mpv 契约：`client.h` 异步请求的 `reply_userdata` 关联命令结果；命令成功不等于 `START_FILE` / `FILE_LOADED` 已发生。`loadfile` 返回条目 ID，播放列表切换沿用已知目标 ID。保持 MpvClient 的命令串行化，不改变参考快照。
+- 修复：PlayerSession 原先只跟踪 `loadfile` 回复，未跟踪播放列表切换回复；重选当前项时旧 Loaded 状态和旧交换链可能满足恢复条件。现在同时等待暂停成功、切换成功、新 START_FILE、目标 Loaded 与当前呈现绑定；回复和生命周期事件可先后互换。图形恢复分支不能覆盖正在进行的手动切换事务。失败、被更新请求取代、用户暂停、Stop、Close 不再由旧成功回复恢复。
+- Windows 差异：将 IINA 的同步命令与窗口尺寸回调转为异步命令 ID、生命周期门闩和拥有型交换链绑定确认，不用 macOS display link。此处只验证纯 C++ 会话协议，不证明真实 libmpv/WinUI 事件集成。
+- 回归覆盖：当前项重播、事件先于回复、回复先于事件、暂停/加载/切换失败、提交被拒绝、A→B→C 快速替换、过期暂停回复、用户暂停/Stop/Close 取消。新测试对修复前源码能稳定触发提前恢复断言，修复后通过。
