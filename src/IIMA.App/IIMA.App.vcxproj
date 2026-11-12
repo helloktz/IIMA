@@ -111,6 +111,8 @@
     <ClCompile Include="MainWindow.AutomaticVideoSize.cpp" />
     <ClCompile Include="MainWindow.Fullscreen.cpp" />
     <ClCompile Include="MainWindow.WindowScale.cpp" />
+    <ClCompile Include="MainWindow.Menus.cpp" />
+    <ClCompile Include="MainWindow.Menus.Dynamic.cpp" />
     <ClCompile Include="MainWindow.VideoAdjustments.cpp" />
   </ItemGroup>
   <ItemGroup>

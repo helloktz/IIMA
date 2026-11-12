@@ -103,6 +103,8 @@ void MainWindow::OpenSelectedHistory() {
     if (!paths.empty()) QueueFiles(std::move(paths));
 }
 void MainWindow::RefreshHistory() {
+    playerRecentMenuDirty_ = true;
+    RefreshPlayerMenus();
     if (projectingHistory_) return;
     auto rows = SelectedHistoryRows();
     auto selection = iima::SelectHistoryRows(historyProjection_, rows);

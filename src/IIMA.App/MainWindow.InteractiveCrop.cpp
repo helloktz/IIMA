@@ -227,6 +227,7 @@ void MainWindow::StartInteractiveCrop() {
     InteractiveCropCanvas().IsEnabled(true);
     InteractiveCropConfirmButton().IsEnabled(true);
     PlayerSidebar().IsEnabled(false);
+    RefreshPlayerMenus();
     InteractiveCropCanvas().Visibility(Visibility::Visible);
     InteractiveCropToolbar().Visibility(Visibility::Visible);
     InteractiveCropCancelButton().Focus(FocusState::Programmatic);
@@ -319,6 +320,7 @@ void MainWindow::FinishInteractiveCrop(bool commit, bool restorePlayback) {
     InteractiveCropCanvas().Visibility(Visibility::Collapsed);
     InteractiveCropToolbar().Visibility(Visibility::Collapsed);
     PlayerSidebar().IsEnabled(true);
+    RefreshPlayerMenus();
     if (commit && !closing_) ShowError(L"区域编辑事务已失效，未提交滤镜。");
     if (resume) session_->Pause(false);
     ControlBarActivity();

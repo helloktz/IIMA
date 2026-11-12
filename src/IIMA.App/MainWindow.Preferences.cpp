@@ -213,6 +213,7 @@ void MainWindow::ApplyAdvancedSetting(std::string const& key, iima::settings::Pr
 void MainWindow::ApplyWindowPreferences() {
     try {
         UpdateFullscreenInformation();
+        RefreshPlayerMenus();
         if (auto presenter = AppWindow().Presenter().try_as<Microsoft::UI::Windowing::OverlappedPresenter>())
             presenter.IsAlwaysOnTop(preferences_.Boolean("alwaysFloatOnTop"));
         OSDTitle().FontSize(preferences_.Number("osdTextSize"));

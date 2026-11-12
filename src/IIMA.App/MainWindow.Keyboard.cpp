@@ -56,7 +56,12 @@ bool NativeControlOwnsKey(DependencyObject const& focused, Windows::System::Virt
     }
     return false;
 }
-std::optional<double> Number(std::string const& text) {
+std::optional<double> Number(std::string const& raw) {
+    std::string_view text = raw;
+    if (text.starts_with('+')) {
+        text.remove_prefix(1);
+        if (text.empty() || text.starts_with('+') || text.starts_with('-')) return {};
+    }
     double value{};
     auto [end, error] = std::from_chars(text.data(), text.data() + text.size(), value);
     if (error != std::errc{} || end != text.data() + text.size() || !std::isfinite(value)) return {};
@@ -70,6 +75,7 @@ void MainWindow::ApplyKeyboardConfiguration() {
     keyBindings_ = std::make_unique<iima::KeyBindingSet>(parsed.mappings);
     UpdatePluginKeyBindings();
     RefreshBindingLibrary();
+    RefreshPlayerMenus(true);
     KeyBindingsEditor().Text(to_hstring(text));
     KeyBindingsStatus().Text(parsed.issues.empty() ? L"快捷键配置已载入。" : L"配置包含无法解析的行；有效条目已载入，请检查后重新保存。");
 }

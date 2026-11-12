@@ -27,5 +27,6 @@ void MainWindow::UpdateWindowCount(std::size_t count)
     WindowCountText().Text(L"播放器窗口：" + winrt::to_hstring(count));
     NewWindowButton().IsEnabled(count < 16);
     NextWindowButton().IsEnabled(count > 1);
+    RefreshPlayerMenus();
 }
 }

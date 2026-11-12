@@ -97,12 +97,8 @@
     {
       "source": "references/iina/iina/CharEncoding.swift",
       "physicalLines": 59,
-      "coverage": "partial-static-unverified",
-      "reviewTargets": [
-        "src/IIMA.Core/Subtitles/CharacterEncoding.h",
-        "src/IIMA.App/MainWindow.SubtitleEncoding.cpp",
-        "src/IIMA.Core/Playback/PlayerSession.Subtitles.cpp"
-      ]
+      "coverage": "not-mapped",
+      "reviewTargets": []
     },
     {
       "source": "references/iina/iina/CommonWindow.swift",
@@ -785,8 +781,12 @@
     {
       "source": "references/iina/iina/MenuController.swift",
       "physicalLines": 1019,
-      "coverage": "not-mapped",
-      "reviewTargets": []
+      "coverage": "partial-static-unverified",
+      "reviewTargets": [
+        "src/IIMA.App/MainWindow.Menus.cpp",
+        "src/IIMA.App/MainWindow.Menus.Dynamic.cpp",
+        "src/IIMA.Core/Input/MenuKeyBinding.cpp"
+      ]
     },
     {
       "source": "references/iina/iina/MiniPlaySlider.swift",
@@ -1109,11 +1109,8 @@
     {
       "source": "references/iina/iina/ScreenshotOSDView.swift",
       "physicalLines": 78,
-      "coverage": "partial/static/unverified",
-      "reviewTargets": [
-        "src/IIMA.App/MainWindow.ScreenshotPreview.cpp",
-        "src/IIMA.App/Platform/ScreenshotImage.cpp"
-      ]
+      "coverage": "not-mapped",
+      "reviewTargets": []
     },
     {
       "source": "references/iina/iina/ScrollingTextField.swift",

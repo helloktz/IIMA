@@ -92,6 +92,7 @@ MainWindow::MainWindow()
     WirePlaylistDrag();
     WirePlaylistClipboard();
     WirePlaylistDeletion();
+    WirePlayerMenus();
     try {
         HWND hwnd{};
         check_hresult(this->as<::IWindowNative>()->get_WindowHandle(&hwnd));
@@ -242,6 +243,7 @@ void MainWindow::Apply(iima::PlaybackSnapshot const& state)
     updating_ = false;
     UpdateAutomaticVideoSize();
     QueueWindowScaleFeedback();
+    RefreshPlayerMenus();
 }
 void MainWindow::BeginClose()
 {
@@ -253,6 +255,7 @@ void MainWindow::BeginClose()
     SaveWindowPlacement();
     FinishInteractiveCrop(false, false);
     closing_ = true;
+    ApplicationMenuBar().IsEnabled(false);
     CloseFullscreenInformation();
     CloseVideoCursor();
     BufferingSpinner().IsActive(false); BufferingOverlay().Visibility(Visibility::Collapsed);

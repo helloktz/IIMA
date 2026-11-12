@@ -88,6 +88,7 @@ void MainWindow::WireApplicationCommands() {
 void MainWindow::UpdatePresentationLayout() {
     ApplyWindowPreferences();
     auto compact = AppWindow().Presenter().Kind() == Microsoft::UI::Windowing::AppWindowPresenterKind::CompactOverlay;
+    ApplicationMenuBar().Visibility(compact ? Visibility::Collapsed : Visibility::Visible);
     PlayerSidebar().Visibility(compact ? Visibility::Collapsed : Visibility::Visible);
     TopStatusBorder().Visibility(compact ? Visibility::Collapsed : Visibility::Visible);
     BottomControlsBorder().Visibility(compact ? Visibility::Collapsed : Visibility::Visible);

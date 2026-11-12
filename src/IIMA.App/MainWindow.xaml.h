@@ -29,6 +29,7 @@
 #include "../IIMA.Core/OnlineSubtitles/SearchTransaction.h"
 #include "../IIMA.Core/Filters/SavedFilterLibrary.h"
 #include <deque>
+#include <set>
 #include "Plugins/PluginRuntime.h"
 #include "Plugins/PluginPointerState.h"
 #include "Plugins/PluginPlaybackProjection.h"
@@ -172,6 +173,27 @@ private:
     std::optional<std::int64_t> cropDraftEntry_;
     std::string cropDraftPath_;
     int cropDraftWidth_{}, cropDraftHeight_{};
+    void WirePlayerMenus();
+    void RefreshPlayerMenus(bool shortcuts = false);
+    void FillTrackMenu(Microsoft::UI::Xaml::Controls::MenuFlyoutSubItem const&, std::string type, bool secondary = false);
+    void FillChapterMenu(Microsoft::UI::Xaml::Controls::MenuFlyoutSubItem const&);
+    void FillRecentMenu(Microsoft::UI::Xaml::Controls::MenuFlyoutSubItem const&);
+    struct PlayerMenuAction {
+        Microsoft::UI::Xaml::Controls::MenuFlyoutItem item{nullptr};
+        std::function<winrt::hstring()> title;
+        std::function<void()> execute;
+        std::function<bool()> enabled, checked;
+        std::vector<std::string> action;
+        bool application{}, mediaBound{};
+        std::uint64_t menuGeneration{}, menuIntent{};
+        std::optional<iima::KeyMapping> binding;
+    };
+    std::vector<PlayerMenuAction> playerMenuActions_;
+    Microsoft::UI::Xaml::Controls::MenuFlyoutSubItem recentMenu_{nullptr}, videoTrackMenu_{nullptr},
+        audioTrackMenu_{nullptr}, subtitleTrackMenu_{nullptr}, secondaryTrackMenu_{nullptr}, chapterMenu_{nullptr};
+    bool playerMenusReady_{}, playerMenuRefreshQueued_{}, playerRecentMenuDirty_{true}, playerMenuShortcutsDirty_{};
+    std::set<std::size_t> playerMenuVisibleItems_;
+    std::string playerMenuDynamicKey_, playerRecentMenuStateKey_;
     void WireVideoControls();
     void WireVideoSize();
     void ResizeToVideo(std::optional<double> scale);

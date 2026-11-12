@@ -53,6 +53,8 @@
     <ClInclude Include="Geometry\WindowGeometry.h" />
     <ClCompile Include="Input\KeyMapping.cpp" />
     <ClInclude Include="Input\KeyMapping.h" />
+    <ClCompile Include="Input\MenuKeyBinding.cpp" />
+    <ClInclude Include="Input\MenuKeyBinding.h" />
     <ClCompile Include="Media\MediaChapter.cpp" />
     <ClInclude Include="Media\MediaChapter.h" />
     <ClCompile Include="Media\VideoTime.cpp" />
