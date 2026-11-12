@@ -253,7 +253,7 @@ BindingAction ClassifyBindingAction(const KeyMapping& mapping) {
     const bool supported = command == "seek" || command == "cycle" || command == "set" ||
         command == "add" || command == "frame-step" || command == "frame-back-step" ||
         command == "playlist-next" || command == "playlist-prev" || command == "stop" ||
-        command == "screenshot";
+        command == "screenshot" || command == "sub-step" || command == "sub-seek";
     if (!supported)
         return {BindingActionKind::Unsupported, {}, {}, "Command is not supported by the typed keyboard dispatcher"};
     if (command == "cycle" || command == "set" || command == "add") {
@@ -261,7 +261,10 @@ BindingAction ClassifyBindingAction(const KeyMapping& mapping) {
             return {BindingActionKind::Invalid, {}, {}, "Missing property name"};
         const auto& property = tokens[1];
         const bool allowed = property == "pause" || property == "mute" || property == "sub-visibility" ||
-            property == "volume" || property == "speed" || property == "fullscreen";
+            property == "volume" || property == "speed" || property == "fullscreen" ||
+            (command == "cycle" && (property == "video" || property == "vid" ||
+                property == "audio" || property == "aid" || property == "sub" || property == "sid")) ||
+            (command == "add" && property == "chapter");
         if (!allowed)
             return {BindingActionKind::Unsupported, {}, {}, "Property is not supported by the typed keyboard dispatcher"};
     }
