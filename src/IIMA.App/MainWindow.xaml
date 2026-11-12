@@ -568,6 +568,11 @@
                         <ComboBox x:Name="HistorySearchScopeBox" Header="搜索范围" SelectedIndex="0">
                             <ComboBoxItem Content="完整路径"/><ComboBoxItem Content="文件名"/>
                         </ComboBox>
+                        <StackPanel Spacing="6">
+                            <Button x:Name="RefreshHistoryAvailabilityButton" Content="刷新文件状态"/>
+                            <Button x:Name="CancelHistoryAvailabilityButton" Content="停止状态检查" IsEnabled="False"/>
+                            <TextBlock x:Name="HistoryAvailabilityStatus" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite"/>
+                        </StackPanel>
                         <TextBlock x:Name="HistoryFileStatus" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite"/>
                         <TextBlock x:Name="HistoryCountText"/>
                         <ListView x:Name="HistoryView" MaxHeight="160" SelectionMode="Extended" AutomationProperties.Name="播放历史"/>

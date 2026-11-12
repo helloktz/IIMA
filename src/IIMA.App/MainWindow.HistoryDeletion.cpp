@@ -99,8 +99,9 @@ fire_and_forget MainWindow::DeleteSelectedHistoryFiles() {
                 const auto notCompleted = paths.size() - static_cast<std::size_t>(completed);
                 // IINA retains history after trashing files. Refresh the view
                 // only; do not touch persistence, playlist or undo. Availability
-                // is not inferred from deletion success (the path can reappear).
+                // is independently rechecked, not inferred from deletion success.
                 RefreshHistory();
+                RequestHistoryAvailability(true);
                 HistoryFileStatus().Text(L"系统完成删除 " + to_hstring(completed) + L" 个文件；未完成 " +
                     to_hstring(notCompleted) + L" 个；跳过 " + to_hstring(skipped) + L" 条网络/当前播放记录。历史记录保留。" +
                     (result.cancelled ? L"后续操作已取消。" : L"") +

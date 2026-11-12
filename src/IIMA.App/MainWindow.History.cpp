@@ -11,6 +11,7 @@ using namespace Microsoft::UI::Xaml;
 namespace winrt::IIMA::implementation {
 void MainWindow::WireHistoryControls() {
     WireHistoryDeletion();
+    WireHistoryAvailability();
     auto weak = get_weak();
     RevealHistoryButton().Click([weak](auto const&, auto const&) {
         if (auto self = weak.get()) self->RevealSelection(true);
@@ -88,7 +89,8 @@ void MainWindow::UpdateHistorySelection() {
     if (projectingHistory_) return;
     auto rows = SelectedHistoryRows();
     const bool enabled = !closing_ && userDataLoaded_ && !rows.empty();
-    OpenHistoryButton().IsEnabled(enabled);
+    auto identities = iima::SelectHistoryRows(historyProjection_, rows);
+    OpenHistoryButton().IsEnabled(enabled && !iima::PlayableHistoryPaths(historyProjection_, identities).empty());
     RemoveHistoryButton().IsEnabled(enabled);
     RevealHistoryButton().IsEnabled(enabled && !revealSelectionBusy_);
     DeleteHistoryFilesButton().IsEnabled(enabled && !historyDeletionBusy_ && !playlistDeletionBusy_ && !pickerOpen_);
@@ -113,14 +115,23 @@ void MainWindow::RefreshHistory() {
         query.search = to_string(HistorySearchText().Text());
         query.grouping = HistoryGroupingBox().SelectedIndex() == 1 ? iima::HistoryGrouping::FileLocation : iima::HistoryGrouping::LastPlayed;
         query.searchScope = HistorySearchScopeBox().SelectedIndex() == 1 ? iima::HistorySearchScope::FileName : iima::HistorySearchScope::FullPath;
-        historyProjection_ = iima::BuildHistoryView(userData_.history, query, iima::WindowsHistoryPresentation());
+        auto presentation = iima::WindowsHistoryPresentation();
+        presentation.availability = [this](std::string_view path) {
+            auto found = historyAvailability_.find(path);
+            return found == historyAvailability_.end() ? iima::HistoryAvailability::Unknown : found->second;
+        };
+        historyProjection_ = iima::BuildHistoryView(userData_.history, query, presentation);
         HistoryView().Items().Clear();
         std::vector<Controls::ListViewItem> selected;
         for (std::size_t index = 0; index < historyProjection_.rows.size(); ++index) {
             Controls::ListViewItem item;
             if (auto entry = historyProjection_.EntryAt(index)) {
                 auto progress = iima::VideoTime(entry->entry.position).StringRepresentation();
-                item.Content(box_value(to_hstring(entry->fileName + "  " + progress)));
+                const bool missing = entry->availability == iima::HistoryAvailability::Missing;
+                auto caption = to_hstring(entry->fileName) + (missing ? L"（上次检查缺失）" : L"  " + to_hstring(progress));
+                item.Content(box_value(caption));
+                // Keep missing items selectable for removal/reveal; only opening
+                // filters them out. Text, not color alone, conveys the status.
                 Controls::ToolTipService::SetToolTip(item, box_value(to_hstring(entry->entry.path)));
                 if (std::any_of(selection.begin(), selection.end(), [&](auto const& identity) {
                     return iima::MatchesHistoryIdentity(entry->entry, identity);
@@ -137,5 +148,6 @@ void MainWindow::RefreshHistory() {
         HistoryCountText().Text(to_hstring(historyProjection_.matchedEntries) + L" / " + to_hstring(historyProjection_.totalEntries));
     }
     UpdateHistorySelection();
+    RequestHistoryAvailability();
 }
 }

@@ -161,6 +161,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MainWindow.History.cpp" />
+    <ClCompile Include="MainWindow.HistoryAvailability.cpp" />
+    <ClCompile Include="Platform\HistoryAvailability.cpp" />
+    <ClInclude Include="Platform\HistoryAvailability.h" />
     <ClCompile Include="MainWindow.HistoryDeletion.cpp" />
     <ClCompile Include="MainWindow.RevealSelection.cpp" />
     <ClCompile Include="MainWindow.Information.cpp" />

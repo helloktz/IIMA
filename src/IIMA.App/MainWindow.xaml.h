@@ -408,6 +408,13 @@ private:
     bool revealSelectionBusy_{};
     std::stop_source revealSelectionStop_;
     iima::HistoryView historyProjection_;
+    void WireHistoryAvailability();
+    void RequestHistoryAvailability(bool force = false);
+    winrt::fire_and_forget ScanHistoryAvailabilityAsync(std::vector<std::string> paths);
+    std::map<std::string, iima::HistoryAvailability, std::less<>> historyAvailability_;
+    std::vector<std::string> historyAvailabilityPaths_;
+    std::stop_source historyAvailabilityStop_;
+    bool historyAvailabilityBusy_{}, historyAvailabilityPending_{}, historyAvailabilityRequested_{};
     void WireHistoryDeletion();
     winrt::fire_and_forget DeleteSelectedHistoryFiles();
     bool historyDeletionBusy_{};
