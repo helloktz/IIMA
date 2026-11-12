@@ -27,6 +27,7 @@ void PlayerSession::Notify() { if(changed_) changed_(snapshot_); }
 // distinction across queued old events. Pinned mpv cmd_loadfile creates a new,
 // monotonically allocated playlist entry and returns playlist_entry_id.
 void PlayerSession::BeginMediaOriginIntent(bool explicitOpen) {
+    CancelExternalTrackRemoval();
     CancelSubtitleReload();
     CancelScrub();
     if (snapshot_.networkOpenAttempt.phase != OpenAttemptPhase::None &&
@@ -190,6 +191,7 @@ void PlayerSession::PlaylistPlay(std::size_t index) {
     if(index<snapshot_.playlist.size()) { expectedEntry_=snapshot_.playlist[index].id; PausedCommand({"playlist-play-index",std::to_string(index)}); }
 }
 void PlayerSession::SelectTrack(std::string type,std::int64_t id) {
+    BeginTrackEditIntent();
     if (type=="sub") { CancelSubtitleReload(); ++subtitleEditIntentRevision_; }
     if(snapshot_.session!=SessionState::Ready || snapshot_.media!=MediaState::Loaded ||
         waitingForStart_ || playlistEdit_ || id<0) return;
@@ -200,6 +202,7 @@ void PlayerSession::SelectTrack(std::string type,std::int64_t id) {
 }
 // IINA MainMenuActions.menuCycleTrack delegates order and off-slot to mpv.
 void PlayerSession::CycleTrack(std::string type) {
+    BeginTrackEditIntent();
     if (type=="sub") { CancelSubtitleReload(); ++subtitleEditIntentRevision_; }
     if (snapshot_.session != SessionState::Ready || snapshot_.media != MediaState::Loaded ||
         waitingForStart_ || playlistEdit_) return;
@@ -257,6 +260,7 @@ void PlayerSession::ScreenshotToFile(std::string path, ScreenshotCompleted compl
     screenshotCompleted_ = std::move(completion);
 }
 void PlayerSession::AddSubtitle(std::string path, bool select) {
+    BeginTrackEditIntent();
     CancelSubtitleReload();
     ++subtitleEditIntentRevision_;
     if(snapshot_.session!=SessionState::Ready || path.empty() || path.find('\0')!=std::string::npos) return;
@@ -266,6 +270,7 @@ void PlayerSession::AddSubtitle(std::string path, bool select) {
 }
 // IINA loadExternalAudioFile uses audio-add with the default select flag.
 bool PlayerSession::LoadExternalAudio(std::string path) {
+    BeginTrackEditIntent();
     if(snapshot_.session!=SessionState::Ready || snapshot_.media!=MediaState::Loaded ||
         pauseRequest_ || loadRequest_ || !pendingCommands_.empty() || PlaylistEditBusy() ||
         path.empty() || path.size()>131072 || path.find('\0')!=std::string::npos) return false;
@@ -680,12 +685,17 @@ void PlayerSession::OnEvent(MpvEvent e) {
     if(e.kind==MpvEvent::Kind::Failure || e.kind==MpvEvent::Kind::Shutdown || e.kind==MpvEvent::Kind::EndFile) CancelWindowPausePolicy();
     if (e.kind == MpvEvent::Kind::Failure || e.kind == MpvEvent::Kind::Shutdown ||
         e.kind == MpvEvent::Kind::StartFile || e.kind == MpvEvent::Kind::EndFile) {
+        CancelExternalTrackRemoval();
         CancelSubtitleReload();
     }
     if (e.kind == MpvEvent::Kind::Failure || e.kind == MpvEvent::Kind::Shutdown) {
+        externalTrackRemovalRequest_ = 0;
+        externalTrackRemovalStatus_.inFlight = false;
+        externalTrackRemovalCancelled_.reset();
         subtitleReloadRequest_ = 0;
         subtitleReloadStatus_.inFlight = false;
     }
+    if (HandleExternalTrackRemovalReply(e)) return;
     if (HandleSubtitleReloadReply(e)) return;
     HandleWindowPauseReply(e);
     if(e.kind==MpvEvent::Kind::Failure || e.kind==MpvEvent::Kind::Shutdown) CancelPlaylistEdits();
@@ -826,6 +836,8 @@ void PlayerSession::CloseAsync(std::function<void()> completion) {
                          screenshotCompletion=std::move(screenshotCompletion)] {
         dispatch([weak,completion,screenshotCompletion] {
             if(auto self=weak.lock()) {
+                self->externalTrackRemovalRequest_=0; self->externalTrackRemovalStatus_.inFlight=false;
+                self->externalTrackRemovalCancelled_.reset();
                 self->subtitleReloadRequest_=0; self->subtitleReloadStatus_.inFlight=false;
                 self->snapshot_.session=SessionState::Closed; self->Notify();
             }

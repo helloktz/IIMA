@@ -16,7 +16,13 @@ void MainWindow::WireTrackInspector() {
         if(auto self=weak.get()) self->ClearTrackInspector();
     });
     TrackInspectorBox().SelectionChanged([weak](auto const&,auto const&) {
-        if(auto self=weak.get();self && !self->trackInspectorProjecting_ && !self->closing_) self->ShowInspectedTrack();
+        if(auto self=weak.get();self && !self->trackInspectorProjecting_ && !self->closing_) {
+            ++self->trackInspectionSelectionRevision_; self->ShowInspectedTrack();
+        }
+    });
+    RemoveInspectedTrackButton().Click([weak](auto const&,auto const&) {if(auto self=weak.get()) self->RemoveInspectedTrack();});
+    CancelExternalRemovalButton().Click([weak](auto const&,auto const&) {
+        if(auto self=weak.get();self && !self->closing_) {self->session_->CancelExternalTrackRemoval();self->UpdateExternalTrackRemoval();}
     });
     CopyTrackInspectionButton().Click([weak](auto const&,auto const&) {
         if(auto self=weak.get()) self->CopyTrackInspection();
@@ -26,6 +32,7 @@ void MainWindow::ClearTrackInspector() {
     trackInspectorProjecting_=true;
     TrackInspectorBox().Items().Clear();TrackInspectorDetails().Text(L"");
     CopyTrackInspectionButton().IsEnabled(false);
+    RemoveInspectedTrackButton().IsEnabled(false);
     inspectedTracks_.clear();trackInspectorRevision_.reset();
     trackInspectorProjecting_=false;
 }
@@ -38,6 +45,7 @@ bool MainWindow::TrackInspectorCurrent() const {
         trackInspectorIntent_==state.mediaOpenIntentRevision && trackInspectorInput_==inputGeneration_;
 }
 void MainWindow::UpdateTrackInspector(bool force) {
+    UpdateExternalTrackRemoval();
     auto const& state=session_->Snapshot();
     const bool active=!closing_ && !inputResolving_ && pendingFiles_.empty() && activationInputs_.empty() &&
         state.session==iima::SessionState::Ready && !state.mediaOriginPending &&
@@ -78,6 +86,7 @@ void MainWindow::ShowInspectedTrack() {
     CopyTrackInspectionButton().IsEnabled(valid);
     TrackInspectorDetails().Text(valid ? to_hstring(inspectedTracks_[index].Report()) :
         hstring{L"请选择轨道查看；查看不会改变实际播放轨道。"});
+    UpdateExternalTrackRemoval();
 }
 void MainWindow::CopyTrackInspection() {
     if(!TrackInspectorExpander().IsExpanded() || !TrackInspectorCurrent()) {UpdateTrackInspector();return;}

@@ -56,6 +56,7 @@ void PlayerSession::SetSecondarySubtitleDelay(double seconds) {
         client_->Command({"set", "secondary-sub-delay", std::to_string(seconds)});
 }
 void PlayerSession::SelectSecondarySubtitle(std::int64_t id) {
+    BeginTrackEditIntent();
     CancelSubtitleReload();
     ++subtitleEditIntentRevision_;
     if (snapshot_.session != SessionState::Ready || id < 0) return;
@@ -92,7 +93,7 @@ void PlayerSession::StepSubtitleTiming(int direction, bool primary) {
 // Pinned mpv cmd_track_reload removes/re-adds tracks and switches the primary
 // slot. Use fresh serialized state reads; never infer IDs from old observations.
 bool PlayerSession::SetSubtitleEncoding(std::string encoding) {
-    if (!IsSubtitleEncoding(encoding)) { CancelSubtitleReload(); ++subtitleEditIntentRevision_; return false; }
+    if (!IsSubtitleEncoding(encoding)) { BeginTrackEditIntent(); CancelSubtitleReload(); ++subtitleEditIntentRevision_; return false; }
     return BeginSubtitleReload(std::move(encoding));
 }
 bool PlayerSession::SubtitleReloadContextValid() const {
@@ -135,6 +136,8 @@ void PlayerSession::SubmitSubtitleReloadCommand(std::vector<std::string> command
     }
 }
 bool PlayerSession::BeginSubtitleReload(std::optional<std::string> encoding) {
+    BeginTrackEditIntent();
+    if (ExternalTrackRemovalBusy()) return false;
     if (SubtitleReloadBusy()) { CancelSubtitleReload(); ++subtitleEditIntentRevision_; return false; }
     if (snapshot_.session != SessionState::Ready || snapshot_.media != MediaState::Loaded ||
         waitingForStart_ || playlistEdit_ || snapshot_.mediaOriginPending || pauseRequest_ || loadRequest_ ||

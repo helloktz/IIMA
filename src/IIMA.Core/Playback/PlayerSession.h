@@ -28,6 +28,15 @@ struct SubtitleReloadStatus {
     bool inFlight{};
     std::string error;
 };
+struct ExternalTrackRemovalStatus {
+    enum class Phase { Idle, Removing, Completed, Cancelled, Failed };
+    Phase phase{Phase::Idle};
+    std::uint64_t revision{};
+    // submitted is known only after the worker result. False while inFlight
+    // does not prove cancellation prevented execution.
+    bool inFlight{}, submitted{}, removedConfirmed{};
+    std::string error;
+};
 class PlayerSession final : public std::enable_shared_from_this<PlayerSession> {
 public:
     using Dispatch = std::function<void(std::function<void()>)>;
@@ -76,6 +85,13 @@ public:
     std::uint64_t SubtitleEditIntentRevision() const noexcept { return subtitleEditIntentRevision_; }
     // True means queued, not decoded. Actual tracks/errors arrive asynchronously.
     bool LoadExternalAudio(std::string path);
+    // Removes a player track only, never its file. Completed requires a fresh
+    // complete list confirming absence, not just a successful command reply.
+    bool RemoveExternalTrack(std::string type, std::int64_t id, std::string externalPath);
+    void CancelExternalTrackRemoval();
+    bool ExternalTrackRemovalBusy() const noexcept { return externalTrackRemovalStatus_.inFlight; }
+    ExternalTrackRemovalStatus const& ExternalTrackRemoval() const noexcept { return externalTrackRemovalStatus_; }
+    std::uint64_t TrackEditIntentRevision() const noexcept { return trackEditIntentRevision_; }
     void ApplySubtitleStyle(SubtitleStyle const& style, std::vector<std::string> fields = {});
     void SetSubtitleScale(double scale, bool primary = true);
     void SetSubtitlePosition(int percent, bool primary = true);
@@ -178,6 +194,14 @@ public:
 private:
     PlayerSession(Dispatch dispatch, Changed changed);
     void OnEvent(MpvEvent event);
+    void BeginTrackEditIntent();
+    bool HandleExternalTrackRemovalReply(MpvEvent const& event);
+    ExternalTrackRemovalStatus externalTrackRemovalStatus_;
+    std::shared_ptr<std::atomic_bool> externalTrackRemovalCancelled_;
+    std::uint64_t externalTrackRemovalRequest_{}, externalTrackRemovalGeneration_{}, externalTrackRemovalOpenIntent_{},
+        externalTrackRemovalEditIntent_{}, trackEditIntentRevision_{};
+    std::int64_t externalTrackRemovalEntry_{-1};
+    std::string externalTrackRemovalMediaPath_;
     bool BeginSubtitleReload(std::optional<std::string> encoding);
     bool HandleSubtitleReloadReply(MpvEvent const& event);
     bool SubtitleReloadContextValid() const;

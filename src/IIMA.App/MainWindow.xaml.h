@@ -290,6 +290,16 @@ private:
     bool scrubStarting_{}, scrubSuppress_{}, scrubFullscreen_{}, scrubMusic_{};
     void WireSliderWheels();
     void WireTrackInspector();
+    std::optional<iima::MediaTrack> SelectedRemovableTrack();
+    bool CanRemoveInspectedTrack();
+    winrt::fire_and_forget RemoveInspectedTrack();
+    void UpdateExternalTrackRemoval();
+    void InvalidateExternalTrackRemoval();
+    Microsoft::UI::Xaml::Controls::ContentDialog externalRemovalDialog_{nullptr};
+    bool externalRemovalUpdating_{}, externalRemovalStarting_{};
+    winrt::hstring externalRemovalLabel_;
+    std::uint64_t trackInspectionSelectionRevision_{}, externalRemovalSelection_{}, externalRemovalTracks_{}, externalRemovalTrackIntent_{}, externalRemovalRevision_{},
+        externalRemovalGeneration_{}, externalRemovalIntent_{}, externalRemovalInput_{}, externalRemovalObservedInput_{};
     void UpdateTrackInspector(bool force = false);
     void ClearTrackInspector();
     bool TrackInspectorCurrent() const;

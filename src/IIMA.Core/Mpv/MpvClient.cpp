@@ -52,6 +52,11 @@ struct MpvClient::State {
     Sink sink;
     MpvLogBuffer logs;
     std::mutex mutex;
+    struct TrackRemoval {
+        std::string type, externalPath, mediaPath;
+        std::int64_t id{}, entry{-1};
+        std::shared_ptr<std::atomic_bool> cancelled;
+    };
     struct Request {
         std::uint64_t id;
         std::vector<std::string> arguments;
@@ -66,6 +71,7 @@ struct MpvClient::State {
         bool windowScaleQuery{};
         bool pauseQuery{};
         bool subtitleStateQuery{};
+        std::optional<TrackRemoval> trackRemoval;
         std::optional<std::string> recoverAudioDevice;
     };
     std::deque<Request> commands;
@@ -122,6 +128,7 @@ struct MpvClient::State {
                 Emit(std::move(event));
             };
             std::string inFlightFilter;
+            std::optional<TrackRemoval> inFlightRemoval;
             auto readFilterResult = [&](MpvEvent& event, std::string const& name) {
                 event.name = name;
                 mpv_node value{};
@@ -139,6 +146,52 @@ struct MpvClient::State {
                 if (api.get_property(handle,"path",MPV_FORMAT_STRING,&rawPath) >= 0 && rawPath)
                     event.properties["path"] = rawPath;
                 std::unique_ptr<char,decltype(api.free)> path(rawPath,api.free);
+            };
+            // cmd_track_remove ignores mp_remove_track's bool result. A command
+            // acknowledgement alone therefore cannot confirm removal.
+            auto readRemovalState=[&](MpvEvent& event, TrackRemoval const& expected) {
+                try {
+                    auto require=[&](int code) {
+                        if(code<0) {event.error=code;throw std::runtime_error(api.error_string(code));}
+                    };
+                    auto identity=[&]() {
+                        std::int64_t position{-1},entry{-1};
+                        require(api.get_property(handle,"playlist-playing-pos",MPV_FORMAT_INT64,&position));
+                        if(position<0) throw std::runtime_error("No playing entry for track removal");
+                        const auto property="playlist/"+std::to_string(position)+"/id";
+                        require(api.get_property(handle,property.c_str(),MPV_FORMAT_INT64,&entry));
+                        char* raw{};
+                        const auto code=api.get_property(handle,"path",MPV_FORMAT_STRING,&raw);
+                        std::unique_ptr<char,decltype(api.free)> owned(raw,api.free);
+                        require(code);
+                        std::size_t size{};if(raw) while(size<=131072 && raw[size]) ++size;
+                        if(entry<0 || !raw || !size || size>131072) throw std::runtime_error("Invalid playing media identity");
+                        return std::pair{entry,std::string(raw,size)};
+                    };
+                    const auto before=identity();
+                    if(before.first!=expected.entry || before.second!=expected.mediaPath)
+                        throw std::runtime_error("Playing media differs from track removal request");
+                    mpv_node node{};
+                    const auto code=api.get_property(handle,"track-list",MPV_FORMAT_NODE,&node);
+                    auto release=[&](mpv_node* value){api.free_node_contents(value);};
+                    std::unique_ptr<mpv_node,decltype(release)> owned(code>=0 ? &node : nullptr,release);
+                    require(code);
+                    if(!CopyCompleteTrackIdentities(event,node))
+                        throw std::runtime_error("Track identities are incomplete, malformed or exceed limits");
+                    const auto after=identity();
+                    if(before!=after) throw std::runtime_error("Media changed during track identity read");
+                    event.entryId=after.first;event.properties["path"]=after.second;
+                    return true;
+                } catch(std::exception const& failure) {
+                    if(event.error>=0) event.error=MPV_ERROR_PROPERTY_ERROR;
+                    event.text=failure.what();event.tracks.clear();event.properties.clear();event.entryId=-1;
+                    return false;
+                }
+            };
+            auto removalTargetPresent=[](MpvEvent const& event, TrackRemoval const& target) {
+                return std::any_of(event.tracks.begin(),event.tracks.end(),[&](auto const& track) {
+                    return track.type==target.type && track.id==target.id && track.external && track.externalPath==target.externalPath;
+                });
             };
             std::uint64_t logEpoch{};
             bool done = false;
@@ -167,7 +220,35 @@ struct MpvClient::State {
                     inFlightWindowScale = pending->windowScaleQuery;
                     inFlightPause = pending->pauseQuery;
                     int error{};
-                    if (pending->subtitleStateQuery) {
+                    if(pending->trackRemoval) {
+                        auto target=std::move(*pending->trackRemoval);
+                        MpvEvent result{MpvEvent::Kind::ExternalTrackRemovalReply};result.requestId=request;
+                        auto cancelled=[&] {
+                            std::lock_guard lock(mutex);
+                            return closing || (target.cancelled && target.cancelled->load());
+                        };
+                        if(cancelled()) {
+                            result.error=MPV_ERROR_COMMAND;result.text="Track removal cancelled before submission";
+                        } else if(readRemovalState(result,target)) {
+                            if(!removalTargetPresent(result,target)) {
+                                result.error=MPV_ERROR_COMMAND;
+                                result.text="External track identity changed; removal was not submitted";
+                            } else if(cancelled()) {
+                                result.error=MPV_ERROR_COMMAND;result.text="Track removal cancelled before submission";
+                            } else {
+                                const auto command=target.type+"-remove", id=std::to_string(target.id);
+                                const char* args[]{command.c_str(),id.c_str(),nullptr};
+                                const auto code=api.command_async(handle,request,args);
+                                if(code>=0) {
+                                    inFlightRemoval=std::move(target);inFlight=request;
+                                    continue; // Drain exactly this command before another lane request.
+                                }
+                                result.error=code;result.text=api.error_string(code);
+                            }
+                        }
+                        Emit(std::move(result));
+                        continue;
+                    } else if (pending->subtitleStateQuery) {
                         MpvEvent result{MpvEvent::Kind::SubtitleStateReply};
                         result.requestId=request;
                         // Synchronous GETs run only after the previous lane reply.
@@ -386,7 +467,28 @@ struct MpvClient::State {
                     }
                     break;
                 case MPV_EVENT_COMMAND_REPLY: {
-                    e.kind=MpvEvent::Kind::CommandReply; if(e.requestId==inFlight) inFlight=0;
+                    e.kind=MpvEvent::Kind::CommandReply;
+                    if(e.requestId==inFlight && inFlightRemoval) {
+                        e.kind=MpvEvent::Kind::ExternalTrackRemovalReply;
+                        e.externalTrackRemovalSubmitted=true;
+                        const auto commandError=e.error;
+                        // Even a cancelled/subsequently failed request must drain
+                        // and read back: it may already have changed the track list.
+                        if(readRemovalState(e,*inFlightRemoval)) {
+                            e.externalTrackRemovedConfirmed=!removalTargetPresent(e,*inFlightRemoval);
+                            if(!e.externalTrackRemovedConfirmed) {
+                                if(e.error>=0) e.error=MPV_ERROR_COMMAND;
+                                e.text="Track removal was not confirmed; original external track remains";
+                            } else if(commandError<0) {
+                                e.text="mpv rejected the command, but fresh state shows the original track absent";
+                            }
+                        } else {
+                            e.text="Track removal was submitted, but its outcome could not be confirmed: "+e.text;
+                        }
+                        inFlightRemoval.reset();inFlight=0;
+                        break;
+                    }
+                    if(e.requestId==inFlight) inFlight=0;
                     if(raw->data) {
                         auto const& result=static_cast<mpv_event_command*>(raw->data)->result;
                         if(result.format==MPV_FORMAT_NODE_MAP && result.u.list) {
@@ -593,6 +695,18 @@ std::uint64_t MpvClient::GetVideoGeometryAsync() {
     const auto id = request.id;
     state_->commands.push_back(std::move(request));
     return id;
+}
+std::uint64_t MpvClient::RemoveExternalTrackAsync(std::string type, std::int64_t id,
+    std::string externalPath, std::int64_t expectedEntry, std::string mediaPath,
+    std::shared_ptr<std::atomic_bool> cancelled) {
+    if((type!="audio" && type!="video" && type!="sub") || id<=0 || expectedEntry<0 ||
+        externalPath.empty() || externalPath.size()>131072 || externalPath.find('\0')!=std::string::npos ||
+        mediaPath.empty() || mediaPath.size()>131072 || mediaPath.find('\0')!=std::string::npos) return 0;
+    std::lock_guard lock(state_->mutex);
+    if(state_->closing || !state_->started || state_->commands.size()>=256) return 0;
+    State::Request request{state_->nextId++,{},false};
+    request.trackRemoval=State::TrackRemoval{std::move(type),std::move(externalPath),std::move(mediaPath),id,expectedEntry,std::move(cancelled)};
+    const auto requestId=request.id;state_->commands.push_back(std::move(request));return requestId;
 }
 std::uint64_t MpvClient::ReadSubtitleStateAsync() {
     std::lock_guard lock(state_->mutex);

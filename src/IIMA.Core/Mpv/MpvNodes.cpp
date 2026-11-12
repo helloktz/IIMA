@@ -44,7 +44,7 @@ bool Flag(mpv_node const& node,char const* key) {
 }
 // Unlike display parsing, absence from this list is used to restore selection.
 // Reject the entire result on malformed/duplicate identities or exceeded limits.
-bool CopySubtitleStateTracks(MpvEvent& event, mpv_node const& root) {
+static bool CopyTrackIdentities(MpvEvent& event, mpv_node const& root, bool subtitleOnly) {
     event.tracks.clear();
     if(root.format!=MPV_FORMAT_NODE_ARRAY || !root.u.list || root.u.list->num<0 ||
        root.u.list->num>256 || (root.u.list->num && !root.u.list->values)) return false;
@@ -70,9 +70,9 @@ bool CopySubtitleStateTracks(MpvEvent& event, mpv_node const& root) {
         std::string kind(type->u.string,*length);
         if(kind!="sub" && kind!="audio" && kind!="video") return false;
         if(!identities.emplace(kind,id->u.int64).second) return false;
-        if(kind!="sub") continue;
-        if(tracks.size()>=64) return false;
-        MediaTrack track;track.id=id->u.int64;track.type="sub";track.external=external->u.flag!=0;
+        if(subtitleOnly && kind!="sub") continue;
+        if(subtitleOnly && tracks.size()>=64) return false;
+        MediaTrack track;track.id=id->u.int64;track.type=kind;track.external=external->u.flag!=0;
         auto filename=Field(node,"external-filename");
         if(filename) {
             if(filename->format!=MPV_FORMAT_STRING) return false;
@@ -80,12 +80,18 @@ bool CopySubtitleStateTracks(MpvEvent& event, mpv_node const& root) {
             if(!size || *size>budget) return false;
             budget-=*size;track.externalPath.assign(filename->u.string,*size);
         }
-        if(track.external && (track.externalPath.empty() || !paths.insert(track.externalPath).second)) return false;
+        if(track.external && (track.externalPath.empty() || (subtitleOnly && !paths.insert(track.externalPath).second))) return false;
         if(!track.external && !track.externalPath.empty()) return false;
         tracks.push_back(std::move(track));
     }
     event.tracks=std::move(tracks);
     return true;
+}
+bool CopyCompleteTrackIdentities(MpvEvent& event, mpv_node const& root) {
+    return CopyTrackIdentities(event,root,false);
+}
+bool CopySubtitleStateTracks(MpvEvent& event, mpv_node const& root) {
+    return CopyTrackIdentities(event,root,true);
 }
 void CopyCollectionProperty(MpvEvent& e, mpv_node const& root) {
     if (e.name == "vf" || e.name == "af") {

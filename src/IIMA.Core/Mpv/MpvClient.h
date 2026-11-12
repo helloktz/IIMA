@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <atomic>
 #include "../Diagnostics/MpvLogBuffer.h"
 #include <cstddef>
 #include "../Media/MediaInformation.h"
@@ -50,7 +51,7 @@ struct Chapter {
 // Owns all payloads; never exports mpv's borrowed event memory.
 struct MpvEvent {
     enum class Kind { Ready, Failure, StartFile, Loaded, EndFile, Seek, Restart, SeekMeasurement,
-                      Property, CommandReply, PlaylistReply, SubtitleStateReply, PauseReply, VideoGeometryReply, WindowScaleReply, WatchedPropertiesReply, VideoReconfig, Shutdown } kind;
+                      Property, CommandReply, PlaylistReply, ExternalTrackRemovalReply, SubtitleStateReply, PauseReply, VideoGeometryReply, WindowScaleReply, WatchedPropertiesReply, VideoReconfig, Shutdown } kind;
     std::string name, text;
     std::optional<double> number;
     std::optional<bool> flag;
@@ -63,6 +64,7 @@ struct MpvEvent {
     std::vector<MediaTrack> tracks;
     // Fresh bounded subtitle transaction read, not ordinary observations.
     bool subtitleStateComplete{};
+    bool externalTrackRemovalSubmitted{}, externalTrackRemovedConfirmed{};
     std::optional<std::int64_t> primarySubtitle, secondarySubtitle; // 0 means no selection.
     std::vector<Chapter> chapters;
     FilterChainSnapshot filters;
@@ -94,6 +96,12 @@ public:
     // Serialized fresh reads with media identity before/after. Not an atomic
     // snapshot or compare-and-set against other mpv clients/natural transitions.
     std::uint64_t ReadSubtitleStateAsync();
+    // Fresh identity check, one typed remove, then complete fresh confirmation.
+    // Cancellation prevents queued submission, not an already executing command.
+    // Local checks are not atomic with external mpv edits or natural transitions.
+    std::uint64_t RemoveExternalTrackAsync(std::string type, std::int64_t id,
+        std::string externalPath, std::int64_t expectedEntry, std::string mediaPath,
+        std::shared_ptr<std::atomic_bool> cancelled = {});
     // Genuine async GET reply through mpv's event queue, not cached observation.
     std::uint64_t GetVideoGeometryAsync();
     std::uint64_t GetWindowScaleAsync();
