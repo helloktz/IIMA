@@ -943,3 +943,11 @@ Windows新增只读`ReadFullscreenInformation`：GetTimeFormatEx按用户区域�
 - 新增WinUI原始视频尺寸入口，使用输出dw/dh与rotate（直角旋转后互换），同屏工作区和DPI、SwapChainPanel物理布局测量；接通usePhysicalResolution可编辑偏好，开启1视频像素对应1屏幕像素，关闭按DIP语义乘DPI比例。最终MoveAndResize后记录窗口位置；未写mpv window-scale，因为嵌入式合成面板尺寸由原有呈现桥管理。
 - 全屏/小窗/最大化、音乐模式、编辑裁剪/模态、未配置视频、未知旋转或内建非全幅crop拒绝操作，不猜未知尺寸。普通vf输出尺寸可用时采用滤镜后结果；独立内建crop仍未纳入变换。现有“大/小窗口”和铺满工作区命令保留，不混同本批按视频尺寸的入口。
 - 平台差异：把Windows侧栏/窗口边框作为非视频尺寸明确扣除，超屏时缩小请求的视频比例而不是上游分支缩放旧窗口；适合工作区可放大较小视频。未接自动打开/换片尺寸与initialWindowSizePosition，不以手动缩放冒充这些已完成。未编译测试运行。
+
+## 第八十九批：截图格式与异步软件渲染准备
+
+- 追踪 `Preference.ScreenshotFormat` 的PNG/JPG/JPEG/WebP/JXL/AVIF序号、`MPVController` 的screenShotFormat与JXL screenshot-sw workaround，以及PlayerCore截图回调。原端已有格式纯模型与暂存扩展名，但UI固定PNG；本批接通真实偏好、保存选择器、匹配扩展名及暂存路径。
+- 添加原键名screenShotFormat可搜索高级偏好（默认PNG）；保存操作冻结选择格式，按该扩展建议文件名/限制类型，并对返回后缀大小写归一核验，不把一种格式内容写进另一种扩展名。复制剪贴板固定PNG为明确Windows差异，避免有损及可选WIC格式依赖。
+- `PlayerSession::ScreenshotToFile` 验证允许扩展，先异步set screenshot-sw（JXL为yes，其余no），收到成功回复并核验媒体代次/加载稳定后才发送screenshot-to-file。固定mpv `DOCS/man/input.rst` 明确后者从文件后缀选择编码，忽略screenshot-format，因此不伪称全局格式选项决定该命令输出。
+- 两阶段共用单请求槽与实际reply，准备失败不写文件，换片/关闭不补发截图，写入开始后仍以实际截图reply/worker关闭作为暂存清理屏障。UI额外核验navigationEpoch防同条目重载；生成后复用既有原子发布、WIC预览和剪贴板链。预览解码器缺失只报告预览不可用，不撤销已保存图片。
+- 编码器是否包含、JXL软件HDR效果、WIC可选解码器支持均未验证，不回退改格式/不自动重试。mpv在截图命令入队之后仍可被其他命令/事件影响，准备阶段的媒体校验不是跨线程原子取帧保证。未生成图片、未编译测试运行。

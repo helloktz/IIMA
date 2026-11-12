@@ -171,6 +171,9 @@ private:
     std::optional<bool> playlistShuffleAfter_;
     bool playlistShuffled_{};
     std::uint64_t screenshotRequest_{};
+    bool screenshotPreparing_{};
+    std::uint64_t screenshotMediaGeneration_{};
+    std::string screenshotPath_, screenshotMode_;
     ScreenshotCompleted screenshotCompleted_;
     std::uint64_t watchedPropertiesRequest_{};
     WatchedPropertiesCompleted watchedPropertiesCompleted_;

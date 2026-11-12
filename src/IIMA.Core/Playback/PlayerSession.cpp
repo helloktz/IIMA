@@ -3,6 +3,7 @@
 // to the adapted logic; see references/iina/LICENSE and docs/PORTING.md.
 #include "PlayerSession.h"
 #include "../Windows/MusicModePolicy.h"
+#include "../Screenshots/ScreenshotOptions.h"
 #include <algorithm>
 #include <cmath>
 
@@ -137,8 +138,9 @@ void PlayerSession::ScreenshotToFile(std::string path, ScreenshotCompleted compl
         if(completion) completion(false,std::move(error));
     };
     if(screenshotRequest_) { reject("A screenshot is already in progress"); return; }
-    if(snapshot_.session!=SessionState::Ready || snapshot_.media!=MediaState::Loaded) {
-        reject("Screenshots require loaded media"); return;
+    if(snapshot_.session!=SessionState::Ready || snapshot_.media!=MediaState::Loaded ||
+       pauseRequest_ || loadRequest_ || waitingForStart_) {
+        reject("Screenshots require stable loaded media"); return;
     }
     if(path.empty() || path.find('\0')!=std::string::npos) {
         reject("Invalid screenshot destination"); return;
@@ -148,9 +150,20 @@ void PlayerSession::ScreenshotToFile(std::string path, ScreenshotCompleted compl
     })) { reject("Screenshots require an active video track"); return; }
     const char* mode=settings_.screenshotMode==ScreenshotMode::Subtitles ? "subtitles" :
         settings_.screenshotMode==ScreenshotMode::Window ? "window" : "video";
-    screenshotRequest_=client_->Command({"screenshot-to-file",std::move(path),mode});
-    if(!screenshotRequest_) { reject("Player is closing"); return; }
-    screenshotCompleted_=std::move(completion);
+    const auto dot = path.find_last_of('.');
+    auto suffix = dot == path.npos ? std::string{} : path.substr(dot + 1);
+    for (auto& c : suffix) if (c >= 'A' && c <= 'Z') c = static_cast<char>(c + ('a' - 'A'));
+    auto format = ParseScreenshotFormat(suffix);
+    if (!format) { reject("Unsupported screenshot filename extension"); return; }
+    // screenshot-to-file derives encoding from the filename, not the global
+    // screenshot-format option. JXL alone uses IINA's software HDR workaround.
+    // Await the actual setter reply before issuing the image-write command.
+    screenshotRequest_ = client_->Command({"set", "screenshot-sw", *format == ScreenshotFormat::Jxl ? "yes" : "no"});
+    if (!screenshotRequest_) { reject("Player is closing"); return; }
+    screenshotPreparing_ = true;
+    screenshotMediaGeneration_ = windowMediaGeneration_;
+    screenshotPath_ = std::move(path); screenshotMode_ = mode;
+    screenshotCompleted_ = std::move(completion);
 }
 void PlayerSession::AddSubtitle(std::string path, bool select) {
     if(snapshot_.session!=SessionState::Ready || path.empty() || path.find('\0')!=std::string::npos) return;
@@ -324,7 +337,8 @@ void PlayerSession::OnEvent(MpvEvent e) {
     HandleWindowPauseReply(e);
     if(e.kind==MpvEvent::Kind::Failure || e.kind==MpvEvent::Kind::Shutdown) CancelPlaylistEdits();
     if(e.kind==MpvEvent::Kind::Failure && screenshotRequest_) {
-        screenshotRequest_=0;
+        screenshotRequest_=0; screenshotPreparing_=false;
+        screenshotPath_.clear(); screenshotMode_.clear();
         auto completion=std::move(screenshotCompleted_);
         screenshotCompleted_={};
         // The worker may still be terminating. Wait for its write barrier
@@ -335,12 +349,28 @@ void PlayerSession::OnEvent(MpvEvent e) {
     }
     if(e.kind==MpvEvent::Kind::CommandReply && screenshotRequest_ && e.requestId==screenshotRequest_) {
         screenshotRequest_=0;
-        auto completion=std::move(screenshotCompleted_);
-        screenshotCompleted_={};
-        // The reply is the file-write completion barrier. A change of media
-        // after this submitted request does not invalidate its captured file.
-        if(completion) completion(e.error>=0,e.error>=0 ? std::string{} :
-            (e.text.empty() ? "mpv could not save the screenshot" : e.text));
+        if (screenshotPreparing_) {
+            screenshotPreparing_ = false;
+            const bool stable = screenshotMediaGeneration_ == windowMediaGeneration_ &&
+                snapshot_.session == SessionState::Ready && snapshot_.media == MediaState::Loaded &&
+                !pauseRequest_ && !loadRequest_ && !waitingForStart_;
+            if (e.error >= 0 && stable) {
+                screenshotRequest_ = client_->Command({"screenshot-to-file", std::move(screenshotPath_), screenshotMode_});
+            }
+            screenshotPath_.clear(); screenshotMode_.clear();
+            if (!screenshotRequest_) {
+                auto completion = std::move(screenshotCompleted_); screenshotCompleted_ = {};
+                if (completion) completion(false, e.error < 0 ? "mpv rejected the screenshot rendering mode" :
+                    "Media changed or player closed before screenshot submission");
+            }
+        } else {
+            auto completion=std::move(screenshotCompleted_);
+            screenshotCompleted_={};
+            // The reply is the file-write completion barrier. A change of media
+            // after this submitted request does not invalidate its captured file.
+            if(completion) completion(e.error>=0,e.error>=0 ? std::string{} :
+                (e.text.empty() ? "mpv could not save the screenshot (encoder may be unavailable)" : e.text));
+        }
     }
     if(HandlePlaylistEditEvent(e)) return;
     if(e.kind==MpvEvent::Kind::CommandReply && e.requestId==pauseRequest_) {
@@ -409,7 +439,8 @@ void PlayerSession::CloseAsync(std::function<void()> completion) {
     pendingCommands_.clear(); pauseRequest_=0; loadRequest_=0; transitionIssued_=false; waitingForStart_=false; presentationReady_=false; resumePending_=false; snapshot_.swapChain.reset(); Notify();
     auto weak=weak_from_this();
     auto screenshotCompletion=std::move(screenshotCompleted_);
-    screenshotCompleted_={}; screenshotRequest_=0;
+    screenshotCompleted_={}; screenshotRequest_=0; screenshotPreparing_=false;
+    screenshotPath_.clear(); screenshotMode_.clear();
     client_->CloseAsync([weak, dispatch=dispatch_, completion=std::move(completion),
                          screenshotCompletion=std::move(screenshotCompletion)] {
         dispatch([weak,completion,screenshotCompletion] {

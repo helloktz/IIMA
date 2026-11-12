@@ -29,7 +29,7 @@ bool HasApplicationAdapter(std::string_view key) {
         "singleClickAction", "doubleClickAction", "rightClickAction", "verticalScrollAction", "horizontalScrollAction",
         "relativeSeekAmount", "playbackSpeedScrollAmount", "wheelExactSeek", "enableControlBarAutoHide", "controlBarAutoHideTimeout",
         "showRemainingTime", "scaleRemainingTime", "timeDisplayPrecision", "disableOSDFileStartMsg", "disableOSDSeekMsg",
-        "disableAnimations", "showBufferingThrobber", "showSeekingThrobber", "useExactSeek", "screenshotShowPreview", "enableOSD", "disableOSDPauseResumeMsgs", "disableOSDSpeedMsg", "osdAutoHideTimeout", "osdTextSize"
+        "disableAnimations", "showBufferingThrobber", "showSeekingThrobber", "useExactSeek", "screenShotFormat", "screenshotShowPreview", "enableOSD", "disableOSDPauseResumeMsgs", "disableOSDSpeedMsg", "osdAutoHideTimeout", "osdTextSize"
     };
     return keys.contains(key);
 }

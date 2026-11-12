@@ -24,6 +24,7 @@ constexpr EnumChoice resizeTiming[]{{0,"always"},{1,"onlyWhenOpen"},{2,"never"}}
 constexpr EnumChoice resizeSize[]{{0,"fit-screen"},{1,"0.5"},{2,"1"},{3,"1.5"},{4,"2"}};
 constexpr EnumChoice clickActions[]{{0,"none"},{1,"fullscreen"},{2,"pause"},{3,"hide-controls"},
     {4,"picture-in-picture"},{5,"ab-loop"},{6,"reset-speed"}};
+constexpr EnumChoice screenshotFormats[]{{0,"png"},{1,"jpg"},{2,"jpeg"},{3,"webp"},{4,"jxl"},{5,"avif"}};
 constexpr EnumChoice seekModes[]{{0,"relative"},{1,"exact"},{2,"auto"}};
 constexpr EnumChoice scrollActions[]{{0,"volume"},{1,"seek"},{2,"none"},{4,"playback-speed"}};
 constexpr EnumChoice rtsp[]{{0,"lavf"},{1,"tcp"},{2,"udp"},{3,"http"}};
@@ -149,6 +150,7 @@ std::span<PreferenceDescriptor const> PreferenceSchema() {
         B("showRemainingTime",Area::Interface,false),
         B("scaleRemainingTime",Area::Interface,false),
         I("timeDisplayPrecision",Area::Interface,0,0,3),
+        E("screenShotFormat",Area::Interface,0,screenshotFormats),
         B("screenshotShowPreview",Area::Interface,true),
         B("enableThumbnailPreview",Area::Interface,true),
         B("enableThumbnailForRemoteFiles",Area::Interface,false),

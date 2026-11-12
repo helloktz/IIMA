@@ -115,7 +115,14 @@ winrt::fire_and_forget MainWindow::SaveScreenshot(bool clipboardOnly)
     if (closing_ || pickerOpen_ || screenshotPostProcessing_ || session_->Snapshot().media != iima::MediaState::Loaded) co_return;
     pickerOpen_ = true;
     auto entry = session_->Snapshot().entryId;
+    const auto epoch = navigationEpoch_;
+    // Clipboard-only output stays lossless and uses the built-in PNG decoder;
+    // saved formats may require optional mpv encoders and installed WIC codecs.
+    const auto format = clipboardOnly ? iima::ScreenshotFormat::Png :
+        static_cast<iima::ScreenshotFormat>(preferences_.Integer("screenShotFormat"));
+    const auto extension = iima::ScreenshotExtension(format);
     try {
+        if (extension.empty()) throw hresult_invalid_argument(L"截图格式无效。");
         std::optional<std::filesystem::path> destination;
         if (!clipboardOnly) {
             Windows::Storage::Pickers::FileSavePicker picker;
@@ -123,14 +130,19 @@ winrt::fire_and_forget MainWindow::SaveScreenshot(bool clipboardOnly)
             check_hresult(this->as<::IWindowNative>()->get_WindowHandle(&hwnd));
             check_hresult(picker.as<::IInitializeWithWindow>()->Initialize(hwnd));
             picker.SuggestedFileName(to_hstring(iima::SuggestedScreenshotFilename(
-                session_->Snapshot().path, GetTickCount64(), iima::ScreenshotFormat::Png)));
-            picker.FileTypeChoices().Insert(L"PNG 图像", single_threaded_vector<hstring>({L".png"}));
+                session_->Snapshot().path, GetTickCount64(), format)));
+            picker.FileTypeChoices().Insert(to_hstring(extension) + L" 图像",
+                single_threaded_vector<hstring>({L"." + to_hstring(extension)}));
             auto file = co_await picker.PickSaveFileAsync();
             if (!file || closing_) { pickerOpen_ = false; co_return; }
             destination = std::filesystem::path(file.Path().c_str());
+            auto suffix = to_string(destination->extension().native());
+            for (auto& c : suffix) if (c >= 'A' && c <= 'Z') c = static_cast<char>(c + ('a' - 'A'));
+            if (iima::ParseScreenshotFormat(suffix) != std::optional{format})
+                throw hresult_invalid_argument(L"保存文件后缀与所选截图格式不一致，未生成截图。");
         }
-        if (!closing_ && session_->Snapshot().entryId == entry) {
-            auto staging = std::make_shared<iima::ScreenshotStaging>(iima::ScreenshotStaging::Create());
+        if (!closing_ && session_->Snapshot().entryId == entry && navigationEpoch_ == epoch) {
+            auto staging = std::make_shared<iima::ScreenshotStaging>(iima::ScreenshotStaging::Create(to_hstring(extension)));
             auto weak = get_weak();
             session_->ScreenshotToFile(to_string(staging->Path().wstring()),
                 [weak, staging, destination, clipboardOnly](bool success, std::string error) {
@@ -171,7 +183,7 @@ winrt::fire_and_forget MainWindow::FinishScreenshot(std::shared_ptr<iima::Screen
                 if (copyToClipboard) pixels = std::move(decoded);
             } catch (...) {
                 if (copyToClipboard) throw;
-                previewFailed = true; // A decode failure does not undo a saved PNG.
+                previewFailed = true; // A missing WIC codec does not undo an encoded saved file.
             }
         }
     } catch (...) { failure = std::current_exception(); }
