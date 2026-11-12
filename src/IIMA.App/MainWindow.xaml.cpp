@@ -49,6 +49,7 @@ MainWindow::MainWindow()
     WireMusicMode();
     WirePluginInspection();
     WirePluginPointer();
+    WireMouseWheel();
     WireOSD();
     WireAdvancedPlayback();
     OpenButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->ExecuteApplicationCommand(iima::ApplicationCommand::OpenFile); });

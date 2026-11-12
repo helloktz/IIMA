@@ -82,6 +82,7 @@ public:
         std::optional<double> expectedA, std::optional<double> expectedB);
     void Stop();
     void SetVolume(double value);
+    void AdjustVolumeByWheel(double delta);
     void SetSpeed(double value);
     void SetVideoAspect(std::string aspect);
     void SetVideoRotation(int degrees);

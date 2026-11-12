@@ -649,3 +649,11 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 - 新增“取消待处理粘贴”：递增操作代次、请求协作取消并释放门禁，迟到剪贴板/目录结果不会覆盖新请求。关闭请求取消；解析后重新核对媒体导航和队列revision再插入。取消无法中断正在阻塞的文件系统调用，也不撤回已提交的mpv编辑，界面明确说明。
 - 解析中部分项目失败沿现有解析器处理：可用条目提交，显示部分跳过提示；完全为空则不提交。不做静默虚拟文件下载、不处理系统剪切后源文件移动，也未增加Ctrl+V拦截或跨应用拖出。
 - 未编译、测试或运行；仅静态审阅，剪贴板StorageItems提供者行为、目录枚举和播放器插入需实际验证。
+
+## 第六十三批：视频表面的原生滚轮播放控制
+
+- 追踪 `PlayerWindowController.scrollWheel`、`MainWindowController.scrollWheel`、`AppData` 三种量表和 `Preference.ScrollAction`：纵向默认音量、横向默认seek，none不操作，倍速0.05..4且保留三位小数。新增WinUI视频表面PointerWheelChanged接线，侧栏、编辑器、滑块、列表保留原生滚动；模态、关闭、未载入、修饰键及输入焦点不允许时不抢事件。
+- Windows按120单位一格归一化，保留高分辨率小delta，限制单次32格；纵向系数2、横向系数1继承IINA普通鼠标规则。Windows直接使用已交付方向，不再次套Cocoa natural-scroll反转。seek量表0.5/1/2/4（默认档3），倍速比例0.001/0.002/0.005/0.01（默认档3）；不可seek媒体不处理seek。
+- 设置通过既有schema驱动的高级设置界面和JSON持久化：verticalScrollAction/horizontalScrollAction/relativeSeekAmount/playbackSpeedScrollAmount/wheelExactSeek。wheelExactSeek默认false保持上游relative默认；尚未接入自动seek延迟选择，不提供伪auto选项。
+- 音量使用 `PlayerSession.AdjustVolumeByWheel` → mpv `add volume`，避免连续滚动用旧观察值覆盖增量；固定mpv `mp_property_volume` 的constricted type按softvol_max限制。倍速保持上游观察值计算，快速连续事件在观察延迟下不保证逐格累计；OSD仍依赖确认属性事件，非乐观状态。
+- Windows未提供此路由的Cocoa手势phase/精确像素语义，因此不模拟触控板开始暂停/结束恢复，也不包含音量/进度滑块override、mini-player弹出层或插件可消费滚轮。未编译、测试、运行，方向和硬件输入需实际确认。

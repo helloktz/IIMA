@@ -273,6 +273,7 @@ private:
     std::vector<std::size_t> SelectedPlaylistRows();
     void UpdatePlaylistSelection();
     void WirePlaylistDrag();
+    void WireMouseWheel();
     void WirePlaylistClipboard();
     void CopyPlaylistPaths(bool networkOnly);
     winrt::fire_and_forget PastePlaylistPaths();

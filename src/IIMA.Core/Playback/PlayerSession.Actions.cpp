@@ -11,6 +11,11 @@ void PlayerSession::SeekRelative(double seconds, bool exact) {
     auto plan = policy.Prepare(seconds, exact ? RelativeSeekMode::Exact : RelativeSeekMode::Relative);
     if (plan) client_->Command(std::move(plan->command));
 }
+void PlayerSession::AdjustVolumeByWheel(double delta) {
+    if (snapshot_.session != SessionState::Ready || snapshot_.media != MediaState::Loaded ||
+        !std::isfinite(delta) || delta == 0 || std::abs(delta) > 64) return;
+    client_->Command({"add", "volume", std::to_string(delta)});
+}
 void PlayerSession::StepFrame(bool backwards) {
     CancelWindowPausePolicy();
     if (snapshot_.session == SessionState::Ready && snapshot_.media == MediaState::Loaded && presentationReady_)
