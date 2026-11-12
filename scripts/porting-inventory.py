@@ -8,6 +8,7 @@ import json
 from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 MAPPING = {
+    'JavascriptAPIPlaylist.swift': ['src/IIMA.App/Plugins/PluginRuntime.cpp', 'src/IIMA.App/Plugins/PluginBootstrap.h', 'src/IIMA.App/MainWindow.PluginPlaylist.cpp'],
     'JavascriptAPIInput.swift': ['src/IIMA.App/Plugins/PluginRuntime.cpp', 'src/IIMA.App/MainWindow.PluginInput.cpp', 'src/IIMA.App/MainWindow.PluginPointer.cpp'],
     'PluginInputManager.swift': ['src/IIMA.App/Plugins/PluginRuntime.cpp', 'src/IIMA.App/MainWindow.Keyboard.cpp'],
     'JavascriptPluginInstance.swift': ['src/IIMA.App/Plugins/PluginRuntime.cpp', 'src/IIMA.App/MainWindow.PluginRuntime.cpp'],

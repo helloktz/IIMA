@@ -168,6 +168,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MainWindow.PluginRuntime.cpp" />
+    <ClCompile Include="MainWindow.PluginPlaylist.cpp" />
     <ClCompile Include="MainWindow.PluginMenu.cpp" />
     <ClCompile Include="MainWindow.PluginInput.cpp" />
     <ClCompile Include="MainWindow.PluginPointer.cpp" />

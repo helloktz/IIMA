@@ -192,7 +192,7 @@ struct PluginRuntime::Impl {
             Log, Warn, Error, Status, On, Off, Timeout, Interval, ClearTimer, Require,
             PlayChapter, AudioVolume, AudioMuted, AudioDelay, AudioId, SubtitleDelay, SubtitleId, VideoId,
             PreferenceDefaults, PreferenceStored, PreferenceSync, MenuInstall, MenuPublish,
-            InputInstall, InputNormalize, InputBindings, MouseInstall, FileOperation, HttpRequestCall
+            InputInstall, InputNormalize, InputBindings, MouseInstall, FileOperation, HttpRequestCall, PlaylistCommandCall
         };
         Impl& owner;
         JSRuntime* runtime{};
@@ -426,6 +426,79 @@ struct PluginRuntime::Impl {
                 if (index >= argc) throw std::invalid_argument("Missing API argument.");
                 return argv[index];
             };
+            if (function == PlaylistCommandCall) {
+                auto operation = String(context, argument(0), 16);
+                if (operation != "play" && operation != "remove" && operation != "move" &&
+                    operation != "next" && operation != "previous")
+                    throw std::invalid_argument("Unsupported playlist command.");
+                auto arguments = String(context, argument(1), 16 * 1024);
+                Value supplied(context, JS_ParseJSON(context, arguments.data(), arguments.size(), "playlist-command"));
+                if (JS_IsException(supplied.value)) return JS_EXCEPTION;
+                if (!JS_IsArray(supplied.value)) throw std::invalid_argument("Playlist indices must be an array.");
+                Value snapshot(context, JS_ParseJSON(context, status.data(), status.size(), "playlist-state"));
+                if (JS_IsException(snapshot.value)) return JS_EXCEPTION;
+                Value idle(context, JS_GetPropertyStr(context, snapshot.value, "idle"));
+                if (!JS_IsBool(idle.value)) throw std::runtime_error("Playlist state is unavailable.");
+                if (JS_ToBool(context, idle.value)) return JS_FALSE;
+                Value identities(context, JS_GetPropertyStr(context, snapshot.value, "_playlistIds"));
+                if (!JS_IsArray(identities.value)) throw std::runtime_error("Playlist identities are unavailable.");
+                Value length(context, JS_GetPropertyStr(context, identities.value, "length"));
+                auto count = Number(context, length.value);
+                if (count < 0 || count > 1024 || std::floor(count) != count)
+                    throw std::runtime_error("Playlist identity snapshot exceeds its limit.");
+                Value inputLength(context, JS_GetPropertyStr(context, supplied.value, "length"));
+                auto inputCount = Number(context, inputLength.value);
+                if (inputCount < 0 || inputCount > 1024 || std::floor(inputCount) != inputCount)
+                    throw std::invalid_argument("Too many playlist indices.");
+                if ((operation == "play" && inputCount != 1) ||
+                    (operation == "move" && inputCount != 2) ||
+                    ((operation == "next" || operation == "previous") && inputCount != 0))
+                    throw std::invalid_argument("Wrong playlist command argument count.");
+                std::vector<std::size_t> indices;
+                for (unsigned index = 0; index < static_cast<unsigned>(inputCount); ++index) {
+                    Value item(context, JS_GetPropertyUint32(context, supplied.value, index));
+                    auto value = Number(context, item.value);
+                    if (value < 0 || value >= count || std::floor(value) != value) return JS_FALSE;
+                    indices.push_back(static_cast<std::size_t>(value));
+                }
+                if (operation == "move" && indices[0] == indices[1]) return JS_FALSE;
+                if (operation == "remove") {
+                    std::sort(indices.begin(), indices.end());
+                    indices.erase(std::unique(indices.begin(), indices.end()), indices.end());
+                    if (indices.empty()) return JS_TRUE;
+                }
+                // Do not accept a JS-provided snapshot identity: only the worker's
+                // host-owned ordered ID list can authorize index-based actions.
+                PluginCommand command;
+                command.name = "playlist." + operation;
+                command.mediaToken = MediaToken();
+                command.text = "{\"ids\":[";
+                for (unsigned index = 0; index < static_cast<unsigned>(count); ++index) {
+                    Value item(context, JS_GetPropertyUint32(context, identities.value, index));
+                    auto id = String(context, item.value, 20);
+                    if (id.empty() || !std::all_of(id.begin(), id.end(), [](char c) { return c >= '0' && c <= '9'; }))
+                        throw std::runtime_error("Invalid playlist identity.");
+                    if (index) command.text += ',';
+                    command.text += "\"" + id + "\"";
+                }
+                command.text += ']';
+                if (operation == "move") {
+                    command.text += ",\"from\":" + std::to_string(indices[0]) +
+                        ",\"to\":" + std::to_string(indices[1]);
+                } else {
+                    command.text += ",\"indices\":[";
+                    for (std::size_t index = 0; index < indices.size(); ++index) {
+                        if (index) command.text += ',';
+                        command.text += std::to_string(indices[index]);
+                    }
+                    command.text += ']';
+                }
+                command.text += '}';
+                if (!owner.callbacks.command) throw std::runtime_error("Player command host is unavailable.");
+                if (!TakeOutbound()) throw std::invalid_argument("Plugin outbound command rate limit exceeded.");
+                owner.callbacks.command(std::move(command));
+                return JS_TRUE; // queued, never synchronous mpv completion
+            }
             if (function == MouseInstall) {
                 if (!JS_IsUndefined(mouseDispatch) || !JS_IsFunction(context, argument(0)))
                     throw std::invalid_argument("Mouse dispatcher must be installed once with a function.");
@@ -678,7 +751,7 @@ struct PluginRuntime::Impl {
             Value global(context, JS_GetGlobalObject(context));
             Value host(context, JS_NewObject(context));
             if (JS_IsException(host.value)) { Fail(ExceptionText()); return false; }
-            constexpr std::array<std::tuple<char const*, int, Function>, 36> definitions{{
+            constexpr std::array<std::tuple<char const*, int, Function>, 37> definitions{{
                 {"pause", 0, Pause}, {"resume", 0, Resume}, {"stop", 0, StopPlayback},
                 {"seek", 2, Seek}, {"seekTo", 1, SeekTo}, {"setSpeed", 1, Speed}, {"osd", 1, Osd},
                 {"log", 1, Log}, {"warn", 1, Warn}, {"error", 1, Error}, {"status", 0, Status},
@@ -691,7 +764,8 @@ struct PluginRuntime::Impl {
                 {"preferenceDefaults", 0, PreferenceDefaults}, {"preferenceStored", 0, PreferenceStored},
                 {"preferenceSync", 1, PreferenceSync}, {"menuInstall", 1, MenuInstall}, {"menuPublish", 2, MenuPublish},
                 {"inputInstall", 1, InputInstall}, {"inputNormalize", 1, InputNormalize}, {"inputBindings", 0, InputBindings},
-                {"mouseInstall", 1, MouseInstall}, {"fileOperation", 2, FileOperation}, {"httpRequest", 1, HttpRequestCall}
+                {"mouseInstall", 1, MouseInstall}, {"fileOperation", 2, FileOperation}, {"httpRequest", 1, HttpRequestCall},
+                {"playlistCommand", 2, PlaylistCommandCall}
             }};
             for (auto const& [name, arity, function] : definitions) {
                 if (!SetFunction(host.value, name, arity, function)) return false;

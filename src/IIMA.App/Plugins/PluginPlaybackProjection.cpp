@@ -119,8 +119,8 @@ JsonObject TrackApi(PlaybackSnapshot const& state, std::string_view type, Projec
 std::string PlaybackStatusJson(PlaybackSnapshot const& state, std::uint64_t mediaToken) {
     // No truncation: runtime/UI callers receive an explicit failure rather than
     // a misleading claim that getChapters()/tracks returned a complete list.
-    if (state.tracks.size() > 256 || state.chapters.size() > 2048)
-        throw std::length_error("Plugin track/chapter collection exceeds the projection limit.");
+    if (state.tracks.size() > 256 || state.chapters.size() > 2048 || state.playlist.size() > 1024)
+        throw std::length_error("Plugin media collection exceeds the projection limit.");
     ProjectionBudget budget;
     JsonObject json;
     // Internal transport tag, not a property of the public core.status API.
@@ -134,9 +134,9 @@ std::string PlaybackStatusJson(PlaybackSnapshot const& state, std::uint64_t medi
     json.Insert(L"videoWidth", Dimension(state.videoParameters, "w"));
     json.Insert(L"videoHeight", Dimension(state.videoParameters, "h"));
     json.Insert(L"isNetworkResource", JsonValue::CreateBooleanValue(state.path.find("://") != std::string::npos));
-    // This initial grant is playback control, not arbitrary path/history access.
-    // IINA returns the complete resource URL/title; IIMA deliberately omits both
-    // until an explicit metadata/path grant is introduced.
+    // The core status URL/title remain outside this API subset. The separately
+    // disclosed playlist API below includes its complete filenames/titles; do
+    // not mistake these null status fields for a path-confidentiality boundary.
     json.Insert(L"url", JsonValue::CreateNullValue());
     json.Insert(L"title", JsonValue::CreateNullValue());
     json.Insert(L"audio", TrackApi(state, "audio", budget));
@@ -151,6 +151,24 @@ std::string PlaybackStatusJson(PlaybackSnapshot const& state, std::uint64_t medi
         chapters.Append(value);
     }
     json.Insert(L"chapters", chapters);
+    JsonArray playlist, playlistIds;
+    for (auto const& item : state.playlist) {
+        JsonObject value;
+        value.Insert(L"filename", Text(std::optional<std::string>(item.path)));
+        value.Insert(L"title", OptionalText(item.title));
+        value.Insert(L"isCurrent", JsonValue::CreateBooleanValue(item.current));
+        value.Insert(L"isPlaying", JsonValue::CreateBooleanValue(item.id == state.entryId &&
+            (state.media == MediaState::Loading || state.media == MediaState::Loaded)));
+        budget.Account(value);
+        playlist.Append(value);
+        // Full decimal identity, never rounded through a JavaScript Number.
+        if (item.id < 0) throw std::invalid_argument("Invalid observed playlist entry identity.");
+        auto id = JsonValue::CreateStringValue(winrt::to_hstring(std::to_string(item.id)));
+        budget.Account(id);
+        playlistIds.Append(id);
+    }
+    json.Insert(L"playlist", playlist);
+    json.Insert(L"_playlistIds", playlistIds);
     auto output = winrt::to_string(json.Stringify());
     if (output.size() > SnapshotByteLimit)
         throw std::length_error("Plugin playback snapshot exceeds 64 KiB.");

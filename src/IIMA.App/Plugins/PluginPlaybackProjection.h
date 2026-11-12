@@ -6,10 +6,10 @@
 #include <vector>
 namespace iima::plugins {
 struct PlaybackEvent { std::string name; std::string argumentJson{"null"}; };
-// A deliberately path-free copied view, never a native pointer or mutable mpv
-// node. Track/chapter labels require the owner's explicit metadata grant. Flat
+// A copied view, never a native pointer or mutable mpv node. Playlist filenames
+// and titles require explicit startup disclosure, including network URL secrets. Flat
 // status fields plus audio/subtitle/video objects and chapters array. Throws for
-// over 256 tracks, 2048 chapters, 4096-byte text or 64-KiB serialized snapshot;
+// over 256 tracks, 2048 chapters, 1024 playlist entries, 4096-byte text or 64-KiB snapshot;
 // does not silently truncate collections. Secondary selected subtitle ID is not
 // observed by the current payload and remains null.
 std::string PlaybackStatusJson(PlaybackSnapshot const& state, std::uint64_t mediaToken = 0);

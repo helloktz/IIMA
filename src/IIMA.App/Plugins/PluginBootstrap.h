@@ -94,6 +94,35 @@ inline constexpr char PluginBootstrap[] = R"IIMAJS(
     playChapter: index => host.playChapter(index),
     status, audio, subtitle, video
   });
+  // JavascriptAPIPlaylist: snapshots are independent values, while mutations
+  // enqueue against the worker's exact ordered entry identities. No arbitrary
+  // URL opening is implied by this API subset.
+  function playlistOperation(operation, indices) {
+    for (const index of indices)
+      if (typeof index !== 'number' || !Number.isSafeInteger(index) || index < 0) return false;
+    if (indices.length > 1024) throw new RangeError('Too many playlist indices');
+    return host.playlistCommand(operation, stringify(indices));
+  }
+  const playlist = namespace('playlist', {
+    list() {
+      const snapshot = host.status();
+      if (snapshot.idle) return [];
+      if (!isArray(snapshot.playlist)) throw new Error('Playlist snapshot is unavailable');
+      return snapshot.playlist;
+    },
+    count() {
+      const entries = host.status().playlist;
+      if (!isArray(entries)) throw new Error('Playlist snapshot is unavailable');
+      return entries.length;
+    },
+    play(index) { playlistOperation('play', [index]); },
+    remove(index) { return playlistOperation('remove', isArray(index) ? slice(index) : [index]); },
+    move(index, to) { return playlistOperation('move', [index, to]); },
+    playNext() { playlistOperation('next', []); },
+    playPrevious() { playlistOperation('previous', []); },
+    add() { return missing('playlist.add'); },
+    registerMenuItemBuilder() { return missing('playlist.registerMenuItemBuilder'); }
+  });
   function render(value) {
     if (value === undefined) return '<undefined>';
     if (value === null) return '<null>';
@@ -603,7 +632,7 @@ inline constexpr char PluginBootstrap[] = R"IIMAJS(
     if (result === true) host.warn('Mouse callback return cannot consume input in IIMA');
   });
   Object.defineProperty(globalThis, 'iina', {
-    value: namespace('iina', {core, console: consoleApi, event, preferences, menu, input, file, http}),
+    value: namespace('iina', {core, console: consoleApi, event, preferences, menu, input, file, http, playlist}),
     writable: false, configurable: false
   });
   Object.defineProperty(globalThis, 'console', {value: consoleApi, configurable: false});

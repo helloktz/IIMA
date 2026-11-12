@@ -401,8 +401,12 @@
     {
       "source": "references/iina/iina/JavascriptAPIPlaylist.swift",
       "physicalLines": 143,
-      "coverage": "not-mapped",
-      "reviewTargets": []
+      "coverage": "partial-static-unverified",
+      "reviewTargets": [
+        "src/IIMA.App/Plugins/PluginRuntime.cpp",
+        "src/IIMA.App/Plugins/PluginBootstrap.h",
+        "src/IIMA.App/MainWindow.PluginPlaylist.cpp"
+      ]
     },
     {
       "source": "references/iina/iina/JavascriptAPIPreferences.swift",

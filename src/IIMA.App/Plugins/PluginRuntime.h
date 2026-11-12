@@ -15,7 +15,7 @@ struct PluginCommand {
     double number{};
     bool flag{};
     std::string text;
-    std::string mediaToken; // host snapshot identity for track/chapter actions
+    std::string mediaToken; // host snapshot identity for track/chapter/playlist actions
 };
 
 // One explicitly started, local, trusted plugin entry per owner/window.

@@ -62,6 +62,7 @@ private:
     iima::plugins::PluginPointerState pluginPointer_;
     void UpdatePlugin(iima::PlaybackSnapshot const& state);
     void DispatchPluginCommand(iima::plugins::PluginCommand command);
+    void DispatchPluginPlaylistCommand(iima::plugins::PluginCommand const& command);
     std::unique_ptr<iima::plugins::PluginRuntime> pluginRuntime_;
     iima::plugins::PlaybackProjection pluginProjection_;
     std::uint64_t pluginGeneration_{}, pluginMediaEpoch_{};
