@@ -2,6 +2,7 @@
 #include "MainWindow.g.h"
 #include "../IIMA.Core/Playback/PlayerSession.h"
 #include "../IIMA.Core/Commands/ApplicationCommand.h"
+#include "../IIMA.Core/Input/BindingConfiguration.h"
 #include "Presentation/VideoPresenter.h"
 #include "../IIMA.Core/Windows/MusicModePolicy.h"
 #include <winrt/Windows.Graphics.h>
@@ -106,6 +107,16 @@ private:
     std::optional<std::uint64_t> informationRevision_, audioDevicesRevision_;
     void WireKeyboardControls();
     void WireBindingLibrary();
+    void WireBindingEditor();
+    void LoadBindingRows();
+    void UpdateBindingRowFields();
+    void RefreshBindingRows(std::optional<std::size_t> selected = {});
+    std::optional<std::size_t> SelectedBindingRow() const;
+    void EditBindingRow(int action);
+    void WriteBindingRows();
+    bool projectingBindingRows_{};
+    std::unique_ptr<iima::BindingConfiguration> bindingRowDraft_;
+    std::string bindingRowSource_;
     std::optional<std::string> SelectedBindingSnapshot() const;
     void RefreshBindingLibrary(std::string selected = {});
     void SaveBindingSnapshot(bool replace);

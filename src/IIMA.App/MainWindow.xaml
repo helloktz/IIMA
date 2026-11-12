@@ -406,6 +406,26 @@
                                 <Button x:Name="ResetKeyBindingsButton" Content="恢复 Windows 默认快捷键"/>
                                 <Button x:Name="ImportKeyBindingsButton" Content="导入 input.conf"/>
                                 <Button x:Name="ExportKeyBindingsButton" Content="导出 input.conf"/>
+                                <Expander Header="逐行编辑快捷键" HorizontalAlignment="Stretch">
+                                    <StackPanel Spacing="6">
+                                        <TextBlock Text="行编辑是独立草稿。生成会规范化文本，仅保留行内注释；请先导出需保留的原文。" TextWrapping="Wrap"/>
+                                        <Button x:Name="LoadBindingRowsButton" Content="从文本读取并替换行草稿"/>
+                                        <TextBox x:Name="BindingRowSearch" Header="搜索按键、动作或注释"/>
+                                        <ListView x:Name="BindingRowsList" Height="200" SelectionMode="Single" AutomationProperties.Name="快捷键绑定行"/>
+                                        <TextBox x:Name="BindingRowKey" Header="mpv按键名称（如 Ctrl+o）" MaxLength="16384"/>
+                                        <TextBox x:Name="BindingRowAction" Header="动作（IINA动作加 @iina 前缀）" MaxLength="16384"/>
+                                        <TextBox x:Name="BindingRowComment" Header="行内注释" MaxLength="16384"/>
+                                        <Button x:Name="AddBindingRowButton" Content="追加绑定"/>
+                                        <Button x:Name="ReplaceBindingRowButton" Content="替换所选绑定"/>
+                                        <Button x:Name="RemoveBindingRowButton" Content="移除所选绑定"/>
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <Button x:Name="MoveBindingRowUpButton" Content="上移"/>
+                                            <Button x:Name="MoveBindingRowDownButton" Content="下移"/>
+                                        </StackPanel>
+                                        <Button x:Name="WriteBindingRowsButton" Content="生成规范化文本并替换文本区"/>
+                                        <TextBlock x:Name="BindingRowStatus" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </Expander>
                                 <TextBlock Text="命名配置库：保存编辑区为快照；载入只替换编辑区，需另点保存并应用。空编辑区可保存为空配置。" TextWrapping="Wrap"/>
                                 <ComboBox x:Name="BindingSnapshotBox" Header="已保存快照" HorizontalAlignment="Stretch"/>
                                 <TextBox x:Name="BindingSnapshotName" Header="新建或重命名的名称" MaxLength="128"/>
