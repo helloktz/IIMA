@@ -213,4 +213,8 @@
     <ClCompile Include="Platform\ThumbnailDiskCache.cpp" />
     <ClInclude Include="Platform\ThumbnailDiskCache.h" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Platform\PluginXmlRpc.h" />
+    <ClCompile Include="Platform\PluginXmlRpc.cpp" />
+  </ItemGroup>
 </Project>

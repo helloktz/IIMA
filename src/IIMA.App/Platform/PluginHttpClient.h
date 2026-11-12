@@ -25,6 +25,7 @@ private:
 // Restricted HTTPS adapter, NOT an SSRF or hostile-code sandbox. OS DNS can map
 // an allowed DNS name to private addresses, and WinRT does not expose an address-
 // pinned transport here. No IP literals/local hostnames, redirects, shared cookie
-// jar, proxy, credential lookup, XML-RPC or binary response API. Downloads
+// jar, proxy, credential lookup or binary response API. XML-RPC supports
+// bounded JSON-representable values, not dates/base64/extensions. Downloads
 // atomically write at most 1 MiB to the supplied private file store, never execute.
 }

@@ -358,3 +358,12 @@ Windows 后续验收：播放 A 后重新双击 A，在加载期间反复缩放�
 - 404/500和二进制错误体、重定向、非许可域名、无网络权限、断流、超时、超1 MiB、错误Content-Length均不能覆盖已有目标；服务器操作已发生时不假称回滚。
 - 磁盘满、存储配额、文件锁、链接替换、相同目标并发文本写/下载/删除、不同窗口同identifier写入，核对原子保存与可理解拒绝。下载与stop/close/cleanup竞争后没有临时数据回填；rename前取消不提交，rename后取消不保证撤销。
 - 测量原生磁盘慢响应和关闭等待；现阶段没有保证同步I/O的硬截止。以上均未执行，不代表接口/运行或安全验证通过。
+
+
+## 插件 XML-RPC（第三十六批，尚未执行）
+
+- 用明确许可的本地可控HTTPS服务及可信插件，核对client创建不发请求，call发POST text/xml；布尔、int32边界、double、空/Unicode/转义字符串、无类型value、数组和struct逐项匹配类型。
+- 对HTTP非2xx、传输失败、标准fault、无value/多value、错误root、额外params、重复struct键、溢出int/i4、NaN/Inf、null/date/base64确认明确拒绝，不把故障返回为成功对象。
+- 对外部文件实体、外部URL实体、DTD、深层数组/元素、大量节点、超过字节上限、属性/命名空间/非法UTF-8检查拒绝且无额外文件/网络访问；启动权限取消、无network-request或非许可域名不发送请求。
+- 四个并发Promise、请求中停止/关闭、回调中再次call、脚本退出和网络晚到回复核对生命周期；确保不把QuickJS对象移到网络线程，服务端已执行操作不声称取消回滚。
+- 原生XML DOM API、UTF-8 text/xml格式、JSON数字语义和XML-RPC服务互操作均须后续Windows验证。以上未执行。

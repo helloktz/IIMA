@@ -82,7 +82,7 @@ winrt::fire_and_forget MainWindow::StartLocalPlugin() {
                     for (auto const& domain : program->manifest.allowedDomains)
                         message += L" • " + std::wstring(to_hstring(domain)) + L"\n";
                     if (program->manifest.allowedDomains.empty()) message += L"（未声明域名，所有请求将拒绝）\n";
-                    message += L"它还可下载最多1 MiB的内容并覆盖私有 @data/@tmp 文件，不会自动打开或执行。\n不跟随重定向、不使用浏览器Cookie或系统登录；域名许可不是网络隔离，域名仍可能解析到私有地址。";
+                    message += L"它还可向许可域名发送 XML-RPC 调用，以及下载最多1 MiB的内容并覆盖私有 @data/@tmp 文件，不会自动打开或执行。\n不跟随重定向、不使用浏览器Cookie或系统登录；域名许可不是网络隔离，域名仍可能解析到私有地址。";
                 } else message += L"\n该插件未申请网络权限，网络请求将拒绝。";
                 Controls::TextBlock consentText;
                 consentText.Text(message); consentText.TextWrapping(TextWrapping::Wrap);

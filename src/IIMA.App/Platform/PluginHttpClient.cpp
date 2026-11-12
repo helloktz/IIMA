@@ -3,6 +3,7 @@
 #include "pch.h"
 #include "PluginHttpClient.h"
 #include "PluginFileStore.h"
+#include "PluginXmlRpc.h"
 #include <winrt/Windows.Data.Json.h>
 #include <winrt/Windows.Storage.Streams.h>
 #include <winrt/Windows.Web.Http.h>
@@ -145,12 +146,14 @@ struct Client {
 std::string Perform(PluginManifest const& manifest, std::string const& json, std::stop_token stop, std::shared_ptr<PluginFileStore> const& files) {
     auto deadline = Clock::now() + std::chrono::seconds(30); Check(stop, deadline);
     if (!manifest.HasPermission(PluginPermission::NetworkRequest)) throw std::invalid_argument("Plugin network-request permission is absent.");
-    if (json.empty() || json.size() > RequestLimit || !JsonBudget(json, 3, 1024))
+    if (json.empty() || json.size() > RequestLimit || !JsonBudget(json, 20, 16384))
         throw std::invalid_argument("Plugin HTTP request exceeds its structural budget.");
     auto input = JsonObject::Parse(Wide(json));
+    bool rpc = input.HasKey(L"rpc");
     std::string destination;
     bool downloading = input.HasKey(L"destination");
     if (downloading) {
+        if (rpc) throw std::invalid_argument("XML-RPC cannot request a file destination.");
         if (!files) throw std::invalid_argument("Private download storage is unavailable.");
         destination = to_string(input.GetNamedString(L"destination"));
         PluginFileStore::ValidateDownloadPath(destination); // before any network operation
@@ -158,6 +161,14 @@ std::string Perform(PluginManifest const& manifest, std::string const& json, std
     auto method = to_string(input.GetNamedString(L"method"));
     if (method != "GET" && method != "POST" && method != "PUT" && method != "PATCH" && method != "DELETE")
         throw std::invalid_argument("Unsupported plugin HTTP method.");
+    std::string rpcBody;
+    if (rpc) {
+        if (method != "POST" || input.HasKey(L"options")) throw std::invalid_argument("Unsupported XML-RPC request options.");
+        auto call = input.GetNamedObject(L"rpc");
+        if (call.Size() != 2 || !call.HasKey(L"method") || !call.HasKey(L"args"))
+            throw std::invalid_argument("Invalid XML-RPC call.");
+        rpcBody = PluginXmlRpc::Encode(to_string(call.GetNamedString(L"method")), to_string(call.GetNamedArray(L"args").Stringify()));
+    }
     auto uri = CheckedUri(to_string(input.GetNamedString(L"url")), manifest);
     auto options = input.HasKey(L"options") ? input.GetNamedObject(L"options") : JsonObject{};
     for (auto const& option : options)
@@ -181,7 +192,9 @@ std::string Perform(PluginManifest const& manifest, std::string const& json, std
         if (!request.Headers().TryAppendWithoutValidation(to_hstring(name), Wide(value)))
             throw std::invalid_argument("Plugin HTTP header cannot be added.");
     }
-    if (method != "GET" && options.HasKey(L"data")) {
+    if (rpc) {
+        request.Content(HttpStringContent(Wide(rpcBody), UnicodeEncoding::Utf8, L"text/xml"));
+    } else if (method != "GET" && options.HasKey(L"data")) {
         auto fields = single_threaded_map<hstring, hstring>();
         for (auto const& [key, value] : data) fields.Insert(Wide(key), Wide(value));
         request.Content(HttpFormUrlEncodedContent(fields));
@@ -217,20 +230,32 @@ std::string Perform(PluginManifest const& manifest, std::string const& json, std
     bool decodable = true;
     try { text = Wide(bytes); }
     catch (std::invalid_argument const&) {
-        if (!downloading) throw;
+        if (!downloading && !rpc) throw;
         decodable = false; // failed binary download still rejects with HTTP status
     }
     JsonValue parsed{nullptr};
     IJsonValue body = JsonValue::CreateNullValue();
     // Large/deep JSON is still returned as text but not expanded into a second
     // unbounded object tree. Invalid JSON likewise maps to data:null as upstream.
-    if (decodable && JsonBudget(bytes, 32, 16384) && JsonValue::TryParse(text, parsed)) body = parsed;
+    if (!rpc && decodable && JsonBudget(bytes, 32, 16384) && JsonValue::TryParse(text, parsed)) body = parsed;
     JsonObject result;
     result.Insert(L"statusCode", JsonValue::CreateNumberValue(status));
     auto reason = response.ReasonPhrase();
     if (reason.size() > 512) reason = L"";
     result.Insert(L"reason", JsonValue::CreateStringValue(reason));
     result.Insert(L"text", decodable ? JsonValue::CreateStringValue(text) : JsonValue::CreateNullValue()); result.Insert(L"data", body);
+    if (rpc && status >= 200 && status < 300) {
+        try {
+            auto decoded = JsonObject::Parse(Wide(PluginXmlRpc::Decode(bytes)));
+            result.Insert(L"rpcFault", decoded.GetNamedValue(L"fault"));
+            result.Insert(L"rpcValue", decoded.GetNamedValue(L"value"));
+        } catch (...) {
+            // Parsing failures do not echo hostile XML or native diagnostics.
+            result.Insert(L"rpcError", JsonValue::CreateStringValue(L"Bad response"));
+        }
+        result.Insert(L"text", JsonValue::CreateNullValue());
+        result.Insert(L"data", JsonValue::CreateNullValue());
+    }
     JsonObject envelope;
     envelope.Insert(L"ok", JsonValue::CreateBooleanValue(status >= 200 && status < 300));
     envelope.Insert(L"response", result);

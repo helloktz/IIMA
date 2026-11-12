@@ -368,7 +368,8 @@
         "src/IIMA.App/Plugins/PluginRuntime.cpp",
         "src/IIMA.App/Plugins/PluginBootstrap.h",
         "src/IIMA.App/Platform/PluginFileStore.cpp",
-        "src/IIMA.App/MainWindow.PluginRuntime.cpp"
+        "src/IIMA.App/MainWindow.PluginRuntime.cpp",
+        "src/IIMA.App/Platform/PluginXmlRpc.cpp"
       ]
     },
     {
@@ -524,8 +525,12 @@
     {
       "source": "references/iina/iina/JustXMLRPC.swift",
       "physicalLines": 190,
-      "coverage": "not-mapped",
-      "reviewTargets": []
+      "coverage": "partial-static-unverified",
+      "reviewTargets": [
+        "src/IIMA.App/Platform/PluginXmlRpc.cpp",
+        "src/IIMA.App/Platform/PluginHttpClient.cpp",
+        "src/IIMA.App/Plugins/PluginBootstrap.h"
+      ]
     },
     {
       "source": "references/iina/iina/KeyBindingCriterion.swift",

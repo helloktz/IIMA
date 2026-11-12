@@ -431,13 +431,42 @@ inline constexpr char PluginBootstrap[] = R"IIMAJS(
     if (utf8Bytes(request) > 131072) throw new RangeError('HTTP request exceeds 128 KiB');
     return host.httpRequest(request);
   }
+  function xmlrpcClient(location) {
+    location = httpString(location, 8192);
+    if (!location.length) throw new TypeError('XML-RPC location must not be empty');
+    return namespace('http.xmlrpc', {
+      call(method, args) {
+        method = httpString(method, 256);
+        if (!method.length || !isArray(args)) throw new TypeError('XML-RPC requires a method and argument array');
+        // Snapshot plain, acyclic data properties before leaving the JS worker.
+        // Native codec rejects null and unsupported XML-RPC types explicitly.
+        const encoded = encodePreference(args);
+        const request = '{"method":"POST","url":' + stringify(location) +
+          ',"rpc":{"method":' + stringify(method) + ',"args":' + encoded + '}}';
+        if (utf8Bytes(request) > 131072) throw new RangeError('XML-RPC request exceeds 128 KiB');
+        return host.httpRequest(request).then(response => {
+          if (response.rpcError) throw {httpCode: response.statusCode, reason: response.rpcError,
+            description: method + ': [' + response.statusCode + '] ' + response.rpcError};
+          if (response.rpcFault) throw undefined; // IINA Result.failure
+          return response.rpcValue;
+        }, response => {
+          if (response && typeof response.statusCode === 'number') {
+            const reason = typeof response.reason === 'string' ? response.reason : '';
+            throw {httpCode: response.statusCode, reason,
+              description: method + ': [' + response.statusCode + '] ' + reason};
+          }
+          throw response; // transport/cancellation Error has no HTTP status
+        });
+      }
+    });
+  }
   const http = namespace('http', {
     get: (url, options) => httpRequest('GET', url, options),
     post: (url, options) => httpRequest('POST', url, options),
     put: (url, options) => httpRequest('PUT', url, options),
     patch: (url, options) => httpRequest('PATCH', url, options),
     delete: (url, options) => httpRequest('DELETE', url, options),
-    xmlrpc: () => missing('http.xmlrpc'),
+    xmlrpc: location => xmlrpcClient(location),
     // Upstream resolves download with no value, only after the file write.
     download(url, destination, options) {
       destination = httpString(destination, 1024); // missing destination must not become a GET

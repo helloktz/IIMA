@@ -444,3 +444,14 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 - 仍不支持任意用户路径、嵌套目录、超1 MiB大文件/进度回调、重定向、其他编码、二进制file.handle、XML-RPC或完整插件兼容。相同插件identifier共享私有数据，域名许可与QuickJS均不是操作系统安全沙箱。启动说明新增下载与私有覆盖披露。
 
 仅静态编写、人工源码阅读、数量统计和Git核验，未编译、测试、运行、执行插件或发送HTTP请求。
+
+
+### 第三十六批：插件 XML-RPC 异步调用
+
+- `JavascriptAPIHttp.xmlrpc`、`JavascriptAPIXmlrpc.call`、`JustXMLRPC.call/toValueElement/value(fromValueElement:)` → `PluginBootstrap.xmlrpcClient`、`PluginXmlRpc`和既有HTTP worker。创建client不联网；call把方法与参数快照传到worker，按许可HTTPS地址POST UTF-8 text/xml，再在JS线程完成Promise。成功返回唯一value；标准fault按上游reject(undefined)；HTTP错误映射httpCode/reason/description，XML解析错误映射Bad response。取消/传输失败沿已有无敏感URL诊断的Error路径，不伪造HTTP状态码。
+- 保留布尔0/1、int/i4、有限double、string和无类型value、array/data以及struct/member的递归映射。整数采用XML-RPC int32；其他有限JSON数字用double，不冒充无损64位整型。JSON没有稳定Date/Data表达，本批明确拒绝null、日期、base64、nil和扩展类型，不用字符串猜测日期或二进制。对象键和值来自普通无getter/无环数据快照；重复响应struct键拒绝而非上游后者覆盖前者。
+- 参数JSON64 KiB、方法256字节ASCII XML-RPC名字、值递归16、DOM节点4096、XML元素深度64、响应1 MiB、结果8 MiB；包裹元素使XML深度与业务值深度不同。XML序列化前保守估算大小并在序列化后确认；输入预限字节和深度，DOM解析明确ProhibitDtd、禁止ResolveExternals和验证。额外拒绝命名空间、属性、非标准结构、额外参数和非有限数字，不解析或引用外部文件。
+- 标准fault严格检查faultCode(int32)/faultString，较IINA仅看到fault节点就失败更严格。HTTP权限/允许域名/启动披露/四个pending预算/网络取消和超时均沿已有实现，无新连接、登录或凭据持久化。启动说明补充XML-RPC服务器操作；代码仅建立能力，本次没有实际调用服务。
+- 未覆盖Date/base64、完整Foundation桥接、任意XML扩展、重定向/代理/自动认证和所有IINA插件API；上述严格子集是明确兼容性差异，不宣称XML-RPC或插件全兼容。
+
+本批只静态编写、人工源码阅读、统计和Git核验，未编译、测试、运行、执行插件或发起网络调用。
