@@ -3,6 +3,7 @@
 #include "pch.h"
 #include "MainWindow.xaml.h"
 #include "../IIMA.Core/Geometry/CropSelection.h"
+#include "../IIMA.Core/Geometry/Aspect.h"
 #include <charconv>
 #include <cmath>
 using namespace winrt;
@@ -24,8 +25,11 @@ void MainWindow::WireCropControls() {
     ApplyCropButton().Click([weak](auto const&, auto const&) {
         if (auto self = weak.get()) self->ApplyCropDraft();
     });
+    PrepareCropAspectButton().Click([weak](auto const&, auto const&) {
+        if (auto self = weak.get()) self->PrepareCropAspect();
+    });
     ResetCropButton().Click([weak](auto const&, auto const&) {
-        if (auto self = weak.get(); self && !self->closing_) self->session_->RemoveVideoFilter("iina_crop");
+        if (auto self = weak.get(); self && !self->closing_) self->ResetManagedCrop();
     });
 }
 void MainWindow::LoadCropDraft() {
@@ -35,15 +39,47 @@ void MainWindow::LoadCropDraft() {
     if (state.media != iima::MediaState::Loaded || !width || !height) {
         ShowError(L"尚未获得视频像素尺寸。"); return;
     }
+    cropDraftEpoch_ = navigationEpoch_;
     cropDraftEntry_ = state.entryId; cropDraftPath_ = state.path;
     cropDraftWidth_ = *width; cropDraftHeight_ = *height;
     CropX().Value(0); CropY().Value(0); CropWidth().Value(*width); CropHeight().Value(*height);
     CropSourceLabel().Text(to_hstring(*width) + L" × " + to_hstring(*height) + L" 源像素（左上原点）");
 }
+void MainWindow::PrepareCropAspect() {
+    if (closing_) return;
+    auto aspect = iima::Aspect::Parse(to_string(CropAspectText().Text()));
+    if (!aspect) { ShowError(L"请输入有效比例，例如 16:9 或 2.35:1。"); return; }
+    cropDraftEntry_.reset();
+    LoadCropDraft();
+    if (!cropDraftEntry_) return;
+    auto rect = iima::CenteredAspectCrop(cropDraftWidth_, cropDraftHeight_, aspect->width, aspect->height);
+    if (!rect) { cropDraftEntry_.reset(); ShowError(L"该比例在当前视频中不足一个像素，未生成裁剪。"); return; }
+    CropX().Value(rect->x); CropY().Value(rect->y);
+    CropWidth().Value(rect->width); CropHeight().Value(rect->height);
+    CropSourceLabel().Text(L"已生成居中裁剪草稿；点击应用后才提交，非实际播放状态。");
+}
+void MainWindow::ResetManagedCrop() {
+    auto const& state = session_->Snapshot();
+    if (closing_ || state.media != iima::MediaState::Loaded) return;
+    if (!state.videoFilters.complete) { ShowError(L"滤镜状态尚不可用。"); return; }
+    std::optional<std::size_t> managed;
+    for (std::size_t index = 0; index < state.videoFilters.entries.size(); ++index) {
+        auto const& row = state.videoFilters.entries[index];
+        if (!row.filter) { ShowError(L"滤镜无法解析，未重置裁剪。"); return; }
+        if (row.filter->Label() != std::optional<std::string>{"iina_crop"}) continue;
+        if (row.filter->Name() != "crop" || managed) {
+            ShowError(L"裁剪标签冲突，未修改滤镜。"); return;
+        }
+        managed = index;
+    }
+    if (managed) session_->EditFilters(false,
+        iima::FilterChainEditor::Remove(state.videoFilters, state.videoFilters.revision, *managed));
+    // Absence is a no-op. Do not delete an unrelated filter by a stale label.
+}
 void MainWindow::ApplyCropDraft() {
     if (closing_ || !cropDraftEntry_) return;
     auto const& state = session_->Snapshot();
-    if (state.media != iima::MediaState::Loaded || state.entryId != *cropDraftEntry_ || state.path != cropDraftPath_ ||
+    if (cropDraftEpoch_ != navigationEpoch_ || state.media != iima::MediaState::Loaded || state.entryId != *cropDraftEntry_ || state.path != cropDraftPath_ ||
         Dimension(state.videoParameters, "w") != cropDraftWidth_ || Dimension(state.videoParameters, "h") != cropDraftHeight_) {
         ShowError(L"视频或尺寸已变化，请重新读取尺寸。"); return;
     }
@@ -53,7 +89,7 @@ void MainWindow::ApplyCropDraft() {
     std::optional<std::size_t> managed;
     for (std::size_t index = 0; index < state.videoFilters.entries.size(); ++index) {
         auto const& row = state.videoFilters.entries[index];
-        if (!row.filter || !row.filter->Label() || *row.filter->Label() != "iina_crop" || managed) {
+        if (!row.filter || !row.filter->Label() || *row.filter->Label() != "iina_crop" || row.filter->Name() != "crop" || managed) {
             ShowError(L"请先移除其他视频滤镜，再使用源像素裁剪。"); return;
         }
         managed = index;

@@ -52,6 +52,11 @@ std::optional<CropRect> CropRectToDisplay(CropMapping const&, CropRect) noexcept
 std::optional<CropPixels> QuantizeCropRect(CropRect, int width, int height,
     double edgeSnapPixels = 4) noexcept;
 
+// PlayerCore.setCrop + NSSize.crop: truncate size, center in source pixels.
+// Pixel aspect/rotation are intentionally not folded into a source crop.
+std::optional<CropPixels> CenteredAspectCrop(int width, int height,
+    double aspectWidth, double aspectHeight) noexcept;
+
 enum class CropHandle { None, NewSelection, Move, North, NorthEast, East,
     SouthEast, South, SouthWest, West, NorthWest };
 struct CropCommit {

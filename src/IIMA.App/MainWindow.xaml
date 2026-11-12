@@ -281,6 +281,8 @@
                         <Expander Header="源像素裁剪" HorizontalAlignment="Stretch">
                             <StackPanel Spacing="6">
                                 <Button x:Name="LoadCropSizeButton" Content="读取当前视频尺寸"/>
+                                <TextBox x:Name="CropAspectText" Header="居中比例（源像素）" PlaceholderText="16:9、4:3、1:1、2.35:1"/>
+                                <Button x:Name="PrepareCropAspectButton" Content="生成比例裁剪草稿"/>
                                 <TextBlock x:Name="CropSourceLabel" TextWrapping="Wrap"/>
                                 <NumberBox x:Name="CropX" Header="X" Minimum="0" Maximum="65536" Value="0"/>
                                 <NumberBox x:Name="CropY" Header="Y" Minimum="0" Maximum="65536" Value="0"/>

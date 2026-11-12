@@ -128,6 +128,9 @@ private:
     void WireCropControls();
     void LoadCropDraft();
     void ApplyCropDraft();
+    void PrepareCropAspect();
+    void ResetManagedCrop();
+    std::uint64_t cropDraftEpoch_{};
     std::optional<std::int64_t> cropDraftEntry_;
     std::string cropDraftPath_;
     int cropDraftWidth_{}, cropDraftHeight_{};

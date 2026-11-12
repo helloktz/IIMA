@@ -233,6 +233,24 @@ bool CropSelection::SetPixels(CropPixels pixels) {
     if (!active_ || !InSource(Rect(pixels), mapping_)) return false;
     CancelDrag(); selection_ = Rect(pixels); return true;
 }
+std::optional<CropPixels> CenteredAspectCrop(int width, int height,
+    double aspectWidth, double aspectHeight) noexcept {
+    if (width <= 0 || height <= 0 || width > 65536 || height > 65536 ||
+        !std::isfinite(aspectWidth) || !std::isfinite(aspectHeight) ||
+        aspectWidth <= 0 || aspectHeight <= 0) return {};
+    const auto ratio = aspectWidth / aspectHeight;
+    if (!std::isfinite(ratio) || ratio <= 0) return {};
+    double selectedWidth = width, selectedHeight = height;
+    if (static_cast<double>(width) / height > ratio) selectedWidth = height * ratio;
+    else selectedHeight = width / ratio;
+    if (!std::isfinite(selectedWidth) || !std::isfinite(selectedHeight) ||
+        selectedWidth < 1 || selectedHeight < 1 ||
+        selectedWidth > width || selectedHeight > height) return {};
+    // Swift Int truncates positive dimensions. Integer top-left favors the
+    // leading pixel for odd differences; mpv may align chroma independently.
+    const auto w = static_cast<int>(selectedWidth), h = static_cast<int>(selectedHeight);
+    return CropPixels{(width - w) / 2, (height - h) / 2, w, h};
+}
 bool CropSelection::SelectCenteredAspect(double width, double height) {
     if (!active_ || !Finite(width) || !Finite(height) || width <= 0 || height <= 0) return false;
     const auto ratio = width / height;
