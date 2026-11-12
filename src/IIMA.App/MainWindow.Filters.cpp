@@ -5,9 +5,11 @@
 using namespace winrt;
 namespace winrt::IIMA::implementation {
 void MainWindow::WireFilterEditor() {
+    WireFilterPresets();
     auto weak = get_weak();
     FilterTypeBox().SelectionChanged([weak](auto const&, auto const&) {
         if (auto self = weak.get(); self && !self->closing_) {
+            self->ResetFilterPresetCatalog();
             self->SavedFilterView().SelectedIndex(-1);
             self->filterRevision_.reset();
             self->UpdateFilterEditor(self->session_->Snapshot());

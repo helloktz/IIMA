@@ -4,6 +4,7 @@
 #include "../IIMA.Core/Commands/ApplicationCommand.h"
 #include "../IIMA.Core/Input/BindingConfiguration.h"
 #include "../IIMA.Core/OSD/PlaybackOSD.h"
+#include "../IIMA.Core/Filters/FilterPresets.h"
 #include "Presentation/VideoPresenter.h"
 #include "../IIMA.Core/Windows/MusicModePolicy.h"
 #include <winrt/Windows.Graphics.h>
@@ -164,6 +165,14 @@ private:
     void UpdateVideoAdjustments(iima::PlaybackSnapshot const& state);
     bool projectingVideoAdjustments_{};
     void WireFilterEditor();
+    void WireFilterPresets();
+    void ResetFilterPresetCatalog();
+    void ShowFilterPresetParameters();
+    void GenerateFilterPreset();
+    bool projectingFilterPresets_{};
+    std::string lastGeneratedFilter_;
+    std::vector<iima::FilterPreset> filterPresets_;
+    std::map<std::string, Microsoft::UI::Xaml::FrameworkElement, std::less<>> filterPresetInputs_;
     void WireSavedFilters();
     void LoadSavedFilters();
     void RefreshSavedFilters();

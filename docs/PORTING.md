@@ -609,3 +609,11 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 - 反交错保留auto原文，硬件消息明确标为“请求”并附当时实际解码器观察，不将auto误称硬件已生效；轨ID先到而track-list未到时显示ID，不制造标题。音频延迟旧状态仍来自现有非optional字段，因此首次Loaded之后的初始延迟反馈也可能触发提示，不承诺所有初始化通知都被抑制。
 - 单个快照多项变化按固定优先级显示最后一个符合偏好的消息，不排队播放过期通知；暂停/音量等常用操作优先。禁用某类OSD后可显示同快照另一合格变化，不漏更新基线；总开关关闭、CompactOverlay或退出播放清除已显示内容并停计时。沿既有自动隐藏时长和Core展示模型，未新增完整动画、持久OSD、错误优先队列或全量中文资源。
 - 尚未覆盖seek测量/seek OSD、截图及全部插件/网络通知等所有上游OSD入口。本批仅静态编写、源码追踪、数量与Git核验，未编译测试运行；并发属性顺序和真实UI展示仍需后续验证。
+
+### 第五十八批：IINA滤镜预设参数编辑器
+
+- `FilterWindowController.NewFilterSheetViewController.showSettings/quickInput/sheetAddBtnAction`与`FilterPresets` → 动态WinUI参数面板，接入已有Core预设实际转换器。视频11项：crop、expand、sharpen、blur、delogo、negative、vflip、hflip、lut3d及两种custom；音频2项custom。按paramOrder显示，所有未编辑字段采用真实默认值。
+- 文本/整数/浮点/选择四类输入对应固定schema；数字有限性、范围、整数及步进先检查，再经`FilterPresetInstance.Set/CreateFilter`。锐化/模糊保留3..13奇数矩阵及原amount范围/符号，反色等无参数预设可直接生成。自定义名称为空拒绝；参数16KiB与最终表达式64KiB界限，NUL/结构错误不覆盖手工表达式。
+- Windows采用明确“生成并替换下方表达式”→既有添加/替换→vf/af观察/异步错误链，生成不是成功应用；可在提交前人工检查或保存预设。链切换会清除仍等于上次生成结果的旧表达式，避免视频结果误用于音频；独立手工修改保留。切换预设/链或重置明确丢弃参数草稿，不自动改播放。
+- LUT文件字段仍遵循上游的FFmpeg表达式参数，不是原生路径选择器或自动Windows路径转义器；驱动器冒号、反斜杠及特殊字符需要FFmpeg多层转义，界面已标注，不能宣称直接输入任意Windows绝对路径可用。custom_ffmpeg同样是高级图语法，未对实际滤镜/文件可达性作探测。滤镜可用性、硬件下载/上传、画质和性能取决于实际libmpv/FFmpeg。
+- 仅静态编写与人工源码追踪、数量/Git核验，未编译测试运行。不是上游所有FFmpeg滤镜的完整UI、LUT浏览器或已验证的渲染效果。

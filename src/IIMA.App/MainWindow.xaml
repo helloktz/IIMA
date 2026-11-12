@@ -333,6 +333,15 @@
                             <Button x:Name="MoveChainFilterUpButton" Content="上移"/>
                             <Button x:Name="MoveChainFilterDownButton" Content="下移"/>
                         </StackPanel>
+                        <Expander Header="按IINA预设生成滤镜" HorizontalAlignment="Stretch">
+                            <StackPanel Spacing="6">
+                                <ComboBox x:Name="FilterPresetBox" Header="当前链可用预设" HorizontalAlignment="Stretch"/>
+                                <StackPanel x:Name="FilterPresetParameters" Spacing="6"/>
+                                <Button x:Name="ResetFilterPresetButton" Content="恢复该预设的默认参数"/>
+                                <Button x:Name="GenerateFilterPresetButton" Content="生成并替换下方表达式"/>
+                                <TextBlock x:Name="FilterPresetStatus" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Expander>
                         <TextBox x:Name="ChainFilterExpression" Header="滤镜表达式"/>
                         <StackPanel Orientation="Horizontal" Spacing="4">
                             <Button x:Name="AddChainFilterButton" Content="添加"/>
