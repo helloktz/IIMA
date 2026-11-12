@@ -272,6 +272,7 @@ void MainWindow::BeginClose()
     StopLocalPlugin();
     CancelThumbnailPreview();
     CancelOnlineSubtitles();
+    openSubSessionKey_.clear(); openSubSessionToken_.clear();
     musicMode_.Close();
     if(windowLifecycle_) windowLifecycle_->Close();
     if(powerLifecycle_) powerLifecycle_->Close();

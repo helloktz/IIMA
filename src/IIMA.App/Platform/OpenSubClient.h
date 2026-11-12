@@ -44,16 +44,23 @@ template<class T> struct Result {
 // synchronously invoke/join from UI. Cancellation/30-second deadline is checked
 // while waiting for native async operations and body reads, not a process kill.
 // API key is user-supplied. JWT may be empty for anonymous service access; this
-// module neither logs in nor verifies a JWT. Server rejection is authoritative.
+// JWTs are not verified locally. Server rejection is authoritative.
 // Caller owns credential memory, selection generation and subtitle staging.
 // The first result page only is returned, with totalPages describing the server
 // response. Maximum 200 subtitle rows / 8 files per row / 400 expanded choices.
+struct LoginTicket { std::string token; };
+// Explicit account actions only. Password is never retained by this module.
+// Successful token lifetime is 23 hours in the UI, following IINA; server
+// rejection still wins. Alternate/VIP hosts are rejected, never followed.
+Result<LoginTicket> Login(std::string const& key,std::string const& username,
+    std::string const& password,std::stop_token stop = {});
+Result<bool> Logout(std::string const& key,std::string const& jwt,std::stop_token stop = {});
 Result<std::vector<SearchResult>> Search(std::string const& key,
     std::string const& jwt, std::string const& query, std::string const& language,
     std::stop_token stop = {}, std::string const& movieHash = {});
 // This API request consumes a service download allowance even if the later file
-// fetch is cancelled or fails. Never retry automatically. No password login or
-// server-supplied base_url is accepted, so VIP-host routing is not supported.
+// fetch is cancelled or fails. Never retry automatically. Server-supplied
+// alternate base_url is not accepted, so VIP-host routing is not supported.
 Result<DownloadTicket> RequestDownload(std::string const& key,
     std::string const& jwt, std::int64_t fileId, std::stop_token stop = {});
 // No API key/JWT/cookies attached. HTTPS opensubtitles.com and subdomains only,

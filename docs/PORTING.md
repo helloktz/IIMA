@@ -800,3 +800,23 @@ MpvClient为首次自动请求标记测量窗口，在worker用steady_clock记�
 每个受支持文本文件成为独立选择，不静默取files[0]；支持srt/ass/ssa/vtt，不解压归档。生成固定安全叶文件名，不信任响应文件名。下载只允许443端口HTTPS shooter.cn及其子域，拒绝含认证/fragment的链接，外部CDN/HTTP不支持；空结果提示也可能是全部链接/格式不支持。Delay显示供参考，不自动设置字幕延迟，与上游记录但未应用一致。
 
 取消/换片/窗口关闭丢弃旧结果，既有暂存预算和媒体身份保护不变。凭据框在Shooter禁用，不传其他服务token/key。没有联网请求或验证Shooter当前服务可用性；未编译测试运行。
+
+## 第七十五批：OpenSubtitles显式登录与内存会话生命周期
+
+### 源码追踪
+
+`OpenSubClient.login`显式POST username/password，读取token/base_url，设置`tokenExpiration = Date()+tokenLifetime`（23小时）；`logout`显式DELETE，无论服务成功与否均abandonUserSession。`loggedIn`检查令牌及过期时间；上游登录成功重建rateLimiter避免登录专属限流阻塞其他API。本批接通既有OpenSubtitles搜索/下载，而不是仅新增未使用接口。
+
+### Windows实现
+
+用户名/PasswordBox/个人API Key及“发送凭据并登录”明确展示接收方api.opensubtitles.com和用途。提交后清空密码及手工凭据框，不写磁盘，不使用IINA密钥，不自动登录/重试。固定HTTPS /api/v1/login，复用既有禁重定向/cookie/自动凭据、有界JSON/超时/错误脱敏的传输；新增固定DELETE /logout，成功204允许空体。
+
+成功返回合法token且base_url缺省或等于api.opensubtitles.com时，窗口内存保留Key/token，steady_clock最长23小时；手工Key/JWT均为空的搜索使用会话，明确填写手工凭据则优先手工值，不把不同来源Key/JWT混配。搜索/下载返回Authentication时清除用于该任务的本地会话。过期清除本地令牌，不猜测JWT签名或服务器实际有效期。
+
+账户与搜索任务互斥；取消/服务切换/媒体票据取消/关闭递增代次并请求停止，已发请求不能撤回，晚到结果不安装会话。任务真正返回前不开放第二个账户worker。显式退出先清除本地会话/搜索凭据，再请求服务；失败明确说服务器退出未确认，不回填旧token。关闭仅清除本地会话，不额外发网络请求。std::string/WinRT临时副本可能在内存停留，**不声称已对所有密码副本安全清零**。
+
+### 差异与限制
+
+不保存密码/Key到Credential Manager，不跨窗口共享会话，不自动重登。替代/VIP base_url拒绝使用且不转发凭据；服务可能已接受登录但本地未保留token，错误明确区分，不谎称服务端无会话。登录显式请求至少相隔1秒，沿用现有保守全局API限流而不复现上游成功重置限流的优化，因此后续请求可能稍后才能发送。取消的登录可能已在服务端创建会话；需用户在服务端管理，不自动外联补救。
+
+未实际登录、退出或发送任何网络请求，未编译测试运行。

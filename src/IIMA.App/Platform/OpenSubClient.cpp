@@ -127,7 +127,7 @@ std::optional<std::int64_t> UnsignedHeader(HttpResponseMessage const& response, 
     return number;
 }
 RawResponse Request(Uri const& uri, std::string const& key, std::string const& jwt,
-    winrt::hstring const& body, bool post, std::size_t maximum, std::stop_token stop) {
+    winrt::hstring const& body, bool post, std::size_t maximum, std::stop_token stop, bool remove = false) {
     const auto deadline = Clock::now() + std::chrono::seconds(30);
     Check(stop, deadline);
     const bool api = !key.empty();
@@ -141,7 +141,7 @@ RawResponse Request(Uri const& uri, std::string const& key, std::string const& j
             Fail(ErrorCode::InvalidInput, "Invalid subtitle API destination.");
     }
     Client client;
-    HttpRequestMessage request(post ? HttpMethod::Post() : HttpMethod::Get(), uri);
+    HttpRequestMessage request(remove ? HttpMethod::Delete() : post ? HttpMethod::Post() : HttpMethod::Get(), uri);
     request.Headers().TryAppendWithoutValidation(L"User-Agent", L"IIMA");
     request.Headers().TryAppendWithoutValidation(L"Accept", api ? L"application/json" : L"*/*");
     if (api) {
@@ -324,6 +324,47 @@ template<class T, class Work> Result<T> Run(Work work) {
         return {{}, ErrorCode::Protocol, "The subtitle response could not be processed.", 0};
     }
 }
+}
+
+Result<LoginTicket> Login(std::string const& key,std::string const& username,
+    std::string const& password,std::stop_token stop) {
+    return Run<LoginTicket>([&] {
+        ValidateCredentials(key,{});
+        if (username.empty() || username.size()>256 || password.empty() || password.size()>4096 ||
+            username.find('\0')!=std::string::npos || password.find('\0')!=std::string::npos)
+            Fail(ErrorCode::InvalidInput,"Enter an OpenSubtitles username and password within the supported limits.");
+        // Explicit attempts only; no automatic authentication retries. Separate
+        // login window avoids sending rapid failed credentials across windows.
+        static std::mutex loginMutex;
+        static Clock::time_point nextLogin{};
+        {
+            std::lock_guard lock(loginMutex);
+            if (Clock::now()<nextLogin) Fail(ErrorCode::RateLimited,"Wait before another OpenSubtitles login attempt.");
+            nextLogin=Clock::now()+std::chrono::seconds(1);
+        }
+        JsonObject body;
+        body.Insert(L"username",JsonValue::CreateStringValue(winrt::to_hstring(username)));
+        body.Insert(L"password",JsonValue::CreateStringValue(winrt::to_hstring(password)));
+        auto root=ParseApi(Request(Uri(L"https://api.opensubtitles.com/api/v1/login"),key,{},
+            body.Stringify(),true,JsonLimit,stop));
+        auto token=String(root,L"token",8192,true);
+        if (token.empty()) Fail(ErrorCode::Protocol,"OpenSubtitles returned no session token.");
+        ValidateCredentials(key,token);
+        auto base=String(root,L"base_url",256);
+        if (!base.empty() && LowerAscii(base)!="api.opensubtitles.com")
+            Fail(ErrorCode::Unsupported,"The server accepted login but requested an unsupported alternate API host. No local session was retained.");
+        return LoginTicket{std::move(token)};
+    });
+}
+Result<bool> Logout(std::string const& key,std::string const& jwt,std::stop_token stop) {
+    return Run<bool>([&] {
+        ValidateCredentials(key,jwt);
+        if (jwt.empty()) Fail(ErrorCode::InvalidInput,"No OpenSubtitles session is available to log out.");
+        auto response=Request(Uri(L"https://api.opensubtitles.com/api/v1/logout"),key,jwt,{},false,JsonLimit,stop,true);
+        // Successful DELETE can legitimately have no JSON body (HTTP 204).
+        if (response.status<200 || response.status>=300) (void)ParseApi(response);
+        return true;
+    });
 }
 
 Result<std::vector<SearchResult>> Search(std::string const& key,

@@ -179,6 +179,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MainWindow.OnlineSubtitles.cpp" />
+    <ClCompile Include="MainWindow.OpenSubAccount.cpp" />
     <ClCompile Include="Platform\AssrtClient.cpp" />
     <ClInclude Include="Platform\AssrtClient.h" />
     <ClCompile Include="Platform\ShooterClient.cpp" />

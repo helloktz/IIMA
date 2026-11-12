@@ -8,6 +8,7 @@ using namespace winrt;
 using namespace Microsoft::UI::Xaml;
 namespace winrt::IIMA::implementation {
 void MainWindow::WireOnlineSubtitles() {
+    WireOpenSubAccount();
     auto weak = get_weak();
     OnlineSubtitleProviderBox().SelectionChanged([weak](auto const&, auto const&) {
         if (auto self = weak.get()) self->CancelOnlineSubtitles();
@@ -52,23 +53,30 @@ void MainWindow::WireOnlineSubtitles() {
     RefreshOnlineSubtitleButtons();
 }
 void MainWindow::RefreshOnlineSubtitleButtons() {
+    ExpireOpenSubAccount();
     const bool loaded = !closing_ && session_ && session_->Snapshot().media == iima::MediaState::Loaded;
-    OnlineSubtitleSearchButton().IsEnabled(loaded && !onlineSubtitleWorkerActive_);
-    OnlineSubtitleUseTitleButton().IsEnabled(loaded && !onlineSubtitleWorkerActive_);
-    OnlineSubtitleQueryBox().IsEnabled(!onlineSubtitleWorkerActive_ && !closing_);
-    OnlineSubtitleTokenBox().IsEnabled(OnlineSubtitleProviderBox().SelectedIndex() != 2 && !onlineSubtitleWorkerActive_ && !closing_);
-    OnlineSubtitleProviderBox().IsEnabled(!onlineSubtitleWorkerActive_ && !closing_);
+    OnlineSubtitleSearchButton().IsEnabled(loaded && !onlineSubtitleWorkerActive_ && !openSubAuthBusy_);
+    OnlineSubtitleUseTitleButton().IsEnabled(loaded && !onlineSubtitleWorkerActive_ && !openSubAuthBusy_);
+    OnlineSubtitleQueryBox().IsEnabled(!onlineSubtitleWorkerActive_ && !openSubAuthBusy_ && !closing_);
+    OnlineSubtitleTokenBox().IsEnabled(OnlineSubtitleProviderBox().SelectedIndex() != 2 && !onlineSubtitleWorkerActive_ && !openSubAuthBusy_ && !closing_);
+    OnlineSubtitleProviderBox().IsEnabled(!onlineSubtitleWorkerActive_ && !openSubAuthBusy_ && !closing_);
     const bool openSub = OnlineSubtitleProviderBox().SelectedIndex() == 1;
-    OnlineSubtitleApiKeyBox().IsEnabled(openSub && !onlineSubtitleWorkerActive_ && !closing_);
-    OnlineSubtitleLanguageBox().IsEnabled(openSub && !onlineSubtitleWorkerActive_ && !closing_);
-    OnlineSubtitleHashCheck().IsEnabled(openSub && !onlineSubtitleWorkerActive_ && !closing_);
+    OnlineSubtitleApiKeyBox().IsEnabled(openSub && !onlineSubtitleWorkerActive_ && !openSubAuthBusy_ && !closing_);
+    OnlineSubtitleLanguageBox().IsEnabled(openSub && !onlineSubtitleWorkerActive_ && !openSubAuthBusy_ && !closing_);
+    OnlineSubtitleHashCheck().IsEnabled(openSub && !onlineSubtitleWorkerActive_ && !openSubAuthBusy_ && !closing_);
+    OpenSubLoginButton().IsEnabled(openSub && !closing_ && !openSubAuthBusy_ && !onlineSubtitleWorkerActive_ && openSubSessionToken_.empty());
+    OpenSubLogoutButton().IsEnabled(openSub && !closing_ && !openSubAuthBusy_ && !onlineSubtitleWorkerActive_ && !openSubSessionToken_.empty());
+    OpenSubCancelLoginButton().IsEnabled(!closing_ && openSubAuthBusy_);
+    OpenSubUsernameBox().IsEnabled(openSub && !openSubAuthBusy_ && !closing_);
+    OpenSubPasswordBox().IsEnabled(openSub && !openSubAuthBusy_ && !closing_);
     SaveOnlineSubtitleButton().IsEnabled(!closing_ && !downloadedSubtitles_.empty());
     const auto selected = OnlineSubtitleResultsView().SelectedIndex();
-    OnlineSubtitleDownloadButton().IsEnabled(loaded && !onlineSubtitleWorkerActive_ &&
+    OnlineSubtitleDownloadButton().IsEnabled(loaded && !onlineSubtitleWorkerActive_ && !openSubAuthBusy_ &&
         onlineSubtitleTransaction_.State() == iima::SubtitleSearchTransaction::Phase::Choosing &&
         selected >= 0 && static_cast<std::size_t>(selected) < onlineSubtitleResults_.size());
 }
 void MainWindow::CancelOnlineSubtitles() {
+    CancelOpenSubAccountPending();
     onlineSubtitleStop_.request_stop();
     onlineSubtitleTransaction_.Cancel();
     onlineSubtitleResults_.clear(); onlineShooterResults_.clear();
@@ -91,11 +99,16 @@ void MainWindow::UpdateOnlineSubtitleMedia(iima::PlaybackSnapshot const& state) 
     RefreshOnlineSubtitleButtons();
 }
 void MainWindow::SearchOnlineSubtitles() {
-    if (closing_ || onlineSubtitleWorkerActive_ || session_->Snapshot().media != iima::MediaState::Loaded) return;
+    if (closing_ || openSubAuthBusy_ || onlineSubtitleWorkerActive_ || session_->Snapshot().media != iima::MediaState::Loaded) return;
     auto token = to_string(OnlineSubtitleTokenBox().Password());
     auto query = to_string(OnlineSubtitleQueryBox().Text());
     const bool openSub = OnlineSubtitleProviderBox().SelectedIndex() == 1;
     auto apiKey = to_string(OnlineSubtitleApiKeyBox().Password());
+    ExpireOpenSubAccount();
+    const bool usingSession = openSub && token.empty() && apiKey.empty() && !openSubSessionToken_.empty();
+    if (usingSession) {
+        token=openSubSessionToken_; apiKey=openSubSessionKey_;
+    }
     auto language = to_string(OnlineSubtitleLanguageBox().Text());
     const bool shooter = OnlineSubtitleProviderBox().SelectedIndex() == 2;
     const bool useHash = openSub && OnlineSubtitleHashCheck().IsChecked().Value();
@@ -115,6 +128,7 @@ void MainWindow::SearchOnlineSubtitles() {
     const auto ticket = onlineSubtitleTransaction_.Search({state.entryId, state.path});
     onlineSubtitleResults_.clear(); onlineShooterResults_.clear();
     OnlineSubtitleResultsView().Items().Clear();
+    onlineSubtitleSessionCredentials_ = usingSession;
     onlineSubtitleProvider_ = shooter ? 2 : openSub ? 1 : 0;
     if (shooter) { token.clear(); apiKey.clear(); }
     onlineSubtitleToken_ = token;
@@ -153,7 +167,7 @@ void MainWindow::SearchOnlineSubtitles() {
                     std::filesystem::path(to_hstring(ticket.media.path).c_str()), stop).hash;
                 auto response = iima::opensub::Search(apiKey, token, query, language, stop, hash);
                 totalPages = response.totalPages;
-                if (!response) { result.error = iima::assrt::ErrorCode::Protocol; result.message = response.message; }
+                if (!response) { result.error = response.error == iima::opensub::ErrorCode::Authentication ? iima::assrt::ErrorCode::Authentication : iima::assrt::ErrorCode::Protocol; result.message = response.message; }
                 else for (auto const& row : response.value) {
                     const auto title = row.title == row.filename ? row.title : row.title + " — " + row.filename;
                     result.value.push_back({row.id, title, row.type, row.language, row.uploadTime});
@@ -170,6 +184,10 @@ void MainWindow::SearchOnlineSubtitles() {
                     self->RefreshOnlineSubtitleButtons(); return;
                 }
                 if (!result) {
+                    if (result.error == iima::assrt::ErrorCode::Authentication && self->onlineSubtitleSessionCredentials_) {
+                        self->openSubSessionToken_.clear(); self->openSubSessionKey_.clear();
+                        self->OpenSubAccountStatus().Text(L"服务器拒绝当前登录凭据，已清除本地会话；请检查API Key并重新登录。");
+                    }
                     self->onlineSubtitleTransaction_.Fail(ticket);
                     self->onlineSubtitleToken_.clear(); self->onlineSubtitleApiKey_.clear();
                     self->OnlineSubtitleStatusText().Text(to_hstring(result.message));
@@ -203,7 +221,7 @@ void MainWindow::SearchOnlineSubtitles() {
     }
 }
 void MainWindow::DownloadOnlineSubtitle() {
-    if (closing_ || onlineSubtitleWorkerActive_) return;
+    if (closing_ || openSubAuthBusy_ || onlineSubtitleWorkerActive_) return;
     auto selected = OnlineSubtitleResultsView().SelectedIndex();
     auto ticket = onlineSubtitleTransaction_.Current();
     if (!ticket || selected < 0 || static_cast<std::size_t>(selected) >= onlineSubtitleResults_.size()) return;
@@ -247,6 +265,7 @@ void MainWindow::DownloadOnlineSubtitle() {
                 std::size_t bytes{};
                 std::string error;
                 std::string quota;
+                bool authenticationRejected{};
             } completed;
             try {
                 iima::assrt::Result<std::vector<iima::assrt::DownloadFile>> details;
@@ -255,6 +274,7 @@ void MainWindow::DownloadOnlineSubtitle() {
                 else {
                     auto response = iima::opensub::RequestDownload(apiKey, token, id, stop);
                     if (!response) {
+                        completed.authenticationRejected = response.error == iima::opensub::ErrorCode::Authentication;
                         details.error = iima::assrt::ErrorCode::Protocol;
                         details.message = response.message;
                         if (response.remaining) details.message += " Remaining: " + std::to_string(*response.remaining);
@@ -307,6 +327,10 @@ void MainWindow::DownloadOnlineSubtitle() {
                     self->CancelOnlineSubtitles(); return;
                 }
                 if (!completed.error.empty()) {
+                    if (completed.authenticationRejected && self->onlineSubtitleSessionCredentials_) {
+                        self->openSubSessionToken_.clear(); self->openSubSessionKey_.clear();
+                        self->OpenSubAccountStatus().Text(L"服务器拒绝当前登录凭据，已清除本地会话；请重新登录。");
+                    }
                     self->onlineSubtitleTransaction_.Fail(ticket);
                     self->OnlineSubtitleStatusText().Text(to_hstring(completed.error));
                 } else if (self->onlineSubtitleTransaction_.DownloadFinished(ticket)) {

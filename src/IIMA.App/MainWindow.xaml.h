@@ -1,4 +1,5 @@
 #pragma once
+#include <chrono>
 #include "MainWindow.g.h"
 #include "../IIMA.Core/Playback/PlayerSession.h"
 #include "../IIMA.Core/Commands/ApplicationCommand.h"
@@ -243,6 +244,16 @@ private:
     bool onlineSubtitleWorkerActive_{};
     std::vector<iima::assrt::SearchResult> onlineSubtitleResults_;
     std::vector<iima::shooter::SearchResult> onlineShooterResults_;
+    void WireOpenSubAccount();
+    void BeginOpenSubAccount(bool logout);
+    void CancelOpenSubAccountPending();
+    void ExpireOpenSubAccount();
+    bool openSubAuthBusy_{};
+    std::uint64_t openSubAuthGeneration_{};
+    std::stop_source openSubAuthStop_;
+    std::string openSubSessionKey_, openSubSessionToken_;
+    std::chrono::steady_clock::time_point openSubSessionExpiry_{};
+    bool onlineSubtitleSessionCredentials_{};
     int onlineSubtitleProvider_{};
     std::string onlineSubtitleApiKey_;
     std::string onlineSubtitleToken_; // memory-only, never persisted or logged
