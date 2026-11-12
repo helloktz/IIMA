@@ -170,6 +170,9 @@
     <ClCompile Include="MainWindow.PluginRuntime.cpp" />
     <ClCompile Include="MainWindow.PluginMenu.cpp" />
     <ClCompile Include="MainWindow.PluginInput.cpp" />
+    <ClCompile Include="MainWindow.PluginPointer.cpp" />
+    <ClCompile Include="Plugins\PluginPointerState.cpp" />
+    <ClInclude Include="Plugins\PluginPointerState.h" />
     <ClCompile Include="Plugins\PluginRuntime.cpp" />
     <ClInclude Include="Plugins\PluginRuntime.h" />
     <ClInclude Include="Plugins\PluginBootstrap.h" />

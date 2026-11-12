@@ -364,7 +364,8 @@
       "coverage": "partial-static-unverified",
       "reviewTargets": [
         "src/IIMA.App/Plugins/PluginRuntime.cpp",
-        "src/IIMA.App/MainWindow.PluginInput.cpp"
+        "src/IIMA.App/MainWindow.PluginInput.cpp",
+        "src/IIMA.App/MainWindow.PluginPointer.cpp"
       ]
     },
     {

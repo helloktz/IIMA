@@ -19,6 +19,7 @@
 #include "../IIMA.Core/Filters/SavedFilterLibrary.h"
 #include <deque>
 #include "Plugins/PluginRuntime.h"
+#include "Plugins/PluginPointerState.h"
 #include "Plugins/PluginPlaybackProjection.h"
 #include "../IIMA.Core/History/HistoryBrowser.h"
 #include "../IIMA.Core/Diagnostics/DiagnosticLog.h"
@@ -56,6 +57,9 @@ private:
     std::string PluginKeyBindingsJson() const;
     void UpdatePluginKeyBindings();
     void PublishPluginKey(std::string const& key, bool down, bool repeat);
+    void WirePluginPointer();
+    void PluginPointerEvent(Microsoft::UI::Xaml::Input::PointerRoutedEventArgs const& args, unsigned event);
+    iima::plugins::PluginPointerState pluginPointer_;
     void UpdatePlugin(iima::PlaybackSnapshot const& state);
     void DispatchPluginCommand(iima::plugins::PluginCommand command);
     std::unique_ptr<iima::plugins::PluginRuntime> pluginRuntime_;

@@ -80,6 +80,9 @@ struct PluginRuntime::Impl {
         std::string argument;
         bool menuClick{};
         bool keyInput{}, keyDown{}, keyRepeat{};
+        bool mouseInput{};
+        double mouseX{}, mouseY{}, mousePressure{};
+        unsigned mouseClicks{};
         // For a click, event carries its item ID and argument its revision;
         // there is no stale media snapshot to overwrite current player status.
         std::size_t Bytes() const noexcept { return status.size() + event.size() + argument.size(); }
@@ -136,7 +139,7 @@ struct PluginRuntime::Impl {
             Log, Warn, Error, Status, On, Off, Timeout, Interval, ClearTimer, Require,
             PlayChapter, AudioVolume, AudioMuted, AudioDelay, AudioId, SubtitleDelay, SubtitleId, VideoId,
             PreferenceDefaults, PreferenceStored, PreferenceSync, MenuInstall, MenuPublish,
-            InputInstall, InputNormalize, InputBindings
+            InputInstall, InputNormalize, InputBindings, MouseInstall
         };
         Impl& owner;
         JSRuntime* runtime{};
@@ -149,6 +152,7 @@ struct PluginRuntime::Impl {
         std::string status;
         JSValue menuDispatch{JS_UNDEFINED};
         JSValue inputDispatch{JS_UNDEFINED};
+        JSValue mouseDispatch{JS_UNDEFINED};
         std::string menuRevision, pendingMenu;
         Clock::time_point deadline{Clock::now()};
         Clock::time_point rateWindow{Clock::now()};
@@ -171,6 +175,7 @@ struct PluginRuntime::Impl {
             JS_SetHostPromiseRejectionTracker(runtime, Rejected, this);
         }
         ~Worker() {
+            JS_FreeValue(context, mouseDispatch);
             JS_FreeValue(context, inputDispatch);
             JS_FreeValue(context, menuDispatch);
             for (auto const& [path, exports] : moduleCache) JS_FreeValue(context, exports);
@@ -361,6 +366,12 @@ struct PluginRuntime::Impl {
                 if (index >= argc) throw std::invalid_argument("Missing API argument.");
                 return argv[index];
             };
+            if (function == MouseInstall) {
+                if (!JS_IsUndefined(mouseDispatch) || !JS_IsFunction(context, argument(0)))
+                    throw std::invalid_argument("Mouse dispatcher must be installed once with a function.");
+                mouseDispatch = JS_DupValue(context, argv[0]);
+                return JS_UNDEFINED;
+            }
             if (function == InputInstall) {
                 if (!JS_IsUndefined(inputDispatch) || !JS_IsFunction(context, argument(0)))
                     throw std::invalid_argument("Input dispatcher must be installed once with a function.");
@@ -545,7 +556,7 @@ struct PluginRuntime::Impl {
             Value global(context, JS_GetGlobalObject(context));
             Value host(context, JS_NewObject(context));
             if (JS_IsException(host.value)) { Fail(ExceptionText()); return false; }
-            constexpr std::array<std::tuple<char const*, int, Function>, 33> definitions{{
+            constexpr std::array<std::tuple<char const*, int, Function>, 34> definitions{{
                 {"pause", 0, Pause}, {"resume", 0, Resume}, {"stop", 0, StopPlayback},
                 {"seek", 2, Seek}, {"seekTo", 1, SeekTo}, {"setSpeed", 1, Speed}, {"osd", 1, Osd},
                 {"log", 1, Log}, {"warn", 1, Warn}, {"error", 1, Error}, {"status", 0, Status},
@@ -557,7 +568,8 @@ struct PluginRuntime::Impl {
                 {"subtitleId", 1, SubtitleId}, {"videoId", 1, VideoId},
                 {"preferenceDefaults", 0, PreferenceDefaults}, {"preferenceStored", 0, PreferenceStored},
                 {"preferenceSync", 1, PreferenceSync}, {"menuInstall", 1, MenuInstall}, {"menuPublish", 2, MenuPublish},
-                {"inputInstall", 1, InputInstall}, {"inputNormalize", 1, InputNormalize}, {"inputBindings", 0, InputBindings}
+                {"inputInstall", 1, InputInstall}, {"inputNormalize", 1, InputNormalize}, {"inputBindings", 0, InputBindings},
+                {"mouseInstall", 1, MouseInstall}
             }};
             for (auto const& [name, arity, function] : definitions) {
                 if (!SetFunction(host.value, name, arity, function)) return false;
@@ -615,6 +627,25 @@ struct PluginRuntime::Impl {
             JSValueConst args[]{key.value, JS_NewBool(context, item.keyDown), JS_NewBool(context, item.keyRepeat)};
             if (Result(JS_Call(context, inputDispatch, JS_UNDEFINED, 3, args))) Jobs();
         }
+        void MouseInput(UpdateItem const& item) {
+            if (JS_IsUndefined(mouseDispatch) || !BeginTurn()) return;
+            status = item.status;
+            if (!ValidateStatus()) return;
+            Value button(context, JS_NewStringLen(context, item.event.data(), item.event.size()));
+            Value event(context, JS_NewStringLen(context, item.argument.data(), item.argument.size()));
+            Value data(context, JS_NewObject(context));
+            if (JS_IsException(button.value) || JS_IsException(event.value) || JS_IsException(data.value)) {
+                Fail(ExceptionText()); return;
+            }
+            if (JS_SetPropertyStr(context, data.value, "x", JS_NewFloat64(context, item.mouseX)) < 0 ||
+                JS_SetPropertyStr(context, data.value, "y", JS_NewFloat64(context, item.mouseY)) < 0 ||
+                JS_SetPropertyStr(context, data.value, "clickCount", JS_NewUint32(context, item.mouseClicks)) < 0 ||
+                JS_SetPropertyStr(context, data.value, "pressure", JS_NewFloat64(context, item.mousePressure)) < 0) {
+                Fail(ExceptionText()); return;
+            }
+            JSValueConst args[]{button.value, event.value, data.value};
+            if (Result(JS_Call(context, mouseDispatch, JS_UNDEFINED, 3, args))) Jobs();
+        }
         void MenuClicked(UpdateItem const& click) {
             if (click.argument != menuRevision || JS_IsUndefined(menuDispatch) || !BeginTurn()) return;
             Value id(context, JS_NewStringLen(context, click.event.data(), click.event.size()));
@@ -665,7 +696,8 @@ struct PluginRuntime::Impl {
                     }
                 }
                 if (hasEvent) {
-                    if (update.keyInput) KeyInput(update);
+                    if (update.mouseInput) MouseInput(update);
+                    else if (update.keyInput) KeyInput(update);
                     else if (update.menuClick) MenuClicked(update);
                     else Event(update);
                 }
@@ -758,6 +790,25 @@ bool PluginRuntime::PublishKeyInput(std::string key, bool down, bool isRepeat) {
     item.status = impl_->latestStatus;
     item.event = std::move(key);
     item.keyInput = true; item.keyDown = down; item.keyRepeat = isRepeat;
+    impl_->events.push_back(std::move(item));
+    impl_->queuedBytes += bytes;
+    impl_->changed.notify_one();
+    return true;
+}
+bool PluginRuntime::PublishMouseInput(std::string button, std::string event,
+    double x, double y, unsigned clickCount, double pressure) {
+    if ((button != "*mouse" && button != "*rightMouse" && button != "*otherMouse") ||
+        (event != "down" && event != "up" && event != "drag") ||
+        !std::isfinite(x) || !std::isfinite(y) || !std::isfinite(pressure) ||
+        std::abs(x) > 1000000 || std::abs(y) > 1000000 || pressure < 0 || pressure > 1 || impl_->stop.load()) return false;
+    std::lock_guard lock(impl_->mutex);
+    auto bytes = button.size() + event.size() + impl_->latestStatus.size();
+    if (impl_->stop.load() || impl_->events.size() >= MaxEvents || bytes > MaxEventBytes - impl_->queuedBytes) return false;
+    Impl::UpdateItem item;
+    item.status = impl_->latestStatus;
+    item.event = std::move(button); item.argument = std::move(event);
+    item.mouseInput = true; item.mouseX = x; item.mouseY = y;
+    item.mouseClicks = clickCount; item.mousePressure = pressure;
     impl_->events.push_back(std::move(item));
     impl_->queuedBytes += bytes;
     impl_->changed.notify_one();

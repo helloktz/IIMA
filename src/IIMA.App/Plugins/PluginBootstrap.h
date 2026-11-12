@@ -404,20 +404,27 @@ inline constexpr char PluginBootstrap[] = R"IIMAJS(
   // JavascriptAPIInput / PluginInputManager: one callback per normalized key
   // and event. Windows delivery is deliberately asynchronous, after the native
   // handler, so high-priority propagation interception is explicitly unsupported.
-  const keyListeners = create(null);
-  let keyListenerCount = 0;
-  function addKeyListener(down, key, callback, priority = 100) {
+  const inputListeners = create(null);
+  let inputListenerCount = 0;
+  function addInputListener(identity, callback, priority = 100) {
     if (typeof priority !== 'number') priority = 100;
     if (!finite(priority) || priority % 1 || priority >= 200)
       throw new TypeError('Only finite low-priority input observation is supported; input cannot be consumed');
     if (typeof callback !== 'function') throw new TypeError('Input callback must be a function');
-    key = host.inputNormalize(key);
-    const identity = (down ? 'down:' : 'up:') + key;
-    if (!hasOwn(keyListeners, identity)) {
-      if (keyListenerCount >= 256) throw new RangeError('Plugin input listener limit is 256');
-      ++keyListenerCount;
+    if (!hasOwn(inputListeners, identity)) {
+      if (inputListenerCount >= 256) throw new RangeError('Plugin input listener limit is 256');
+      ++inputListenerCount;
     }
-    keyListeners[identity] = callback;
+    inputListeners[identity] = callback;
+  }
+  function addKeyListener(down, key, callback, priority) {
+    key = host.inputNormalize(key);
+    addInputListener((down ? 'key:down:' : 'key:up:') + key, callback, priority);
+  }
+  function addMouseListener(event, button, callback, priority) {
+    if (button !== '*mouse' && button !== '*rightMouse' && button !== '*otherMouse')
+      throw new TypeError('Mouse button must be an input MOUSE, RIGHT_MOUSE or OTHER_MOUSE constant');
+    addInputListener('mouse:' + event + ':' + button, callback, priority);
   }
   const input = namespace('input', {
     PRIORITY_LOW: 100, PRIORITY_HIGH: 200,
@@ -426,18 +433,25 @@ inline constexpr char PluginBootstrap[] = R"IIMAJS(
     getAllKeyBindings: () => host.inputBindings(),
     onKeyDown: (key, callback, priority) => addKeyListener(true, key, callback, priority),
     onKeyUp: (key, callback, priority) => addKeyListener(false, key, callback, priority),
-    onMouseDown: () => missing('input.onMouseDown'),
-    onMouseUp: () => missing('input.onMouseUp'),
-    onMouseDrag: () => missing('input.onMouseDrag')
+    onMouseDown: (button, callback, priority) => addMouseListener('down', button, callback, priority),
+    onMouseUp: (button, callback, priority) => addMouseListener('up', button, callback, priority),
+    onMouseDrag: (button, callback, priority) => addMouseListener('drag', button, callback, priority)
   });
   host.inputInstall((key, down, isRepeat) => {
-    const identity = (down ? 'down:' : 'up:') + key;
-    if (!hasOwn(keyListeners, identity)) return;
+    const identity = (down ? 'key:down:' : 'key:up:') + key;
+    if (!hasOwn(inputListeners, identity)) return;
     // No current-pointer guess: keyboard routing has no reliable video-relative
     // coordinates. Callback return values cannot suppress already handled input.
-    const callback = keyListeners[identity];
+    const callback = inputListeners[identity];
     const result = callback({x: null, y: null, isRepeat});
     if (result === true) host.warn('Input callback return cannot consume input in IIMA');
+  });
+  host.mouseInstall((button, event, data) => {
+    const identity = 'mouse:' + event + ':' + button;
+    if (!hasOwn(inputListeners, identity)) return;
+    const callback = inputListeners[identity];
+    const result = callback(data);
+    if (result === true) host.warn('Mouse callback return cannot consume input in IIMA');
   });
   Object.defineProperty(globalThis, 'iina', {
     value: namespace('iina', {core, console: consoleApi, event, preferences, menu, input}),

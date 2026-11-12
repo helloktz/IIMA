@@ -69,6 +69,12 @@ public:
     // OS/default behavior. Caller excludes text/password editors and stale owners.
     // Callback receives {x:null,y:null,isRepeat}; no global keyboard hook.
     bool PublishKeyInput(std::string normalizedKey, bool down, bool isRepeat);
+    // Window-local video mouse observation. button is *mouse/*rightMouse/
+    // *otherMouse; event is down/up/drag. x/y are root logical pixels, bottom-left.
+    // Caller excludes touch, pen and editor/control interactions, and bounds drag
+    // frequency; callback cannot cancel default native behavior.
+    bool PublishMouseInput(std::string button, std::string event, double x, double y,
+        unsigned clickCount, double pressure);
     // Nonblocking cancellation; deadline handler interrupts active JS. Destructor
     // joins worker; worker never waits for UI. Native caller callbacks must obey
     // the above contract for shutdown to remain bounded.
