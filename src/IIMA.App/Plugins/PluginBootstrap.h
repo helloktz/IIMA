@@ -362,7 +362,13 @@ inline constexpr char PluginBootstrap[] = R"IIMAJS(
     trash: () => missing('file.trash'),
     handle: () => missing('file.handle'),
     showInFinder: () => missing('file.showInFinder'),
-    move: () => missing('file.move')
+    move(source, destination) {
+      // Primitive strings only; never serialize a plugin-controlled object or
+      // call its toJSON while constructing the native file operation envelope.
+      const json = '{"path":' + stringify(filePath(source)) +
+        ',"destination":' + stringify(filePath(destination)) + '}';
+      host.fileOperation('move', json);
+    }
   });
   // JavascriptAPIHttp.request -> Promise -> HTTPResult.toDict. Transport runs
   // on a separate native worker; only request/result JSON crosses threads.

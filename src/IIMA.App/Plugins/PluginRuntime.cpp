@@ -597,7 +597,7 @@ struct PluginRuntime::Impl {
             }
             if (function == FileOperation) {
                 auto operation = String(context, argument(0), 16);
-                bool mutation = operation == "write" || operation == "delete";
+                bool mutation = operation == "write" || operation == "delete" || operation == "move";
                 if (!mutation && operation != "read" && operation != "exists" && operation != "list")
                     throw std::invalid_argument("Unsupported plugin file operation.");
                 auto json = String(context, argument(1), MaxFileJson);

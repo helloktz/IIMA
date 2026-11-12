@@ -15,8 +15,11 @@ class PluginFileStore final {
 public:
     explicit PluginFileStore(std::string identifier);
     // JSON object {path,content?,options?:{encoding?,includeSubDir?}}; JSON result. Throws
-    // for unsupported paths/options, corrupt UTF-8 and I/O failures. Only direct
-    // filenames below @data/ or @tmp/ are supported. list returns filename/path/
+    // for unsupported paths/options, corrupt UTF-8 and I/O failures.
+    // Move accepts {path,destination}, never overwrites, and supports ordinary
+    // binary/text files between these two namespaces with the same quotas. Moving
+    // into @tmp opts into its shutdown cleanup; it does not retain the source.
+    // Only direct filenames below @data/ or @tmp/ are supported. list returns filename/path/
     // isDir fields. No implicit subdirectory creation, recursion or external I/O.
     std::string Invoke(std::string const& operation, std::string const& argumentsJson);
     // Pure syntax validation, no file I/O or namespace creation; call before

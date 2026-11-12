@@ -8,6 +8,8 @@
 #include <shlobj.h>
 #include <bcrypt.h>
 #include <array>
+#include <cstddef>
+#include <cstring>
 #include <cstdint>
 #include <filesystem>
 #include <string_view>
@@ -174,6 +176,50 @@ std::vector<Entry> Scan(Directory const& dir) {
     std::sort(entries.begin(), entries.end(), [](auto const& a, auto const& b) { return a.name < b.name; });
     return entries;
 }
+// Rename the opened source identity, never a pathname after closing its handle.
+// ReplaceIfExists stays FALSE: Foundation moveItem does not overwrite a target.
+void RenamePrivateFile(Directory const& sourceDirectory, std::wstring const& sourceName,
+    Directory const& destinationDirectory, std::wstring const& destinationName, bool sameDirectory) {
+    const auto source = sourceDirectory.path / sourceName;
+    const auto destination = destinationDirectory.path / destinationName;
+    if (source.native().size() > 240 || destination.native().size() > 240)
+        throw std::invalid_argument("Plugin storage path is too long.");
+    // Reject case-only renames as well; Windows directory case sensitivity is
+    // not part of this portable API. This avoids ambiguous existing-target rules.
+    if (sameDirectory && CompareStringOrdinal(sourceName.c_str(), -1,
+        destinationName.c_str(), -1, TRUE) == CSTR_EQUAL)
+        throw std::invalid_argument("Source and destination must be different filenames.");
+    auto existing = Open(destination, FILE_READ_ATTRIBUTES, true);
+    if (existing) throw std::runtime_error("Plugin move destination already exists.");
+    // Scan before requesting DELETE on the source: Scan's ordinary read handles
+    // intentionally do not share delete access. Both namespace locks are held.
+    auto sourceEntries = Scan(sourceDirectory);
+    auto destinationEntries = sameDirectory ? std::vector<Entry>{} : Scan(destinationDirectory);
+    auto file = Open(source, FILE_READ_ATTRIBUTES | DELETE);
+    const auto bytes = Length(file.get());
+    if (!sameDirectory) {
+        std::uint64_t total{};
+        for (auto const& entry : destinationEntries) total += entry.size;
+        if (destinationEntries.size() >= MaxFiles || total + bytes > MaxTotal)
+            throw std::runtime_error("Plugin move destination quota exceeded.");
+    }
+    // Source scan also rejects an already-overquota or unsafe namespace rather
+    // than silently migrating unbounded data. Binary files need no text decode.
+    (void)sourceEntries;
+    auto const& native = destination.native();
+    const auto nameBytes = native.size() * sizeof(wchar_t);
+    const auto capacity = sizeof(FILE_RENAME_INFO) + nameBytes;
+    std::vector<std::byte> buffer(capacity);
+    auto info = reinterpret_cast<FILE_RENAME_INFO*>(buffer.data());
+    info->ReplaceIfExists = FALSE;
+    info->RootDirectory = nullptr;
+    info->FileNameLength = static_cast<DWORD>(nameBytes);
+    std::memcpy(info->FileName, native.data(), nameBytes);
+    // Same-volume atomic rename only. There is deliberately no copy/delete
+    // fallback, no overwrite retry, and no guessed rollback after success.
+    check_bool(SetFileInformationByHandle(file.get(), FileRenameInfo, info,
+        static_cast<DWORD>(buffer.size())));
+}
 void CheckCancelled(std::stop_token stop) {
     if (stop.stop_requested()) throw std::runtime_error("Plugin download cancelled.");
 }
@@ -228,7 +274,7 @@ std::string PluginFileStore::Invoke(std::string const& operation, std::string co
     std::lock_guard guard(mutex_);
     if (closed_) throw std::runtime_error("Plugin storage is closed.");
     Apartment apartment;
-    if (operation != "read" && operation != "write" && operation != "exists" && operation != "list" && operation != "delete")
+    if (operation != "read" && operation != "write" && operation != "exists" && operation != "list" && operation != "delete" && operation != "move")
         throw std::invalid_argument("Unsupported plugin file operation.");
     if (argumentsJson.size() > 8 * MaxFile) throw std::invalid_argument("Plugin file arguments are too large.");
     // This bridge accepts a flat argument object plus one options object; reject deep nesting before platform JSON
@@ -247,6 +293,26 @@ std::string PluginFileStore::Invoke(std::string const& operation, std::string co
     auto name = path.substr(temporary ? 5 : 6);
     if (!name.empty()) ValidateName(name);
     if (name.empty() && operation != "list" && operation != "exists") throw std::invalid_argument("A filename is required.");
+    if (operation == "move") {
+        // Validate both logical names before creating any namespace or lock.
+        auto destinationPath = ParseDownloadPath(to_string(args.GetNamedString(L"destination")));
+        const bool sameDirectory = temporary == destinationPath.temporary;
+        Directory source(identity_, temporary, temporary_);
+        if (temporary) temporaryCreated_ = true;
+        if (sameDirectory) {
+            auto lock = Lock(source);
+            RenamePrivateFile(source, name, source, destinationPath.name, true);
+        } else {
+            Directory destination(identity_, destinationPath.temporary, temporary_);
+            if (destinationPath.temporary) temporaryCreated_ = true;
+            // All cross-namespace moves acquire data before tmp. A second
+            // window using the same plugin identifier cannot invert this order.
+            auto dataLock = Lock(temporary ? destination : source);
+            auto temporaryLock = Lock(temporary ? source : destination);
+            RenamePrivateFile(source, name, destination, destinationPath.name, false);
+        }
+        return "null";
+    }
     auto options = args.HasKey(L"options") ? args.GetNamedObject(L"options") : JsonObject{};
     if (options.HasKey(L"encoding")) {
         auto encoding = options.GetNamedString(L"encoding");
