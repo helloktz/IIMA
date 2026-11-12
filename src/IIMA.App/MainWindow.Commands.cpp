@@ -101,6 +101,7 @@ void MainWindow::UpdatePresentationLayout() {
     ExitCompactOverlayButton().Content(box_value(!compact && compactRestore_ ? L"重试返回播放器" : L"返回播放器"));
     Root().ColumnDefinitions().GetAt(1).Width(GridLength{compact ? 0.0 : 300.0, GridUnitType::Pixel});
     ApplyMusicLayout(compact);
+    UpdatePlaylistMetadata();
     UpdateCompactOverlayControls();
     ControlBarActivity();
 }

@@ -24,7 +24,7 @@ struct EditorRefreshScope {
 };
 bool HasApplicationAdapter(std::string_view key) {
     static const std::set<std::string_view> keys{
-        "prefetchPlaylistVideoDuration", "playlistAutoAdd", "subAutoLoadIINA", "subAutoLoadPriorityString", "subAutoLoadSearchPath", "initialWindowSizePosition", "enableInitialVolume", "initialVolume", "alwaysOpenInNewWindow", "groupSimultaneousOpensInPlaylist", "allowDuplicatePlayers",
+        "prefetchPlaylistVideoDuration", "playlistShowMetadata", "playlistShowMetadataInMusicMode", "playlistAutoAdd", "subAutoLoadIINA", "subAutoLoadPriorityString", "subAutoLoadSearchPath", "initialWindowSizePosition", "enableInitialVolume", "initialVolume", "alwaysOpenInNewWindow", "groupSimultaneousOpensInPlaylist", "allowDuplicatePlayers",
         "autoSwitchToMusicMode", "musicModeShowPlaylist", "musicModeShowAlbumArt",
         "resizeWindowTiming", "resizeWindowOption", "usePhysicalResolution", "unlockWindowAspectRatio", "preventScreenSaver", "allowScreenSaverForAudio", "pauseWhenPip", "pauseWhenInactive", "pauseWhenMinimized", "pauseWhenGoesToSleep", "enableThumbnailPreview", "thumbnailWidth", "maxThumbnailPreviewCacheSize",
         "displayTimeAndBatteryInFullScreen", "alwaysFloatOnTop", "fullScreenWhenOpen", "playWhenEnteringFullScreen", "pauseWhenLeavingFullScreen",
@@ -228,6 +228,7 @@ void MainWindow::ApplyAdvancedSetting(std::string const& key, iima::settings::Pr
     ApplyWindowPreferences();
     UpdateMediaIntegration();
     if (key == "prefetchPlaylistVideoDuration") UpdatePlaylistDurations(true);
+    if (key == "playlistShowMetadata" || key == "playlistShowMetadataInMusicMode") UpdatePlaylistMetadata();
     if (key == "screenShotFolder") UpdateScreenshotSettings();
     if (key == "screenshotShowPreview" && !preferences_.Boolean(key)) HideScreenshotPreview();
     if (key == "enableThumbnailPreview" || key == "thumbnailWidth" || key == "maxThumbnailPreviewCacheSize") {

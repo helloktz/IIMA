@@ -1311,3 +1311,13 @@ mpv 命令实现忽略 `mp_remove_track` 的布尔返回，因而成功回复不
 实际当前行必须同时匹配 current、entry ID、path 和可用播放上下文，使用同一快照的 position/duration；加载、结束、待输入或身份不明确时不拿旧历史替代当前值。其他行按精确路径读取同一条历史记录的位置与时长，同路径重复队列项不能冒充正在播放的那项。不与预取时长混算，不使用会过滤已完成记录的续播 API；有限合法数值显示0至100%，完成历史仍可显示100%，未知隐藏而非伪造0%。
 
 历史加载、清除、删除/撤销及记录偏好变化刷新投影；关闭记录隐藏历史投影但不隐藏真实当前播放进度，关闭续播不隐藏历史信息。该投影不保存进度、不执行 seek，历史仍按原换片/关闭生命周期记录。历史是当前窗口持有的过往观察，不证明路径对应文件未替换，也没有新增跨窗口文件监听。仅静态源码与差异检查，未编译、测试或运行。
+
+## 队列标题与艺术家标签（2026-11-12）
+
+来源：IINA `SidebarPlaylistPane.PlaylistCellView.update`、`PlayerCore.refreshCachedVideoInfo` 与 `Preference.playlistShowMetadata/playlistShowMetadataInMusicMode`。保留两个偏好默认 true、后者表示只在音乐模式显示的含义；必须同时具有 title 与 artist 才替换队列显示标题并添加艺术家，否则保留原队列标题/文件名。仅改变显示，不修改路径、ID、排序、复制或保存列表内容。
+
+Windows 使用已验证文件句柄的同一 MF byte stream/source reader，通过 `GetServiceForStream(MF_SOURCE_READER_MEDIASOURCE, MF_PROPERTY_HANDLER_SERVICE)` 获得 `IPropertyStore`，只查询 `PKEY_Title` 和 `PKEY_Music_Artist`。不调用按路径的 Shell 属性加载、不重新打开文件、不枚举封面。官方依据：[MF属性服务](https://learn.microsoft.com/en-us/windows/win32/medfound/shell-metadata-providers)、[Source Reader服务接口](https://learn.microsoft.com/en-us/windows/win32/api/mfreadwrite/nf-mfreadwrite-imfsourcereader-getserviceforstream)、[PROPERTYKEY定义](https://learn.microsoft.com/en-us/windows/win32/api/propkeydef/nf-propkeydef-define_propertykey)。官方列明的 [MP3](https://learn.microsoft.com/en-us/windows/win32/medfound/mp3-file-source) 与 [ASF](https://learn.microsoft.com/en-us/windows/win32/medfound/asf-media-source) 提供属性服务；其他已安装处理器不保证支持，缺失时保持未知而非猜测。
+
+`ProbePlaylistDuration` 结果扩充为可独立成功的 duration/title/artist 与相同文件指纹；标签未知不丢时长，时长未知不丢标签。UTF-16 有界读取、控制/双向文本标记及行分隔清理、代理对修复，输出每字段最多1024字节UTF-8；多艺术家最多16项且合并后同样限1024字节。累计流读取预算仍64MiB，读取后复验同一HANDLE指纹，不声称原生处理器可强制中断或完全没有内部I/O。
+
+App复用单后台worker与512项/1MiB字符串预算，每项除路径外预留2KiB标签空间；无额外扫描器。当前项即使已有播放器时长，也允许同一通道读取一次标签；不混入另一套mpv当前元数据。显示偏好及音乐模式切换即时恢复/投影标题；关闭预取清缓存并恢复原显示，手动刷新同时刷新时长与标签。行结构保留历史进度条，缓存仍非文件监听，修改文件后需刷新。仅静态源码/API契约与差异检查，未编译、测试或运行。

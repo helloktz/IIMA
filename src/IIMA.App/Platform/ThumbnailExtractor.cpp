@@ -10,6 +10,7 @@
 #include <mfreadwrite.h>
 #include <mferror.h>
 #include <propvarutil.h>
+#include <propsys.h>
 #include <wincodec.h>
 #include <objidl.h>
 #include <algorithm>
@@ -20,6 +21,10 @@
 #include <limits>
 #include <memory>
 #include <mutex>
+// Instantiate SDK PROPERTYKEY constants here, rather than relying on implicit
+// linker exports. Keep after other interface headers to limit INITGUID scope.
+#include <initguid.h>
+#include <propkey.h>
 #pragma comment(lib, "mfplat.lib")
 #pragma comment(lib, "mfreadwrite.lib")
 #pragma comment(lib, "mfuuid.lib")
@@ -187,6 +192,77 @@ winrt::com_ptr<IStream> OpenLocalFile(std::filesystem::path const& path,
     if (opened) *opened = file;
     winrt::com_ptr<IStream> stream; stream.attach(new FileStream(std::move(file)));
     return stream;
+}
+// MF's Windows 7+ metadata service returns IPropertyStore from the existing
+// media source. This is not SHGetPropertyStoreFromParsingName (no path reopen).
+// Contracts: Microsoft Learn, IMFSourceReader::GetServiceForStream,
+// medfound/shell-metadata-providers, properties/props-system-music-artist.
+struct OwnedProperty {
+    PROPVARIANT value{};
+    ~OwnedProperty() { PropVariantClear(&value); }
+};
+std::optional<std::string> MetadataText(wchar_t const* text) {
+    if (!text) return {};
+    std::size_t length{};
+    while (length <= 4096 && text[length]) ++length;
+    if (!length || length > 4096) return {};
+    std::wstring clean;
+    clean.reserve(std::min<std::size_t>(length, 1024));
+    for (std::size_t i = 0; i < length && clean.size() < 1024; ++i) {
+        const auto ch = static_cast<unsigned>(text[i]);
+        if (ch < 0x20 || (ch >= 0x7f && ch <= 0x9f) || ch == 0x2028 || ch == 0x2029 ||
+            ch == 0x061c || ch == 0x200e || ch == 0x200f ||
+            (ch >= 0x202a && ch <= 0x202e) || (ch >= 0x2066 && ch <= 0x2069)) {
+            clean.push_back(L' ');
+        } else if (ch >= 0xd800 && ch <= 0xdbff) {
+            if (i + 1 < length && text[i + 1] >= 0xdc00 && text[i + 1] <= 0xdfff) {
+                if (clean.size() + 2 > 1024) break;
+                clean.push_back(text[i]); clean.push_back(text[++i]);
+            } else clean.push_back(L'\ufffd');
+        } else if (ch >= 0xdc00 && ch <= 0xdfff) clean.push_back(L'\ufffd');
+        else clean.push_back(text[i]);
+    }
+    while (!clean.empty() && clean.back() == L' ') clean.pop_back();
+    const auto first = clean.find_first_not_of(L' ');
+    if (first == std::wstring::npos) return {};
+    if (first) clean.erase(0, first);
+    auto utf8 = winrt::to_string(std::wstring_view(clean));
+    if (utf8.size() > 1024) {
+        std::size_t end = 1024;
+        while (end && (static_cast<unsigned char>(utf8[end]) & 0xc0) == 0x80) --end;
+        utf8.resize(end);
+    }
+    return utf8.empty() ? std::nullopt : std::optional<std::string>{std::move(utf8)};
+}
+std::optional<std::string> MetadataValue(IPropertyStore* store, REFPROPERTYKEY key, bool multiple) {
+    OwnedProperty property;
+    if (FAILED(store->GetValue(key, &property.value))) return {};
+    if (property.value.vt == VT_LPWSTR) return MetadataText(property.value.pwszVal);
+    if (!multiple || property.value.vt != (VT_VECTOR | VT_LPWSTR) ||
+        !property.value.calpwstr.pElems || property.value.calpwstr.cElems > 16) return {};
+    std::string joined;
+    for (ULONG i = 0; i < property.value.calpwstr.cElems; ++i) {
+        auto value = MetadataText(property.value.calpwstr.pElems[i]);
+        if (!value) continue;
+        const auto separator = joined.empty() ? 0u : 2u;
+        if (joined.size() + separator + value->size() > 1024) break;
+        if (separator) joined += "; ";
+        joined += *value;
+    }
+    return joined.empty() ? std::nullopt : std::optional<std::string>{std::move(joined)};
+}
+std::pair<std::optional<std::string>, std::optional<std::string>> ReadPlaylistMetadata(
+    IMFSourceReader* reader, std::stop_token stop) {
+    CheckCancelled(stop);
+    winrt::com_ptr<IPropertyStore> store;
+    if (FAILED(reader->GetServiceForStream(MF_SOURCE_READER_MEDIASOURCE, MF_PROPERTY_HANDLER_SERVICE,
+        __uuidof(IPropertyStore), store.put_void())) || !store) return {};
+    CheckCancelled(stop);
+    auto title = MetadataValue(store.get(), PKEY_Title, false);
+    CheckCancelled(stop);
+    auto artist = MetadataValue(store.get(), PKEY_Music_Artist, true);
+    CheckCancelled(stop);
+    return {std::move(title), std::move(artist)};
 }
 struct FrameLayout {
     UINT32 width{}, height{};
@@ -364,26 +440,33 @@ PlaylistDurationProbeResult ProbePlaylistDuration(std::filesystem::path const& p
         winrt::com_ptr<IMFSourceReader> reader;
         winrt::check_hresult(MFCreateSourceReaderFromByteStream(bytes.get(), attributes.get(), reader.put()));
         CheckCancelled(stop);
-        struct Property {
-            PROPVARIANT value{};
-            ~Property() { PropVariantClear(&value); }
-        } duration;
+        OwnedProperty duration;
         const auto hr = reader->GetPresentationAttribute(MF_SOURCE_READER_MEDIASOURCE, MF_PD_DURATION, &duration.value);
+        CheckCancelled(stop);
+        // Each capability is optional independently. A missing duration does
+        // not hide usable tags; missing metadata does not discard duration.
+        std::pair<std::optional<std::string>, std::optional<std::string>> metadata;
+        try { metadata = ReadPlaylistMetadata(reader.get(), stop); }
+        catch (Cancelled const&) { throw; }
+        catch (...) {} // optional native metadata service is best effort
         CheckCancelled(stop);
         // Read both snapshots from exactly the HANDLE supplying the byte stream.
         // This detects ordinary concurrent modification, not an adversarial
         // writer restoring size and timestamps or a later path replacement.
         const auto after = fingerprint();
         if (!(before == after)) { result.status = PlaylistDurationProbeStatus::Changed; return result; }
-        if (FAILED(hr) || duration.value.vt != VT_UI8 || !duration.value.uhVal.QuadPart) {
-            result.status = PlaylistDurationProbeStatus::Unsupported; return result;
+        std::optional<double> seconds;
+        if (SUCCEEDED(hr) && duration.value.vt == VT_UI8 && duration.value.uhVal.QuadPart) {
+            const auto value = static_cast<double>(duration.value.uhVal.QuadPart) / 10000000.0;
+            if (std::isfinite(value) && value > 0) seconds = value;
         }
-        const auto seconds = static_cast<double>(duration.value.uhVal.QuadPart) / 10000000.0;
-        if (!std::isfinite(seconds) || seconds <= 0) {
+        if (!seconds && !metadata.first && !metadata.second) {
             result.status = PlaylistDurationProbeStatus::Unsupported; return result;
         }
         CheckCancelled(stop);
         result.seconds = seconds;
+        result.title = std::move(metadata.first);
+        result.artist = std::move(metadata.second);
         result.fingerprint = after;
         result.status = PlaylistDurationProbeStatus::Ready;
     } catch (Cancelled const&) {

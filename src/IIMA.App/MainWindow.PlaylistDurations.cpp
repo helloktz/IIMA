@@ -13,7 +13,7 @@
 using namespace winrt;
 using namespace Microsoft::UI::Xaml;
 namespace {
-constexpr std::size_t MaxCache=512,MaxBytes=1024*1024,MaxPath=32767,Prefix=128,Selection=32,Batch=8;
+constexpr std::size_t MaxCache=512,MaxBytes=1024*1024,MaxPath=32767,Prefix=128,Selection=32,Batch=8,MetadataReserve=2048;
 bool ValidDuration(std::optional<double> seconds) {return seconds && std::isfinite(*seconds) && *seconds>0 && *seconds<=1e12;}
 hstring DurationText(double seconds) {
     const auto value=static_cast<std::uint64_t>(seconds);
@@ -21,7 +21,7 @@ hstring DurationText(double seconds) {
     return to_hstring(value/3600)+L":"+two(value/60%60)+L":"+two(value%60);
 }
 struct DurationTask {std::int64_t id;std::string path;};
-struct DurationResult {DurationTask task;std::optional<double> seconds;std::optional<iima::PlaylistDurationFingerprint> fingerprint;};
+struct DurationResult {DurationTask task;std::optional<double> seconds;std::optional<iima::PlaylistDurationFingerprint> fingerprint;std::optional<std::string> title,artist;};
 }
 namespace winrt::IIMA::implementation {
 void MainWindow::CancelPlaylistDurations(bool clearCache) {
@@ -29,9 +29,10 @@ void MainWindow::CancelPlaylistDurations(bool clearCache) {
     ++playlistDurationEpoch_;
     if(clearCache) { playlistDurationCache_.clear(); playlistDurationBytes_=0; }
     else for(auto it=playlistDurationCache_.begin();it!=playlistDurationCache_.end();) {
-        if(!it->second.complete) {playlistDurationBytes_-=it->first.size();it=playlistDurationCache_.erase(it);}
+        if(!it->second.complete) {playlistDurationBytes_-=it->first.size()+MetadataReserve;it=playlistDurationCache_.erase(it);}
         else ++it;
     }
+    UpdatePlaylistMetadata();
     // Do not free the worker slot: a synchronous native call may still own it.
     // Close does not await that call; the worker owns only copies and a weak UI.
 }
@@ -67,7 +68,7 @@ void MainWindow::UpdatePlaylistDurations(bool refresh) {
             const bool survives=std::any_of(state.playlist.begin(),state.playlist.end(),[&](auto const& entry){
                 return entry.id==it->second.entryId && entry.path==it->first;
             });
-            if(!survives) {playlistDurationBytes_-=it->first.size();it=playlistDurationCache_.erase(it);} else ++it;
+            if(!survives) {playlistDurationBytes_-=it->first.size()+MetadataReserve;it=playlistDurationCache_.erase(it);} else ++it;
         }
     }
     playlistDurationRevision_=state.playlistRevision;
@@ -101,21 +102,22 @@ void MainWindow::UpdatePlaylistDurations(bool refresh) {
     PlaylistDurationSummary().Text(L"总计已知 "+to_hstring(totalKnown)+L"/"+to_hstring(state.playlist.size())+L" 项："+sum(total)+
         L"；选中已知 "+to_hstring(selectedKnown)+L"/"+to_hstring(selectedCount)+L" 项："+sum(selectedTotal));
     RefreshPlaylistDurationsButton().IsEnabled(enabled && state.session==iima::SessionState::Ready);
-    PlaylistDurationHint().Text(!enabled ? L"预取已关闭；仅显示播放器已观测的当前时长。" :
-        playlistDurationCache_.size()>=MaxCache || playlistDurationBytes_>=MaxBytes ?
-        L"已达512条或1MiB缓存上限；刷新会清除全部缓存。—表示未知，合计仅包含已知项。" :
-        L"仅本地文件：自动前128项＋选中最多32项；—表示未知，合计仅含已知项。文件改动后请刷新缓存。");
+    PlaylistDurationHint().Text(!enabled ? L"预取已关闭；不显示缓存标签，仅显示播放器已观测的当前时长。" :
+        playlistDurationCache_.size()>=MaxCache || playlistDurationBytes_+MetadataReserve+MaxPath>MaxBytes ?
+        L"已达或接近512条／1MiB缓存预算（每项预留2KiB标签）；刷新会清除时长与标签缓存。—表示未知。" :
+        L"仅本地文件：自动前128项＋选中最多32项；—表示未知，合计仅含已知项。文件改动后请刷新时长与标签缓存。");
+    UpdatePlaylistMetadata();
     if(!ready || playlistDurationBusy_ || !rowsMatch) return;
     std::vector<DurationTask> tasks;
     auto consider=[&](auto const& entry) {
-        if(tasks.size()>=Batch || entry.id<0 || known(entry) || playlistDurationCache_.contains(entry.path) ||
+        if(tasks.size()>=Batch || entry.id<0 || playlistDurationCache_.contains(entry.path) ||
             playlistDurationCache_.size()>=MaxCache || entry.path.empty() || entry.path.size()>MaxPath ||
-            entry.path.size()>MaxBytes-playlistDurationBytes_) return;
+            entry.path.size()+MetadataReserve>MaxBytes-playlistDurationBytes_) return;
         // Syntactic prefilter only. All disk/type/identity/drive checks run on
         // the worker; URLs and UNC paths never trigger automatic network IO.
         if(entry.path.size()<3 || entry.path[1]!=':' || (entry.path[2]!='\\' && entry.path[2]!='/') ||
             !((entry.path[0]>='A' && entry.path[0]<='Z') || (entry.path[0]>='a' && entry.path[0]<='z'))) return;
-        playlistDurationBytes_+=entry.path.size();
+        playlistDurationBytes_+=entry.path.size()+MetadataReserve;
         playlistDurationCache_.emplace(entry.path,PlaylistDurationCacheEntry{std::nullopt,false,std::nullopt,entry.id});
         tasks.push_back({entry.id,entry.path});
     };
@@ -137,8 +139,11 @@ void MainWindow::UpdatePlaylistDurations(bool refresh) {
                 for(auto const& task:tasks) {
                     if(stop.stop_requested()) break;
                     auto result=iima::ProbePlaylistDuration(std::filesystem::path(to_hstring(task.path).c_str()),stop);
-                    const bool ready=result.status==iima::PlaylistDurationProbeStatus::Ready && result.fingerprint && ValidDuration(result.seconds);
-                    results.push_back({task,ready ? result.seconds : std::nullopt,ready ? result.fingerprint : std::nullopt});
+                    const bool ready=result.status==iima::PlaylistDurationProbeStatus::Ready && result.fingerprint;
+                    results.push_back({task,ready && ValidDuration(result.seconds) ? result.seconds : std::nullopt,
+                        ready ? result.fingerprint : std::nullopt,
+                        ready && result.title && result.title->size()<=1024 ? result.title : std::nullopt,
+                        ready && result.artist && result.artist->size()<=1024 ? result.artist : std::nullopt});
                 }
             } catch(...) {} // Cache unreturned probes as unavailable for this epoch.
             if(initialized) uninit_apartment();
@@ -155,7 +160,8 @@ void MainWindow::UpdatePlaylistDurations(bool refresh) {
                             auto cache=self->playlistDurationCache_.find(task.path);
                             if(entry==current.playlist.end() || cache==self->playlistDurationCache_.end()) continue;
                             auto result=std::find_if(results.begin(),results.end(),[&](auto const& r){return r.task.id==task.id && r.task.path==task.path;});
-                            cache->second={result==results.end() ? std::nullopt : result->seconds,true,result==results.end() ? std::nullopt : result->fingerprint,task.id};
+                            cache->second={result==results.end() ? std::nullopt : result->seconds,true,result==results.end() ? std::nullopt : result->fingerprint,task.id,
+                                result==results.end() ? std::nullopt : result->title, result==results.end() ? std::nullopt : result->artist};
                         }
                     }
                     self->UpdatePlaylistDurations();

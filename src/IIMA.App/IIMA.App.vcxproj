@@ -62,6 +62,7 @@
     <ClCompile Include="MainWindow.PlaylistSelection.cpp" />
     <ClCompile Include="MainWindow.PlaylistDurations.cpp" />
     <ClCompile Include="MainWindow.PlaylistProgress.cpp" />
+    <ClCompile Include="MainWindow.PlaylistMetadata.cpp" />
     <ClCompile Include="MainWindow.PlaylistBrowser.cpp" />
     <ClCompile Include="MainWindow.PlaylistDeletion.cpp" />
     <ClCompile Include="Platform\PlaylistFileDeletion.cpp" />

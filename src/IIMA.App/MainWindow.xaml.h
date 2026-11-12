@@ -497,8 +497,9 @@ private:
     void UpdatePlaylistSelection();
     void UpdatePlaylistDurations(bool refresh = false);
     void UpdatePlaylistProgress();
+    void UpdatePlaylistMetadata();
     void CancelPlaylistDurations(bool clearCache = true);
-    struct PlaylistDurationCacheEntry { std::optional<double> seconds; bool complete{}; std::optional<iima::PlaylistDurationFingerprint> fingerprint; std::int64_t entryId{-1}; };
+    struct PlaylistDurationCacheEntry { std::optional<double> seconds; bool complete{}; std::optional<iima::PlaylistDurationFingerprint> fingerprint; std::int64_t entryId{-1}; std::optional<std::string> title, artist; };
     std::map<std::string, PlaylistDurationCacheEntry, std::less<>> playlistDurationCache_;
     std::size_t playlistDurationBytes_{};
     std::vector<std::pair<std::int64_t,std::string>> playlistDurationWindow_;

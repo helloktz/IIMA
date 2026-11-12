@@ -34,7 +34,7 @@ void MainWindow::UpdatePlaylistProgress() {
         auto item=PlaylistView().Items().GetAt(static_cast<uint32_t>(i)).try_as<Controls::ListViewItem>();
         if(!item || unbox_value<std::int64_t>(item.Tag())!=entry.id) continue;
         auto row=item.Content().try_as<Controls::Grid>();
-        if(!row || row.Children().Size()!=3) continue;
+        if(!row || row.Children().Size()<3) continue;
         auto panel=row.Children().GetAt(2).try_as<Controls::StackPanel>();
         if(!panel || panel.Children().Size()!=2) continue;
         auto label=panel.Children().GetAt(0).try_as<Controls::TextBlock>();

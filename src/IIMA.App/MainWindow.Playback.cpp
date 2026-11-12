@@ -187,10 +187,11 @@ void MainWindow::ApplyCollections(iima::PlaybackSnapshot const& state)
             duration.Text(L"—"); duration.Margin(Thickness{8,0,0,0});
             Controls::Grid::SetColumn(duration,1);
             row.Children().Append(title); row.Children().Append(duration);
-            Controls::RowDefinition headingRow, progressRow;
+            Controls::RowDefinition headingRow, progressRow, artistRow;
             headingRow.Height(GridLength{1,GridUnitType::Auto});
             progressRow.Height(GridLength{1,GridUnitType::Auto});
-            row.RowDefinitions().Append(headingRow); row.RowDefinitions().Append(progressRow);
+            artistRow.Height(GridLength{1,GridUnitType::Auto});
+            row.RowDefinitions().Append(headingRow); row.RowDefinitions().Append(artistRow); row.RowDefinitions().Append(progressRow);
             Controls::StackPanel progress;
             progress.Spacing(2); progress.Margin(Thickness{0,3,0,3});
             progress.IsHitTestVisible(false); progress.Visibility(Visibility::Collapsed);
@@ -198,8 +199,12 @@ void MainWindow::ApplyCollections(iima::PlaybackSnapshot const& state)
             Controls::ProgressBar progressBar; progressBar.Minimum(0); progressBar.Maximum(100);
             progressBar.Height(3); progressBar.IsIndeterminate(false);
             progress.Children().Append(progressText); progress.Children().Append(progressBar);
-            Controls::Grid::SetRow(progress,1); Controls::Grid::SetColumnSpan(progress,2);
+            Controls::Grid::SetRow(progress,2); Controls::Grid::SetColumnSpan(progress,2);
             row.Children().Append(progress);
+            Controls::TextBlock artist; artist.FontSize(12); artist.TextTrimming(TextTrimming::CharacterEllipsis);
+            artist.IsHitTestVisible(false); artist.Visibility(Visibility::Collapsed);
+            Controls::Grid::SetRow(artist,1); Controls::Grid::SetColumnSpan(artist,2);
+            row.Children().Append(artist);
             item.HorizontalContentAlignment(HorizontalAlignment::Stretch);
             item.Content(row);
             item.Tag(box_value(entry.id));
