@@ -14,7 +14,7 @@ void MainWindow::WireApplicationCommands() {
     WireCompactOverlayControls();
     ExitCompactOverlayButton().Click([weak](auto const&, auto const&) {
         if (auto self = weak.get(); self && !self->closing_ && !self->pickerOpen_ &&
-            self->AppWindow().Presenter().Kind()==Microsoft::UI::Windowing::AppWindowPresenterKind::CompactOverlay) {
+            (self->compactRestore_ || self->AppWindow().Presenter().Kind()==Microsoft::UI::Windowing::AppWindowPresenterKind::CompactOverlay)) {
             self->CancelMouseClick();
             self->ExecuteApplicationCommand(Command::TogglePictureInPicture);
         }
@@ -54,43 +54,15 @@ void MainWindow::WireApplicationCommands() {
     commandRouter_.Register(Command::TogglePictureInPicture, [weak] {
         if (auto self = weak.get()) {
             if(self->compactTransition_ || self->closing_ || self->pickerOpen_ || self->interactiveCrop_.Active() || self->cropOriginal_) return;
-            struct TransitionGuard { bool& active; ~TransitionGuard(){active=false;} } transition{self->compactTransition_};
-            self->compactTransition_=true;
-            self->CancelMouseClick();
-            self->CancelThumbnailPreview();
-            self->CancelControlBarDrag();
-            self->CancelScrubbing();
-            self->CancelAutomaticVideoSize();
-            auto window = self->AppWindow();
-            // Resolve fullscreen restoration first: its saved presenter may
-            // itself be CompactOverlay. Toggle the actual restored mode.
-            if (!self->ExitFullscreen()) return;
-            const bool overlay = window.Presenter().Kind() == Microsoft::UI::Windowing::AppWindowPresenterKind::CompactOverlay;
-            const auto generation=self->session_->Snapshot().mediaGeneration;
-            const auto intent=self->session_->Snapshot().mediaOpenIntentRevision;
-            const auto input=self->inputGeneration_;
-            try {
-                window.SetPresenter(overlay ? Microsoft::UI::Windowing::AppWindowPresenterKind::Default :
-                    Microsoft::UI::Windowing::AppWindowPresenterKind::CompactOverlay);
-            } catch (...) {
-                // A native failure can occur after the presenter changed.
-                // Reconcile visibility from reality, but never infer a pause.
-                try { self->UpdatePresentationLayout(); } catch (...) {}
-                throw;
-            }
-            self->fullscreen_ = false;
-            self->FullscreenButton().Content(box_value(L"全屏"));
-            // Pause only after an actual successful entry, with unchanged
-            // media/input. Exiting never restores an inferred playing state.
-            if(!overlay && self->CompactTransportAvailable() && self->preferences_.Boolean("pauseWhenPip") &&
-                self->session_->Snapshot().mediaGeneration==generation &&
-                self->session_->Snapshot().mediaOpenIntentRevision==intent && self->inputGeneration_==input)
-                self->session_->Pause(true);
-            self->UpdatePresentationLayout();
+            if(!self->ExitFullscreen()) return;
+            if(self->compactRestore_ || self->AppWindow().Presenter().Kind()==Microsoft::UI::Windowing::AppWindowPresenterKind::CompactOverlay)
+                self->ExitCompactOverlay();
+            else self->EnterCompactOverlay();
         }
     }, available);
     auto resize = [weak](double multiplier) {
         if (auto self = weak.get(); self && !self->fullscreen_) {
+            if(self->compactRestore_ && self->AppWindow().Presenter().Kind()==Microsoft::UI::Windowing::AppWindowPresenterKind::Overlapped && !self->ExitCompactOverlay(false)) return;
             self->CancelAutomaticVideoSize();
             auto size = self->AppWindow().Size();
             self->AppWindow().Resize({std::clamp(static_cast<int>(size.Width * multiplier), 640, 16384),
@@ -106,7 +78,7 @@ void MainWindow::WireApplicationCommands() {
             auto display = Microsoft::UI::Windowing::DisplayArea::GetFromWindowId(window.Id(),
                 Microsoft::UI::Windowing::DisplayAreaFallback::Nearest);
             if (display) {
-                if (!self->ExitFullscreen(false)) return;
+                if (!self->ExitFullscreen(false) || !self->ExitCompactOverlay(false)) return;
                 window.SetPresenter(Microsoft::UI::Windowing::AppWindowPresenterKind::Default);
                 if (auto normal = window.Presenter().try_as<Microsoft::UI::Windowing::OverlappedPresenter>()) normal.Restore();
                 self->fullscreen_ = false;
@@ -125,7 +97,8 @@ void MainWindow::UpdatePresentationLayout() {
     PlayerSidebar().Visibility(compact ? Visibility::Collapsed : Visibility::Visible);
     TopStatusBorder().Visibility(compact ? Visibility::Collapsed : Visibility::Visible);
     BottomControlsBorder().Visibility(compact ? Visibility::Collapsed : Visibility::Visible);
-    ExitCompactOverlayButton().Visibility(compact ? Visibility::Visible : Visibility::Collapsed);
+    ExitCompactOverlayButton().Visibility(compact || compactRestore_ ? Visibility::Visible : Visibility::Collapsed);
+    ExitCompactOverlayButton().Content(box_value(!compact && compactRestore_ ? L"重试返回播放器" : L"返回播放器"));
     Root().ColumnDefinitions().GetAt(1).Width(GridLength{compact ? 0.0 : 300.0, GridUnitType::Pixel});
     ApplyMusicLayout(compact);
     UpdateCompactOverlayControls();

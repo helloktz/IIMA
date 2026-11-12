@@ -12,7 +12,7 @@ void MainWindow::AcceptExternalWindowScale(iima::PlaybackSnapshot const& state) 
     if (!state.mediaGeneration || !state.externalWindowScale) return;
     // This is an explicit external sizing operation, not a new file. Like
     // IINA's setWindowScale, skip fullscreen/PIP rather than queueing a surprise.
-    if (fullscreen_ || musicMode_.IsMusic() || musicTransition_ || pickerOpen_ ||
+    if (compactTransition_ || compactLayoutPending_ || compactRestore_ || restoringPlacement_ || fullscreen_ || musicMode_.IsMusic() || musicTransition_ || pickerOpen_ ||
         interactiveCrop_.Active() || cropOriginal_ ||
         (windowLifecycle_ && windowLifecycle_->Current().sizing)) return;
     auto normal = AppWindow().Presenter().try_as<Microsoft::UI::Windowing::OverlappedPresenter>();
@@ -38,7 +38,7 @@ void MainWindow::QueueWindowScaleFeedback() {
     })) windowScaleFeedbackQueued_ = false;
 }
 void MainWindow::PublishWindowScale() {
-    if (closing_ || !session_ || !userDataLoaded_ || fullscreen_ || fullscreenTransition_ ||
+    if (closing_ || compactTransition_ || compactLayoutPending_ || compactRestore_ || restoringPlacement_ || !session_ || !userDataLoaded_ || fullscreen_ || fullscreenTransition_ ||
         musicMode_.IsMusic() || musicTransition_ || automaticResizeAttempting_ || !automaticResizeConsumed_) return;
     auto const& state = session_->Snapshot();
     if (state.session != iima::SessionState::Ready || state.media != iima::MediaState::Loaded ||

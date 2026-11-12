@@ -1255,3 +1255,10 @@ Windows新增只读`ReadFullscreenInformation`：GetTimeFormatEx按用户区域�
 - pauseWhenPip为默认false的真实偏好，仅成功进入小窗后对仍相同的已加载媒体请求暂停，失败或退出不套用。小窗与普通模式共用播放器、交换链及生命周期策略，不创建第二个视频窗口，也不模拟隐藏原窗口的windowBehaviorWhenPip。
 - 本批不新增独立的PiP前窗口几何恢复记录，退出仍依赖WinUI默认Presenter恢复；最大化、跨屏/DPI的完整恢复及音乐/FitToScreen等旁路的统一出口仍是后续缺口。
 - 本批仅静态实现/审阅、Git差异检查及数量统计，未编译、测试或运行；原生呈现切换、焦点、极小尺寸及键盘交互仍待Windows验证。
+
+## 小窗前窗口状态恢复（2026-11-12）
+
+- 延续IINA MainWindowController.enterPIP/prepareForPIPClosure/doneExitingPIP的返回原播放器语义；Windows同窗口适配改为独立保存普通Presenter、正常矩形、DPI/工作区及最大化状态。最大化时读取Win32正常窗口位置，并区分workspace/screen坐标，不将最大化矩形当作还原尺寸。
+- 返回时先在仍小窗的当前显示器取工作区和DPI，再重挂原Presenter、按DPI缩放并夹入可见区域，恢复最大化。音乐小窗保留其实际几何，不覆盖音乐模式已有的普通窗口备份。全屏记录与小窗记录独立，支持普通→小窗→全屏→小窗→普通；音乐和FitToScreen先走统一出口再应用自身布局。
+- 失败恢复记录保留以供重试，实际Presenter决定控制层；显式普通窗口移动/缩放可取代未完成恢复。过渡和未完成XAML布局阻断位置持久化、自动视频尺寸与window-scale回写，完成布局后再重新投影。取消恢复不意味着恢复播放。
+- 此批替代上一批仅依赖WinUI默认Presenter恢复的限制；不新增跨会话小窗模式持久化，不模拟macOS独立PiP窗动画/隐藏原窗。仅静态实现和审阅，未编译、测试或运行，原生窗口事件及跨屏DPI结果仍待Windows验收。

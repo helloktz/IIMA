@@ -106,6 +106,7 @@
     <ClCompile Include="MainWindow.SliderWheel.cpp" />
     <ClCompile Include="MainWindow.Scrubbing.cpp" />
     <ClCompile Include="MainWindow.CompactOverlay.cpp" />
+    <ClCompile Include="MainWindow.CompactPlacement.cpp" />
     <ClInclude Include="VideoSurface.h" />
     <ClCompile Include="VideoSurface.cpp" />
     <ClCompile Include="MainWindow.VideoCursor.cpp" />

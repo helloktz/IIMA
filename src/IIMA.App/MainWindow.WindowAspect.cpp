@@ -11,7 +11,7 @@ void MainWindow::UpdateWindowAspectConstraint(bool layoutChanged) {
     auto clear = [this] { windowLifecycle_->SetAspectConstraint({}); };
     try {
         auto presenter = AppWindow().Presenter().try_as<Microsoft::UI::Windowing::OverlappedPresenter>();
-        if (closing_ || !userDataLoaded_ || preferences_.Boolean("unlockWindowAspectRatio") ||
+        if (closing_ || compactTransition_ || compactLayoutPending_ || compactRestore_ || restoringPlacement_ || !userDataLoaded_ || preferences_.Boolean("unlockWindowAspectRatio") ||
             fullscreen_ || fullscreenTransition_ || musicMode_.IsMusic() || interactiveCrop_.Active() ||
             cropOriginal_ || !presenter ||
             presenter.State() != Microsoft::UI::Windowing::OverlappedPresenterState::Restored) {

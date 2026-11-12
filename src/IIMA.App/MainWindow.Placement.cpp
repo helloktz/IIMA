@@ -13,7 +13,8 @@ void MainWindow::WireWindowPlacement()
     auto weak = get_weak();
     AppWindow().Changed([weak](auto const&, auto const& args) {
         if (auto self = weak.get(); self && !self->closing_ && !self->restoringPlacement_ &&
-            !self->musicTransition_ && !self->fullscreenTransition_ && !self->fullscreen_ && (args.DidPositionChange() || args.DidSizeChange())) {
+            !self->musicTransition_ && !self->compactTransition_ && !self->compactLayoutPending_ && !self->compactRestore_ &&
+            self->AppWindow().Presenter().Kind()==Microsoft::UI::Windowing::AppWindowPresenterKind::Overlapped && !self->fullscreenTransition_ && !self->fullscreen_ && (args.DidPositionChange() || args.DidSizeChange())) {
             if (self->placementProgrammaticBounds_) {
                 auto expected = *self->placementProgrammaticBounds_;
                 auto current = self->AppWindow(); auto point = current.Position(); auto size = current.Size();
@@ -29,7 +30,7 @@ void MainWindow::WireWindowPlacement()
 }
 void MainWindow::CapturePlacement()
 {
-    if (closing_ || musicMode_.IsMusic() || musicTransition_) return;
+    if (closing_ || compactTransition_ || compactLayoutPending_ || compactRestore_ || musicMode_.IsMusic() || musicTransition_) return;
     try {
         auto window = AppWindow();
         auto presenter = window.Presenter().try_as<Microsoft::UI::Windowing::OverlappedPresenter>();
@@ -48,7 +49,9 @@ void MainWindow::CapturePlacement()
 }
 void MainWindow::RestorePlacement(std::optional<iima::WindowPlacementSnapshot> saved)
 {
-    if (closing_ || placementTouched_ || !saved || musicMode_.IsMusic()) return;
+    if (closing_ || compactTransition_ || compactLayoutPending_ || compactRestore_ || placementTouched_ || !saved || musicMode_.IsMusic()) return;
+    auto normal=AppWindow().Presenter().try_as<Microsoft::UI::Windowing::OverlappedPresenter>();
+    if(!normal || normal.State()!=Microsoft::UI::Windowing::OverlappedPresenterState::Restored) return;
     try {
         auto window = AppWindow();
         auto display = Microsoft::UI::Windowing::DisplayArea::GetFromWindowId(window.Id(),
@@ -77,7 +80,7 @@ void MainWindow::ApplyInitialWindowGeometry()
     // the actual video aspect. Never override interaction during async load.
     initialVideoGeometry_ = preferences_.String("initialWindowSizePosition");
     if (placementTouched_) initialVideoSizePending_ = false;
-    if (closing_ || placementTouched_ || musicMode_.IsMusic()) return;
+    if (closing_ || compactTransition_ || compactLayoutPending_ || compactRestore_ || placementTouched_ || musicMode_.IsMusic()) return;
     auto const& text = initialVideoGeometry_;
     if (text.empty()) return;
     auto geometry = text.size() <= 128 ? iima::WindowGeometry::Parse(text) : std::nullopt;

@@ -56,7 +56,7 @@ void MainWindow::ApplyMusicTransition(iima::MusicModePolicy::Transition const& t
 {
     if (closing_) return;
     CancelAutomaticVideoSize();
-    if (!ExitFullscreen()) { musicMode_.CancelPending(); return; }
+    if (!ExitFullscreen() || !ExitCompactOverlay()) { musicMode_.CancelPending(); return; }
     musicTransition_ = true;
     try {
         auto window = AppWindow();

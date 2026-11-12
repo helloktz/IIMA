@@ -19,7 +19,16 @@ void MainWindow::WireWindowPlaybackPolicy() {
                 self->UpdateWindowAspectConstraint();
             }
         },[weak] {
-            if (auto self=weak.get(); self && !self->closing_ && !self->restoringPlacement_ && !self->fullscreenTransition_) {
+            if (auto self=weak.get(); self && !self->closing_ && !self->restoringPlacement_ && !self->compactTransition_ && !self->fullscreenTransition_ &&
+                self->AppWindow().Presenter().Kind()==Microsoft::UI::Windowing::AppWindowPresenterKind::Overlapped) {
+                // An explicit normal-window sizing gesture supersedes an
+                // unfinished compact restore; never replay it over user input.
+                if(self->compactRestore_) {
+                    self->compactRestore_.reset();
+                    self->compactLayoutPending_=true;
+                    self->windowScaleExpectedPanelWidth_.reset();
+                    self->ExitCompactOverlayButton().Visibility(Microsoft::UI::Xaml::Visibility::Collapsed);
+                }
                 self->placementProgrammaticBounds_.reset();
                 self->placementTouched_ = true;
                 self->CancelAutomaticVideoSize();

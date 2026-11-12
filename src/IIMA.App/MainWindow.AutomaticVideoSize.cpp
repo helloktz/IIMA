@@ -18,7 +18,7 @@ void MainWindow::CancelAutomaticVideoSize(bool discardInitial) {
     }
 }
 void MainWindow::UpdateAutomaticVideoSize(bool layoutChanged) {
-    if (closing_ || !session_ || automaticResizeAttempting_ || fullscreenTransition_) return;
+    if (closing_ || compactTransition_ || compactLayoutPending_ || compactRestore_ || restoringPlacement_ || !session_ || automaticResizeAttempting_ || fullscreenTransition_) return;
     auto const& state = session_->Snapshot();
     if (state.mediaGeneration != automaticResizeGeneration_) {
         automaticResizeGeneration_ = state.mediaGeneration;

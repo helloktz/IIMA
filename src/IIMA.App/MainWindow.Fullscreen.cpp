@@ -7,12 +7,17 @@
 
 namespace winrt::IIMA::implementation {
 void MainWindow::ToggleFullscreen() {
-    if (closing_ || fullscreenTransition_) return;
+    if (closing_ || fullscreenTransition_ || compactTransition_) return;
     if (fullscreen_) {
         if (ExitFullscreen() && preferences_.Boolean("pauseWhenLeavingFullScreen") &&
             session_->Snapshot().media == iima::MediaState::Loaded && !session_->Snapshot().paused)
             session_->Pause(true);
         return;
+    }
+    if(compactRestore_ && AppWindow().Presenter().Kind()!=Microsoft::UI::Windowing::AppWindowPresenterKind::CompactOverlay &&
+        !ExitCompactOverlay()) return;
+    if(compactLayoutPending_ && AppWindow().Presenter().Kind()==Microsoft::UI::Windowing::AppWindowPresenterKind::Overlapped) {
+        ShowError(L"窗口布局正在恢复，请稍后再次进入全屏。"); return;
     }
     try {
         auto window = AppWindow();

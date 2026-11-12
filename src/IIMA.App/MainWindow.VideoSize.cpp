@@ -48,7 +48,7 @@ void MainWindow::WireVideoSize() {
         if (auto self = weak.get()) { self->UpdateAutomaticVideoSize(true); self->QueueWindowScaleFeedback(); }
     });
     VideoPanel().LayoutUpdated([weak](auto const&, auto const&) {
-        if (auto self = weak.get()) self->UpdateWindowAspectConstraint(true);
+        if (auto self = weak.get()) { self->UpdateCompactLayout(); self->UpdateWindowAspectConstraint(true); }
     });
     auto wire = [weak](Microsoft::UI::Xaml::Controls::Button const& button, std::optional<double> scale) {
         button.Click([weak, scale](auto const&, auto const&) {
@@ -65,7 +65,7 @@ void MainWindow::ResizeToVideo(std::optional<double> scale) {
 }
 MainWindow::VideoResizeResult MainWindow::TryResizeToVideo(std::optional<double> scale, bool automatic) {
     auto report = [this, automatic](hstring const& message) { if (!automatic) ShowError(message); };
-    if (closing_ || pickerOpen_ || interactiveCrop_.Active() || cropOriginal_ || musicMode_.IsMusic()) return VideoResizeResult::Unsupported;
+    if (closing_ || compactTransition_ || compactLayoutPending_ || compactRestore_ || restoringPlacement_ || pickerOpen_ || interactiveCrop_.Active() || cropOriginal_ || musicMode_.IsMusic()) return VideoResizeResult::Unsupported;
     try {
         auto window = AppWindow();
         auto presenter = window.Presenter().try_as<Microsoft::UI::Windowing::OverlappedPresenter>();

@@ -438,7 +438,16 @@ private:
     void WireCompactOverlayControls();
     void UpdateCompactOverlayControls();
     bool CompactTransportAvailable();
-    bool compactTransition_{};
+    bool compactTransition_{}, compactLayoutPending_{};
+    void UpdateCompactLayout();
+    bool EnterCompactOverlay();
+    bool ExitCompactOverlay(bool restoreGeometry = true);
+    struct CompactRestoreState {
+        Microsoft::UI::Windowing::AppWindowPresenter presenter{nullptr};
+        std::optional<iima::WindowPlacementSnapshot> geometry;
+        bool maximized{}, music{};
+    };
+    std::optional<CompactRestoreState> compactRestore_;
     void ExecuteApplicationCommand(iima::ApplicationCommand command);
     void ApplyCollections(iima::PlaybackSnapshot const& state);
     void PlaySelected();
