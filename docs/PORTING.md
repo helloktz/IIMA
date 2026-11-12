@@ -236,3 +236,11 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 - 位置JSON上限16KiB，拒绝非法坐标、更新schema或目标重解析文件；损坏原文件不自动覆盖。此数据与设置/历史独立，不声称跨文件事务。普通位置恢复默认开启，暂未接IINA全部窗口resize/geometry偏好，首次显示后可能异步调整位置。
 
 本批未编译、测试或运行，尤其需后续验证纯音频FILE_LOADED/track-list顺序、同媒体重播、音乐/全屏/Compact交互、显示器断开/DPI、独立窗口关闭与位置持久化。全量移植及数量要求依然未完成。
+
+### 第十三批：本地插件清单与权限检查
+
+- `JavascriptPlugin.init(filename:externalURL:)`、`Permission`、`JavascriptPluginInstance.canAccess`、`PrefPluginPermissionListView` → `Plugins/PluginManifest.*`：必填字段、反向域名标识、入口、仓库更新元数据、权限、字幕提供商声明、危险权限排序和域名匹配。未知权限保留警告而不授予。声明域名不是用户授权或网络安全边界；此批没有执行网络请求。
+- `SettingsPagePlugin` / `PluginViewController` → `MainWindow.Plugins.cpp` / `Platform/PluginInspection.*`：用户选择目录→后台有界读取Info.json→解析并展示基础名称/作者/版本/权限/域名/错误→检查入口普通文件存在性。原生FolderPicker由当前窗口初始化，关闭时取消并丢弃结果；不解压、安装、复制、启用或运行第三方脚本。
+- Windows路径明确收紧：只读本地固定/可移动磁盘，祖先句柄阻止路径替换，不跟随重解析点/离线文件；相对路径拒绝穿越、设备名、ADS、尾点空格、百分号与控制字符。与上游开发目录符号链接、Unicode标识符等支持不同。Info.json上限1MiB/32层；字符串和列表分别设界限。仅检查一次快照，不代表以后读取安全，更不是插件安全审计。
+- `localized`尚未选择系统语言；显示基础文本，preferenceDefaults不应用。HTML偏好/帮助/侧栏、插件字幕注册、脚本运行时、插件安装更新和JavaScript API仍未实现。界面明确叫“检查”，不提供虚假的“启用”。静态校验成功不代表入口存在、脚本合法或可运行；入口错误单独列出。
+- 更新能力模型按`checkNewVersion`真实路径要求同时存在ghRepo与ghVersion，不照搬上游supportAutoUpdate的反向条件。无更新请求发生。此批未编译、测试、运行或加载任何插件。

@@ -45,6 +45,10 @@ private:
     void SaveWindowPlacement();
     std::optional<iima::WindowPlacementSnapshot> windowPlacement_;
     bool placementTouched_{}, restoringPlacement_{}, placementSavePending_{}, placementWritable_{true}, musicTransition_{};
+    void WirePluginInspection();
+    winrt::fire_and_forget InspectPlugin();
+    bool pluginInspectionBusy_{};
+    std::stop_source pluginInspectionStop_;
     void WireMusicMode();
     std::optional<iima::MusicModePolicy::Transition> UpdateMusicContext();
     void UpdateMusicMode();

@@ -47,6 +47,7 @@ MainWindow::MainWindow()
     }, [weak](hstring const& error) { if (auto self = weak.get(); self && !self->closing_) self->ShowError(error); });
     WireApplicationCommands();
     WireMusicMode();
+    WirePluginInspection();
     WireOSD();
     WireAdvancedPlayback();
     OpenButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->ExecuteApplicationCommand(iima::ApplicationCommand::OpenFile); });
@@ -234,6 +235,7 @@ void MainWindow::BeginClose()
     CapturePlacement();
     SaveWindowPlacement();
     closing_ = true;
+    pluginInspectionStop_.request_stop();
     CancelThumbnailPreview();
     CancelOnlineSubtitles();
     musicMode_.Close();

@@ -167,4 +167,9 @@
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Import Project="..\..\build\NuGet.targets" />
+  <ItemGroup>
+    <ClCompile Include="MainWindow.Plugins.cpp" />
+    <ClCompile Include="Platform\PluginInspection.cpp" />
+    <ClInclude Include="Platform\PluginInspection.h" />
+  </ItemGroup>
 </Project>
