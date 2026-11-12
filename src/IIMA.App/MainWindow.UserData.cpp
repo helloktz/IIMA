@@ -70,6 +70,7 @@ void MainWindow::WireUserDataControls()
             self->userData_.settings.recordHistory = self->RecordHistoryCheck().IsChecked().Value();
             self->userData_.settings.resumePosition = self->ResumeCheck().IsChecked().Value();
             self->UpdateInitialWindow(true);
+            self->UpdatePlaylistProgress();
             self->MarkUserDataDirty();
         }
     };

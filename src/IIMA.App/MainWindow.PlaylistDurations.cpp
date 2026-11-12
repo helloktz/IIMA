@@ -89,7 +89,7 @@ void MainWindow::UpdatePlaylistDurations(bool refresh) {
         if(rowsMatch) {
             auto item=PlaylistView().Items().GetAt(static_cast<uint32_t>(i)).try_as<Controls::ListViewItem>();
             auto row=item && unbox_value<std::int64_t>(item.Tag())==entry.id ? item.Content().try_as<Controls::Grid>() : nullptr;
-            if(row && row.Children().Size()==2) if(auto label=row.Children().GetAt(1).try_as<Controls::TextBlock>()) {
+            if(row && row.Children().Size()>=2) if(auto label=row.Children().GetAt(1).try_as<Controls::TextBlock>()) {
                 auto text=seconds ? DurationText(*seconds) : hstring(L"—");
                 if(label.Text()!=text) label.Text(text);
             }

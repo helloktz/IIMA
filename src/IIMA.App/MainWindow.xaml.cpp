@@ -277,6 +277,7 @@ void MainWindow::BeginClose()
     CancelControlBarDrag();
     CancelScrubbing();
     closing_ = true;
+    UpdatePlaylistProgress();
     InvalidateExternalTrackRemoval();
     InvalidateSubtitleReload();
     CancelPlaylistDurations();

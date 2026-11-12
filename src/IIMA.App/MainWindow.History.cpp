@@ -171,6 +171,7 @@ void MainWindow::OpenSelectedHistory(bool newWindow) {
       catch (std::exception const& error) { inputResolving_=false; ShowError(to_hstring(error.what())); }
 }
 void MainWindow::RefreshHistory() {
+    UpdatePlaylistProgress();
     UpdateInitialWindow(true);
     playerRecentMenuDirty_ = true;
     RefreshPlayerMenus();

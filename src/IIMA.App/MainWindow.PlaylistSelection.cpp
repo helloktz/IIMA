@@ -71,6 +71,7 @@ void MainWindow::UpdatePlaylistSelection() {
     UpdatePlaylistSubtitleControls();
     UpdatePlaylistBrowserControls();
     UpdatePlaylistDurations();
+    UpdatePlaylistProgress();
 }
 // IINA SidebarPlaylistPane.contextMenuPlayInNewWindow. Unlike the upstream
 // fileURL-only conversion, preserve existing network URLs as network inputs.

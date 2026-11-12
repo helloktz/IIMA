@@ -496,6 +496,7 @@ private:
     std::vector<std::size_t> SelectedPlaylistRows();
     void UpdatePlaylistSelection();
     void UpdatePlaylistDurations(bool refresh = false);
+    void UpdatePlaylistProgress();
     void CancelPlaylistDurations(bool clearCache = true);
     struct PlaylistDurationCacheEntry { std::optional<double> seconds; bool complete{}; std::optional<iima::PlaylistDurationFingerprint> fingerprint; std::int64_t entryId{-1}; };
     std::map<std::string, PlaylistDurationCacheEntry, std::less<>> playlistDurationCache_;
