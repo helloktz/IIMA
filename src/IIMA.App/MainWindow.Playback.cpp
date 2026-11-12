@@ -86,6 +86,9 @@ void MainWindow::WirePlaybackControls()
     QueueSelectedNextButton().Click([weak](auto const&, auto const&) {
         if (auto self = weak.get()) self->QueueSelectedPlaylistNext();
     });
+    RefreshPlaylistDurationsButton().Click([weak](auto const&,auto const&) {
+        if(auto self=weak.get();self && !self->closing_) self->UpdatePlaylistDurations(true);
+    });
     PlaylistView().SelectionChanged([weak](auto const&, auto const&) {
         if (auto self = weak.get(); self && !self->updating_ && !self->closing_)
             self->UpdatePlaylistSelection();
@@ -174,7 +177,18 @@ void MainWindow::ApplyCollections(iima::PlaybackSnapshot const& state)
             auto const& entry = playlist_[i];
             auto text = (entry.current ? L"▶ " : L"") + to_hstring(entry.title.empty() ? Filename(entry.path) : entry.title);
             Controls::ListViewItem item;
-            item.Content(box_value(text));
+            Controls::Grid row;
+            Controls::ColumnDefinition titleColumn, durationColumn;
+            titleColumn.Width(GridLength{1,GridUnitType::Star});
+            durationColumn.Width(GridLength{1,GridUnitType::Auto});
+            row.ColumnDefinitions().Append(titleColumn); row.ColumnDefinitions().Append(durationColumn);
+            Controls::TextBlock title, duration;
+            title.Text(text); title.TextTrimming(TextTrimming::CharacterEllipsis);
+            duration.Text(L"—"); duration.Margin(Thickness{8,0,0,0});
+            Controls::Grid::SetColumn(duration,1);
+            row.Children().Append(title); row.Children().Append(duration);
+            item.HorizontalContentAlignment(HorizontalAlignment::Stretch);
+            item.Content(row);
             item.Tag(box_value(entry.id));
             PlaylistView().Items().Append(item);
             if (selectedIds.contains(entry.id) ||

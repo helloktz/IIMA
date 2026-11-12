@@ -217,6 +217,9 @@
                         <Button x:Name="PlaySelectedButton" Content="播放"/>
                         <Button x:Name="NextButton" Content="下一项"/>
                     </StackPanel>
+                    <TextBlock x:Name="PlaylistDurationSummary" Text="时长未知" TextWrapping="Wrap" FontSize="12"/>
+                    <TextBlock x:Name="PlaylistDurationHint" Text="自动预取队列前128项与选中项（最多32项）；仅本地媒体文件。" TextWrapping="Wrap" FontSize="12"/>
+                    <Button x:Name="RefreshPlaylistDurationsButton" Content="刷新缓存时长" ToolTipService.ToolTip="清除全部时长缓存并重新读取；不会更改播放队列"/>
                     <TextBlock x:Name="PlaylistSelectionText" Text="未选择条目；Ctrl或Shift可多选" TextWrapping="Wrap"/>
                     <Button x:Name="DeletePlaylistFilesButton" Content="删除所选磁盘文件…" ToolTipService.ToolTip="区别于移除列表；系统优先使用回收站，不能回收时另行确认"/>
                     <Button x:Name="CancelPlaylistDeletionButton" Content="停止后续文件删除" IsEnabled="False"/>

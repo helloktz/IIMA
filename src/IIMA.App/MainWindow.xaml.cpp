@@ -276,6 +276,7 @@ void MainWindow::BeginClose()
     CancelControlBarDrag();
     CancelScrubbing();
     closing_ = true;
+    CancelPlaylistDurations();
     CloseMusicVolume();
     UpdateInitialWindow(true);
     ApplicationMenuBar().IsEnabled(false);

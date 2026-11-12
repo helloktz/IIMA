@@ -110,6 +110,7 @@ std::span<PreferenceDescriptor const> PreferenceSchema() {
         B("displayInLetterBox",Area::Subtitles,true,"sub-use-margins",Timing::Immediate),
         B("subScaleWithWindow",Area::Subtitles,true,"sub-scale-by-window",Timing::Immediate),
         B("playlistAutoAdd",Area::Interface,true),
+        B("prefetchPlaylistVideoDuration",Area::Interface,true),
         E("subAutoLoadIINA",Area::Subtitles,2,subtitleAutoLoad),
         S("subAutoLoadPriorityString",Area::Subtitles,""),
         S("subAutoLoadSearchPath",Area::Subtitles,"./*"),

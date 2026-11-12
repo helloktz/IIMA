@@ -60,6 +60,7 @@
     <ClCompile Include="Presentation\VideoPresenter.cpp" />
     <ClCompile Include="MainWindow.Playback.cpp" />
     <ClCompile Include="MainWindow.PlaylistSelection.cpp" />
+    <ClCompile Include="MainWindow.PlaylistDurations.cpp" />
     <ClCompile Include="MainWindow.PlaylistBrowser.cpp" />
     <ClCompile Include="MainWindow.PlaylistDeletion.cpp" />
     <ClCompile Include="Platform\PlaylistFileDeletion.cpp" />
@@ -212,6 +213,7 @@
     <ClCompile Include="MainWindow.FilterPresets.cpp" />
     <ClCompile Include="MainWindow.Thumbnails.cpp" />
     <ClInclude Include="Platform\ThumbnailExtractor.h" />
+    <ClInclude Include="Platform\PlaylistDurationProbe.h" />
     <ClCompile Include="Platform\ThumbnailExtractor.cpp" />
   </ItemGroup>
   <ItemGroup>

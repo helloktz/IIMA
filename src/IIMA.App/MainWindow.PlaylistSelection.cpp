@@ -70,6 +70,7 @@ void MainWindow::UpdatePlaylistSelection() {
         L"已选 " + to_hstring(ids.size()) + L" 项；移除不会删除磁盘文件。");
     UpdatePlaylistSubtitleControls();
     UpdatePlaylistBrowserControls();
+    UpdatePlaylistDurations();
 }
 // IINA SidebarPlaylistPane.contextMenuPlayInNewWindow. Unlike the upstream
 // fileURL-only conversion, preserve existing network URLs as network inputs.

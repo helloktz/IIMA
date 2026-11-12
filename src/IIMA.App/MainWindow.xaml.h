@@ -28,6 +28,7 @@
 #include "../IIMA.Core/Screenshots/ScreenshotOptions.h"
 #include "Platform/ScreenshotImage.h"
 #include "Platform/ThumbnailExtractor.h"
+#include "Platform/PlaylistDurationProbe.h"
 #include "Platform/AssrtClient.h"
 #include "Platform/OpenSubClient.h"
 #include "Platform/ShooterClient.h"
@@ -461,6 +462,15 @@ private:
     std::vector<std::int64_t> SelectedPlaylistIds() const;
     std::vector<std::size_t> SelectedPlaylistRows();
     void UpdatePlaylistSelection();
+    void UpdatePlaylistDurations(bool refresh = false);
+    void CancelPlaylistDurations(bool clearCache = true);
+    struct PlaylistDurationCacheEntry { std::optional<double> seconds; bool complete{}; std::optional<iima::PlaylistDurationFingerprint> fingerprint; std::int64_t entryId{-1}; };
+    std::map<std::string, PlaylistDurationCacheEntry, std::less<>> playlistDurationCache_;
+    std::size_t playlistDurationBytes_{};
+    std::vector<std::pair<std::int64_t,std::string>> playlistDurationWindow_;
+    std::stop_source playlistDurationStop_;
+    std::uint64_t playlistDurationEpoch_{}, playlistDurationRevision_{}, playlistDurationMedia_{}, playlistDurationIntent_{}, playlistDurationInput_{};
+    bool playlistDurationBusy_{}, playlistDurationProjecting_{}, playlistDurationEnabled_{};
     void WirePlaylistDrag();
     void WireMouseWheel();
     void WireInteractiveCrop();

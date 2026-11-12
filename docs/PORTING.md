@@ -1269,3 +1269,12 @@ Windows新增只读`ReadFullscreenInformation`：GetTimeFormatEx按用户区域�
 - Windows采用显式打开弹层、弹层内独立静音按钮以及原生轻关闭/Esc和键盘焦点；不照搬macOS首次点击展开/再次点击静音的复合按钮，也不仿制Cocoa触控板phase、动画或触觉反馈。
 - 音量上限来自已有maxVolume，滑块及静音调用既有typed播放命令；滚轮遵守disableVolumeSliderScrolling并沿用有界相对音量规则。 Windows有意差异：鼠标/触控拖动仅保留本地草稿，正常释放提交一次；取消不提交，键盘即时提交。不会在拖动期间实时试听，避免高频排队及陈旧回报抢动滑块。观察回报决定显示与保存，不把滑块草稿或点击本身当mpv确认。打开会话绑定媒体和输入，模式/生命周期失效撤销旧弹层动作。
 - 本批仅静态实现/审阅、Git差异检查及数量统计，未编译、测试或运行；Flyout焦点、原生滑块拖动/滚轮与模式关闭顺序仍待Windows验证。
+
+## 队列本地时长预取与合计（2026-11-12）
+
+- IINA SidebarPlaylistPane.PlaylistCellView.update/refreshTotalLength、PlaybackInfo.calculateTotalDuration及PlayerCore.refreshCachedVideoInfo → 本地队列时长后台预取、行内时长、选中与全队列合计。prefetchPlaylistVideoDuration默认true，与源偏好一致；此次只覆盖duration，不声称已实现音频artist/title元数据预取或历史进度条。
+- Windows使用既有Media Foundation与已验证文件句柄的只读流读取容器时长，不调用ReadSample、不影响主播放器。仅本地固定/可移动盘的允许单文件媒体格式参与，URL、UNC、网络盘、ADS、reparse/offline、未知格式保留未知。格式支持受系统媒体组件限制，不等同libmpv/FFmpeg支持范围。
+- 同一次读取在相同句柄前后检查文件身份、长度和修改时间，变化则丢弃。缓存仅在内存中；外部文件在缓存后被修改需显式刷新，不声称自动发现所有变化或跨会话有效。未知不作为0，部分合计明确显示已知项数，重复队列条目按条目计数。
+- 自动预取前128项及选中最多32项，每批最多8项；最多512个缓存路径、1MiB路径字节，达到上限不淘汰循环重扫。单文件限制1TiB，累计流读取预算64MiB，不支持或超预算仍为未知。
+- 单后台工作槽在旧原生调用返回前不重用，取消是合作式而非codec硬超时；关闭使回调失效但不等待不可中断调用。后台结果复验队列条目身份和上下文，只更新现有行的时长，不更改播放、顺序或选择。
+- 本批仅静态实现/审阅、Git差异检查及数量统计，未编译、测试或运行。原生媒体时长读取、文件竞态、焦点与列表呈现仍待Windows验收。

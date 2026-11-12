@@ -2,6 +2,9 @@
 // IINA business rules copyright (c) 2017 lhc and contributors, GPL-3.0.
 #include "pch.h"
 #include "ThumbnailExtractor.h"
+#include "PlaylistDurationProbe.h"
+#include <iterator>
+#include <string_view>
 #include <mfapi.h>
 #include <mfidl.h>
 #include <mfreadwrite.h>
@@ -52,6 +55,9 @@ struct FileState {
     Handle handle;
     std::mutex mutex;
     std::uint64_t size{};
+    // Optional duration-probe budget shared by every IStream clone.
+    std::optional<std::uint64_t> remainingReadBytes;
+    std::stop_token stop;
 };
 class FileStream final : public IStream {
     std::atomic<ULONG> references_{1};
@@ -78,11 +84,14 @@ public:
         if (read) *read = 0;
         if (!bytes && count) return STG_E_INVALIDPOINTER;
         std::scoped_lock lock(file_->mutex);
+        if (file_->stop.stop_requested()) return HRESULT_FROM_WIN32(ERROR_CANCELLED);
+        if (file_->remainingReadBytes && count > *file_->remainingReadBytes) return STG_E_READFAULT;
         if (position_ > static_cast<std::uint64_t>(std::numeric_limits<LONGLONG>::max())) return STG_E_SEEKERROR;
         LARGE_INTEGER offset{}; offset.QuadPart = static_cast<LONGLONG>(position_);
         if (!SetFilePointerEx(file_->handle.value, offset, nullptr, FILE_BEGIN)) return HRESULT_FROM_WIN32(GetLastError());
         DWORD actual{};
         if (!ReadFile(file_->handle.value, bytes, count, &actual, nullptr)) return HRESULT_FROM_WIN32(GetLastError());
+        if (file_->remainingReadBytes) *file_->remainingReadBytes -= actual;
         position_ += actual;
         if (read) *read = actual;
         return actual == count ? S_OK : S_FALSE;
@@ -129,7 +138,8 @@ public:
         } catch (...) { return E_OUTOFMEMORY; }
     }
 };
-winrt::com_ptr<IStream> OpenLocalFile(std::filesystem::path const& path) {
+winrt::com_ptr<IStream> OpenLocalFile(std::filesystem::path const& path,
+    std::shared_ptr<FileState>* opened = nullptr) {
     const auto text = path.native();
     if (text.size() < 3 || text.find(L'\0') != std::wstring::npos ||
         !((text[0] >= L'A' && text[0] <= L'Z') || (text[0] >= L'a' && text[0] <= L'z')) ||
@@ -174,6 +184,7 @@ winrt::com_ptr<IStream> OpenLocalFile(std::filesystem::path const& path) {
     winrt::check_bool(GetFileSizeEx(file->handle.value, &size));
     if (size.QuadPart <= 0) throw winrt::hresult_invalid_argument(L"Empty thumbnail source");
     file->size = static_cast<std::uint64_t>(size.QuadPart);
+    if (opened) *opened = file;
     winrt::com_ptr<IStream> stream; stream.attach(new FileStream(std::move(file)));
     return stream;
 }
@@ -303,6 +314,89 @@ std::vector<std::uint8_t> EncodeJpeg(std::vector<std::uint8_t>& pixels,
 }
 }
 namespace iima {
+// Duration-only adaptation of IINA PlayerCore.refreshCachedVideoInfo and
+// FFmpegController.probeVideoInfo. Installed MF handlers, not FFmpeg, determine
+// coverage. This never selects a decoder output, seeks, or calls ReadSample.
+PlaylistDurationProbeResult ProbePlaylistDuration(std::filesystem::path const& path, std::stop_token stop) {
+    PlaylistDurationProbeResult result;
+    try {
+        CheckCancelled(stop);
+        const auto& text = path.native();
+        if (text.empty() || text.size() > 32767) {
+            result.status = PlaylistDurationProbeStatus::Unsupported; return result;
+        }
+        auto extension = path.extension().native();
+        for (auto& ch : extension) if (ch >= L'A' && ch <= L'Z') ch += L'a' - L'A';
+        constexpr std::wstring_view allowed[]{L".mp4", L".m4v", L".mov", L".mkv", L".avi", L".wmv",
+            L".mp3", L".m4a", L".aac", L".wav", L".flac", L".ogg", L".opus", L".wma",
+            L".webm", L".mpg", L".mpeg", L".aiff", L".aif", L".3gp", L".3g2", L".ts", L".m2ts"};
+        if (std::find(std::begin(allowed), std::end(allowed), extension) == std::end(allowed)) {
+            result.status = PlaylistDurationProbeStatus::Unsupported; return result;
+        }
+        Apartment apartment;
+        MediaFoundation mediaFoundation;
+        std::shared_ptr<FileState> file;
+        auto stream = OpenLocalFile(path, &file);
+        file->remainingReadBytes = 64ull * 1024 * 1024;
+        file->stop = stop;
+        auto fingerprint = [&] {
+            BY_HANDLE_FILE_INFORMATION info{};
+            winrt::check_bool(GetFileInformationByHandle(file->handle.value, &info));
+            PlaylistDurationFingerprint value;
+            value.volumeSerial = info.dwVolumeSerialNumber;
+            value.fileIndex = (static_cast<std::uint64_t>(info.nFileIndexHigh) << 32) | info.nFileIndexLow;
+            value.size = (static_cast<std::uint64_t>(info.nFileSizeHigh) << 32) | info.nFileSizeLow;
+            value.lastWriteTime = (static_cast<std::uint64_t>(info.ftLastWriteTime.dwHighDateTime) << 32) |
+                info.ftLastWriteTime.dwLowDateTime;
+            return value;
+        };
+        const auto before = fingerprint();
+        if (!before.size || before.size > (1ull << 40) || before.size != file->size) {
+            result.status = PlaylistDurationProbeStatus::Unsupported; return result;
+        }
+        CheckCancelled(stop);
+        winrt::com_ptr<IMFByteStream> bytes;
+        winrt::check_hresult(MFCreateMFByteStreamOnStream(stream.get(), bytes.put()));
+        winrt::com_ptr<IMFAttributes> attributes;
+        winrt::check_hresult(MFCreateAttributes(attributes.put(), 2));
+        winrt::check_hresult(attributes->SetUINT32(MF_SOURCE_READER_DISABLE_DXVA, TRUE));
+        winrt::check_hresult(attributes->SetUINT32(MF_READWRITE_ENABLE_HARDWARE_TRANSFORMS, FALSE));
+        winrt::com_ptr<IMFSourceReader> reader;
+        winrt::check_hresult(MFCreateSourceReaderFromByteStream(bytes.get(), attributes.get(), reader.put()));
+        CheckCancelled(stop);
+        struct Property {
+            PROPVARIANT value{};
+            ~Property() { PropVariantClear(&value); }
+        } duration;
+        const auto hr = reader->GetPresentationAttribute(MF_SOURCE_READER_MEDIASOURCE, MF_PD_DURATION, &duration.value);
+        CheckCancelled(stop);
+        // Read both snapshots from exactly the HANDLE supplying the byte stream.
+        // This detects ordinary concurrent modification, not an adversarial
+        // writer restoring size and timestamps or a later path replacement.
+        const auto after = fingerprint();
+        if (!(before == after)) { result.status = PlaylistDurationProbeStatus::Changed; return result; }
+        if (FAILED(hr) || duration.value.vt != VT_UI8 || !duration.value.uhVal.QuadPart) {
+            result.status = PlaylistDurationProbeStatus::Unsupported; return result;
+        }
+        const auto seconds = static_cast<double>(duration.value.uhVal.QuadPart) / 10000000.0;
+        if (!std::isfinite(seconds) || seconds <= 0) {
+            result.status = PlaylistDurationProbeStatus::Unsupported; return result;
+        }
+        CheckCancelled(stop);
+        result.seconds = seconds;
+        result.fingerprint = after;
+        result.status = PlaylistDurationProbeStatus::Ready;
+    } catch (Cancelled const&) {
+        result.status = PlaylistDurationProbeStatus::Cancelled;
+    } catch (winrt::hresult_error const& error) {
+        result.status = stop.stop_requested() ? PlaylistDurationProbeStatus::Cancelled :
+            (error.code() == MF_E_TOPO_CODEC_NOT_FOUND || error.code() == MF_E_UNSUPPORTED_BYTESTREAM_TYPE ||
+            error.code() == MF_E_INVALIDMEDIATYPE ? PlaylistDurationProbeStatus::Unsupported : PlaylistDurationProbeStatus::Failed);
+    } catch (...) {
+        result.status = PlaylistDurationProbeStatus::Failed;
+    }
+    return result;
+}
 ThumbnailExtractionResult ExtractThumbnail(ThumbnailRequest const& request, std::stop_token stop) {
     ThumbnailExtractionResult result;
     result.generation = request.generation; result.requestedSeconds = request.seconds;
