@@ -180,6 +180,15 @@ private:
     void RefreshSavedFilters();
     void EditSavedFilter(int action);
     void ApplySavedFilter(bool audio, std::size_t index);
+    void OrganizeSavedFilter(int action);
+    void CommitSavedFilterEdit(iima::SavedFilterLibrary before, bool audio, int selection);
+    struct SavedFilterUndo {
+        iima::SavedFilterLibrary library;
+        std::uint64_t expectedRevision{};
+        bool audio{};
+        int selection{-1};
+    };
+    std::optional<SavedFilterUndo> savedFilterUndo_;
     iima::SavedFilterLibrary savedFilterLibrary_;
     bool refreshingSavedFilters_{};
     void UpdateFilterEditor(iima::PlaybackSnapshot const& state);

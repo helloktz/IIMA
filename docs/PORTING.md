@@ -625,3 +625,11 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 - `FilterPresetInstance::CreateFilter` 针对 LUT 的字面路径先做 FFmpeg 选项层、再做图层转义，再用 mpv `graph=%UTF8字节数%内容` 包装。依据固定 `mpv/options/m_option.c::read_subparam/split_subconf` 的长度消费及 `filters/f_lavfi.c::precreate_graph` 交给 `avfilter_graph_parse2` 的边界。不走 shell，不用遇到文件名方括号会冲突的外层括号引用。空路径/NUL/超过16KiB拒绝；其他预设和手写表达式不改变语义。
 - 第58批“LUT需手工转义”限制由本批静态代码替代：现在 LUT 参数输入为原始路径，已转义文本不兼容该字段，应在手写表达式中使用。运行时 FFmpeg 路径解析、文件读取和 LUT 像素结果均未验证；不声称任意路径已通过测试。
 - 未编译、测试或运行。仅源码追踪和静态审阅，未扩展为完整滤镜参数反解/编辑器。
+
+## 第六十批：保存滤镜的整理与单步撤销
+
+- 追踪 IINA `FilterWindowController.saveEditedFilterAction/deleteSavedFilterAction/syncSavedFilter`：修改保存定义、更新表格/菜单与持久化，不改变已加载的 vf/af。IIMA 原有保存/覆盖/移除链本批统一进入编辑提交边界，新增复制、上下移动、单步撤销。
+- 复制使用选中保存定义的表达式及名称字段中的新名称，不复制快捷键；复用 `SavedFilterLibrary.Copy/Move` 的重复名、位置、总量和表达式校验。失败或边界移动不消耗上一次撤销。移动后选中同一预设的新位置；编辑后重新投影字段，删除清除选择。
+- 撤销保存编辑前库快照及预期 revision；新编辑替换单步快照，重新载入使其失效。恢复前重新核对 input.conf 键冲突，并在候选副本中完整校验后替换；不恢复已播放滤镜、不反转播放器命令、不提供重做。撤销是新增的 Windows 可恢复编辑行为，上游没有此完整快照操作链。
+- 观察状态现在区分未知、缺席、停用、启用，避免未知/停用都显示成不存在。持久化沿既有 UserData 路径，不新增跨窗口实时同步或跨窗口撤销保证；并发保存策略仍是现有设置合并策略，不声称解决多窗口同时编辑同一滤镜库的冲突。
+- 未编译、测试、运行；仅静态源码审阅，需原生控件和实际保存重载验证。

@@ -5,12 +5,25 @@
 using namespace winrt;
 namespace winrt::IIMA::implementation {
 void MainWindow::LoadSavedFilters() {
+    savedFilterUndo_.reset();
     auto issues = savedFilterLibrary_.Restore(userData_.settings.savedVideoFilters, userData_.settings.savedAudioFilters);
     RefreshSavedFilters();
     if (!issues.empty()) ShowError(L"部分保存的滤镜无效或快捷键重复，未载入这些条目。");
 }
 void MainWindow::WireSavedFilters() {
     auto weak = get_weak();
+    CopySavedFilterButton().Click([weak](auto const&, auto const&) {
+        if (auto self = weak.get()) self->OrganizeSavedFilter(0);
+    });
+    MoveSavedFilterUpButton().Click([weak](auto const&, auto const&) {
+        if (auto self = weak.get()) self->OrganizeSavedFilter(1);
+    });
+    MoveSavedFilterDownButton().Click([weak](auto const&, auto const&) {
+        if (auto self = weak.get()) self->OrganizeSavedFilter(2);
+    });
+    UndoSavedFilterButton().Click([weak](auto const&, auto const&) {
+        if (auto self = weak.get()) self->OrganizeSavedFilter(3);
+    });
     SaveNewFilterButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->EditSavedFilter(0); });
     UpdateSavedFilterButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->EditSavedFilter(1); });
     DeleteSavedFilterButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->EditSavedFilter(2); });
@@ -43,6 +56,8 @@ void MainWindow::WireSavedFilters() {
     });
 }
 void MainWindow::RefreshSavedFilters() {
+    UndoSavedFilterButton().IsEnabled(!closing_ && savedFilterUndo_.has_value() &&
+        savedFilterUndo_->expectedRevision == savedFilterLibrary_.Revision());
     refreshingSavedFilters_ = true;
     auto const row = SavedFilterView().SelectedIndex();
     auto audio = FilterTypeBox().SelectedIndex() == 1;
@@ -51,7 +66,9 @@ void MainWindow::RefreshSavedFilters() {
     SavedFilterView().Items().Clear();
     for (std::size_t index = 0; index < values.size(); ++index) {
         auto state = savedFilterLibrary_.ObservedState(audio, index, chain);
-        auto prefix = state == iima::SavedFilterObservedState::Enabled ? L"✓ " : L"○ ";
+        auto prefix = state == iima::SavedFilterObservedState::Enabled ? L"✓ " :
+            state == iima::SavedFilterObservedState::Disabled ? L"停用 " :
+            state == iima::SavedFilterObservedState::Unavailable ? L"未知 " : L"○ ";
         auto label = hstring(prefix) + to_hstring(values[index].name);
         if (!values[index].shortcutKey.empty()) label = label + L"  [" + to_hstring(values[index].ReadableShortcut()) + L"]";
         SavedFilterView().Items().Append(box_value(label));
@@ -65,6 +82,7 @@ void MainWindow::EditSavedFilter(int action) {
     if (closing_ || !userDataLoaded_) return;
     auto audio = FilterTypeBox().SelectedIndex() == 1;
     auto row = SavedFilterView().SelectedIndex();
+    auto before = savedFilterLibrary_;
     iima::SavedFilterLibraryResult result;
     if (action == 2) {
         if (row < 0) return;
@@ -86,10 +104,70 @@ void MainWindow::EditSavedFilter(int action) {
         else return;
     }
     if (!result.success) { ShowError(to_hstring(result.error)); return; }
+    CommitSavedFilterEdit(std::move(before), audio,
+        action == 2 ? -1 : static_cast<int>(result.index));
+    // Editing/deleting saved definitions intentionally leaves active vf/af alone.
+}
+void MainWindow::CommitSavedFilterEdit(iima::SavedFilterLibrary before, bool audio, int selection) {
+    savedFilterUndo_ = SavedFilterUndo{std::move(before), savedFilterLibrary_.Revision(),
+                                     audio, SavedFilterView().SelectedIndex()};
     userData_.settings.savedVideoFilters = savedFilterLibrary_.Values(false);
     userData_.settings.savedAudioFilters = savedFilterLibrary_.Values(true);
     SavedFilterView().SelectedIndex(-1); RefreshSavedFilters(); MarkUserDataDirty();
-    // Editing/deleting saved definitions intentionally leaves active vf/af alone.
+    SavedFilterView().SelectedIndex(selection);
+}
+void MainWindow::OrganizeSavedFilter(int action) {
+    if (closing_ || !userDataLoaded_) return;
+    if (action == 3) {
+        if (!savedFilterUndo_) return;
+        if (savedFilterUndo_->expectedRevision != savedFilterLibrary_.Revision()) {
+            savedFilterUndo_.reset(); RefreshSavedFilters();
+            ShowError(L"预设库已改变，不能覆盖新修改。"); return;
+        }
+        // input.conf can be changed independently after deletion of a preset.
+        // Restoring a shortcut must not silently steal a newly assigned key.
+        for (bool category : {false, true}) {
+            for (auto const& value : savedFilterUndo_->library.Values(category)) {
+                auto key = iima::SavedFilterLibrary::ShortcutKey(value);
+                if (key && !key->empty() && keyBindings_ && keyBindings_->Find(*key)) {
+                    ShowError(L"撤销会恢复与当前 input.conf 冲突的快捷键，请先解决冲突。"); return;
+                }
+            }
+        }
+        // Validate a complete candidate before replacing the live library.
+        auto candidate = savedFilterLibrary_;
+        auto issues = candidate.Restore(savedFilterUndo_->library.Values(false),
+                                        savedFilterUndo_->library.Values(true));
+        if (!issues.empty()) {
+            ShowError(L"撤销快照未通过预设校验，当前预设保持不变。"); return;
+        }
+        auto undo = std::move(*savedFilterUndo_);
+        savedFilterUndo_.reset();
+        savedFilterLibrary_ = std::move(candidate);
+        userData_.settings.savedVideoFilters = savedFilterLibrary_.Values(false);
+        userData_.settings.savedAudioFilters = savedFilterLibrary_.Values(true);
+        FilterTypeBox().SelectedIndex(undo.audio ? 1 : 0);
+        SavedFilterView().SelectedIndex(-1); RefreshSavedFilters();
+        SavedFilterView().SelectedIndex(undo.selection);
+        MarkUserDataDirty();
+        return;
+    }
+    auto row = SavedFilterView().SelectedIndex();
+    auto audio = FilterTypeBox().SelectedIndex() == 1;
+    auto const count = savedFilterLibrary_.Values(audio).size();
+    if (row < 0 || static_cast<std::size_t>(row) >= count) return;
+    auto before = savedFilterLibrary_;
+    iima::SavedFilterLibraryResult result;
+    if (action == 0) {
+        // Copy the saved expression, not an unrelated unsaved expression draft.
+        result = savedFilterLibrary_.Copy(audio, row, to_string(SavedFilterName().Text()));
+    } else if (action == 1 && row > 0) {
+        result = savedFilterLibrary_.Move(audio, row, row - 1);
+    } else if (action == 2 && static_cast<std::size_t>(row + 1) < count) {
+        result = savedFilterLibrary_.Move(audio, row, row + 1);
+    } else return;
+    if (!result.success) { ShowError(to_hstring(result.error)); return; }
+    CommitSavedFilterEdit(std::move(before), audio, static_cast<int>(result.index));
 }
 void MainWindow::ApplySavedFilter(bool audio, std::size_t index) {
     if (closing_) return;
