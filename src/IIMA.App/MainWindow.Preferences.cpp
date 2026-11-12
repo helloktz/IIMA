@@ -188,7 +188,7 @@ void MainWindow::ApplyAdvancedSetting(std::string const& key, iima::settings::Pr
         auto geometry = std::get_if<std::string>(&value);
         if (!geometry || geometry->size() > 128 ||
             (!geometry->empty() && !iima::WindowGeometry::Parse(*geometry))) {
-            ShowError(L"窗口几何格式无效。示例：1000x600+20+30、80%+50%+50%、+20-30；留空使用保存的位置。下次新播放器生效。");
+            ShowError(L"窗口几何格式无效。示例：1000x600+20+30、80%+50%+50%、+20-30；留空按首个视频尺寸在当前屏幕居中。下次新播放器生效。");
             return;
         }
     }

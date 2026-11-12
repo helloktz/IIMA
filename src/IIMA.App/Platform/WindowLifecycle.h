@@ -7,7 +7,7 @@
 #include <memory>
 
 namespace iima {
-struct WindowLifecycleState { bool inactive{}; bool minimized{}; };
+struct WindowLifecycleState { bool inactive{}; bool minimized{}; bool sizing{}; };
 class WindowLifecycle final {
 public:
     // Construct and destroy on the window's UI thread. Queued callbacks cannot

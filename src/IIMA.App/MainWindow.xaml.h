@@ -9,6 +9,7 @@
 #include "../IIMA.Core/OSD/PlaybackOSD.h"
 #include "../IIMA.Core/Filters/FilterPresets.h"
 #include "../IIMA.Core/Geometry/CropSelection.h"
+#include "../IIMA.Core/Geometry/WindowGeometry.h"
 #include "Presentation/VideoPresenter.h"
 #include "../IIMA.Core/Windows/MusicModePolicy.h"
 #include <winrt/Windows.Graphics.h>
@@ -66,6 +67,7 @@ private:
     void RestorePlacement(std::optional<iima::WindowPlacementSnapshot> saved);
     void SaveWindowPlacement();
     std::optional<iima::WindowPlacementSnapshot> windowPlacement_;
+    std::optional<Windows::Graphics::RectInt32> placementProgrammaticBounds_;
     bool placementTouched_{}, restoringPlacement_{}, placementSavePending_{}, placementWritable_{true}, musicTransition_{};
     void WirePluginInspection();
     winrt::fire_and_forget StartLocalPlugin();
@@ -175,10 +177,15 @@ private:
     enum class VideoResizeResult { Applied, Retry, Unsupported };
     VideoResizeResult TryResizeToVideo(std::optional<double> scale, bool automatic);
     void UpdateAutomaticVideoSize(bool layoutChanged = false);
-    void CancelAutomaticVideoSize();
+    void CancelAutomaticVideoSize(bool discardInitial = true);
+    static std::optional<iima::GeometrySize> VideoDisplaySize(iima::MediaProperties const& output);
+    std::optional<iima::GeometrySize> automaticResizeVideo_;
+    bool initialVideoSizePending_{true}, automaticResizeInitial_{}, automaticResizeStart_{true};
+    bool automaticResizeKeepArea_{}, automaticResizeAwaitingStart_{}, automaticReconfigArmed_{};
+    std::string initialVideoGeometry_;
     std::uint64_t automaticResizeGeneration_{}, automaticResizeIntent_{}, automaticResizeInformation_{};
     bool automaticResizeConsumed_{true}, automaticResizeAttempting_{}, automaticResizeLoaded_{};
-    bool initialGeometryApplied_{}, automaticResizePhysical_{};
+    bool automaticResizePhysical_{};
     int automaticResizeTiming_{}, automaticResizeOption_{};
     unsigned automaticResizeAttempts_{};
     std::chrono::steady_clock::time_point automaticResizeDeadline_{};

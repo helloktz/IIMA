@@ -1008,3 +1008,37 @@ Windows新增只读`ReadFullscreenInformation`：GetTimeFormatEx按用户区域�
   最大化/全屏/PIP/音乐/裁剪/选择器期间跳过，而非保存尺寸到将来恢复普通窗口时应用。
   Loaded 后超过10秒才取得可信尺寸的流保持当前窗口，用户仍可手动缩放。
 - 已曝光两项 resize 偏好消费者；仅静态实现与审阅，未编译、测试、运行或验证真实窗口行为。
+
+## 自动窗口尺寸续批：首视频、保持面积与重配置（2026-11-12）
+
+本节更新上一批的延期项，不将静态实现升级为原生验证。
+
+- 原实现继续追踪 `PlayerCore.onVideoReconfig/playbackRestarted`、
+  `MainWindowController.handleVideoSizeChange(keepWindowSize:)`、`Extensions.areaPreservingResized`。
+  `keepWindowSize=true` 是布局偏好调用，不是 mpv 滤镜/旋转事件类型；播放中真实尺寸变化
+  使用1倍，既不受 resizeWindowTiming=never 禁止，也不使用首次打开的倍数选项。
+- `PlaybackSnapshot.mediaPlaybackRestarted` 在 START_FILE 清除，首次已加载 Restart 后置位。
+  窗口等待首次 Restart 发起的异步 video-out-params 读取，按请求ID、媒体代数及意图修订
+  匹配回复后才允许首视频缩放并建立重配置基线；不将 Restart 时缓存当作新鲜尺寸。只比较
+  校验后的旋转后显示宽高。相同尺寸的硬件解码、色彩、
+  码率/元数据或布局通知不创建请求；旧媒体意图待新 START_FILE 期间禁止重配置旧画面。
+  视频输出属性到达驱动比较，不假定 VIDEO_RECONFIG 回调已经带有新尺寸。
+- 首次可信视频保留初始尺寸例外，包括 never；用户明确窗口操作取消该例外。
+  启动时保存的几何文本在首视频按真实视频比例及固定 chrome 重新解析；启动临时外框
+  不再永久决定视频比例。宽优先于高、百分比及边缘锚点沿用既有解析，留空时首视频居中。
+  偏好编辑不会改变已快照的首次几何，也不会触发伪打开。
+- 后续媒体的 never、onlyWhenOpen 非明确打开路径，复用保持面积分支。
+  `AreaPreservingVideoWindow` 保留视频视口面积和中心，而非包含侧栏/标题的外框面积；
+  这是 Windows 固定 chrome 的明确适配。最小尺寸、工作区裁切可改变最终面积。
+  `InitialVideoWindow` 将用户几何宽高解释为外框尺寸，扣除 chrome 后保持视频比例。
+- 继续使用每请求32次/10秒重试边界；新尺寸替换 pending 的目标但不重置其截止时间。
+  原生拖动期间的尺寸变化直接消费不移动；手动操作、模式切换及关闭仍取消旧请求。
+  只有后续独立可信尺寸变化才能再次创建重配置请求。
+- 边界：尚无 Cocoa `edgeToEdgeVideo/unlockWindowAspectRatio` 对等布局消费者，不把现有
+  保持面积数学函数宣称为这些偏好已移植；外部 mpv `window-scale` 双向缓存同步也未加入。
+  最大化/全屏/PIP 等仍采用跳过策略，不写入上游 priorWindowedFrame。未知裁剪/旋转仍不猜测。
+- 只进行源码阅读、静态事件推演、差异审阅和代码量统计；没有编译、测试或应用运行。
+
+首次异步输出查询失败时保持未就绪，不回退缓存；后续真实输出/重配置/Restart 事件可
+重新请求，每媒体最多3次，不轮询。原生验收应覆盖暂停打开及音频先行/视频晚到的流；
+超过次数或窗口10秒期限仍跳过自动尺寸，手动视频缩放可使用后来确认的输出尺寸。

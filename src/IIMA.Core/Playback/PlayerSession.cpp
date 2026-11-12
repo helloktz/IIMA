@@ -26,6 +26,8 @@ void PlayerSession::Notify() { if(changed_) changed_(snapshot_); }
 // distinction across queued old events. Pinned mpv cmd_loadfile creates a new,
 // monotonically allocated playlist entry and returns playlist_entry_id.
 void PlayerSession::BeginMediaOriginIntent(bool explicitOpen) {
+    videoGeometryRequest_ = 0;
+    snapshot_.mediaVideoGeometryReady = false;
     ++snapshot_.mediaOpenIntentRevision;
     snapshot_.mediaExplicitOpen = false;
     snapshot_.mediaOriginPending = explicitOpen;
@@ -453,6 +455,39 @@ void PlayerSession::CancelWatchedProperties() {
 }
 void PlayerSession::OnEvent(MpvEvent e) {
     if(snapshot_.session==SessionState::Closing || snapshot_.session==SessionState::Closed) return;
+    if (e.kind == MpvEvent::Kind::VideoGeometryReply) {
+        if (!videoGeometryRequest_ || e.requestId != videoGeometryRequest_) return;
+        videoGeometryRequest_ = 0;
+        if (e.error < 0 || snapshot_.mediaGeneration != videoGeometryGeneration_ ||
+            snapshot_.mediaOpenIntentRevision != videoGeometryIntent_ ||
+            snapshot_.media != MediaState::Loaded) return;
+        auto number = [&](char const* key) -> std::optional<double> {
+            auto found = e.properties.find(key);
+            if (found == e.properties.end()) return {};
+            double value{};
+            auto const& text = found->second;
+            auto [end, error] = std::from_chars(text.data(), text.data()+text.size(), value);
+            if (error != std::errc{} || end != text.data()+text.size() || !std::isfinite(value)) return {};
+            return value;
+        };
+        auto width = number("dw"), height = number("dh"), rotation = number("rotate");
+        if (!width || !height || !rotation || *width <= 0 || *height <= 0 ||
+            *width > 65536 || *height > 65536 || *rotation < 0 || *rotation >= 360 ||
+            std::fmod(*rotation, 90.0) != 0) return;
+        snapshot_.videoOutputParameters = std::move(e.properties);
+        ++snapshot_.videoOutputRevision;
+        snapshot_.mediaVideoGeometryReady = true;
+        Notify();
+        return;
+    }
+    if (e.kind == MpvEvent::Kind::StartFile) {
+        videoGeometryRequest_ = 0;
+        videoGeometryAttempts_ = 0;
+    } else if ((e.kind == MpvEvent::Kind::EndFile && e.entryId == snapshot_.entryId) ||
+               e.kind == MpvEvent::Kind::Failure || e.kind == MpvEvent::Kind::Shutdown) {
+        videoGeometryRequest_ = 0;
+        snapshot_.mediaVideoGeometryReady = false;
+    }
     if (HandleVolumeMemoryEvent(e)) return;
     if (e.kind == MpvEvent::Kind::WatchedPropertiesReply) {
         if (watchedPropertiesRequest_ && e.requestId == watchedPropertiesRequest_) {
@@ -556,6 +591,19 @@ void PlayerSession::OnEvent(MpvEvent e) {
     const bool wasPlaying=!snapshot_.paused;
     ApplyPlaybackEvent(snapshot_,e);
     ObserveMediaOrigin(e);
+    const bool geometryWake = e.kind == MpvEvent::Kind::Restart ||
+        (snapshot_.mediaPlaybackRestarted && (e.kind == MpvEvent::Kind::VideoReconfig ||
+            (e.kind == MpvEvent::Kind::Property && e.name == "video-out-params")));
+    if (geometryWake && snapshot_.media == MediaState::Loaded &&
+        !snapshot_.mediaVideoGeometryReady && !videoGeometryRequest_ && videoGeometryAttempts_ < 3) {
+        // Bounded event-driven reads, never polling. A later output/restart may
+        // recover an unavailable initial output. Async GET shares START_FILE's
+        // queue, so a queued later start invalidates the generation first.
+        ++videoGeometryAttempts_;
+        videoGeometryGeneration_ = snapshot_.mediaGeneration;
+        videoGeometryIntent_ = snapshot_.mediaOpenIntentRevision;
+        videoGeometryRequest_ = client_->GetVideoGeometryAsync();
+    }
     HandleFilterEditReply(e);
     if(e.kind==MpvEvent::Kind::StartFile) {
         CancelWindowPausePolicy();

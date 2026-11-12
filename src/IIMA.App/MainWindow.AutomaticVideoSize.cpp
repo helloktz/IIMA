@@ -1,45 +1,69 @@
-// IINA MainWindowController.handleVideoSizeChange, justStartedFile/justOpenedFile.
+// IINA MainWindowController.handleVideoSizeChange, justStartedFile/justOpenedFile,
+// PlayerCore.onVideoReconfig and playbackRestarted.
 // Copyright (c) 2016-2026 lhc and contributors. GPL-3.0; references/iina/LICENSE.
 #include "pch.h"
 #include "MainWindow.xaml.h"
 
 namespace winrt::IIMA::implementation {
-void MainWindow::CancelAutomaticVideoSize() {
+void MainWindow::CancelAutomaticVideoSize(bool discardInitial) {
     if (automaticResizeAttempting_) return; // Our own MoveAndResize is not user input.
     automaticResizeConsumed_ = true;
+    if (discardInitial) initialVideoSizePending_ = false;
     if (session_) {
-        automaticResizeGeneration_ = session_->Snapshot().mediaGeneration;
-        automaticResizeIntent_ = session_->Snapshot().mediaOpenIntentRevision;
+        auto const& state = session_->Snapshot();
+        if (automaticResizeGeneration_ != state.mediaGeneration) automaticReconfigArmed_ = false;
+        automaticResizeGeneration_ = state.mediaGeneration;
+        automaticResizeIntent_ = state.mediaOpenIntentRevision;
+        automaticResizeVideo_ = VideoDisplaySize(state.videoOutputParameters);
     }
 }
 void MainWindow::UpdateAutomaticVideoSize(bool layoutChanged) {
     if (closing_ || !session_ || automaticResizeAttempting_) return;
     auto const& state = session_->Snapshot();
     if (state.mediaGeneration != automaticResizeGeneration_) {
-        const bool first = automaticResizeGeneration_ == 0;
         automaticResizeGeneration_ = state.mediaGeneration;
         automaticResizeIntent_ = state.mediaOpenIntentRevision;
         automaticResizeConsumed_ = !state.mediaGeneration;
+        automaticResizeAwaitingStart_ = false;
+        automaticResizeStart_ = true;
         automaticResizeLoaded_ = false;
         automaticResizeAttempts_ = 0;
         automaticResizeInformation_ = 0;
-        // Explicit startup geometry has already been applied after restoration.
-        // Do not let first-media auto sizing undo it, or a startup user drag.
-        if (first && (initialGeometryApplied_ || placementTouched_)) automaticResizeConsumed_ = true;
+        automaticReconfigArmed_ = false;
+        automaticResizeVideo_.reset();
     }
     if (state.mediaOpenIntentRevision != automaticResizeIntent_) {
-        CancelAutomaticVideoSize();
+        CancelAutomaticVideoSize(false);
+        automaticResizeAwaitingStart_ = true;
         return; // A command intent is not a START_FILE generation.
+    }
+    if (automaticResizeAwaitingStart_) return;
+    auto video = VideoDisplaySize(state.videoOutputParameters);
+    const bool changedSize = video && automaticResizeVideo_ &&
+        (video->width != automaticResizeVideo_->width || video->height != automaticResizeVideo_->height);
+    // Establish a baseline only after the first Restart's correlated async
+    // video-output read. Cached properties at Restart can still describe old video.
+    const bool reconfigured = automaticReconfigArmed_ && changedSize;
+    if (video) automaticResizeVideo_ = video;
+    if (state.mediaVideoGeometryReady && video) automaticReconfigArmed_ = true;
+    if (automaticResizeConsumed_ && reconfigured && state.media == iima::MediaState::Loaded &&
+        !state.mediaOriginPending) {
+        automaticResizeConsumed_ = false;
+        automaticResizeStart_ = false;
+        automaticResizeLoaded_ = false;
+        automaticResizeAttempts_ = 0;
+        automaticResizeInformation_ = 0;
     }
     if (automaticResizeConsumed_) return;
     if (state.session != iima::SessionState::Ready || state.media == iima::MediaState::Empty ||
         state.media == iima::MediaState::Ended || state.media == iima::MediaState::Error) {
-        CancelAutomaticVideoSize(); return;
+        CancelAutomaticVideoSize(false); return;
     }
-    // Non-normal modes are skipped, never deferred until the user returns later.
+    // Non-normal modes and user sizing are skipped, never deferred until later.
     auto presenter = AppWindow().Presenter().try_as<Microsoft::UI::Windowing::OverlappedPresenter>();
     if (!presenter || presenter.State() != Microsoft::UI::Windowing::OverlappedPresenterState::Restored ||
-        fullscreen_ || musicMode_.IsMusic() || musicTransition_ || interactiveCrop_.Active() || cropOriginal_ || pickerOpen_) {
+        fullscreen_ || musicMode_.IsMusic() || musicTransition_ || interactiveCrop_.Active() || cropOriginal_ || pickerOpen_ ||
+        (windowLifecycle_ && windowLifecycle_->Current().sizing)) {
         CancelAutomaticVideoSize(); return;
     }
     if (!userDataLoaded_ || state.media != iima::MediaState::Loaded) return;
@@ -47,30 +71,30 @@ void MainWindow::UpdateAutomaticVideoSize(bool layoutChanged) {
     if (!automaticResizeLoaded_) {
         automaticResizeLoaded_ = true;
         automaticResizeTiming_ = static_cast<int>(preferences_.Integer("resizeWindowTiming"));
-        automaticResizeOption_ = static_cast<int>(preferences_.Integer("resizeWindowOption"));
+        automaticResizeOption_ = automaticResizeStart_ ? static_cast<int>(preferences_.Integer("resizeWindowOption")) : 2;
         automaticResizePhysical_ = preferences_.Boolean("usePhysicalResolution");
+        automaticResizeInitial_ = automaticResizeStart_ && initialVideoSizePending_;
+        automaticResizeKeepArea_ = false;
         automaticResizeDeadline_ = now + std::chrono::seconds(10);
     }
-    // Snapshot preferences once per media. Editing settings cannot manufacture
-    // a new open, and cannot turn an already skipped generation into a resize.
-    if (automaticResizeTiming_ == 2 || now >= automaticResizeDeadline_) {
-        CancelAutomaticVideoSize(); return;
-    }
-    if (state.mediaOriginPending) return;
-    if (automaticResizeTiming_ == 1 && !state.mediaExplicitOpen) {
-        CancelAutomaticVideoSize(); return;
-    }
+    // Snapshot preferences per request. A setting edit is not a new file open
+    // or video reconfiguration. Mid-playback changes use 1x, even with never.
+    if (now >= automaticResizeDeadline_) { CancelAutomaticVideoSize(); return; }
+    if (state.mediaOriginPending || !state.mediaVideoGeometryReady) return;
+    automaticResizeKeepArea_ = automaticResizeStart_ && !automaticResizeInitial_ &&
+        (automaticResizeTiming_ == 2 || (automaticResizeTiming_ == 1 && !state.mediaExplicitOpen));
     if (!state.voConfigured) return;
-    // Position/time notifications must not repeatedly do native geometry work.
     if (!layoutChanged && automaticResizeAttempts_ && automaticResizeInformation_ == state.videoOutputRevision) return;
     automaticResizeInformation_ = state.videoOutputRevision;
     if (++automaticResizeAttempts_ > 32) { CancelAutomaticVideoSize(); return; }
     static constexpr double scales[]{1.0, 0.5, 1.0, 1.5, 2.0};
     if (automaticResizeOption_ < 0 || automaticResizeOption_ > 4) { CancelAutomaticVideoSize(); return; }
-    // fitScreen uses 1x constrained by the work area, not manual "fill work area".
     automaticResizeAttempting_ = true;
     const auto result = TryResizeToVideo(scales[automaticResizeOption_], true);
     automaticResizeAttempting_ = false;
-    if (result != VideoResizeResult::Retry) automaticResizeConsumed_ = true;
+    if (result != VideoResizeResult::Retry) {
+        automaticResizeConsumed_ = true;
+        if (automaticResizeInitial_) initialVideoSizePending_ = false;
+    }
 }
 }

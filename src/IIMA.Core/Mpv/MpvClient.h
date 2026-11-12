@@ -49,7 +49,7 @@ struct Chapter {
 // Owns all payloads; never exports mpv's borrowed event memory.
 struct MpvEvent {
     enum class Kind { Ready, Failure, StartFile, Loaded, EndFile, Seek, Restart, SeekMeasurement,
-                      Property, CommandReply, PlaylistReply, WatchedPropertiesReply, VideoReconfig, Shutdown } kind;
+                      Property, CommandReply, PlaylistReply, VideoGeometryReply, WatchedPropertiesReply, VideoReconfig, Shutdown } kind;
     std::string name, text;
     std::optional<double> number;
     std::optional<bool> flag;
@@ -81,6 +81,8 @@ public:
     // Queued in the SAME serialized worker lane as commands. PlaylistReply
     // owns a fresh node copy; ordinary observed properties are not substitutes.
     std::uint64_t GetPlaylistAsync();
+    // Genuine async GET reply through mpv's event queue, not cached observation.
+    std::uint64_t GetVideoGeometryAsync();
     // Read-only, serialized with commands. Does not install persistent observers.
     // Each property may fail independently. 0 means rejected before enqueue.
     std::uint64_t ReadWatchedPropertiesAsync(std::vector<std::string> names);

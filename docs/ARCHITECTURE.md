@@ -194,4 +194,7 @@ PlayerSession 的 mediaGeneration 仅在实际 START_FILE 递增，与暂停策�
 mediaOpenIntentRevision 用于立即取消旧 UI 工作。明确 Open 来源由 loadfile 唯一新 entry 回复
 及启动事件共同确定，不由 Loaded/path 推断。窗口独立有界状态机消费每代一次，
 只读播放快照，原生用户窗口操作优先。视频输出独立修订避免码率/进度驱动几何重试。
-当前支持媒体开始时缩放；播放中 keepWindowSize 及完整上游首次几何例外未迁移。
+已支持首视频几何例外、后续媒体保持画面面积和播放中可信尺寸变化；首次 PLAYBACK_RESTART
+之后进行带请求ID、媒体代数及意图修订关联的异步输出读取，成功后才武装重配置。
+每次实际显示尺寸变化最多应用一次，窗口拖动期间丢弃请求。
+Cocoa 布局偏好触发的 keepWindowSize 没有伪造对应 Windows 控件；其保持面积运算已有真实媒体切换消费者。

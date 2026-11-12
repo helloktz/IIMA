@@ -59,6 +59,7 @@ struct MpvClient::State {
         std::optional<std::int64_t> filterEntry;
         std::string filterPath;
         bool measureSeek{};
+        bool videoGeometryQuery{};
     };
     std::deque<Request> commands;
     std::vector<std::function<void()>> closedCallbacks;
@@ -103,6 +104,7 @@ struct MpvClient::State {
                 check(api.observe_property(handle, id++, name, MPV_FORMAT_INT64), name);
             MpvEvent ready{MpvEvent::Kind::Ready}; ready.flag=api.acquireSwapChain!=nullptr; ready.integer=api.client_api_version(); Emit(std::move(ready));
             std::uint64_t inFlight{};
+            bool inFlightVideoGeometry{};
             SeekLatency seekLatency;
             auto reportSeek = [&](std::optional<SeekLatencyResult> sample) {
                 if (!sample) return;
@@ -137,11 +139,12 @@ struct MpvClient::State {
                 // client.h explicitly permits async command reordering. Serialize at replies.
                 if(pending) {
                     const auto request=pending->id;
-                    if (!pending->playlistQuery && !pending->watchedPropertiesQuery) {
+                    if (!pending->playlistQuery && !pending->watchedPropertiesQuery && !pending->videoGeometryQuery) {
                         reportSeek(seekLatency.Cancel());
                         if (pending->measureSeek) seekLatency.Begin(request);
                     }
                     inFlightFilter.clear();
+                    inFlightVideoGeometry = pending->videoGeometryQuery;
                     int error{};
                     if (pending->watchedPropertiesQuery) {
                         MpvEvent result{MpvEvent::Kind::WatchedPropertiesReply};
@@ -202,6 +205,8 @@ struct MpvClient::State {
                                 error = api.set_property_async(handle, request, name, MPV_FORMAT_NODE, &node);
                             }
                         }
+                    } else if (pending->videoGeometryQuery) {
+                        error=api.get_property_async(handle,request,"video-out-params",MPV_FORMAT_NODE);
                     } else if(pending->playlistQuery) {
                         error=api.get_property_async(handle,request,"playlist",MPV_FORMAT_NODE);
                     } else {
@@ -212,9 +217,11 @@ struct MpvClient::State {
                     }
                     if(error<0) {
                         reportSeek(seekLatency.Reply(request,false));
-                        MpvEvent e{pending->playlistQuery ? MpvEvent::Kind::PlaylistReply : MpvEvent::Kind::CommandReply};
+                        MpvEvent e{pending->videoGeometryQuery ? MpvEvent::Kind::VideoGeometryReply :
+                            pending->playlistQuery ? MpvEvent::Kind::PlaylistReply : MpvEvent::Kind::CommandReply};
                         e.requestId=request; e.error=error; e.text=api.error_string(error);
                         if(pending->playlistQuery) e.name="playlist";
+                        if(pending->videoGeometryQuery) e.name="video-out-params";
                         if (!inFlightFilter.empty()) { readFilterResult(e,inFlightFilter); inFlightFilter.clear(); }
                         Emit(std::move(e));
                     } else inFlight=request;
@@ -257,25 +264,32 @@ struct MpvClient::State {
                     break;
                 }
                 case MPV_EVENT_GET_PROPERTY_REPLY: {
-                    e.kind=MpvEvent::Kind::PlaylistReply;
-                    e.name="playlist";
-                    if(e.requestId==inFlight) inFlight=0;
+                    auto property = static_cast<mpv_event_property const*>(raw->data);
+                    const bool videoGeometry = (property && property->name &&
+                        std::string_view(property->name)=="video-out-params") ||
+                        (e.requestId==inFlight && inFlightVideoGeometry);
+                    e.kind=videoGeometry ? MpvEvent::Kind::VideoGeometryReply : MpvEvent::Kind::PlaylistReply;
+                    e.name=videoGeometry ? "video-out-params" : "playlist";
+                    if(e.requestId==inFlight) { inFlight=0; inFlightVideoGeometry=false; }
                     bool valid=false;
-                    if(e.error>=0 && raw->data) {
-                        auto const& property=*static_cast<mpv_event_property*>(raw->data);
-                        if(property.name && std::string_view(property.name)=="playlist" &&
-                           property.format==MPV_FORMAT_NODE && property.data) {
-                            auto const& node=*static_cast<mpv_node*>(property.data);
-                            if(node.format==MPV_FORMAT_NODE_ARRAY && node.u.list && node.u.list->num>=0) {
+                    if(e.error>=0 && property && property->name && e.name==property->name &&
+                       property->format==MPV_FORMAT_NODE && property->data) {
+                        auto const& node=*static_cast<mpv_node const*>(property->data);
+                        if (videoGeometry) {
+                            if (node.format==MPV_FORMAT_NODE_MAP && node.u.list && node.u.list->num>0) {
                                 CopyCollectionProperty(e,node);
-                                valid=e.playlist.size()==static_cast<std::size_t>(node.u.list->num);
+                                valid=!e.properties.empty();
                             }
+                        } else if(node.format==MPV_FORMAT_NODE_ARRAY && node.u.list && node.u.list->num>=0) {
+                            CopyCollectionProperty(e,node);
+                            valid=e.playlist.size()==static_cast<std::size_t>(node.u.list->num);
                         }
                     }
                     if(e.error>=0 && !valid) {
                         e.error=MPV_ERROR_PROPERTY_FORMAT;
-                        e.text="Fresh playlist query returned an invalid node array";
-                        e.playlist.clear();
+                        e.text=videoGeometry ? "Fresh video geometry query returned an invalid node map" :
+                            "Fresh playlist query returned an invalid node array";
+                        e.playlist.clear(); e.properties.clear();
                     }
                     break;
                 }
@@ -397,6 +411,15 @@ std::uint64_t MpvClient::GetPlaylistAsync() {
     if(state_->closing || !state_->started) return 0;
     const auto id=state_->nextId++;
     state_->commands.push_back({id,{},true});
+    return id;
+}
+std::uint64_t MpvClient::GetVideoGeometryAsync() {
+    std::lock_guard lock(state_->mutex);
+    if(state_->closing || !state_->started || state_->commands.size() >= 256) return 0;
+    State::Request request{state_->nextId++, {}, false};
+    request.videoGeometryQuery = true;
+    const auto id = request.id;
+    state_->commands.push_back(std::move(request));
     return id;
 }
 std::uint64_t MpvClient::ReadWatchedPropertiesAsync(std::vector<std::string> names) {

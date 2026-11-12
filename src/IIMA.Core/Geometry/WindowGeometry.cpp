@@ -147,3 +147,66 @@ std::optional<GeometryRect> ScaledVideoWindow(GeometrySize video, GeometryRect c
     return result;
 }
 }
+
+namespace iima {
+namespace {
+std::optional<GeometryRect> VideoWindowAtFactor(GeometrySize video, GeometryRect current,
+    GeometryRect work, GeometrySize chrome, GeometrySize minimum, double factor) noexcept {
+    // Reuse the complete physical-geometry validation. The public manual-scale
+    // helper intentionally limits multipliers to 16, but a tiny video changing
+    // aspect or a large requested geometry can legitimately need a higher one.
+    if (!ScaledVideoWindow(video, current, work, chrome, minimum, 1.0, true, 1.0) ||
+        !std::isfinite(factor) || factor <= 0) return {};
+    const auto maximum = std::min((work.width - chrome.width) / video.width,
+        (work.height - chrome.height) / video.height);
+    factor = std::min(factor, maximum);
+    // Rebase to the requested (work-area-bounded) video size, then use 1x.
+    // Minimum enforcement and centered fitting still have one shared owner.
+    return ScaledVideoWindow({video.width * factor, video.height * factor}, current,
+        work, chrome, minimum, 1.0, true, 1.0);
+}
+}
+std::optional<GeometryRect> AreaPreservingVideoWindow(GeometrySize video, GeometryRect current,
+    GeometryRect work, GeometrySize chrome, GeometrySize minimum) noexcept {
+    const auto viewportWidth = current.width - chrome.width;
+    const auto viewportHeight = current.height - chrome.height;
+    if (!std::isfinite(viewportWidth) || !std::isfinite(viewportHeight) ||
+        viewportWidth <= 0 || viewportHeight <= 0 ||
+        !std::isfinite(video.width) || !std::isfinite(video.height) ||
+        video.width <= 0 || video.height <= 0) return {};
+    // sqrt(A / videoArea) is the scale whose aspect-corrected video has area A.
+    // Split roots avoid overflowing the intermediate area multiplication.
+    const auto factor = std::sqrt(viewportWidth) / std::sqrt(video.width) *
+        (std::sqrt(viewportHeight) / std::sqrt(video.height));
+    return VideoWindowAtFactor(video, current, work, chrome, minimum, factor);
+}
+std::optional<GeometryRect> InitialVideoWindow(WindowGeometry const& geometry, GeometrySize video,
+    GeometryRect sized, GeometryRect work, GeometrySize chrome, GeometrySize minimum) noexcept {
+    if (!ScaledVideoWindow(video, sized, work, chrome, minimum, 1.0, true, 1.0)) return {};
+    const bool hasWidth = geometry.width && (geometry.width->value != 0 || geometry.width->percentage);
+    const bool hasHeight = geometry.height && (geometry.height->value != 0 || geometry.height->percentage);
+    double factor{};
+    if (hasWidth) {
+        const auto requested = geometry.width->Resolve(work.width);
+        if (!std::isfinite(requested) || requested < 0) return {};
+        factor = std::max(1.0, std::max(minimum.width, requested) - chrome.width) / video.width;
+    } else if (hasHeight) {
+        const auto requested = geometry.height->Resolve(work.height);
+        if (!std::isfinite(requested) || requested < 0) return {};
+        factor = std::max(1.0, std::max(minimum.height, requested) - chrome.height) / video.height;
+    } else {
+        factor = (sized.width - chrome.width) / video.width;
+    }
+    auto resolved = VideoWindowAtFactor(video, sized, work, chrome, minimum, factor);
+    if (!resolved) return {};
+    // Size has already been constrained with video aspect and fixed chrome.
+    // Use only the existing anchor logic; its frame-aspect sizing is unsuitable.
+    auto anchors = geometry;
+    anchors.width.reset(); anchors.height.reset();
+    if (hasWidth || hasHeight) {
+        if (!geometry.x) resolved->x = work.x + (work.width - resolved->width) / 2;
+        if (!geometry.y) resolved->y = work.y + (work.height - resolved->height) / 2;
+    }
+    return anchors.ResolveVisible(*resolved, work, minimum);
+}
+}

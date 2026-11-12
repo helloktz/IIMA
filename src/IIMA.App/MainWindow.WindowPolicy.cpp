@@ -17,6 +17,7 @@ void MainWindow::WireWindowPlaybackPolicy() {
             if (auto self=weak.get(); self && !self->closing_) self->RefreshAccessibility();
         },[weak] {
             if (auto self=weak.get(); self && !self->closing_) {
+                self->placementProgrammaticBounds_.reset();
                 self->placementTouched_ = true;
                 self->CancelAutomaticVideoSize();
             }

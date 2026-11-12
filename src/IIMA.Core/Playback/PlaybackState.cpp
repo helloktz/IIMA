@@ -27,6 +27,7 @@ void ApplyPlaybackEvent(PlaybackSnapshot& s, MpvEvent const& e) {
         s.session=SessionState::Closing; s.swapChain.reset(); break;
     case MpvEvent::Kind::StartFile:
         s.media=MediaState::Loading; s.entryId=e.entryId; s.swapChain.reset();
+        s.mediaPlaybackRestarted=false; s.mediaVideoGeometryReady=false;
         s.position.reset(); s.duration.reset(); s.path.clear();
         s.timeRemaining.reset(); s.playtimeRemaining.reset();
         s.abLoopA.reset(); s.abLoopB.reset(); s.abLoopCount.clear();
@@ -60,7 +61,10 @@ void ApplyPlaybackEvent(PlaybackSnapshot& s, MpvEvent const& e) {
         else s.media=MediaState::Ended;
         break;
     case MpvEvent::Kind::Seek: s.seeking=true; break;
-    case MpvEvent::Kind::Restart: s.seeking=false; break;
+    case MpvEvent::Kind::Restart:
+        s.seeking=false;
+        if (s.media==MediaState::Loaded) s.mediaPlaybackRestarted=true;
+        break;
     case MpvEvent::Kind::Property:
         if (e.name == "vf" || e.name == "af") {
             auto& filters = e.name == "vf" ? s.videoFilters : s.audioFilters;
@@ -188,6 +192,7 @@ void ApplyPlaybackEvent(PlaybackSnapshot& s, MpvEvent const& e) {
         else if(e.name=="current-vo") s.currentVo=e.text;
         else if(e.name=="vo-configured") s.voConfigured=e.flag.value_or(false);
         break;
+    case MpvEvent::Kind::VideoGeometryReply:
     case MpvEvent::Kind::WatchedPropertiesReply:
     case MpvEvent::Kind::PlaylistReply:
         // Correlated GET replies are consumed by PlayerSession's edit cursor,

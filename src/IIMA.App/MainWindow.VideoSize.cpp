@@ -19,6 +19,29 @@ std::optional<double> VideoSizeNumber(iima::MediaProperties const& properties, c
 }
 }
 namespace winrt::IIMA::implementation {
+std::optional<iima::GeometrySize> MainWindow::VideoDisplaySize(iima::MediaProperties const& output) {
+    auto width = VideoSizeNumber(output, "dw"), height = VideoSizeNumber(output, "dh");
+    auto rotation = VideoSizeNumber(output, "rotate");
+    if (!width || !height || !rotation || *width <= 0 || *height <= 0 ||
+        *width > 65536 || *height > 65536 || *rotation < 0 || *rotation >= 360 ||
+        std::fmod(*rotation, 90.0) != 0) {
+        return {};
+    }
+    // dw/dh include filters and pixel-aspect correction but the VO handles
+    // remaining right-angle rotation (mpv video/out/aspect.c).
+    if (std::fmod(std::abs(*rotation), 180.0) == 90.0) std::swap(*width, *height);
+    // Built-in source cropping is separate from filtered display dimensions;
+    // refuse it until that transform is incorporated, rather than guessing.
+    if (output.contains("crop-w") || output.contains("crop-h")) {
+        if (VideoSizeNumber(output, "crop-w") != VideoSizeNumber(output, "w") ||
+            VideoSizeNumber(output, "crop-h") != VideoSizeNumber(output, "h") ||
+            VideoSizeNumber(output, "crop-x") != std::optional<double>{0} ||
+            VideoSizeNumber(output, "crop-y") != std::optional<double>{0}) {
+            return {};
+        }
+    }
+    return iima::GeometrySize{*width, *height};
+}
 void MainWindow::WireVideoSize() {
     auto weak = get_weak();
     VideoPanel().SizeChanged([weak](auto const&, auto const&) {
@@ -50,26 +73,10 @@ MainWindow::VideoResizeResult MainWindow::TryResizeToVideo(std::optional<double>
         if (state.session != iima::SessionState::Ready || state.media != iima::MediaState::Loaded || !state.voConfigured) {
             report(L"当前没有已配置的播放画面，无法按视频尺寸缩放。"); return VideoResizeResult::Retry;
         }
-        auto const& output = state.videoOutputParameters;
-        auto width = VideoSizeNumber(output, "dw"), height = VideoSizeNumber(output, "dh");
-        auto rotation = VideoSizeNumber(output, "rotate");
-        if (!width || !height || !rotation || *width <= 0 || *height <= 0 ||
-            *width > 65536 || *height > 65536 || *rotation < 0 || *rotation >= 360 ||
-            std::fmod(*rotation, 90.0) != 0) {
-            report(L"视频显示尺寸或直角旋转尚未确认，未修改窗口。"); return VideoResizeResult::Retry;
-        }
-        // dw/dh include filters and pixel-aspect correction but the VO handles
-        // remaining right-angle rotation (mpv video/out/aspect.c).
-        if (std::fmod(std::abs(*rotation), 180.0) == 90.0) std::swap(*width, *height);
-        // Built-in source cropping is separate from filtered display dimensions;
-        // refuse it until that transform is incorporated, rather than guessing.
-        if (output.contains("crop-w") || output.contains("crop-h")) {
-            if (VideoSizeNumber(output, "crop-w") != VideoSizeNumber(output, "w") ||
-                VideoSizeNumber(output, "crop-h") != VideoSizeNumber(output, "h") ||
-                VideoSizeNumber(output, "crop-x") != std::optional<double>{0} ||
-                VideoSizeNumber(output, "crop-y") != std::optional<double>{0}) {
-                report(L"内建非全幅裁剪的显示尺寸尚不支持，请先关闭该裁剪。"); return VideoResizeResult::Unsupported;
-            }
+        const auto video = VideoDisplaySize(state.videoOutputParameters);
+        if (!video) {
+            report(L"视频尺寸、旋转或内建裁剪尚不支持，未修改窗口。");
+            return VideoResizeResult::Retry;
         }
         auto display = Microsoft::UI::Windowing::DisplayArea::GetFromWindowId(window.Id(),
             Microsoft::UI::Windowing::DisplayAreaFallback::Nearest);
@@ -83,13 +90,34 @@ MainWindow::VideoResizeResult MainWindow::TryResizeToVideo(std::optional<double>
         if (panelWidth <= 0 || panelHeight <= 0 || extraWidth < 0 || extraHeight < 0) {
             report(L"窗口布局仍在变化，请稍后重试视频尺寸缩放。"); return VideoResizeResult::Retry;
         }
-        auto bounds = iima::ScaledVideoWindow({*width, *height},
+        auto bounds = iima::ScaledVideoWindow(*video,
             {double(position.X), double(position.Y), double(size.Width), double(size.Height)},
             {double(work.X), double(work.Y), double(work.Width), double(work.Height)},
             {extraWidth, extraHeight}, {640 * dpi, 360 * dpi}, scale,
             automatic ? automaticResizePhysical_ : preferences_.Boolean("usePhysicalResolution"), dpi);
+        if (automatic && automaticResizeKeepArea_) {
+            bounds = iima::AreaPreservingVideoWindow(*video,
+                {double(position.X), double(position.Y), double(size.Width), double(size.Height)},
+                {double(work.X), double(work.Y), double(work.Width), double(work.Height)},
+                {extraWidth, extraHeight}, {640 * dpi, 360 * dpi});
+        }
+        if (automatic && automaticResizeInitial_ && bounds) {
+            // The startup geometry was only a provisional frame before a video
+            // aspect existed. Resolve the saved startup text, not later edits.
+            if (!initialVideoGeometry_.empty()) {
+                auto geometry = iima::WindowGeometry::Parse(initialVideoGeometry_);
+                if (!geometry) return VideoResizeResult::Unsupported;
+                bounds = iima::InitialVideoWindow(*geometry, *video, *bounds,
+                    {double(work.X), double(work.Y), double(work.Width), double(work.Height)},
+                    {extraWidth, extraHeight}, {640 * dpi, 360 * dpi});
+            } else {
+                bounds->x = work.X + (work.Width - bounds->width) / 2;
+                bounds->y = work.Y + (work.Height - bounds->height) / 2;
+            }
+        }
         if (!bounds) { report(L"当前布局无法容纳所请求的视频尺寸。"); return VideoResizeResult::Retry; }
-        if (automatic && automaticResizeOption_ == 0 && bounds) {
+        if (automatic && automaticResizeStart_ && !automaticResizeInitial_ &&
+            !automaticResizeKeepArea_ && automaticResizeOption_ == 0 && bounds) {
             bounds->x = work.X + (work.Width - bounds->width) / 2;
             bounds->y = work.Y + (work.Height - bounds->height) / 2;
         }

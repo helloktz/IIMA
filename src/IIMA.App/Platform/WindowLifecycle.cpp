@@ -48,6 +48,8 @@ struct WindowLifecycle::State : std::enable_shared_from_this<State> {
         auto self=reinterpret_cast<State*>(reference)->weak_from_this().lock();
         if(!self) return DefSubclassProc(hwnd,message,wParam,lParam);
         try {
+            if (message == WM_ENTERSIZEMOVE) self->value.sizing = true;
+            else if (message == WM_EXITSIZEMOVE) self->value.sizing = false;
             if (message == WM_ENTERSIZEMOVE || (message == WM_SYSCOMMAND &&
                 ((wParam & 0xfff0) == SC_MOVE || (wParam & 0xfff0) == SC_SIZE ||
                  (wParam & 0xfff0) == SC_MAXIMIZE || (wParam & 0xfff0) == SC_MINIMIZE ||

@@ -132,6 +132,8 @@ private:
     void BeginMediaOriginIntent(bool explicitOpen);
     void ObserveMediaOrigin(MpvEvent const& event);
     void ResolveMediaOrigin();
+    std::uint64_t videoGeometryRequest_{}, videoGeometryGeneration_{}, videoGeometryIntent_{};
+    unsigned videoGeometryAttempts_{};
     struct OpenStart { std::int64_t entry; std::uint64_t generation; };
     // Bounded observations of START_FILE since the replace command submission.
     // More than the bound is conservatively unknown, never guessed explicit.

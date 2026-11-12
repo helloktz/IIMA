@@ -13,7 +13,8 @@ struct PlaybackSnapshot {
     std::uint64_t mediaGeneration{}, mediaOpenIntentRevision{};
     // Explicit only after a replace-load reply and its START_FILE correlate.
     // Pending is not permission to resize the previous loaded media.
-    bool mediaExplicitOpen{}, mediaOriginPending{};
+    bool mediaExplicitOpen{}, mediaOriginPending{}, mediaPlaybackRestarted{};
+    bool mediaVideoGeometryReady{}; // Fresh post-restart async GET, not an observed cache.
     bool paused{true}, seeking{}, buffering{};
     std::optional<bool> demuxerViaNetwork;
     std::optional<std::int64_t> cacheForwardBytes, cacheBytesPerSecond, cacheBufferingPercent;

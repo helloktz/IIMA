@@ -32,3 +32,15 @@ std::optional<GeometryRect> ScaledVideoWindow(GeometrySize video, GeometryRect c
     GeometryRect workArea, GeometrySize chrome, GeometrySize minimum,
     std::optional<double> scale, bool physicalResolution, double dpiScale) noexcept;
 }
+
+namespace iima {
+// IINA NSRect.areaPreservingResized, adapted to preserve the actual video
+// viewport's area, excluding fixed WinUI/Win32 chrome. All units are pixels.
+std::optional<GeometryRect> AreaPreservingVideoWindow(GeometrySize video, GeometryRect current,
+    GeometryRect workArea, GeometrySize chrome, GeometrySize minimum) noexcept;
+// Initial width/height are outer-frame dimensions (width wins). Derive the
+// other dimension from video aspect, not the outer frame's aspect. Positions
+// retain WindowGeometry's percentage-center and right/bottom edge semantics.
+std::optional<GeometryRect> InitialVideoWindow(WindowGeometry const& geometry, GeometrySize video,
+    GeometryRect sized, GeometryRect workArea, GeometrySize chrome, GeometrySize minimum) noexcept;
+}

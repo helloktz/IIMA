@@ -14,6 +14,13 @@ void MainWindow::WireWindowPlacement()
     AppWindow().Changed([weak](auto const&, auto const& args) {
         if (auto self = weak.get(); self && !self->closing_ && !self->restoringPlacement_ &&
             !self->musicTransition_ && (args.DidPositionChange() || args.DidSizeChange())) {
+            if (self->placementProgrammaticBounds_) {
+                auto expected = *self->placementProgrammaticBounds_;
+                auto current = self->AppWindow(); auto point = current.Position(); auto size = current.Size();
+                if (point.X == expected.X && point.Y == expected.Y &&
+                    size.Width == expected.Width && size.Height == expected.Height) return;
+                self->placementProgrammaticBounds_.reset();
+            }
             self->CancelAutomaticVideoSize();
             self->placementTouched_ = true;
             self->CapturePlacement();
@@ -54,20 +61,24 @@ void MainWindow::RestorePlacement(std::optional<iima::WindowPlacementSnapshot> s
             GetDpiForWindow(hwnd), {640,360});
         if (!rect) return;
         restoringPlacement_ = true;
-        window.MoveAndResize({static_cast<int>(rect->x), static_cast<int>(rect->y),
-            static_cast<int>(rect->width), static_cast<int>(rect->height)});
+        placementProgrammaticBounds_ = Windows::Graphics::RectInt32{static_cast<int>(rect->x), static_cast<int>(rect->y),
+            static_cast<int>(rect->width), static_cast<int>(rect->height)};
+        window.MoveAndResize(*placementProgrammaticBounds_);
         restoringPlacement_ = false;
         CapturePlacement();
     } catch (hresult_error const& e) {
-        restoringPlacement_ = false; ShowError(L"窗口位置未恢复：" + e.message());
+        restoringPlacement_ = false; placementProgrammaticBounds_.reset(); ShowError(L"窗口位置未恢复：" + e.message());
     }
 }
 void MainWindow::ApplyInitialWindowGeometry()
 {
     // Called once after user data and saved placement are restored, not on each
-    // file load or preference edit. Never override interaction during async load.
+    // preference edit. First-video sizing later resolves this same geometry against
+    // the actual video aspect. Never override interaction during async load.
+    initialVideoGeometry_ = preferences_.String("initialWindowSizePosition");
+    if (placementTouched_) initialVideoSizePending_ = false;
     if (closing_ || placementTouched_ || musicMode_.IsMusic()) return;
-    auto const& text = preferences_.String("initialWindowSizePosition");
+    auto const& text = initialVideoGeometry_;
     if (text.empty()) return;
     auto geometry = text.size() <= 128 ? iima::WindowGeometry::Parse(text) : std::nullopt;
     if (!geometry) { ShowError(L"已保存的初始窗口几何无效，保留当前窗口位置。"); return; }
@@ -86,14 +97,14 @@ void MainWindow::ApplyInitialWindowGeometry()
             {double(point.X), double(point.Y), double(size.Width), double(size.Height)},
             {double(work.X), double(work.Y), double(work.Width), double(work.Height)}, {640 * dpi, 360 * dpi});
         if (!rect) { ShowError(L"初始窗口几何无法适用于当前屏幕，保留当前窗口位置。"); return; }
-        initialGeometryApplied_ = true;
         restoringPlacement_ = true;
-        window.MoveAndResize({static_cast<int>(std::ceil(rect->x)), static_cast<int>(std::ceil(rect->y)),
-            static_cast<int>(std::floor(rect->width)), static_cast<int>(std::floor(rect->height))});
+        placementProgrammaticBounds_ = Windows::Graphics::RectInt32{static_cast<int>(std::ceil(rect->x)), static_cast<int>(std::ceil(rect->y)),
+            static_cast<int>(std::floor(rect->width)), static_cast<int>(std::floor(rect->height))};
+        window.MoveAndResize(*placementProgrammaticBounds_);
         restoringPlacement_ = false;
         CapturePlacement();
     } catch (hresult_error const& error) {
-        restoringPlacement_ = false;
+        restoringPlacement_ = false; placementProgrammaticBounds_.reset();
         ShowError(L"初始窗口几何未能应用：" + error.message());
     }
 }
