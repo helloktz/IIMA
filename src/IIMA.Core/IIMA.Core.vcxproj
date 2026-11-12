@@ -201,4 +201,8 @@
     <ClInclude Include="Settings\ControlBarLayout.h" />
     <ClCompile Include="Settings\ControlBarLayout.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Media\TrackInspection.h" />
+    <ClCompile Include="Media\TrackInspection.cpp" />
+  </ItemGroup>
 </Project>

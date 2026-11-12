@@ -70,6 +70,7 @@ MainWindow::MainWindow()
     WireKeyboardControls();
     WirePlaybackControls();
     WireMediaInformation();
+    WireTrackInspector();
     WireInspectorWatch();
     WireDiagnosticViewer();
     WireMpvDiagnosticViewer();
@@ -214,6 +215,7 @@ void MainWindow::Apply(iima::PlaybackSnapshot const& state)
     UpdateNavigationControls(state);
     UpdateABLoopEditor(state);
     UpdateMediaInformation(state);
+    UpdateTrackInspector();
     UpdateVideoAdjustments(state);
     UpdateFilterEditor(state);
     UpdateThumbnailMedia(state);
@@ -305,6 +307,7 @@ void MainWindow::BeginClose()
     if (controlBarTimer_) controlBarTimer_.Stop();
     CancelMouseClick();
     InvalidateInspectorWatch();
+    ClearTrackInspector();
     if (diagnosticTimer_) diagnosticTimer_.Stop();
     CloseMpvDiagnosticViewer();
     if (activationTimer_) activationTimer_.Stop();

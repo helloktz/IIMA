@@ -3,6 +3,7 @@
 #include "../IIMA.Core/Matching/SubtitleMatcher.h"
 #include "../IIMA.Core/Playlist/PlaylistSubtitleAssociations.h"
 #include "../IIMA.Core/Settings/SettingsSearch.h"
+#include "../IIMA.Core/Media/TrackInspection.h"
 #include "../IIMA.Core/Settings/ControlBarToolbar.h"
 #include "../IIMA.Core/Settings/ControlBarLayout.h"
 #include "MainWindow.g.h"
@@ -268,6 +269,16 @@ private:
     std::vector<std::pair<iima::settings::ToolbarAction, Microsoft::UI::Xaml::Controls::Button>> toolbarButtons_;
     std::string toolbarBaseline_, toolbarApplied_;
     bool toolbarDraftReady_{}, toolbarDraftDirty_{}, toolbarProjecting_{}, toolbarBuilt_{};
+    void WireTrackInspector();
+    void UpdateTrackInspector(bool force = false);
+    void ClearTrackInspector();
+    bool TrackInspectorCurrent() const;
+    void ShowInspectedTrack();
+    void CopyTrackInspection();
+    std::vector<iima::TrackInspection> inspectedTracks_;
+    std::optional<std::uint64_t> trackInspectorRevision_;
+    std::uint64_t trackInspectorGeneration_{}, trackInspectorIntent_{}, trackInspectorInput_{};
+    bool trackInspectorProjecting_{};
     void WireInitialWindow();
     bool InitialWindowEligible() const;
     void UpdateInitialWindow(bool invalidate = false);

@@ -589,6 +589,16 @@
                                 <TextBlock x:Name="DiagnosticStatusText" TextWrapping="Wrap"/>
                             </StackPanel>
                         </Expander>
+                        <Expander x:Name="TrackInspectorExpander" Header="轨道详情（只读）" HorizontalAlignment="Stretch">
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="选择仅用于查看，不切换播放轨道。报告可能包含外部文件路径等私密信息；仅显示本窗口播放器已观察到的轨道。" TextWrapping="Wrap"/>
+                                <ComboBox x:Name="TrackInspectorBox" Header="查看轨道" HorizontalAlignment="Stretch"/>
+                                <ScrollViewer MaxHeight="320" VerticalScrollBarVisibility="Auto">
+                                    <TextBlock x:Name="TrackInspectorDetails" TextWrapping="Wrap"/>
+                                </ScrollViewer>
+                                <Button x:Name="CopyTrackInspectionButton" Content="复制所选轨道报告" IsEnabled="False"/>
+                            </StackPanel>
+                        </Expander>
                         <Expander x:Name="MediaInformationExpander" Header="媒体信息" HorizontalAlignment="Stretch">
                             <StackPanel Spacing="8">
                                 <TextBlock x:Name="MediaInformationText" TextWrapping="Wrap" IsTextSelectionEnabled="True"/>
