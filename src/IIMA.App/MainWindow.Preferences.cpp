@@ -24,7 +24,7 @@ bool HasApplicationAdapter(std::string_view key) {
     static const std::set<std::string_view> keys{
         "alwaysOpenInNewWindow", "groupSimultaneousOpensInPlaylist", "allowDuplicatePlayers",
         "autoSwitchToMusicMode", "musicModeShowPlaylist", "musicModeShowAlbumArt",
-        "pauseWhenInactive", "pauseWhenMinimized", "pauseWhenGoesToSleep", "enableThumbnailPreview", "thumbnailWidth", "maxThumbnailPreviewCacheSize",
+        "preventScreenSaver", "allowScreenSaverForAudio", "pauseWhenInactive", "pauseWhenMinimized", "pauseWhenGoesToSleep", "enableThumbnailPreview", "thumbnailWidth", "maxThumbnailPreviewCacheSize",
         "displayTimeAndBatteryInFullScreen", "alwaysFloatOnTop", "fullScreenWhenOpen", "playWhenEnteringFullScreen", "pauseWhenLeavingFullScreen",
         "singleClickAction", "doubleClickAction", "rightClickAction", "verticalScrollAction", "horizontalScrollAction",
         "relativeSeekAmount", "playbackSpeedScrollAmount", "wheelExactSeek", "enableControlBarAutoHide", "controlBarAutoHideTimeout",
@@ -183,6 +183,7 @@ void MainWindow::ApplyAdvancedSetting(std::string const& key, iima::settings::Pr
     UpdateTimeDisplay(session_->Snapshot());
     CancelMouseClick();
     ApplyWindowPreferences();
+    UpdateMediaIntegration();
     if (key == "screenshotShowPreview" && !preferences_.Boolean(key)) HideScreenshotPreview();
     if (key == "enableThumbnailPreview" || key == "thumbnailWidth" || key == "maxThumbnailPreviewCacheSize") {
         CancelThumbnailPreview(); thumbnailMemory_.clear();

@@ -220,7 +220,7 @@ void MainWindow::Apply(iima::PlaybackSnapshot const& state)
     ApplyUserData(state);
     OpenPendingFiles();
     FlushActivation();
-    if (mediaIntegration_) mediaIntegration_->Update(state);
+    UpdateMediaIntegration();
     bool loaded = state.media == iima::MediaState::Loaded || state.media == iima::MediaState::Ended;
     PauseButton().IsEnabled(loaded && outputReady);
     PauseButton().Content(box_value(state.paused ? L"播放" : L"暂停"));

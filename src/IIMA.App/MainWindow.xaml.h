@@ -372,6 +372,7 @@ private:
     std::vector<Microsoft::UI::Xaml::FrameworkElement> advancedSettingsRows_;
     void ApplyAdvancedSetting(std::string const& key, iima::settings::PreferenceValue value);
     void ApplyWindowPreferences();
+    void UpdateMediaIntegration();
     bool AnimationsAllowed() const;
     void RefreshAccessibility();
     bool systemAnimationsEnabled_{};

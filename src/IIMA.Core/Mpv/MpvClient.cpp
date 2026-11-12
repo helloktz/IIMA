@@ -80,6 +80,8 @@ struct MpvClient::State {
             for (auto const& [name, value] : std::vector<std::pair<char const*,char const*>>{
                 {"config","no"}, {"load-scripts","no"}, {"idle","yes"}, {"terminal","no"},
                 {"input-default-bindings","no"}, {"input-vo-keyboard","no"}, {"osc","no"},
+                // The native host owns per-window system/display sleep policy.
+                {"stop-screensaver","no"},
                 {"vo","gpu-next"}, {"gpu-api","d3d11"}, {"gpu-context","d3d11"},
                 {"d3d11-output-mode","composition"}, {"d3d11-composition-size","1280x720"},
                 {"pause","yes"}, {"keep-open","yes"}, {"save-position-on-quit","no"}})

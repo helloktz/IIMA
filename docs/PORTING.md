@@ -919,3 +919,11 @@ Windows新增只读`ReadFullscreenInformation`：GetTimeFormatEx按用户区域�
 - 路由顺序明确为input.conf → 保存滤镜 → 插件菜单；不抢文本/密码/模态、控件自身导航/激活、Tab、Windows键、AltGr等既有保留输入。重复keydown只消费而不反复调用动作，低优先级插件观察仍独立接收允许事件。重复插件快捷键按可见树先序首个启用叶节点生效。
 - 动作复用InvokeMenu(id,revision)，worker重新校验修订、可达性、祖先启用及叶节点；停止/关闭清除映射，旧发布仍受pluginGeneration保护。菜单点击和快捷键均不乐观切换selected，继续由JS决定状态。
 - Windows差异：没有macOS Cmd映射或系统菜单抢占，快捷键提示不保证系统保留/未知键或多键序列可触发；用户配置冲突时插件项仍可鼠标点击。新增启动说明披露窗口局部快捷键。未编译测试运行或执行插件。
+
+## 第八十六批：防休眠偏好与音频显示例外
+
+- 来源：`SleepPreventer.swift::updateSleepPrevention/preventSleep/allowSleep`、`PlaybackInfo.swift::isAudio` 及Preference默认true/false。此前schema已有preventScreenSaver和allowScreenSaverForAudio，但Windows层固定对所有播放同时请求系统/显示保持；本批补齐实际接线与可见编辑入口。
+- `MediaIntegration::Update` 根据Ready/Loaded且未暂停、总开关、音频分类/音乐模式分别计算SystemRequired和DisplayRequired。沿用已有ClassifyMusicTracks保留网络保守判定、封面与真实视频区分；关闭总开关、暂停/结束/关闭释放，音频例外仅释放显示请求并保留系统请求。模式/偏好改变即时调用，不等待新的时间事件。
+- 每窗口持有独立Windows电源请求句柄，模式变化清理旧句柄再按新策略申请，部分失败每秒最多重试一次（由后续状态更新触发），不会因高频播放事件重复累加已持有类型。句柄关闭兜底释放Clear失败的请求。Windows聚合各窗口请求，视频窗口需求不会被另一个音频窗口释放；此行为比IINA当前首个playing播放器即返回更稳定，为明确平台差异。
+- mpv初始化显式`stop-screensaver=no`，由原生host统一拥有策略，接口依据固定 `references/mpv/options/options.c` 与 `DOCS/man/options.rst`；没有第二套mpv请求与用户偏好对抗。
+- 限制：Windows电源请求约束闲置系统/显示睡眠，不保证抑制所有屏保、锁屏、显式睡眠/合盖/组策略；SMTC/MediaIntegration初始化失败时该适配整体不可用，现有错误提示保留，不能宣称防休眠仍可用。没有修改系统电源设置或执行电源API，未编译测试运行。

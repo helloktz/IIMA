@@ -75,6 +75,7 @@ void MainWindow::ApplyMusicTransition(iima::MusicModePolicy::Transition const& t
         }
         musicTransition_ = false;
         if (!musicMode_.Commit(transition)) return;
+        UpdateMediaIntegration();
         UpdatePresentationLayout();
     } catch (hresult_error const& error) {
         musicTransition_ = false;

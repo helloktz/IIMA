@@ -3,6 +3,9 @@
 #include "pch.h"
 #include "MediaIntegration.h"
 #include "../../IIMA.Core/Media/SystemMediaInfo.h"
+#include "../../IIMA.Core/Windows/MusicModePolicy.h"
+#include "../../IIMA.Core/Network/MediaUrl.h"
+#include <chrono>
 #include <SystemMediaTransportControlsInterop.h>
 #include <winrt/Windows.Media.h>
 #include <atomic>
@@ -40,19 +43,31 @@ struct MediaIntegration::State {
     std::optional<std::uint64_t> playlistRevision;
     bool previousAvailable{}, nextAvailable{};
 
-    void SetPower(bool playing) noexcept {
-        if (!playing) {
-            if (power != INVALID_HANDLE_VALUE) {
-                if (displayHeld) PowerClearRequest(power, PowerRequestDisplayRequired);
-                if (systemHeld) PowerClearRequest(power, PowerRequestSystemRequired);
-                // Closing the request handle releases all outstanding requests,
-                // even if an explicit clear failed. No request survives a pause.
-                CloseHandle(power);
-                power = INVALID_HANDLE_VALUE;
-            }
-            displayHeld = systemHeld = false;
-            return;
+    bool desiredSystem{}, desiredDisplay{};
+    std::chrono::steady_clock::time_point nextPowerAttempt{};
+    void ReleasePower() noexcept {
+        if (power != INVALID_HANDLE_VALUE) {
+            if (displayHeld) PowerClearRequest(power, PowerRequestDisplayRequired);
+            if (systemHeld) PowerClearRequest(power, PowerRequestSystemRequired);
+            // Handle closure releases even a failed explicit clear. In particular,
+            // changing to audio-only mode must never leave displayHeld behind.
+            CloseHandle(power);
+            power = INVALID_HANDLE_VALUE;
         }
+        displayHeld = systemHeld = false;
+    }
+    void SetPower(bool system, bool display) noexcept {
+        display = system && display;
+        if (system != desiredSystem || display != desiredDisplay) {
+            ReleasePower();
+            desiredSystem = system; desiredDisplay = display;
+            nextPowerAttempt = {};
+        }
+        if (!system) { ReleasePower(); return; }
+        if (systemHeld && (!display || displayHeld)) return;
+        const auto now = std::chrono::steady_clock::now();
+        if (now < nextPowerAttempt) return;
+        nextPowerAttempt = now + std::chrono::seconds(1);
         if (power == INVALID_HANDLE_VALUE) {
             REASON_CONTEXT reason{};
             reason.Version = POWER_REQUEST_CONTEXT_VERSION;
@@ -62,15 +77,16 @@ struct MediaIntegration::State {
             power = PowerCreateRequest(&reason);
             if (power == INVALID_HANDLE_VALUE) { Report(L"IIMA: PowerCreateRequest failed.\n"); return; }
         }
-        // Power request APIs are handle-scoped, unlike SetThreadExecutionState.
-        // Each request type is set at most once and cleared exactly once.
+        // Request reference counts are incremented only for an unheld type.
+        // Retry partial failure at most once/second as playback updates arrive.
         if (!systemHeld) systemHeld = PowerSetRequest(power, PowerRequestSystemRequired) != FALSE;
-        if (!displayHeld) displayHeld = PowerSetRequest(power, PowerRequestDisplayRequired) != FALSE;
-        if (!systemHeld || !displayHeld) Report(L"IIMA: playback sleep-prevention request was not fully accepted.\n");
+        if (display && !displayHeld) displayHeld = PowerSetRequest(power, PowerRequestDisplayRequired) != FALSE;
+        if (!systemHeld || (display && !displayHeld))
+            Report(L"IIMA: playback sleep-prevention request was not fully accepted.\n");
     }
     void Close() noexcept {
         if (!alive.exchange(false)) return;
-        SetPower(false);
+        SetPower(false, false);
         ++epoch;
         active = canSeek = false;
         command = {}; seek = {};
@@ -163,7 +179,8 @@ MediaIntegration::MediaIntegration(HWND window,
 MediaIntegration::~MediaIntegration() { Close(); }
 void MediaIntegration::Close() noexcept { if (state_) state_->Close(); }
 
-void MediaIntegration::Update(PlaybackSnapshot const& snapshot) noexcept {
+void MediaIntegration::Update(PlaybackSnapshot const& snapshot, bool preventSleep,
+    bool allowDisplaySleepForAudio, bool musicMode) noexcept {
     if (!state_ || !state_->alive.load()) return;
     const bool active = snapshot.session == SessionState::Ready && snapshot.media == MediaState::Loaded;
     const bool playing = active && !snapshot.paused;
@@ -177,8 +194,12 @@ void MediaIntegration::Update(PlaybackSnapshot const& snapshot) noexcept {
         state_->previousInfo.reset();
     }
     state_->canSeek = false;
-    // IINA defaults preventScreenSaver=true, allowScreenSaverForAudio=false.
-    state_->SetPower(playing);
+    // Match PlaybackInfo.isAudio: unknown tracks and network resources are not
+    // guessed to be audio. Explicit mini/music mode is the other upstream case.
+    const auto kind = ClassifyMusicTracks(snapshot.tracks, !snapshot.tracks.empty(),
+        IsNetworkMediaPath(snapshot.path)).kind;
+    const bool allowDisplay = allowDisplaySleepForAudio && (musicMode || kind == MusicMediaKind::Audio);
+    state_->SetPower(playing && preventSleep, playing && preventSleep && !allowDisplay);
     try {
         auto info = MakeSystemMediaInfo(snapshot);
         auto controls = state_->controls;

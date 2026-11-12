@@ -20,7 +20,10 @@ public:
     ~MediaIntegration();
     MediaIntegration(MediaIntegration const&) = delete;
     MediaIntegration& operator=(MediaIntegration const&) = delete;
-    void Update(PlaybackSnapshot const& state) noexcept;
+    // Each window owns a request handle. Windows combines independent windows'
+    // requests; an audio window cannot release another video's display request.
+    void Update(PlaybackSnapshot const& state, bool preventSleep = true,
+                bool allowDisplaySleepForAudio = false, bool musicMode = false) noexcept;
     void Close() noexcept;
 private:
     struct State;

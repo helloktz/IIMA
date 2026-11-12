@@ -13,6 +13,12 @@
 
 using namespace winrt;
 namespace winrt::IIMA::implementation {
+void MainWindow::UpdateMediaIntegration() {
+    if (closing_ || !mediaIntegration_ || !session_) return;
+    mediaIntegration_->Update(session_->Snapshot(), preferences_.Boolean("preventScreenSaver"),
+        preferences_.Boolean("allowScreenSaverForAudio"), musicMode_.IsMusic());
+}
+
 void MainWindow::ReceiveActivation(std::vector<std::wstring> paths)
 {
     if (closing_) return;
