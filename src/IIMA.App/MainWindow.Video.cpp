@@ -6,6 +6,12 @@ using namespace winrt;
 namespace winrt::IIMA::implementation {
 void MainWindow::WireVideoControls() {
     auto weak = get_weak();
+    FlipVideoButton().Click([weak](auto const&, auto const&) {
+        if (auto self=weak.get(); self && !self->closing_) self->session_->ToggleVideoOrientation(false);
+    });
+    MirrorVideoButton().Click([weak](auto const&, auto const&) {
+        if (auto self=weak.get(); self && !self->closing_) self->session_->ToggleVideoOrientation(true);
+    });
     ApplyAspectButton().Click([weak](auto const&, auto const&) {
         if (auto self = weak.get(); self && !self->closing_)
             self->session_->SetVideoAspect(to_string(self->AspectText().Text()));

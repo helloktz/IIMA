@@ -81,6 +81,7 @@ public:
     void SetSpeed(double value);
     void SetVideoAspect(std::string aspect);
     void SetVideoRotation(int degrees);
+    void ToggleVideoOrientation(bool mirror);
     void SetDeinterlace(bool enabled);
     void SetVideoEqualizer(std::string property, int value);
     void AddVideoFilter(std::string filter);

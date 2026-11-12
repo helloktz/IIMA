@@ -326,4 +326,22 @@ struct FilterNodeView::Storage {
 FilterNodeView::FilterNodeView(FilterNode const& node) : storage_(std::make_unique<Storage>(node)) {}
 FilterNodeView::~FilterNodeView() = default;
 mpv_node const& FilterNodeView::Get() const noexcept { return storage_->node; }
+OrientationFilter FindOrientationFilter(FilterChainSnapshot const& snapshot, bool mirror) {
+    if (!snapshot.complete) return {};
+    const auto label = mirror ? "iina_mirror" : "iina_flip";
+    const auto name = mirror ? "hflip" : "vflip";
+    OrientationFilter result{OrientationFilterState::Absent, 0};
+    for (std::size_t index=0; index<snapshot.entries.size(); ++index) {
+        auto const& row=snapshot.entries[index];
+        // A malformed row can conceal a reserved label. Refuse a write rather
+        // than guessing whether adding would replace someone else's filter.
+        if (!row.filter) return {};
+        if (row.filter->Label() != label) continue;
+        if (result.state != OrientationFilterState::Absent || row.filter->Name() != name)
+            return {OrientationFilterState::Conflict, index};
+        result={row.enabled ? OrientationFilterState::Enabled : OrientationFilterState::Disabled,index};
+    }
+    return result;
+}
+
 }

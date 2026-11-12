@@ -47,4 +47,23 @@ void PlayerSession::RemoveVideoFilter(std::string label) {
     })) return;
     client_->Command({"vf", "remove", "@" + label});
 }
+void PlayerSession::ToggleVideoOrientation(bool mirror) {
+    if (snapshot_.session != SessionState::Ready || snapshot_.media != MediaState::Loaded ||
+        waitingForStart_ || playlistEdit_) return;
+    auto const& chain=snapshot_.videoFilters;
+    auto status=FindOrientationFilter(chain,mirror);
+    switch (status.state) {
+    case OrientationFilterState::Absent:
+        // Labelled add is idempotent on repeated clicks before observation.
+        // A script may still race the final add: mpv has no compare-and-swap.
+        AddVideoFilter(mirror ? "@iina_mirror:hflip" : "@iina_flip:vflip"); break;
+    case OrientationFilterState::Disabled:
+        EditFilters(false,FilterChainEditor::SetEnabled(chain,chain.revision,status.index,true)); break;
+    case OrientationFilterState::Enabled:
+        EditFilters(false,FilterChainEditor::Remove(chain,chain.revision,status.index)); break;
+    default:
+        snapshot_.error="Orientation filter state is unavailable or its reserved label conflicts"; Notify(); break;
+    }
+}
+
 }

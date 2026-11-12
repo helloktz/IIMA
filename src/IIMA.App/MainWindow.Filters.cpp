@@ -35,6 +35,17 @@ void MainWindow::WireFilterEditor() {
     });
 }
 void MainWindow::UpdateFilterEditor(iima::PlaybackSnapshot const& state) {
+    const bool active=!closing_ && state.session==iima::SessionState::Ready && state.media==iima::MediaState::Loaded;
+    auto project=[&](Microsoft::UI::Xaml::Controls::Button button,bool mirror) {
+        auto status=iima::FindOrientationFilter(state.videoFilters,mirror).state;
+        using S=iima::OrientationFilterState;
+        button.IsEnabled(active && status!=S::Unknown && status!=S::Conflict);
+        std::wstring text=mirror ? L"左右镜像：" : L"上下翻转：";
+        text+=status==S::Enabled ? L"已启用，点击移除" : status==S::Disabled ? L"已停用，点击启用" :
+            status==S::Absent ? L"未添加，点击启用" : status==S::Conflict ? L"标签冲突" : L"状态未知";
+        button.Content(box_value(text));
+    };
+    project(FlipVideoButton(),false); project(MirrorVideoButton(),true);
     auto const& chain = FilterTypeBox().SelectedIndex() == 1 ? state.audioFilters : state.videoFilters;
     if (filterRevision_ == chain.revision) return;
     filterRevision_ = chain.revision;

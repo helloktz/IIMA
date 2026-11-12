@@ -325,6 +325,8 @@
                                 <Button x:Name="DeleteSavedFilterButton" Content="删除选中预设"/>
                             </StackPanel>
                         </Expander>
+                        <Button x:Name="FlipVideoButton" Content="上下翻转：状态未知" IsEnabled="False"/>
+                        <Button x:Name="MirrorVideoButton" Content="左右镜像：状态未知" IsEnabled="False"/>
                         <TextBox x:Name="VideoFilterText" Header="视频滤镜" PlaceholderText="@iima_flip:flip"/>
                         <Button x:Name="ApplyFilterButton" Content="添加或替换滤镜"/>
                         <TextBox x:Name="VideoFilterLabelText" Header="要移除的滤镜标签" PlaceholderText="iima_flip"/>

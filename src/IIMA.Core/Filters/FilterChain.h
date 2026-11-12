@@ -48,6 +48,14 @@ struct FilterEditPlan {
     // Duplicate keys are ambiguous and conservatively prevent all editing.
     bool FreshMatches(FilterChainSnapshot const&) const;
 };
+// IINA PlayerCore.setFlip/setMirror and reloadSavedIINAfilters, using the same
+// reserved labels. A custom/duplicate label must never be silently overwritten.
+enum class OrientationFilterState { Unknown, Absent, Disabled, Enabled, Conflict };
+struct OrientationFilter {
+    OrientationFilterState state{OrientationFilterState::Unknown};
+    std::size_t index{};
+};
+OrientationFilter FindOrientationFilter(FilterChainSnapshot const&, bool mirror);
 class FilterChainEditor final {
 public:
     static FilterEditPlan Remove(FilterChainSnapshot const&, std::uint64_t expectedRevision,

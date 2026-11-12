@@ -509,5 +509,12 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 
 - `CharEncoding.list`、`MainMenuActions.menuSetSubEncoding`、`PlayerCore.setSubEncoding/reloadAllSubs` → 完整44项编码目录、WinUI候选列表、显式应用与`PlayerSession.SetSubtitleEncoding`。保留auto默认候选和上游iconv名称；不是Windows系统代码页映射。`sub-codepage`实际字符串观察与用户候选分开，不用提交值伪造成功。
 - 等待set命令成功回复后才重载请求时存在且ID/外部路径仍匹配的外部字幕。失败不重载、错误走既有会话反馈；嵌入轨不尝试重载，与IINA遍历全部轨道不同，避免必然失败。mpv重载保留ID，不乐观修改所选轨。一次只允许一个编码事务，手动打开/切换、Stop、START_FILE/END_FILE、失败和关闭撤销后续重载权。
-- 编码选项本身作用会话，已排队的set不会因取消回滚；底层自动换片或脚本与重载命令仍可能竞争。本批不宣称原子事务。没有自定义`+encoding`强制转码输入、全局偏好持久化或每文件记忆；自动检测依赖实际uchardet构建。mpv先认可UTF-8，具体非UTF-8编码作为回退，界面不能保证纠正所有乱码；位图/内嵌字幕不适用。
+- 编码选项本身作用会话，已排队的set不会因取消回滚；底层自动换片或脚本与重载命令仍可能竞争。本批不宣称原子事务。当前媒体菜单不提供自定义`+encoding`强制转码输入、不改写已有高级设置`defaultEncoding`或添加每文件记忆；自动检测依赖实际uchardet构建。mpv先认可UTF-8，具体非UTF-8编码作为回退，界面不能保证纠正所有乱码；位图/内嵌字幕不适用。
 - 仅静态编写、人工源码阅读、数量统计与Git核验。未编译、测试、运行或加载真实字幕。
+
+### 第四十四批：上下翻转与左右镜像
+
+- `MainMenuActions.menuToggleFlip/menuToggleMirror`、`PlayerCore.setFlip/setMirror/reloadSavedIINAfilters`、`Constants.FilterName` → 专用翻转和镜像按钮、`FindOrientationFilter` 与会话动作。沿用`iina_flip:vflip`和`iina_mirror:hflip`标签，不把自定义未标签滤镜误认作本开关管理对象。
+- 显示由vf实际节点观察驱动：未添加、停用、启用、未知或冲突。启用时移除对应行；停用时启用；不存在则添加带标签滤镜。移除/启用复用worker新读快照比对，保留其他节点及未知字段。重复点击不乐观翻转状态，迟到重复编辑可因快照不匹配被拒绝。标签被其他滤镜占用或有重复标签时不覆盖；无法解析的链不猜测。
+- 与IINA差异：区分被禁用的已存在节点，未知状态禁用按钮，保守处理标签冲突。添加仍使用mpv标签替换语义，外部脚本可能在观察和最终add之间竞争；不声称CAS或完整事务。其他未标签的hflip/vflip可以叠加抵消，不把按钮状态当最终像素方向证明。没有新增持久偏好、HDR或硬件路径保证。
+- 仅静态编写与人工审阅、数量统计和Git核验，未编译、测试或运行。
