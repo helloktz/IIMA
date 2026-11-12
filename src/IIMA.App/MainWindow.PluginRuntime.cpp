@@ -5,6 +5,7 @@
 #include "Platform/PluginInspection.h"
 #include "Platform/PluginPreferenceStore.h"
 #include "Platform/PluginFileStore.h"
+#include "Platform/PluginHttpClient.h"
 #include <ShObjIdl_core.h>
 #include <microsoft.ui.xaml.window.h>
 #include <winrt/Windows.Storage.Pickers.h>
@@ -72,10 +73,23 @@ winrt::fire_and_forget MainWindow::StartLocalPlugin() {
                 if (pluginOsdAllowed_) message += L"它还申请在播放器画面上显示文字。";
                 message += L"\n它还可读取并保存此标识对应的插件偏好；相同标识的其他插件可读取这些值，请勿用于保存密码或令牌。它还可在此窗口的插件菜单中添加命令，读取当前快捷键配置的完整动作文本，并观察播放器区域按键（不含文本输入、密码输入和对话框）及视频区域鼠标操作。请勿把秘密写在快捷键动作中。"
                     L"\n它可读取、覆盖和删除此标识的私有 @data 文件，并读写本次运行的 @tmp 文件；相同标识可共享 @data，不应保存密码或令牌。只支持有界文本及普通文件，不开放你的其他文件。"
-                    L"\n不提供网络、任意文件、进程、HTML 或完整 IINA 插件 API。"
+                    L"\n不提供任意文件、进程、HTML 或完整 IINA 插件 API。"
                     L"只有部分插件可以使用。运行时不是操作系统安全沙箱，请只运行你信任的来源。"
                     L"\n此次仅运行已读入的入口和目录内 JS 模块快照，不安装、不自动启动；可随时停止。";
-                consent.Content(box_value(message));
+                auto networkAllowed = program->manifest.HasPermission(iima::PluginPermission::NetworkRequest);
+                if (networkAllowed) {
+                    message += L"\n\n该插件还可通过 HTTPS 向以下声明的域名发送请求，包括 POST/PUT/PATCH/DELETE。它可以发送自身掌握的播放状态、轨道/章节、按键与私有插件数据；请只批准可信插件。服务端操作可能不可撤销。\n";
+                    for (auto const& domain : program->manifest.allowedDomains)
+                        message += L" • " + std::wstring(to_hstring(domain)) + L"\n";
+                    if (program->manifest.allowedDomains.empty()) message += L"（未声明域名，所有请求将拒绝）\n";
+                    message += L"不跟随重定向、不使用浏览器Cookie或系统登录；域名许可不是网络隔离，域名仍可能解析到私有地址。";
+                } else message += L"\n该插件未申请网络权限，网络请求将拒绝。";
+                Controls::TextBlock consentText;
+                consentText.Text(message); consentText.TextWrapping(TextWrapping::Wrap);
+                consentText.IsTextSelectionEnabled(true);
+                Controls::ScrollViewer consentScroll;
+                consentScroll.MaxHeight(420); consentScroll.Content(consentText);
+                consent.Content(consentScroll);
                 consent.PrimaryButtonText(L"运行此插件"); consent.CloseButtonText(L"取消");
                 consent.DefaultButton(Controls::ContentDialogButton::Close);
                 auto approved = (co_await consent.ShowAsync()) == Controls::ContentDialogResult::Primary;
@@ -105,6 +119,12 @@ winrt::fire_and_forget MainWindow::StartLocalPlugin() {
                     };
                     iima::plugins::PluginRuntime::Callbacks callbacks;
                     auto files = std::make_shared<iima::PluginFileStore>(program->manifest.identifier);
+                    if (networkAllowed) {
+                        auto http = std::make_shared<iima::PluginHttpClient>(program->manifest);
+                        callbacks.httpRequest = [http](std::string request, std::stop_token stop) {
+                            return http->Request(request, stop);
+                        };
+                    }
                     callbacks.cleanup = [files] { files->CleanupTemporary(); };
                     callbacks.fileOperation = [files](std::string operation, std::string arguments) {
                         return files->Invoke(operation, arguments);

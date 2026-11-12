@@ -16,6 +16,7 @@ MAPPING = {
     'JavascriptAPIConsole.swift': ['src/IIMA.App/Plugins/PluginBootstrap.h', 'src/IIMA.App/Plugins/PluginRuntime.cpp'],
     'JavascriptAPIMenu.swift': ['src/IIMA.App/Plugins/PluginRuntime.cpp', 'src/IIMA.App/Plugins/PluginBootstrap.h', 'src/IIMA.App/MainWindow.PluginMenu.cpp'],
     'JavascriptPluginMenuItem.swift': ['src/IIMA.App/Plugins/PluginBootstrap.h', 'src/IIMA.App/MainWindow.PluginMenu.cpp'],
+    'JavascriptAPIHttp.swift': ['src/IIMA.App/Platform/PluginHttpClient.cpp', 'src/IIMA.App/Plugins/PluginRuntime.cpp', 'src/IIMA.App/Plugins/PluginBootstrap.h'],
     'JavascriptAPIFile.swift': ['src/IIMA.App/Platform/PluginFileStore.cpp', 'src/IIMA.App/Plugins/PluginBootstrap.h', 'src/IIMA.App/Plugins/PluginRuntime.cpp'],
     'JavascriptAPIPreferences.swift': ['src/IIMA.App/Plugins/PluginRuntime.cpp', 'src/IIMA.App/Plugins/PluginBootstrap.h', 'src/IIMA.App/Platform/PluginPreferenceStore.cpp', 'src/IIMA.App/MainWindow.PluginRuntime.cpp'],
     'JavascriptAPIEvent.swift': ['src/IIMA.App/Plugins/PluginRuntime.cpp', 'src/IIMA.App/Plugins/PluginPlaybackProjection.cpp'],

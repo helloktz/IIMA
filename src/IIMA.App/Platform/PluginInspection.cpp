@@ -294,8 +294,8 @@ PluginProgram LoadPluginProgram(std::filesystem::path const& root, std::stop_tok
     if (!manifest.unknownPermissions.empty())
         throw hresult_invalid_argument(L"插件声明了不支持的权限，不能执行。");
     for (auto permission : manifest.permissions) {
-        if (permission != PluginPermission::ShowOSD)
-            throw hresult_invalid_argument(L"本阶段插件执行仅支持 show-osd 权限；网络、文件、HTML 和弹窗权限不可用。");
+        if (permission != PluginPermission::ShowOSD && permission != PluginPermission::NetworkRequest)
+            throw hresult_invalid_argument(L"本阶段插件执行仅支持 show-osd 和受限 network-request 权限；任意文件、HTML 和弹窗权限不可用。");
     }
     auto source = ReadProgram(folder, manifest.entry, stop);
     CheckStop(stop);

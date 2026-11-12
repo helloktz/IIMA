@@ -7,6 +7,7 @@
 #include <map>
 #include <string>
 #include <string_view>
+#include <stop_token>
 
 namespace iima::plugins {
 struct PluginCommand {
@@ -19,9 +20,9 @@ struct PluginCommand {
 
 // One explicitly started, local, trusted plugin entry per owner/window.
 // This is NOT a security sandbox or complete IINA plugin compatibility layer.
-// No QuickJS std/os modules, arbitrary filesystem, network, process, native module
+// No QuickJS std/os modules, arbitrary filesystem, process, native module
 // loader, global controller or HTML capabilities are installed. Private @data/@tmp
-// text-file operations are delegated to the bounded native host. CommonJS require
+// text-file operations and permitted HTTP are delegated to bounded native hosts. CommonJS require
 // is limited to the caller-supplied immutable package source snapshot.
 class PluginRuntime final {
 public:
@@ -41,6 +42,13 @@ public:
         // it must not wait for UI or reenter this runtime. Native disk I/O cannot
         // be interrupted by the JavaScript deadline. No arbitrary paths allowed.
         std::function<std::string(std::string operation, std::string argumentsJson)> fileOperation;
+        // Called on the dedicated network worker, never the JS or UI thread.
+        // Enforce manifest permission/domain policy, request/response limits and
+        // a bounded timeout; observe stop and return generic transport failures.
+        // Return {ok:boolean,response:{statusCode,reason,text,data}} JSON. HTTP
+        // failures settle rejected promises with response; exceptions reject a
+        // generic Error. No QuickJS values/context may cross this callback.
+        std::function<std::string(std::string requestJson, std::stop_token stop)> httpRequest;
         // Best-effort host cleanup on worker exit, after all JS is disposed.
         // Must not reenter runtime or wait for UI. Destructor itself does no I/O.
         std::function<void()> cleanup;

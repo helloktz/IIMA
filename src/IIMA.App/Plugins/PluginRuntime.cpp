@@ -1,6 +1,6 @@
 // IINA JavascriptPluginInstance / JavascriptPolyfill / JavascriptAPIEvent /
 // JavascriptAPICore / JavascriptAPIConsole / JavascriptAPIPreferences / JavascriptAPIMenu /
-// JavascriptAPIFile adaptation,
+// JavascriptAPIFile / JavascriptAPIHttp adaptation,
 // not full API compatibility.
 // Copyright (c) 2018-2020 lhc and IINA contributors. GPL-3.0.
 #include "pch.h"
@@ -34,6 +34,9 @@ constexpr std::size_t MaxModuleBytes = 8 * 1024 * 1024;
 constexpr std::size_t MaxModules = 128;
 constexpr std::size_t MaxModuleDepth = 32;
 constexpr std::size_t MaxJson = 64 * 1024;
+constexpr std::size_t MaxHttpRequest = 128 * 1024;
+constexpr std::size_t MaxHttpResult = 16 * 1024 * 1024;
+constexpr std::size_t MaxPendingHttp = 4;
 constexpr std::size_t MaxFileJson = 6 * 1024 * 1024 + 8192; // escaped 1 MiB UTF-8 + envelope
 constexpr std::size_t MaxBindingsJson = 256 * 1024;
 constexpr std::size_t MaxEventBytes = 2 * 1024 * 1024;
@@ -89,9 +92,15 @@ struct PluginRuntime::Impl {
         // there is no stale media snapshot to overwrite current player status.
         std::size_t Bytes() const noexcept { return status.size() + event.size() + argument.size(); }
     };
+    struct HttpRequest { std::uint64_t id{}; std::string json; };
+    struct HttpCompletion { std::uint64_t id{}; std::string json; bool transportFailure{}; };
     std::atomic_bool stop{}, running{};
     std::mutex mutex;
-    std::condition_variable changed;
+    std::condition_variable changed, networkChanged;
+    std::deque<HttpRequest> networkRequests;
+    std::deque<HttpCompletion> networkCompletions;
+    std::stop_source networkStop;
+    std::jthread networkThread;
     std::deque<UpdateItem> events;
     std::size_t queuedBytes{};
     std::string latestStatus, latestKeyBindings;
@@ -109,9 +118,11 @@ struct PluginRuntime::Impl {
           entryPath(std::move(entry)), defaultsJson(std::move(defaults)), storedJson(std::move(stored)),
           modules(std::move(package)), allowOsd(grant), callbacks(std::move(cb)) {}
     ~Impl() {
-        stop.store(true); changed.notify_all();
+        stop.store(true); networkStop.request_stop();
+        changed.notify_all(); networkChanged.notify_all();
         // The public ownership contract prevents destruction from a callback.
         if (thread.joinable()) thread.join();
+        if (networkThread.joinable()) networkThread.join();
     }
     void State(bool active, std::string message) noexcept {
         running.store(active);
@@ -129,6 +140,46 @@ struct PluginRuntime::Impl {
         catch (...) { stop.store(true); }
     }
 
+    // Native transport owns no JS values. At most four requests, including
+    // queued/completed work, exist because only the JS promise map admits them.
+    void NetworkLoop() noexcept {
+        try {
+            auto token = networkStop.get_token();
+            for (;;) {
+                HttpRequest request;
+                {
+                    std::unique_lock lock(mutex);
+                    networkChanged.wait(lock, [&] {
+                        return stop.load() || token.stop_requested() || !networkRequests.empty();
+                    });
+                    if (stop.load() || token.stop_requested()) break;
+                    request = std::move(networkRequests.front()); networkRequests.pop_front();
+                }
+                HttpCompletion completion;
+                completion.id = request.id;
+                try {
+                    completion.json = callbacks.httpRequest(std::move(request.json), token);
+                    if (completion.json.empty() || completion.json.size() > MaxHttpResult ||
+                        completion.json.find('\0') != completion.json.npos) {
+                        completion.json.clear(); completion.transportFailure = true;
+                    }
+                } catch (...) {
+                    // Never expose an exception containing a URL, credential,
+                    // response body or native transport detail to script/logs.
+                    completion.transportFailure = true;
+                }
+                {
+                    std::lock_guard lock(mutex);
+                    if (stop.load() || token.stop_requested()) break;
+                    if (networkCompletions.size() >= MaxPendingHttp)
+                        throw std::runtime_error("Plugin HTTP completion queue exceeded its bound.");
+                    networkCompletions.push_back(std::move(completion));
+                }
+                changed.notify_one();
+            }
+        } catch (...) { stop.store(true); changed.notify_all(); }
+    }
+
     struct Worker {
         struct Listener { std::string event; JSValue callback; };
         struct Timer {
@@ -141,11 +192,13 @@ struct PluginRuntime::Impl {
             Log, Warn, Error, Status, On, Off, Timeout, Interval, ClearTimer, Require,
             PlayChapter, AudioVolume, AudioMuted, AudioDelay, AudioId, SubtitleDelay, SubtitleId, VideoId,
             PreferenceDefaults, PreferenceStored, PreferenceSync, MenuInstall, MenuPublish,
-            InputInstall, InputNormalize, InputBindings, MouseInstall, FileOperation
+            InputInstall, InputNormalize, InputBindings, MouseInstall, FileOperation, HttpRequestCall
         };
         Impl& owner;
         JSRuntime* runtime{};
         JSContext* context{};
+        struct HttpPromise { JSValue resolve; JSValue reject; };
+        std::map<std::uint64_t, HttpPromise> httpPromises;
         std::map<std::string, Listener> listeners;
         std::map<std::string, Timer> timers;
         std::map<std::string, JSValue> moduleCache;
@@ -179,6 +232,9 @@ struct PluginRuntime::Impl {
             JS_SetHostPromiseRejectionTracker(runtime, Rejected, this);
         }
         ~Worker() {
+            for (auto const& [id, promise] : httpPromises) {
+                JS_FreeValue(context, promise.resolve); JS_FreeValue(context, promise.reject);
+            }
             JS_FreeValue(context, mouseDispatch);
             JS_FreeValue(context, inputDispatch);
             JS_FreeValue(context, menuDispatch);
@@ -438,6 +494,34 @@ struct PluginRuntime::Impl {
                 owner.callbacks.preferencesSync(std::move(json));
                 return JS_UNDEFINED;
             }
+            if (function == HttpRequestCall) {
+                auto json = String(context, argument(0), MaxHttpRequest);
+                if (!owner.callbacks.httpRequest) throw std::runtime_error("Plugin HTTP permission is unavailable.");
+                if (httpPromises.size() >= MaxPendingHttp || !TakeOutbound())
+                    throw std::invalid_argument("Plugin HTTP pending/rate limit exceeded.");
+                if (nextIdentity == std::numeric_limits<std::uint64_t>::max())
+                    throw std::runtime_error("Plugin request identity exhausted.");
+                auto id = nextIdentity++;
+                JSValue resolving[2]{JS_UNDEFINED, JS_UNDEFINED};
+                Value promise(context, JS_NewPromiseCapability(context, resolving));
+                Value resolve(context, resolving[0]), reject(context, resolving[1]);
+                if (JS_IsException(promise.value)) return JS_EXCEPTION;
+                // Retained callbacks never leave this JS worker.
+                auto pair = HttpPromise{JS_DupValue(context, resolve.value), JS_DupValue(context, reject.value)};
+                try { httpPromises.emplace(id, pair); }
+                catch (...) { JS_FreeValue(context, pair.resolve); JS_FreeValue(context, pair.reject); throw; }
+                try {
+                    std::lock_guard lock(owner.mutex);
+                    if (owner.stop.load() || owner.networkStop.stop_requested())
+                        throw std::runtime_error("Plugin stopped.");
+                    owner.networkRequests.push_back({id, std::move(json)});
+                } catch (...) {
+                    JS_FreeValue(context, pair.resolve); JS_FreeValue(context, pair.reject);
+                    httpPromises.erase(id); throw;
+                }
+                owner.networkChanged.notify_one();
+                return JS_DupValue(context, promise.value);
+            }
             if (function == FileOperation) {
                 auto operation = String(context, argument(0), 16);
                 bool mutation = operation == "write" || operation == "delete";
@@ -594,7 +678,7 @@ struct PluginRuntime::Impl {
             Value global(context, JS_GetGlobalObject(context));
             Value host(context, JS_NewObject(context));
             if (JS_IsException(host.value)) { Fail(ExceptionText()); return false; }
-            constexpr std::array<std::tuple<char const*, int, Function>, 35> definitions{{
+            constexpr std::array<std::tuple<char const*, int, Function>, 36> definitions{{
                 {"pause", 0, Pause}, {"resume", 0, Resume}, {"stop", 0, StopPlayback},
                 {"seek", 2, Seek}, {"seekTo", 1, SeekTo}, {"setSpeed", 1, Speed}, {"osd", 1, Osd},
                 {"log", 1, Log}, {"warn", 1, Warn}, {"error", 1, Error}, {"status", 0, Status},
@@ -607,7 +691,7 @@ struct PluginRuntime::Impl {
                 {"preferenceDefaults", 0, PreferenceDefaults}, {"preferenceStored", 0, PreferenceStored},
                 {"preferenceSync", 1, PreferenceSync}, {"menuInstall", 1, MenuInstall}, {"menuPublish", 2, MenuPublish},
                 {"inputInstall", 1, InputInstall}, {"inputNormalize", 1, InputNormalize}, {"inputBindings", 0, InputBindings},
-                {"mouseInstall", 1, MouseInstall}, {"fileOperation", 2, FileOperation}
+                {"mouseInstall", 1, MouseInstall}, {"fileOperation", 2, FileOperation}, {"httpRequest", 1, HttpRequestCall}
             }};
             for (auto const& [name, arity, function] : definitions) {
                 if (!SetFunction(host.value, name, arity, function)) return false;
@@ -694,6 +778,35 @@ struct PluginRuntime::Impl {
             // against live model state, and passes the retained item to action.
             if (Result(JS_Call(context, menuDispatch, JS_UNDEFINED, 2, arguments))) Jobs();
         }
+        void HttpFinished(HttpCompletion const& completion) {
+            auto found = httpPromises.find(completion.id);
+            if (found == httpPromises.end() || !BeginTurn()) return;
+            Value resolve(context, found->second.resolve), reject(context, found->second.reject);
+            httpPromises.erase(found); // allow a continuation to enqueue another request
+            auto rejectTransport = [&] {
+                Value error(context, JS_NewError(context));
+                if (JS_IsException(error.value) || JS_SetPropertyStr(context, error.value, "message",
+                    JS_NewString(context, "Plugin HTTP transport failed, was refused, or returned an invalid response.")) < 0) {
+                    Fail(ExceptionText()); return;
+                }
+                if (Result(JS_Call(context, reject.value, JS_UNDEFINED, 1, &error.value))) Jobs();
+            };
+            if (completion.transportFailure) { rejectTransport(); return; }
+            Value envelope(context, JS_ParseJSON(context, completion.json.data(), completion.json.size(), "iima-http-result"));
+            if (JS_IsException(envelope.value)) {
+                Value ignored(context, JS_GetException(context)); rejectTransport(); return;
+            }
+            if (!JS_IsObject(envelope.value) || JS_IsArray(envelope.value)) { rejectTransport(); return; }
+            Value ok(context, JS_GetPropertyStr(context, envelope.value, "ok"));
+            Value response(context, JS_GetPropertyStr(context, envelope.value, "response"));
+            if (!JS_IsBool(ok.value) || !JS_IsObject(response.value) || JS_IsArray(response.value)) {
+                rejectTransport(); return;
+            }
+            // Like IINA HTTPResult.toDict: failed HTTP status rejects with the
+            // same response object, not an Error or an apparently successful body.
+            auto callback = JS_ToBool(context, ok.value) ? resolve.value : reject.value;
+            if (Result(JS_Call(context, callback, JS_UNDEFINED, 1, &response.value))) Jobs();
+        }
         void TimerFired(std::string const& id) {
             auto found = timers.find(id);
             if (found == timers.end() || !BeginTurn()) return;
@@ -712,20 +825,25 @@ struct PluginRuntime::Impl {
             std::uint64_t observedRevision{};
             while (!owner.stop.load() && !failed) {
                 UpdateItem update;
-                bool hasEvent{}, hasStatus{};
+                bool hasEvent{}, hasStatus{}, hasHttp{};
+                HttpCompletion httpCompletion;
                 std::string dueTimer;
                 auto nextDue = Clock::time_point::max();
                 for (auto const& [id, timer] : timers) if (timer.due < nextDue) { nextDue = timer.due; dueTimer = id; }
                 {
                     std::unique_lock lock(owner.mutex);
-                    if (owner.events.empty() && owner.statusRevision == observedRevision && Clock::now() < nextDue) {
+                    if (owner.events.empty() && owner.networkCompletions.empty() && owner.statusRevision == observedRevision && Clock::now() < nextDue) {
                         auto ready = [&] {
-                            return owner.stop.load() || !owner.events.empty() || owner.statusRevision != observedRevision;
+                            return owner.stop.load() || !owner.events.empty() || !owner.networkCompletions.empty() || owner.statusRevision != observedRevision;
                         };
                         if (nextDue == Clock::time_point::max()) owner.changed.wait(lock, ready);
                         else owner.changed.wait_until(lock, nextDue, ready);
                     }
                     if (owner.stop.load()) break;
+                    if (!owner.networkCompletions.empty()) {
+                        httpCompletion = std::move(owner.networkCompletions.front());
+                        owner.networkCompletions.pop_front(); hasHttp = true;
+                    }
                     if (!owner.events.empty()) {
                         update = std::move(owner.events.front()); owner.events.pop_front();
                         owner.queuedBytes -= update.Bytes(); hasEvent = true;
@@ -740,6 +858,7 @@ struct PluginRuntime::Impl {
                     else Event(update);
                 }
                 else if (hasStatus) { status = std::move(update.status); }
+                if (hasHttp && !owner.stop.load() && !failed) HttpFinished(httpCompletion);
                 // Process at most one due timer per iteration so a flood of
                 // inbound status updates cannot permanently starve timers.
                 if (!owner.stop.load() && !failed && !dueTimer.empty() && nextDue <= Clock::now()) TimerFired(dueTimer);
@@ -757,7 +876,9 @@ struct PluginRuntime::Impl {
             }
         } catch (std::exception const& e) { finalMessage = e.what(); }
           catch (...) { finalMessage = "Plugin worker failed."; }
-        stop.store(true);
+        stop.store(true); networkStop.request_stop(); networkChanged.notify_all();
+        if (networkThread.joinable()) networkThread.join();
+        { std::lock_guard lock(mutex); networkRequests.clear(); networkCompletions.clear(); }
         try { if (callbacks.cleanup) callbacks.cleanup(); } catch (...) { /* best-effort private temporary cleanup */ }
         { std::lock_guard lock(mutex); events.clear(); queuedBytes = 0; latestStatus.clear(); }
         State(false, std::move(finalMessage));
@@ -796,11 +917,15 @@ std::unique_ptr<PluginRuntime> PluginRuntime::Start(std::string source, std::str
         std::move(source), std::move(pluginName), allowOsd, std::move(callbacks), std::move(initialStatusJson),
         std::move(entryRelativePath), std::move(modules), std::move(defaultsJson), std::move(storedJson), std::move(initialKeyBindingsJson))));
     auto impl = instance->impl_.get();
+    if (impl->callbacks.httpRequest) impl->networkThread = std::jthread([impl] { impl->NetworkLoop(); });
     impl->thread = std::jthread([impl] { impl->Run(); });
     return instance;
 }
 PluginRuntime::~PluginRuntime() = default;
-void PluginRuntime::Stop() noexcept { impl_->stop.store(true); impl_->changed.notify_all(); }
+void PluginRuntime::Stop() noexcept {
+    impl_->stop.store(true); impl_->networkStop.request_stop();
+    impl_->changed.notify_all(); impl_->networkChanged.notify_all();
+}
 bool PluginRuntime::Running() const noexcept { return impl_->running.load(); }
 bool PluginRuntime::InvokeMenu(std::string id, std::string revision) {
     if (impl_->stop.load() || id.empty() || id.size() > 128 || revision.empty() || revision.size() > 128 ||

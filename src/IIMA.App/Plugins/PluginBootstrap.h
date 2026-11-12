@@ -1,6 +1,6 @@
 // Derived from IINA JavascriptPluginInstance.createJSContext,
 // JavascriptAPICore.extraSetup, JavascriptAPIPreferences, JavascriptAPIMenu,
-// JavascriptPluginMenuItem, JavascriptAPIFile and JavascriptPolyfill.register.
+// JavascriptPluginMenuItem, JavascriptAPIFile, JavascriptAPIHttp and JavascriptPolyfill.register.
 // Copyright (c) 2018-2020 lhc and IINA contributors. GPL-3.0.
 #pragma once
 namespace iima::plugins {
@@ -335,6 +335,72 @@ inline constexpr char PluginBootstrap[] = R"IIMAJS(
     showInFinder: () => missing('file.showInFinder'),
     move: () => missing('file.move')
   });
+  // JavascriptAPIHttp.request -> Promise -> HTTPResult.toDict. Transport runs
+  // on a separate native worker; only request/result JSON crosses threads.
+  function httpString(value, limit) {
+    if (typeof value !== 'string' || value.length > limit || utf8Bytes(value) > limit || includes(value, '\0'))
+      throw new TypeError('HTTP strings must fit their UTF-8 limit and contain no NUL');
+    return fileUnicode(value);
+  }
+  function httpObject(value) {
+    if (value === undefined || value === null) return create(null);
+    if (typeof value !== 'object' || isArray(value) ||
+        (getPrototype(value) !== null && getPrototype(value) !== objectPrototype))
+      throw new TypeError('HTTP options and maps must be ordinary objects');
+    return value;
+  }
+  function httpField(object, key) {
+    const field = descriptor(object, key);
+    if (!field || !hasOwn(field, 'value') || !field.enumerable)
+      throw new TypeError('HTTP options require enumerable data properties');
+    return field.value;
+  }
+  function httpMap(value) {
+    value = httpObject(value);
+    const keys = ownKeys(value);
+    if (keys.length > 64) throw new RangeError('HTTP maps are limited to 64 entries');
+    let json = '{', bytes = 0;
+    for (let index = 0; index < keys.length; ++index) {
+      const key = httpString(keys[index], 1024);
+      const item = httpString(httpField(value, key), 16384);
+      const pair = (index ? ',' : '') + stringify(key) + ':' + stringify(item);
+      bytes += utf8Bytes(pair);
+      if (bytes > 65536) throw new RangeError('HTTP map exceeds 64 KiB');
+      json += pair;
+    }
+    return {json: json + '}', count: keys.length};
+  }
+  function httpRequest(method, url, options) {
+    url = httpString(url, 8192);
+    if (!url.length) throw new TypeError('HTTP URL must not be empty');
+    options = httpObject(options);
+    const keys = ownKeys(options);
+    if (keys.length > 3) throw new TypeError('Unsupported HTTP options');
+    let encoded = '{';
+    for (let index = 0; index < keys.length; ++index) {
+      const key = keys[index];
+      if (key !== 'params' && key !== 'headers' && key !== 'data')
+        throw new TypeError('Only params, headers and form data are supported');
+      const value = httpMap(httpField(options, key));
+      if (method === 'GET' && key === 'data' && value.count)
+        throw new TypeError('GET request body is not supported');
+      if (index) encoded += ',';
+      encoded += stringify(key) + ':' + value.json;
+    }
+    encoded += '}';
+    const request = '{"method":' + stringify(method) + ',"url":' + stringify(url) + ',"options":' + encoded + '}';
+    if (utf8Bytes(request) > 131072) throw new RangeError('HTTP request exceeds 128 KiB');
+    return host.httpRequest(request);
+  }
+  const http = namespace('http', {
+    get: (url, options) => httpRequest('GET', url, options),
+    post: (url, options) => httpRequest('POST', url, options),
+    put: (url, options) => httpRequest('PUT', url, options),
+    patch: (url, options) => httpRequest('PATCH', url, options),
+    delete: (url, options) => httpRequest('DELETE', url, options),
+    xmlrpc: () => missing('http.xmlrpc'),
+    download: () => missing('http.download')
+  });
   // JavascriptAPIMenu/JavascriptPluginMenuItem. Keep callbacks in the worker's
   // JS heap; only immutable JSON crosses to native UI. A WeakMap does not keep
   // detached menu objects alive when the plugin releases them.
@@ -537,7 +603,7 @@ inline constexpr char PluginBootstrap[] = R"IIMAJS(
     if (result === true) host.warn('Mouse callback return cannot consume input in IIMA');
   });
   Object.defineProperty(globalThis, 'iina', {
-    value: namespace('iina', {core, console: consoleApi, event, preferences, menu, input, file}),
+    value: namespace('iina', {core, console: consoleApi, event, preferences, menu, input, file, http}),
     writable: false, configurable: false
   });
   Object.defineProperty(globalThis, 'console', {value: consoleApi, configurable: false});
