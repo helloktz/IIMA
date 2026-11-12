@@ -6,6 +6,7 @@
 #include "../Screenshots/ScreenshotOptions.h"
 #include <algorithm>
 #include <cmath>
+#include <charconv>
 
 namespace iima {
 PlayerSession::PlayerSession(Dispatch dispatch, Changed changed)
@@ -204,7 +205,81 @@ void PlayerSession::Stop() {
 }
 void PlayerSession::SetVolume(double value) {
     if(snapshot_.session==SessionState::Ready && std::isfinite(value))
-        client_->Command({"set","volume",std::to_string(std::clamp(value,0.0,settings_.maxVolume))});
+        SubmitVolumeCommand({"set","volume",std::to_string(std::clamp(value,0.0,settings_.maxVolume))});
+}
+// IINA PlayerCore.setVolume remembers constrainedVolume. Windows waits for
+// command success and a serialized readback instead of persisting an optimistic
+// UI value. All callbacks and this bookkeeping belong to the UI dispatcher.
+void PlayerSession::SubmitVolumeCommand(std::vector<std::string> arguments) {
+    if (applyingSettingsVolume_) { client_->Command(std::move(arguments)); return; }
+    if (volumeCommands_.size() >= 256) {
+        snapshot_.error = "Too many pending volume changes; wait before adjusting volume again";
+        Notify(); return;
+    }
+    // Allocate before submission, so allocation failure cannot orphan a command
+    // whose result we promised to remember.
+    volumeCommands_.reserve(volumeCommands_.size() + 1);
+    auto request = client_->Command(std::move(arguments));
+    if (!request) {
+        snapshot_.error = "Volume change could not be queued"; Notify(); return;
+    }
+    ++volumeRevision_;
+    volumeCommands_.push_back(request);
+}
+void PlayerSession::PumpVolumeMemoryRead() {
+    if (snapshot_.session != SessionState::Ready || !volumeMemoryDirty_ ||
+        !volumeCommands_.empty() || volumeReadRequest_) return;
+    volumeReadRequest_ = client_->ReadWatchedPropertiesAsync({"volume"});
+    if (volumeReadRequest_) {
+        volumeReadRevision_ = volumeRevision_;
+        volumeMemoryDirty_ = false;
+    } else {
+        volumeMemoryDirty_ = false;
+        snapshot_.error = "Volume changed, but its readback could not be queued";
+        Notify();
+    }
+}
+bool PlayerSession::HandleVolumeMemoryEvent(MpvEvent const& event) {
+    if (event.kind == MpvEvent::Kind::Failure || event.kind == MpvEvent::Kind::Shutdown) {
+        volumeCommands_.clear(); volumeReadRequest_ = 0; volumeMemoryDirty_ = false;
+        return false;
+    }
+    if (event.kind == MpvEvent::Kind::CommandReply) {
+        auto found = std::find(volumeCommands_.begin(), volumeCommands_.end(), event.requestId);
+        if (found == volumeCommands_.end()) return false;
+        volumeCommands_.erase(found);
+        if (event.error >= 0) volumeMemoryDirty_ = true;
+        PumpVolumeMemoryRead();
+        return false; // Preserve the ordinary command error reporting path.
+    }
+    if (event.kind != MpvEvent::Kind::WatchedPropertiesReply || !volumeReadRequest_ ||
+        event.requestId != volumeReadRequest_) return false;
+    volumeReadRequest_ = 0;
+    if (!volumeCommands_.empty() || volumeReadRevision_ != volumeRevision_) {
+        // A newer intent arrived after this read was enqueued. Wait for its
+        // reply, then read once more; never roll remembered volume backward.
+        volumeMemoryDirty_ = true;
+        PumpVolumeMemoryRead();
+        return true;
+    }
+    bool accepted = false;
+    if (event.text.empty() && event.watchedProperties.size() == 1) {
+        auto const& property = event.watchedProperties.front();
+        double value{};
+        const auto [end, error] = std::from_chars(property.value.data(),
+            property.value.data() + property.value.size(), value);
+        if (property.name == "volume" && property.error.empty() && !property.truncated &&
+            error == std::errc{} && end == property.value.data() + property.value.size() &&
+            std::isfinite(value) && value >= 0 && value <= 1000) {
+            snapshot_.rememberedVolume = std::min(value, settings_.maxVolume);
+            ++snapshot_.rememberedVolumeRevision;
+            accepted = true;
+        }
+    }
+    if (!accepted) snapshot_.error = "Volume changed, but its value could not be read back for the next player";
+    Notify();
+    PumpVolumeMemoryRead();
+    return true;
 }
 void PlayerSession::SetSpeed(double value) {
     if(snapshot_.session==SessionState::Ready && std::isfinite(value) && value>=0.01 && value<=100)
@@ -219,8 +294,15 @@ void PlayerSession::ApplySettings(UserSettings const& settings) {
     settings_=settings;
     SetPauseWhenOpen(settings.pauseWhenOpen);
     if(snapshot_.session!=SessionState::Ready) { applySettingsOnReady_=snapshot_.session==SessionState::Initializing; return; }
-    SetMaxVolume(settings.maxVolume);
-    SetVolume(settings.volume);
+    // Applying startup/preferences is not an explicit user volume action.
+    // Even a reduced maximum must not convert the initial value into memory.
+    struct RestoreFlag { bool& flag; bool old; ~RestoreFlag() { flag = old; } };
+    {
+        RestoreFlag restore{applyingSettingsVolume_, applyingSettingsVolume_};
+        applyingSettingsVolume_ = true;
+        SetMaxVolume(settings.maxVolume);
+        SetVolume(settings.volume);
+    }
     SetSpeed(settings.speed);
     SetMuted(settings.muted);
     SetSubtitlesVisible(settings.subtitlesVisible);
@@ -305,6 +387,7 @@ void PlayerSession::CancelWatchedProperties() {
 }
 void PlayerSession::OnEvent(MpvEvent e) {
     if(snapshot_.session==SessionState::Closing || snapshot_.session==SessionState::Closed) return;
+    if (HandleVolumeMemoryEvent(e)) return;
     if (e.kind == MpvEvent::Kind::WatchedPropertiesReply) {
         if (watchedPropertiesRequest_ && e.requestId == watchedPropertiesRequest_) {
             watchedPropertiesRequest_ = 0;

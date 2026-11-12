@@ -16,6 +16,10 @@ struct PlaybackSnapshot {
     std::optional<double> timeRemaining, playtimeRemaining;
     std::string abLoopCount{"inf"};
     double volume{100}, speed{1}, maxVolume{100}, audioDelay{}, subtitleDelay{};
+    // Confirmed result of explicit application volume commands, not startup
+    // initialization or a synthesized default/property observation.
+    std::optional<double> rememberedVolume;
+    std::uint64_t rememberedVolumeRevision{};
     bool muted{}, subtitlesVisible{true};
     // IINA MPVController/PlaybackInfo track the two subtitle slots separately.
     // track-list.selected is not a primary-slot identifier. Preserve mpv's

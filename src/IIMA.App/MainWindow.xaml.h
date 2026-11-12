@@ -61,6 +61,7 @@ private:
     Microsoft::UI::Xaml::Controls::ContentDialog openUrlDialog_{nullptr};
     void WireWindowPlacement();
     void CapturePlacement();
+    std::uint64_t lastVolumeMemoryRevision_{};
     void ApplyInitialWindowGeometry();
     void RestorePlacement(std::optional<iima::WindowPlacementSnapshot> saved);
     void SaveWindowPlacement();

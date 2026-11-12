@@ -129,7 +129,6 @@ void MainWindow::WirePlaybackControls()
     VolumeSlider().ValueChanged([weak](auto const&, auto const& args) {
         if (auto self = weak.get(); self && !self->updating_ && !self->closing_) {
             self->session_->SetVolume(args.NewValue());
-            self->userData_.settings.volume = args.NewValue(); self->MarkUserDataDirty();
         }
     });
 

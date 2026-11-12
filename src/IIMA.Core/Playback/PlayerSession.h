@@ -149,6 +149,12 @@ private:
     Changed changed_;
     std::unique_ptr<MpvClient> client_;
     PlaybackSnapshot snapshot_;
+    void SubmitVolumeCommand(std::vector<std::string> arguments);
+    bool HandleVolumeMemoryEvent(MpvEvent const& event);
+    void PumpVolumeMemoryRead();
+    std::vector<std::uint64_t> volumeCommands_;
+    std::uint64_t volumeRevision_{}, volumeReadRevision_{}, volumeReadRequest_{};
+    bool volumeMemoryDirty_{}, applyingSettingsVolume_{};
     UserSettings settings_;
     bool applySettingsOnReady_{};
     settings::PreferenceStore advancedPreferences_;

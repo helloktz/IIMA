@@ -4,6 +4,7 @@
 #include "MainWindow.xaml.h"
 #include "Platform/UserDataStore.h"
 #include <chrono>
+#include <algorithm>
 #include <thread>
 #include <winrt/Microsoft.UI.Dispatching.h>
 
@@ -77,6 +78,15 @@ void MainWindow::WireUserDataControls()
 void MainWindow::ApplyUserData(iima::PlaybackSnapshot const& state)
 {
     if (!userDataLoaded_) return;
+    if (settingsApplied_ && state.rememberedVolume && !closing_ &&
+        lastVolumeMemoryRevision_ != state.rememberedVolumeRevision) {
+        lastVolumeMemoryRevision_ = state.rememberedVolumeRevision;
+        const auto value = std::clamp(*state.rememberedVolume, 0.0, userData_.settings.maxVolume);
+        if (userData_.settings.volume != value) {
+            userData_.settings.volume = value;
+            MarkUserDataDirty();
+        }
+    }
     // Reloading the same playlist entry is a new open even though its ID is
     // unchanged. Re-arm the fullscreen preference at the loading boundary.
     if (state.media == iima::MediaState::Loading || state.media == iima::MediaState::Empty)

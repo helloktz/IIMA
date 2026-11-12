@@ -975,3 +975,13 @@ Windows新增只读`ReadFullscreenInformation`：GetTimeFormatEx按用户区域�
 保留宽度优先、高度回退、零值保持原尺寸、当前框架宽高比、尺寸百分比、正负边缘偏移和百分比中心锚点。新增 ResolveVisible 按同一缩放因子满足最小尺寸并服从工作区上限，拟合后重新计算锚点和限制位置，避免超大值/断开屏幕使窗口不可达。Windows 坐标采用左上原点，负号从右/下计算；绝对值为物理像素，最小窗口按 DPI 调整。它控制含侧栏/边框的外框，不冒充视频区域尺寸。工作区过小优先可见范围。
 
 差异与边界：本批对应 IINA 初始 windowDidLoad 几何应用，不包含打开媒体后按视频宽高比再应用、resizeWindowTiming/Option、mpv geometry 外部同步；已有手动视频尺寸缩放独立。无自动重试，保存加载期间用户交互优先；平台异步窗口通知及强制最小尺寸仍需原生验证。来源版权许可保留，未编译测试运行，仅静态审阅和 diff 检查。
+
+## 第九十三批：跨输入入口的音量记忆
+
+源链 `PlayerCore.setVolume → constrainedVolume → Preference.softVolume`；`MPVController.mpvInit` 在未启用初始音量时读取 softVolume，音量 property-change 更新 PlaybackInfo/UI。原 IIMA 只有滑块直接保存请求值，快捷键、插件 audio.volume 和原生相对滚轮没有更新下次播放器音量。
+
+统一 PlayerSession 的绝对 SetVolume 和相对滚轮入口，最多256个未回复音量命令。每个成功 command reply 标记需要记忆，等本批命令回复后经同一 MpvClient 串行队列 ReadWatchedPropertiesAsync 读 `volume`，独立 request ID，不占用检查器回调槽。严格解析有限0..1000数值、按最大音量约束，发布独立 rememberedVolume 与 revision；窗口只消费新修订一次，交给既有用户数据合并保存链。失败命令不保存猜测值；失败读回提示但不自动循环重试；读回后有更新意图则废弃旧值并再次等待/读回。滚轮保持 mpv 原生 add，不通过过期 UI 音量累加。滑块不再直接乐观写盘。
+
+启动 ApplySettings 包括初始音量与最大音量应用明确抑制记忆，避免初始值覆盖既存软音量。UI 的播放快照继续仅由 mpv 观察驱动，不把记忆读回冒充 property-change。最大音量编辑原有持久化钳制保留，新修订消费也按当前用户上限钳制，避免旧记忆快照在后续无关事件恢复超限值。
+
+区别：IINA 在 setVolume 意图时记忆；此处等待成功与实际读回。快照读回不是与外部客户端的原子事务，外部脚本若在成功命令和读回之间改音量，记忆的是读回时实际值；没有任何应用音量动作时，不跟踪外部任意 mpv 变化。关闭/worker失败前未完成的读回不强行等待、不猜测记忆，已有保存机制可能失败且仍需其正常反馈。仅静态源码审阅与 diff 检查，未编译/测试/播放/写入实际用户数据。

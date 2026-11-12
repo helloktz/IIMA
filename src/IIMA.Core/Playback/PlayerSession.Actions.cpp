@@ -19,7 +19,7 @@ void PlayerSession::SeekRelativeWithMode(double seconds, RelativeSeekMode mode) 
 void PlayerSession::AdjustVolumeByWheel(double delta) {
     if (snapshot_.session != SessionState::Ready || snapshot_.media != MediaState::Loaded ||
         !std::isfinite(delta) || delta == 0 || std::abs(delta) > 64) return;
-    client_->Command({"add", "volume", std::to_string(delta)});
+    SubmitVolumeCommand({"add", "volume", std::to_string(delta)});
 }
 void PlayerSession::StepFrame(bool backwards) {
     CancelWindowPausePolicy();
