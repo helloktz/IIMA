@@ -52,6 +52,7 @@ MainWindow::MainWindow()
     WireMouseWheel();
     WireControlBarVisibility();
     WireMouseClicks();
+    WireTimeDisplay();
     WireOSD();
     WireAdvancedPlayback();
     OpenButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->ExecuteApplicationCommand(iima::ApplicationCommand::OpenFile); });
@@ -219,7 +220,7 @@ void MainWindow::Apply(iima::PlaybackSnapshot const& state)
     PositionSlider().IsEnabled(seekable && outputReady);
     PositionSlider().Maximum(seekable ? *state.duration : 1.0);
     PositionSlider().Value(state.position.value_or(0));
-    TimeLabel().Text(Clock(state.position) + L" / " + Clock(state.duration));
+    UpdateTimeDisplay(state);
     ABLoopLabel().Text(L"A: " + Clock(state.abLoopA) + L"  B: " + Clock(state.abLoopB));
     EmptyLabel().Visibility(loaded ? Visibility::Collapsed : Visibility::Visible);
     if (!presentationError.empty()) ShowError(presentationError);

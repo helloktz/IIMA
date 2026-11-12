@@ -673,3 +673,11 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 - 只接收鼠标及视频表面，触摸/笔、修饰键、模态、关闭、未载入和不适合播放快捷操作的输入焦点不处理。插件鼠标仍是原有观察路径，不新增插件抢占或消费控制权。
 - hide-controls遵守自动隐藏关闭偏好、焦点及悬停保护；不隐藏系统光标。PIP使用Windows CompactOverlay既有命令。中键/X键未新增动作，也不暴露未接线的中键偏好；不是全部Cocoa鼠标语义等价移植。不同位置连续单击在单次延迟窗口内只保留最后一次待处理动作，需后续交互评估。
 - 未编译、测试或运行；静态源码接线，真实WinUI手势事件顺序和系统双击阈值仍待确认。
+
+## 第六十六批：可切换时间标签与速度相关剩余时间
+
+- 追踪 IINA `DurationDisplayTextField.switchMode/updateText/setPrecision`、`PlayerCore.fileLoaded` 及周期同步时选择 `time-remaining/full` 或 `playtime-remaining/full` 的规则。此前三项时间显示偏好只有schema，本批接通showRemainingTime、scaleRemainingTime和timeDisplayPrecision。
+- MpvClient观察两个剩余时间属性的DOUBLE值；PlaybackSnapshot分别持有可选观察值，START_FILE清除，失败/非有限/负数置未知。使用固定mpv `mp_property_remaining/mp_property_playtime_remaining`，不根据客户端旧position/speed自行猜测，DOUBLE无需字符串/full解析。
+- WinUI当前时间和右侧时间分离；右侧为可键盘操作按钮，点击在总时长/剩余时间之间切换并保存，右击菜单选择秒/100ms/10ms/1ms精度。使用已移植VideoTime格式化，剩余时间前置负号；未知显示--:--，非载入状态不保留旧媒体时间。辅助名称说明当前模式及切换动作，缩放剩余时间偏好仍在高级设置中。
+- 平台差异：右侧按钮替代Cocoa可点击标签，不提供Touch Bar；精度菜单不绘制当前项勾选，仅修改设置和即时文字。负剩余时间不展示双负号而视为未知。总时长/剩余均是媒体估计，不是实际完成时间保证。既有多窗口设置没有实时广播，本批不宣称所有窗口立刻同步。
+- 未编译、测试或运行，mpv属性事件顺序、XAML菜单及辅助技术实际反馈仍待验证。

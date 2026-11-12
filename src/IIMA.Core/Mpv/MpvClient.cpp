@@ -82,7 +82,7 @@ struct MpvClient::State {
                 check(api.set_option_string(handle, name, value), name);
             check(api.initialize(handle), "mpv_initialize");
             std::uint64_t id = 1;
-            for (auto const* name : {"time-pos", "duration", "volume", "speed", "volume-max", "audio-delay", "sub-delay", "secondary-sub-delay", "sub-pos", "secondary-sub-pos", "sub-scale", "secondary-sub-scale", "ab-loop-a", "ab-loop-b", "video-bitrate", "audio-bitrate", "file-size"})
+            for (auto const* name : {"time-pos", "duration", "time-remaining", "playtime-remaining", "volume", "speed", "volume-max", "audio-delay", "sub-delay", "secondary-sub-delay", "sub-pos", "secondary-sub-pos", "sub-scale", "secondary-sub-scale", "ab-loop-a", "ab-loop-b", "video-bitrate", "audio-bitrate", "file-size"})
                 check(api.observe_property(handle, id++, name, MPV_FORMAT_DOUBLE), name);
             for (auto const* name : {"pause", "paused-for-cache", "vo-configured", "mute", "sub-visibility", "secondary-sub-visibility", "seekable"})
                 check(api.observe_property(handle, id++, name, MPV_FORMAT_FLAG), name);

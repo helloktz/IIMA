@@ -274,6 +274,8 @@ private:
     void UpdatePlaylistSelection();
     void WirePlaylistDrag();
     void WireMouseWheel();
+    void WireTimeDisplay();
+    void UpdateTimeDisplay(iima::PlaybackSnapshot const& state);
     void WireMouseClicks();
     bool MouseClickAllowed();
     void CancelMouseClick();

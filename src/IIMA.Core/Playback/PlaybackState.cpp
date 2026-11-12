@@ -28,6 +28,7 @@ void ApplyPlaybackEvent(PlaybackSnapshot& s, MpvEvent const& e) {
     case MpvEvent::Kind::StartFile:
         s.media=MediaState::Loading; s.entryId=e.entryId; s.swapChain.reset();
         s.position.reset(); s.duration.reset(); s.path.clear();
+        s.timeRemaining.reset(); s.playtimeRemaining.reset();
         s.abLoopA.reset(); s.abLoopB.reset(); s.abLoopCount.clear();
         s.seekable=false; s.mediaTitle.clear(); s.metadataTitle.clear(); s.metadataAlbum.clear(); s.metadataArtist.clear();
         s.metadata.clear(); s.videoParameters.clear(); s.audioParameters.clear();
@@ -106,6 +107,10 @@ void ApplyPlaybackEvent(PlaybackSnapshot& s, MpvEvent const& e) {
         else if(e.name=="ab-loop-count") s.abLoopCount=e.text;
         else if(e.name=="time-pos") s.position=e.number && std::isfinite(*e.number) ? e.number : std::nullopt;
         else if(e.name=="duration") s.duration=e.number && std::isfinite(*e.number) && *e.number>=0 ? e.number : std::nullopt;
+        else if(e.name=="time-remaining" || e.name=="playtime-remaining") {
+            auto& remaining = e.name=="time-remaining" ? s.timeRemaining : s.playtimeRemaining;
+            remaining = e.error>=0 && e.number && std::isfinite(*e.number) && *e.number>=0 ? e.number : std::nullopt;
+        }
         else if(e.name=="pause" && e.flag) s.paused=*e.flag;
         else if(e.name=="paused-for-cache" && e.flag) s.buffering=*e.flag;
         else if(e.name=="volume" && e.number && std::isfinite(*e.number)) s.volume=*e.number;

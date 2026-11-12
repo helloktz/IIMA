@@ -11,6 +11,7 @@ struct PlaybackSnapshot {
     MediaState media{MediaState::Empty};
     bool paused{true}, seeking{}, buffering{};
     std::optional<double> position, duration, abLoopA, abLoopB;
+    std::optional<double> timeRemaining, playtimeRemaining;
     std::string abLoopCount{"inf"};
     double volume{100}, speed{1}, maxVolume{100}, audioDelay{}, subtitleDelay{};
     bool muted{}, subtitlesVisible{true};
