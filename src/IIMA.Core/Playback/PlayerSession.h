@@ -94,6 +94,10 @@ public:
     void RemoveVideoFilter(std::string label);
     void AddFilter(bool audio, std::string expression);
     void EditFilters(bool audio, FilterEditPlan plan);
+    // Accepted requests receive one UI-thread reply plus owned readback; set
+    // success alone does not prove the expected chain or current media matches.
+    using FilterEditCompleted = std::function<void(bool, FilterChainSnapshot, std::string)>;
+    bool EditFiltersWithCompletion(bool audio, FilterEditPlan plan, FilterEditCompleted completion);
     void SetCompositionSize(unsigned width, unsigned height);
     // Local preferences never overwrite observed playback fields. Call on UI thread.
     void ApplySettings(UserSettings const& settings);
@@ -131,6 +135,9 @@ private:
     void CancelWindowPausePolicy();
     void SubmitWindowPauseDirective(std::optional<settings::WindowPauseDirective> directive);
     void HandleWindowPauseReply(MpvEvent const& event);
+    void HandleFilterEditReply(MpvEvent const& event);
+    void CancelFilterEditCallbacks();
+    std::map<std::uint64_t, FilterEditCompleted> filterEditCallbacks_;
     void PausedCommand(std::vector<std::string> command);
     void BeginPlaylistEdit(PlaylistEditPlan plan, std::optional<bool> shuffledAfter = {});
     void AdvancePlaylistEdit(std::span<const PlaylistItem> refreshed);

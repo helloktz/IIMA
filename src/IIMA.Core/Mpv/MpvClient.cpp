@@ -55,6 +55,8 @@ struct MpvClient::State {
         bool watchedPropertiesQuery{};
         bool audioFilters{};
         std::optional<FilterEditPlan> filterEdit;
+        std::optional<std::int64_t> filterEntry;
+        std::string filterPath;
     };
     std::deque<Request> commands;
     std::vector<std::function<void()>> closedCallbacks;
@@ -97,6 +99,25 @@ struct MpvClient::State {
                 check(api.observe_property(handle, id++, name, MPV_FORMAT_INT64), name);
             MpvEvent ready{MpvEvent::Kind::Ready}; ready.flag=api.acquireSwapChain!=nullptr; ready.integer=api.client_api_version(); Emit(std::move(ready));
             std::uint64_t inFlight{};
+            std::string inFlightFilter;
+            auto readFilterResult = [&](MpvEvent& event, std::string const& name) {
+                event.name = name;
+                mpv_node value{};
+                auto result = api.get_property(handle,name.c_str(),MPV_FORMAT_NODE,&value);
+                if (result >= 0) {
+                    event.filters = ParseFilterChain(value);
+                    api.free_node_contents(&value);
+                } else event.filters.error = api.error_string(result);
+                std::int64_t position{-1};
+                if (api.get_property(handle,"playlist-playing-pos",MPV_FORMAT_INT64,&position) >= 0 && position >= 0) {
+                    auto idProperty = "playlist/" + std::to_string(position) + "/id";
+                    api.get_property(handle,idProperty.c_str(),MPV_FORMAT_INT64,&event.entryId);
+                }
+                char* rawPath{};
+                if (api.get_property(handle,"path",MPV_FORMAT_STRING,&rawPath) >= 0 && rawPath)
+                    event.properties["path"] = rawPath;
+                std::unique_ptr<char,decltype(api.free)> path(rawPath,api.free);
+            };
             bool done = false;
             while (!done) {
                 std::optional<Request> pending;
@@ -105,6 +126,7 @@ struct MpvClient::State {
                 // client.h explicitly permits async command reordering. Serialize at replies.
                 if(pending) {
                     const auto request=pending->id;
+                    inFlightFilter.clear();
                     int error{};
                     if (pending->watchedPropertiesQuery) {
                         MpvEvent result{MpvEvent::Kind::WatchedPropertiesReply};
@@ -137,8 +159,24 @@ struct MpvClient::State {
                         continue;
                     } else if (pending->filterEdit) {
                         auto name = pending->audioFilters ? "af" : "vf";
+                        inFlightFilter = name;
+                        if (pending->filterEntry) {
+                            // Bind tracked edits to the actual playing entry, not
+                            // a cached UI row. Still not an atomic mpv transaction.
+                            std::int64_t position{-1}, entry{-1};
+                            error = api.get_property(handle,"playlist-playing-pos",MPV_FORMAT_INT64,&position);
+                            if (error >= 0 && position >= 0) {
+                                auto property = "playlist/" + std::to_string(position) + "/id";
+                                error = api.get_property(handle,property.c_str(),MPV_FORMAT_INT64,&entry);
+                            } else error = MPV_ERROR_PROPERTY_UNAVAILABLE;
+                            char* rawPath{};
+                            if (error >= 0) error = api.get_property(handle,"path",MPV_FORMAT_STRING,&rawPath);
+                            std::unique_ptr<char,decltype(api.free)> path(rawPath,api.free);
+                            if (error >= 0 && (entry != *pending->filterEntry || !rawPath || pending->filterPath != rawPath))
+                                error = MPV_ERROR_PROPERTY_ERROR;
+                        }
                         mpv_node fresh{};
-                        error = api.get_property(handle, name, MPV_FORMAT_NODE, &fresh);
+                        if (error >= 0) error = api.get_property(handle, name, MPV_FORMAT_NODE, &fresh);
                         if (error >= 0) {
                             auto snapshot = ParseFilterChain(fresh);
                             api.free_node_contents(&fresh);
@@ -161,6 +199,7 @@ struct MpvClient::State {
                         MpvEvent e{pending->playlistQuery ? MpvEvent::Kind::PlaylistReply : MpvEvent::Kind::CommandReply};
                         e.requestId=request; e.error=error; e.text=api.error_string(error);
                         if(pending->playlistQuery) e.name="playlist";
+                        if (!inFlightFilter.empty()) { readFilterResult(e,inFlightFilter); inFlightFilter.clear(); }
                         Emit(std::move(e));
                     } else inFlight=request;
                 }
@@ -184,7 +223,10 @@ struct MpvClient::State {
                 case MPV_EVENT_VIDEO_RECONFIG: e.kind=MpvEvent::Kind::VideoReconfig; break;
                 case MPV_EVENT_SET_PROPERTY_REPLY:
                     e.kind = MpvEvent::Kind::CommandReply;
-                    if (e.requestId == inFlight) inFlight = 0;
+                    if (e.requestId == inFlight) {
+                        if (!inFlightFilter.empty()) { readFilterResult(e,inFlightFilter); inFlightFilter.clear(); }
+                        inFlight = 0;
+                    }
                     break;
                 case MPV_EVENT_COMMAND_REPLY: {
                     e.kind=MpvEvent::Kind::CommandReply; if(e.requestId==inFlight) inFlight=0;
@@ -341,13 +383,15 @@ std::uint64_t MpvClient::ReadWatchedPropertiesAsync(std::vector<std::string> nam
     state_->commands.push_back(std::move(request));
     return id;
 }
-std::uint64_t MpvClient::EditFilterChainAsync(bool audio, FilterEditPlan plan) {
+std::uint64_t MpvClient::EditFilterChainAsync(bool audio, FilterEditPlan plan,
+    std::optional<std::int64_t> expectedEntry, std::string expectedPath) {
     std::lock_guard lock(state_->mutex);
     if (state_->closing || !state_->started || !plan.valid) return 0;
     const auto id = state_->nextId++;
     State::Request request{id, {}, false};
     request.audioFilters = audio;
     request.filterEdit = std::move(plan);
+    request.filterEntry = expectedEntry; request.filterPath = std::move(expectedPath);
     state_->commands.push_back(std::move(request));
     return id;
 }

@@ -24,4 +24,39 @@ void PlayerSession::EditFilters(bool audio, FilterEditPlan plan) {
     // authoritative. A competing script can still change the chain between
     // worker get/set; mpv has no compare-and-swap property API.
 }
+bool PlayerSession::EditFiltersWithCompletion(bool audio, FilterEditPlan plan, FilterEditCompleted completion) {
+    if (snapshot_.session != SessionState::Ready || !completion || filterEditCallbacks_.size() >= 8 ||
+        !plan.valid || !plan.FreshMatches(audio ? snapshot_.audioFilters : snapshot_.videoFilters)) return false;
+    auto id = client_->EditFilterChainAsync(audio,std::move(plan),snapshot_.entryId,snapshot_.path);
+    if (!id) return false;
+    filterEditCallbacks_.emplace(id,std::move(completion));
+    return true;
+}
+void PlayerSession::HandleFilterEditReply(MpvEvent const& event) {
+    if (event.kind == MpvEvent::Kind::Failure || event.kind == MpvEvent::Kind::Shutdown) {
+        CancelFilterEditCallbacks(); return;
+    }
+    if (event.kind != MpvEvent::Kind::CommandReply) return;
+    auto found = filterEditCallbacks_.find(event.requestId);
+    if (found == filterEditCallbacks_.end()) return;
+    auto callback = std::move(found->second); filterEditCallbacks_.erase(found);
+    auto path = event.properties.find("path");
+    if (event.entryId != snapshot_.entryId || path == event.properties.end() || path->second != snapshot_.path) {
+        callback(false,{},"Media changed or could not be identified during filter readback"); return;
+    }
+    // Readback is copied on the sole mpv worker immediately after the set reply.
+    // A successful set without a complete readback is not restoration proof.
+    if (event.filters.complete && (event.name == "vf" || event.name == "af")) {
+        auto& target = event.name == "vf" ? snapshot_.videoFilters : snapshot_.audioFilters;
+        auto revision = target.revision + 1;
+        target = event.filters; target.revision = revision;
+    }
+    callback(event.error >= 0, event.filters, event.text);
+}
+void PlayerSession::CancelFilterEditCallbacks() {
+    auto callbacks = std::move(filterEditCallbacks_); filterEditCallbacks_.clear();
+    for (auto& [id, callback] : callbacks) if (callback)
+        callback(false,{},"Player stopped before filter edit readback; outcome unconfirmed");
+}
+
 }

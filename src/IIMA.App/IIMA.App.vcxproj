@@ -119,6 +119,7 @@
     <ClCompile Include="MainWindow.Playlist.cpp" />
     <ClCompile Include="MainWindow.MouseWheel.cpp" />
     <ClCompile Include="MainWindow.InteractiveCrop.cpp" />
+    <ClCompile Include="MainWindow.CropTransaction.cpp" />
     <ClCompile Include="MainWindow.TimeDisplay.cpp" />
     <ClCompile Include="MainWindow.MouseClicks.cpp" />
     <ClCompile Include="MainWindow.ControlBar.cpp" />

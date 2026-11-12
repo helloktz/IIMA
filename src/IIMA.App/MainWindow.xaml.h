@@ -283,6 +283,16 @@ private:
     std::optional<iima::CropMapping> InteractiveCropMapping() const;
     iima::CropSelection interactiveCrop_;
     std::optional<iima::CropMapping> cropMapping_;
+    enum class CropTransactionPhase { None, Removing, Preparing, Editing, Writing };
+    CropTransactionPhase cropTransactionPhase_{CropTransactionPhase::None};
+    std::optional<iima::FilterChainSnapshot> cropOriginal_;
+    iima::FilterNode cropExpectedEmpty_;
+    std::uint64_t cropTransactionGeneration_{};
+    bool cropCancelRequested_{};
+    void BeginManagedCropTransaction();
+    void FinishManagedCropTransaction(bool commit);
+    void CompleteManagedCropTransaction(bool restorePlayback);
+    void AbandonManagedCropTransaction(winrt::hstring const& message);
     std::optional<std::uint32_t> cropPointer_;
     std::uint64_t interactiveCropEpoch_{}, interactiveCropFilterRevision_{};
     std::int64_t interactiveCropEntry_{-1};

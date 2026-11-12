@@ -85,7 +85,8 @@ public:
     // Each property may fail independently. 0 means rejected before enqueue.
     std::uint64_t ReadWatchedPropertiesAsync(std::vector<std::string> names);
     // Fresh read/compare and typed node write in the serialized worker.
-    std::uint64_t EditFilterChainAsync(bool audio, FilterEditPlan plan);
+    std::uint64_t EditFilterChainAsync(bool audio, FilterEditPlan plan,
+        std::optional<std::int64_t> expectedEntry = {}, std::string expectedPath = {});
     // Nonblocking; completion runs on worker AFTER terminate_destroy and DLL release.
     void CloseAsync(std::function<void()> completion = {});
 private:

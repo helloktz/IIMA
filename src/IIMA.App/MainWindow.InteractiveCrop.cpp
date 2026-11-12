@@ -133,7 +133,7 @@ void MainWindow::WireInteractiveCrop() {
     InteractiveCropCanvas().PointerCanceled(cancel);
     InteractiveCropCanvas().PointerCaptureLost(cancel);
     Root().PreviewKeyDown([weak](auto const&, Input::KeyRoutedEventArgs const& args) {
-        auto self = weak.get(); if (!self || !self->interactiveCrop_.Active()) return;
+        auto self = weak.get(); if (!self || (!self->interactiveCrop_.Active() && !self->cropOriginal_)) return;
         if (args.Key() == Windows::System::VirtualKey::Escape) {
             self->FinishInteractiveCrop(false); args.Handled(true);
         } else if (args.Key() == Windows::System::VirtualKey::Enter) {
@@ -157,24 +157,33 @@ void MainWindow::WireInteractiveCrop() {
     });
 }
 void MainWindow::StartInteractiveCrop() {
-    if (closing_ || pickerOpen_ || interactiveCrop_.Active()) return;
+    if (closing_ || pickerOpen_ || interactiveCrop_.Active() ||
+        cropTransactionPhase_ == CropTransactionPhase::Removing || cropTransactionPhase_ == CropTransactionPhase::Writing) return;
+    if (!cropOriginal_ && !session_->Snapshot().videoFilters.entries.empty()) {
+        BeginManagedCropTransaction(); return;
+    }
     if (AppWindow().Presenter().Kind() == Microsoft::UI::Windowing::AppWindowPresenterKind::CompactOverlay) {
         ShowError(L"请先退出悬浮小窗再交互裁剪。"); return;
     }
     auto mapping = InteractiveCropMapping();
     if (!mapping) {
+        if (cropOriginal_) { InteractiveCropStatus().Text(L"原裁剪已临时移除，等待完整源图像映射；取消将请求恢复原裁剪。"); return; }
         ShowError(L"交互裁剪需要已确认的未旋转视频映射。请移除现有视频滤镜/裁剪，恢复旋转为0，等待画面尺寸稳定后重试。"); return;
     }
     if (!interactiveCrop_.Begin(*mapping)) return;
     cropMapping_ = mapping;
     auto const& state = session_->Snapshot();
-    interactiveCropEpoch_ = navigationEpoch_; interactiveCropEntry_ = state.entryId;
+    if (!cropOriginal_) {
+        interactiveCropEpoch_ = navigationEpoch_; interactiveCropEntry_ = state.entryId;
+        interactiveCropWasPlaying_ = !state.paused;
+    } else cropTransactionPhase_ = CropTransactionPhase::Editing;
     interactiveCropFilterRevision_ = state.videoFilters.revision;
-    interactiveCropWasPlaying_ = !state.paused;
     CancelMouseClick(); CancelThumbnailPreview();
-    InteractiveCropResume().IsChecked(true);
+    if (!cropOriginal_) {
+        InteractiveCropResume().IsChecked(true);
+        session_->Pause(true);
+    }
     InteractiveCropConfirmButton().IsEnabled(true);
-    session_->Pause(true);
     PlayerSidebar().IsEnabled(false);
     InteractiveCropCanvas().Visibility(Visibility::Visible);
     InteractiveCropToolbar().Visibility(Visibility::Visible);
@@ -205,6 +214,19 @@ void MainWindow::PaintInteractiveCrop() {
         to_hstring(pixels->width)+L" × "+to_hstring(pixels->height)+L"；确认才提交滤镜。");
 }
 void MainWindow::UpdateInteractiveCrop(iima::PlaybackSnapshot const& state) {
+    if (cropOriginal_) {
+        if (navigationEpoch_ != interactiveCropEpoch_ || state.entryId != interactiveCropEntry_ ||
+            state.session != iima::SessionState::Ready || state.media != iima::MediaState::Loaded) {
+            AbandonManagedCropTransaction(L"媒体或会话已变化，未把原裁剪写入新的媒体；原表达式已保留供手动恢复。"); return;
+        }
+        if (cropTransactionPhase_ == CropTransactionPhase::Removing || cropTransactionPhase_ == CropTransactionPhase::Writing) return;
+        iima::FilterEditPlan expected{cropExpectedEmpty_,{},true,{}};
+        if (!expected.FreshMatches(state.videoFilters)) {
+            AbandonManagedCropTransaction(L"预览期间视频滤镜被其他操作改变，未覆盖；原裁剪表达式已保留。"); return;
+        }
+        interactiveCropFilterRevision_ = state.videoFilters.revision;
+        if (cropTransactionPhase_ == CropTransactionPhase::Preparing) { StartInteractiveCrop(); return; }
+    }
     if (!interactiveCrop_.Active()) return;
     if (navigationEpoch_ != interactiveCropEpoch_ || state.entryId != interactiveCropEntry_ ||
         state.media != iima::MediaState::Loaded || state.videoFilters.revision != interactiveCropFilterRevision_) {
@@ -235,6 +257,16 @@ void MainWindow::UpdateInteractiveCrop(iima::PlaybackSnapshot const& state) {
 }
 void MainWindow::FinishInteractiveCrop(bool commit, bool restorePlayback) {
     if (InteractiveCropToolbar().Visibility() != Visibility::Visible) return;
+    if (cropOriginal_ && restorePlayback) { FinishManagedCropTransaction(commit); return; }
+    if (cropOriginal_) {
+        if (!cropOriginal_->entries.empty() && cropOriginal_->entries[0].filter) {
+            auto expression = to_hstring(cropOriginal_->entries[0].filter->StringFormat());
+            VideoFilterText().Text(expression); ChainFilterExpression().Text(expression);
+        }
+        cropOriginal_.reset(); cropExpectedEmpty_ = {}; cropTransactionPhase_ = CropTransactionPhase::None;
+        ++cropTransactionGeneration_; cropCancelRequested_ = false;
+        InteractiveCropCancelButton().IsEnabled(true);
+    }
     auto const& state = session_->Snapshot();
     const bool current = navigationEpoch_ == interactiveCropEpoch_ && state.entryId == interactiveCropEntry_ &&
         state.session == iima::SessionState::Ready && state.media == iima::MediaState::Loaded;

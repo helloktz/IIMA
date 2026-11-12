@@ -182,6 +182,7 @@ void PlayerSession::Seek(double seconds) {
 void PlayerSession::Stop() {
     subtitleEncodingRequest_=0; subtitleEncodingTracks_.clear();
     CancelWatchedProperties();
+    CancelFilterEditCallbacks();
     CancelWindowPausePolicy();
     CancelPlaylistEdits();
     pendingCommands_.clear(); pauseRequest_=0; resumePending_=false; loadRequest_=0;
@@ -359,6 +360,7 @@ void PlayerSession::OnEvent(MpvEvent e) {
     const auto previousChain=snapshot_.swapChain;
     const bool wasPlaying=!snapshot_.paused;
     ApplyPlaybackEvent(snapshot_,e);
+    HandleFilterEditReply(e);
     if(e.kind==MpvEvent::Kind::StartFile) {
         CancelWindowPausePolicy();
         windowPausePolicy_.MediaChanged(++windowMediaGeneration_,snapshot_.paused);
@@ -388,6 +390,7 @@ void PlayerSession::CloseAsync(std::function<void()> completion) {
     // Mark closing before cancellation so reentrant UI callbacks cannot enqueue work.
     if (snapshot_.session != SessionState::Closed) snapshot_.session = SessionState::Closing;
     CancelWatchedProperties();
+    CancelFilterEditCallbacks();
     CancelWindowPausePolicy();
     CancelPlaylistEdits();
     if(snapshot_.session!=SessionState::Closed) snapshot_.session=SessionState::Closing;
