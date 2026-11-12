@@ -37,6 +37,9 @@ namespace winrt::IIMA::implementation {
 void MainWindow::WirePlaybackControls()
 {
     auto weak = get_weak();
+    RevealPlaylistButton().Click([weak](auto const&, auto const&) {
+        if (auto self = weak.get()) self->RevealSelection(false);
+    });
     SortPlaylistButton().Click([weak](auto const&, auto const&) {
         if (auto self = weak.get(); self && !self->closing_) self->session_->SortPlaylist(iima::PlaylistSort::DisplayNameAscending);
     });

@@ -11,6 +11,9 @@ using namespace Microsoft::UI::Xaml;
 namespace winrt::IIMA::implementation {
 void MainWindow::WireHistoryControls() {
     auto weak = get_weak();
+    RevealHistoryButton().Click([weak](auto const&, auto const&) {
+        if (auto self = weak.get()) self->RevealSelection(true);
+    });
     HistoryView().SelectionChanged([weak](auto const&, auto const&) {
         if (auto self = weak.get(); self && !self->projectingHistory_) self->UpdateHistorySelection();
     });
@@ -86,6 +89,7 @@ void MainWindow::UpdateHistorySelection() {
     const bool enabled = !closing_ && userDataLoaded_ && !rows.empty();
     OpenHistoryButton().IsEnabled(enabled);
     RemoveHistoryButton().IsEnabled(enabled);
+    RevealHistoryButton().IsEnabled(enabled && !revealSelectionBusy_);
 }
 void MainWindow::OpenSelectedHistory() {
     if (closing_ || !userDataLoaded_ || projectingHistory_) return;

@@ -553,3 +553,10 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 - 已加载、可seek、有章节且非队列编辑时启用导航；会话另拒绝手动换片。显式选章也补齐这些保护，观察索引越界/未知不截断为有效行。最终章属性和时间事件投影实际结果，不乐观改选中项；异步失败沿已有错误链反馈。
 - 将第46批循环视频/音频/主字幕接入严格白名单的`cycle video|vid|audio|aid|sub|sid`快捷键，并将第44批flip/mirror实际处理器注册到已有IINA应用命令路由。文本输入、原生控件和模态界面仍沿原先键盘门控；未实现任意mpv命令透传或修改默认绑定。
 - 外部脚本/自动换片仍可能与最终命令竞争，章节边界、暂停/播放与原生控件键盘行为尚未运行验证。仅静态编写、源码阅读、数量和Git核验，未编译测试运行。
+
+### 第五十批：历史与播放列表批量定位文件
+
+- `HistoryWindowController.selectedFiles/showInFinderAction`与`SidebarPlaylistPane.contextMenuShowInFinder` → 两列表的所选文件定位入口、`MainWindow.RevealSelection`和Shell PIDL批量操作。点击时复制选择路径；播放列表沿有序ID快照检查，历史沿已显示条目。网络媒体URL跳过，不执行URL或拼接shell命令。
+- Windows同目录文件合并为一次`SHOpenFolderAndSelectItems`请求，最多64文件、16目录，超目录上限在任何打开请求之前拒绝。路径词法规范化并按精确路径去重，不把大小写/符号链接猜成相同身份。绝对路径、NUL、空文件名检查；PIDL与COM初始化按RAII/配对释放，解析/目录打开失败计数。UNC文件路径仍属于Windows文件路径，可能触发系统网络访问，不声称是离线操作。
+- 原生Shell解析和提交在后台，UI只取点击时快照与显示提交/失败/跳过数量；同窗口一次一个任务。关闭请求取消后续步骤，不能中断正在进行的Shell调用或撤回已交给Explorer的请求。成功只表示Shell接受请求，不证明窗口可见或文件未被其他进程替换。保留列表选择而非照搬IINA定位后取消选择；不删除媒体或改历史。
+- 仅静态编写与人工源码阅读、统计、Git核验；未编译测试运行，Windows Shell/COM/UNC及资源管理器多选行为仍待验证。

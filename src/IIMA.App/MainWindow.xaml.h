@@ -271,6 +271,9 @@ private:
     void UpdateHistorySelection();
     void OpenSelectedHistory();
     bool projectingHistory_{};
+    winrt::fire_and_forget RevealSelection(bool history);
+    bool revealSelectionBusy_{};
+    std::stop_source revealSelectionStop_;
     iima::HistoryView historyProjection_;
     std::optional<iima::HistoryRemoval> historyUndo_;
     void MarkUserDataDirty();

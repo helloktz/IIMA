@@ -94,6 +94,7 @@
                     <Button x:Name="QueueSelectedNextButton" Content="选中项接下来播放"/>
                     <StackPanel Orientation="Horizontal" Spacing="4">
                         <Button x:Name="RemoveButton" Content="移除"/>
+                        <Button x:Name="RevealPlaylistButton" Content="定位所选文件"/>
                         <Button x:Name="MoveUpButton" Content="上移"/>
                         <Button x:Name="MoveDownButton" Content="下移"/>
                     </StackPanel>
@@ -423,6 +424,7 @@
                         <ListView x:Name="HistoryView" MaxHeight="160" SelectionMode="Extended" AutomationProperties.Name="播放历史"/>
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <Button x:Name="OpenHistoryButton" Content="打开历史"/>
+                            <Button x:Name="RevealHistoryButton" Content="定位文件"/>
                             <Button x:Name="ClearHistoryButton" Content="清空历史"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="6">

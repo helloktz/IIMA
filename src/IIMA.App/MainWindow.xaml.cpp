@@ -250,6 +250,7 @@ void MainWindow::BeginClose()
     closing_ = true;
     if (jumpDialog_) jumpDialog_.Hide();
     fontCatalogStop_.request_stop();
+    revealSelectionStop_.request_stop();
     if (subtitleFontDialog_) subtitleFontDialog_.Hide();
     if (subtitleColorDialog_) subtitleColorDialog_.Hide();
     if (openUrlDialog_) openUrlDialog_.Hide();
