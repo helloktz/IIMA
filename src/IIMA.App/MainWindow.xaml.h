@@ -208,6 +208,8 @@ private:
     std::string playerMenuDynamicKey_, playerRecentMenuStateKey_;
     void WireVideoControls();
     void WireVideoSize();
+    void UpdateWindowAspectConstraint(bool layoutChanged = false);
+    std::optional<iima::WindowAspectConstraint> windowAspectProjection_;
     void ResizeToVideo(std::optional<double> scale);
     enum class VideoResizeResult { Applied, Retry, Unsupported };
     VideoResizeResult TryResizeToVideo(std::optional<double> scale, bool automatic);
@@ -427,6 +429,15 @@ private:
     void ToggleFullscreen();
     void BeginClose();
     void WireFileActions();
+    void WireNetworkOpen();
+    void BeginNetworkOpen(std::vector<std::string> const& paths);
+    void BindNetworkOpenAttempt(std::vector<std::string> const& paths, bool append);
+    void UpdateNetworkOpen(iima::PlaybackSnapshot const& state);
+    void CancelNetworkOpen();
+    void RetryNetworkOpen();
+    std::string networkOpenUrl_;
+    std::uint64_t networkOpenInputRevision_{}, networkOpenIntent_{}, networkOpenBaselineIntent_{};
+    bool networkOpenPending_{}, networkOpenFailed_{};
     void WireSettingsControls();
     void PopulateAdvancedSettings();
     void WireSettingsSearch();

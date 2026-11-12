@@ -54,6 +54,7 @@ struct MpvEvent {
     std::optional<double> number;
     std::optional<bool> flag;
     std::int64_t entryId{-1};
+    std::int64_t insertedEntryId{-1}; // First playlist entry created by END_FILE redirect.
     std::uint64_t requestId{};
     int error{}, reason{};
     std::optional<std::int64_t> integer;

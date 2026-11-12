@@ -30,6 +30,16 @@
                 <TextBlock x:Name="BufferingDetailsText" TextAlignment="Center" TextWrapping="Wrap"/>
             </StackPanel>
         </Border>
+        <StackPanel x:Name="NetworkOpenPanel" Grid.Column="0" Visibility="Collapsed" Canvas.ZIndex="9"
+                    HorizontalAlignment="Center" VerticalAlignment="Top" Margin="16,72,16,16" MaxWidth="380"
+                    Background="{ThemeResource IimaOverlayBackgroundBrush}" Padding="16" Spacing="8">
+            <TextBlock x:Name="NetworkOpenStatus" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite"/>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button x:Name="CancelNetworkOpenButton" Content="取消加载"/>
+                <Button x:Name="RetryNetworkOpenButton" Content="重试"/>
+                <Button x:Name="DismissNetworkOpenButton" Content="关闭提示"/>
+            </StackPanel>
+        </StackPanel>
         <Canvas x:Name="InteractiveCropCanvas" Background="Transparent" Visibility="Collapsed" Canvas.ZIndex="20">
             <Border x:Name="InteractiveCropRectangle" BorderBrush="Yellow" BorderThickness="2" IsHitTestVisible="False"/>
         </Canvas>

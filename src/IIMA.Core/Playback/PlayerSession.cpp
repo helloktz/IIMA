@@ -2,6 +2,7 @@
 // Copyright © 2016 lhc. All rights reserved. IINA's GPL-3.0 license applies
 // to the adapted logic; see references/iina/LICENSE and docs/PORTING.md.
 #include "PlayerSession.h"
+#include "../Network/MediaUrl.h"
 #include "../Windows/MusicModePolicy.h"
 #include "../Screenshots/ScreenshotOptions.h"
 #include <algorithm>
@@ -26,6 +27,12 @@ void PlayerSession::Notify() { if(changed_) changed_(snapshot_); }
 // distinction across queued old events. Pinned mpv cmd_loadfile creates a new,
 // monotonically allocated playlist entry and returns playlist_entry_id.
 void PlayerSession::BeginMediaOriginIntent(bool explicitOpen) {
+    if (snapshot_.networkOpenAttempt.phase != OpenAttemptPhase::None &&
+        snapshot_.networkOpenAttempt.phase != OpenAttemptPhase::Cancelled)
+        snapshot_.networkOpenAttempt.phase = OpenAttemptPhase::Superseded;
+    networkPauseRequest_=0; networkLoadRequest_=0; networkEntry_.reset();
+    networkLifecycle_.clear(); networkJournalOverflow_=false;
+    networkBaselineGeneration_=snapshot_.mediaGeneration; networkOwnedGeneration_.reset();
     pendingWindowScale_.reset(); blockedWindowScale_.reset();
     snapshot_.externalWindowScale.reset();
     videoGeometryRequest_ = 0;
@@ -126,6 +133,8 @@ void PlayerSession::OpenMultiple(std::vector<std::string> paths,bool append) {
         return;
     }
     BeginMediaOriginIntent(true);
+    if (paths.size()==1 && IsNetworkMediaPath(paths.front()))
+        snapshot_.networkOpenAttempt={snapshot_.mediaOpenIntentRevision,OpenAttemptPhase::Pending,{}};
     presentationReady_=false; resumePending_=!settings_.pauseWhenOpen; expectedEntry_=-1; loadRequest_=0;
     pendingCommands_.clear();
     transitionIssued_=false; waitingForStart_=true; loadReturnsEntry_=true;
@@ -137,6 +146,11 @@ void PlayerSession::OpenMultiple(std::vector<std::string> paths,bool append) {
         pendingCommands_.push_back({"loadfile",std::move(paths[i]),i==0 ? "replace" : "append"});
     PrependNextMediaPreferences();
     pauseRequest_=client_->Command({"set","pause","yes"});
+    if (snapshot_.networkOpenAttempt.intent==snapshot_.mediaOpenIntentRevision &&
+        snapshot_.networkOpenAttempt.phase==OpenAttemptPhase::Pending) {
+        networkPauseRequest_=pauseRequest_;
+        if (!pauseRequest_) snapshot_.networkOpenAttempt.phase=OpenAttemptPhase::Failed;
+    }
     if(!pauseRequest_) { snapshot_.mediaOriginPending=false; pendingCommands_.clear(); resumePending_=false; snapshot_.error="Player is closing"; }
     Notify();
 }
@@ -582,6 +596,7 @@ void PlayerSession::CancelWatchedProperties() {
 }
 void PlayerSession::OnEvent(MpvEvent e) {
     if(snapshot_.session==SessionState::Closing || snapshot_.session==SessionState::Closed) return;
+    HandleNetworkOpenEvent(e);
     // A newer user selection owns the outcome; a failed superseded fallback
     // must not replace its error state or imply the user's selection failed.
     if (e.kind==MpvEvent::Kind::CommandReply && audioDeviceRecovery_ &&
@@ -702,6 +717,11 @@ void PlayerSession::OnEvent(MpvEvent e) {
                 if (firstLoad && snapshot_.mediaOriginPending) {
                     openOriginRequest_ = id;
                     if (!id) snapshot_.mediaOriginPending = false;
+                }
+                if (firstLoad && snapshot_.networkOpenAttempt.intent==snapshot_.mediaOpenIntentRevision &&
+                    snapshot_.networkOpenAttempt.phase==OpenAttemptPhase::Pending) {
+                    networkLoadRequest_=id;
+                    if (!id) snapshot_.networkOpenAttempt.phase=OpenAttemptPhase::Failed;
                 }
                 loadRequest_=id;
                 transitionIssued_=id!=0;

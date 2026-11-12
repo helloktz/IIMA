@@ -42,6 +42,7 @@ void MainWindow::BeginManagedCropTransaction() {
     CancelMouseClick(); CancelThumbnailPreview(); session_->Pause(true);
     PlayerSidebar().IsEnabled(false);
     RefreshPlayerMenus();
+    UpdateWindowAspectConstraint();
     InteractiveCropCanvas().Visibility(Visibility::Collapsed);
     InteractiveCropToolbar().Visibility(Visibility::Visible);
     InteractiveCropTitle().Text(interactiveDelogo_ ? L"交互去标志" : L"交互裁剪");

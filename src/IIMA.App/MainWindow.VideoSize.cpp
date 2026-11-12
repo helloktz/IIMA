@@ -47,6 +47,9 @@ void MainWindow::WireVideoSize() {
     VideoPanel().SizeChanged([weak](auto const&, auto const&) {
         if (auto self = weak.get()) { self->UpdateAutomaticVideoSize(true); self->QueueWindowScaleFeedback(); }
     });
+    VideoPanel().LayoutUpdated([weak](auto const&, auto const&) {
+        if (auto self = weak.get()) self->UpdateWindowAspectConstraint(true);
+    });
     auto wire = [weak](Microsoft::UI::Xaml::Controls::Button const& button, std::optional<double> scale) {
         button.Click([weak, scale](auto const&, auto const&) {
             if (auto self = weak.get()) self->ResizeToVideo(scale);

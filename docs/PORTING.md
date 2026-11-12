@@ -1110,3 +1110,13 @@ Windows新增只读`ReadFullscreenInformation`：GetTimeFormatEx按用户区域�
 - 显式设备选择使用一在途写入及一个合并后的最新目标；同值偏好也表达新意图。后到用户写入最终优先，旧恢复错误不覆盖新意图。自动回退不持久化偏好或伪造已观察设备，成功显示依赖audio-device事件。重复同列表不补发，失败消耗当前列表预算；后续列表/有效性变化才可重新检查。
 - 保守限制：用户写入/恢复在途期间的列表变化被消费，以保护用户意图；首次持久设置恢复不视为同时发生的用户选择，因此可利用初始有效列表回退已失效设备；初始化期间明确用户选择仍受保护。未实现macOS coreaudio/avfoundation名称迁移，不套用到Windows。
 - 本批没有编译、测试或运行；只做源码/接口阅读、静态路径审阅、Git差异检查与数量统计。
+
+## 手动比例约束与网络加载事务（2026-11-12）
+
+- MainWindowController.setWindowAspectRatio/currentWindowAspectRatio → AspectResize纯几何、WindowLifecycle WM_SIZING、MainWindow.WindowAspect。新增unlockWindowAspectRatio偏好（默认false）；只约束可信视频视口比例，固定非视频chrome另算，不把sidebar/菜单算入视频比例。
+- LayoutUpdated采样物理视口、整个Content客户区和外框；拖动开始再次核对投影外框及DPI，原生冻结当前约束。八边拖动原地改RECT，不通过MoveAndResize循环模拟。拖动期间布局只更新下次可用的影子投影，不替换冻结约束；临时影子采样失败不撤销当前有效约束。
+- 角点用最邻近比例投影，单边保留对侧、另一轴居中；工作区容纳优先于无法满足的最小尺寸，整数化允许少量像素误差。跨DPI/显示器拓扑变化、无可信视频、换片、音乐/PIP/全屏/裁剪及显式解锁均取消约束。Windows未实现edgeToEdgeVideo派生布局偏好，不宣称Cocoa布局完全等价。
+- OpenURLWindowController.showLoadingScreen/failedToLoadURL/stopLoadingBtnAction → PlayerSession.NetworkOpen与MainWindow.NetworkStatus。网络单媒体打开尝试绑定意图、pause/loadfile回复与entry生命周期；旧媒体Loaded/Error、无关命令错误不能确认新地址成败。
+- 实际ReceiveResolvedInput目标窗口显示非模态加载取消/失败重试；源窗口不控制路由到其他窗口的播放器。重试只在目标窗口打开，待提交取消只删除该pending输入，已提交取消须匹配仍有效的intent。成功、后续新打开/导航、关闭均废弃旧提示。
+- 事件小日志最多64项，支持loadfile回复与START/Loaded先后顺序；重定向仅跟踪mpv提供的first inserted entry。无法确定重定向目标或事件超限保持等待，不推测成功/失败；取消也必须验证媒体代次仍归属该请求，无法证实时明确报告未停止，不让旧按钮停止其他媒体。URL只保留窗口内存，不写历史/设置；提示不显示完整URL。暂不提供失败面板内编辑地址，也不加入认证或凭据保存。
+- 本批仅源码阅读、静态路径审阅、Git差异检查与统计，没有编译、测试或应用运行。

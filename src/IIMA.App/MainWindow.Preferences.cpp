@@ -25,7 +25,7 @@ bool HasApplicationAdapter(std::string_view key) {
     static const std::set<std::string_view> keys{
         "initialWindowSizePosition", "enableInitialVolume", "initialVolume", "alwaysOpenInNewWindow", "groupSimultaneousOpensInPlaylist", "allowDuplicatePlayers",
         "autoSwitchToMusicMode", "musicModeShowPlaylist", "musicModeShowAlbumArt",
-        "resizeWindowTiming", "resizeWindowOption", "usePhysicalResolution", "preventScreenSaver", "allowScreenSaverForAudio", "pauseWhenInactive", "pauseWhenMinimized", "pauseWhenGoesToSleep", "enableThumbnailPreview", "thumbnailWidth", "maxThumbnailPreviewCacheSize",
+        "resizeWindowTiming", "resizeWindowOption", "usePhysicalResolution", "unlockWindowAspectRatio", "preventScreenSaver", "allowScreenSaverForAudio", "pauseWhenInactive", "pauseWhenMinimized", "pauseWhenGoesToSleep", "enableThumbnailPreview", "thumbnailWidth", "maxThumbnailPreviewCacheSize",
         "displayTimeAndBatteryInFullScreen", "alwaysFloatOnTop", "fullScreenWhenOpen", "playWhenEnteringFullScreen", "pauseWhenLeavingFullScreen",
         "singleClickAction", "doubleClickAction", "rightClickAction", "verticalScrollAction", "horizontalScrollAction",
         "relativeSeekAmount", "playbackSpeedScrollAmount", "wheelExactSeek", "enableControlBarAutoHide", "controlBarAutoHideTimeout",
@@ -213,6 +213,7 @@ void MainWindow::ApplyAdvancedSetting(std::string const& key, iima::settings::Pr
 void MainWindow::ApplyWindowPreferences() {
     try {
         UpdateFullscreenInformation();
+        UpdateWindowAspectConstraint();
         RefreshPlayerMenus();
         if (auto presenter = AppWindow().Presenter().try_as<Microsoft::UI::Windowing::OverlappedPresenter>())
             presenter.IsAlwaysOnTop(preferences_.Boolean("alwaysFloatOnTop"));

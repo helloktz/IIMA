@@ -281,6 +281,7 @@ struct MpvClient::State {
                     e.kind=MpvEvent::Kind::EndFile;
                     auto const& end=*static_cast<mpv_event_end_file*>(raw->data);
                     e.entryId=end.playlist_entry_id; e.reason=end.reason; e.error=end.error;
+                    if (end.playlist_insert_num_entries > 0) e.insertedEntryId=end.playlist_insert_id;
                     if(end.error<0) e.text=api.error_string(end.error); break;
                 }
                 case MPV_EVENT_SEEK: e.kind=MpvEvent::Kind::Seek; break;

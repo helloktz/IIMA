@@ -2,6 +2,7 @@
 // Windows adaptation of IINA MainWindowController window activation and
 // miniaturization delegates. GPL-3.0; references/iina/LICENSE.
 #include <windows.h>
+#include "../../IIMA.Core/Geometry/AspectResize.h"
 #include <winrt/Microsoft.UI.Dispatching.h>
 #include <functional>
 #include <memory>
@@ -21,6 +22,10 @@ public:
     WindowLifecycle(WindowLifecycle const&)=delete;
     WindowLifecycle& operator=(WindowLifecycle const&)=delete;
     WindowLifecycleState Current() const noexcept;
+    // UI thread only. A null projection cancels a live drag immediately. New
+    // non-null projections during a drag are ignored, never mixed with layout
+    // callbacks whose ActualWidth/Height may belong to the previous frame.
+    void SetAspectConstraint(std::optional<WindowAspectConstraint> constraint) noexcept;
     void Close() noexcept;
 private:
     struct State;

@@ -763,6 +763,8 @@
       "physicalLines": 3189,
       "coverage": "partial-static-unverified",
       "reviewTargets": [
+        "src/IIMA.Core/Geometry/AspectResize.cpp",
+        "src/IIMA.App/MainWindow.WindowAspect.cpp",
         "src/IIMA.App/MainWindow.xaml.cpp",
         "src/IIMA.Core/Geometry/WindowGeometry.cpp",
         "src/IIMA.App/Platform/WindowPlacement.cpp",
@@ -896,7 +898,9 @@
       "coverage": "partial-static-unverified",
       "reviewTargets": [
         "src/IIMA.Core/Network/MediaUrl.cpp",
-        "src/IIMA.App/MainWindow.Network.cpp"
+        "src/IIMA.App/MainWindow.Network.cpp",
+        "src/IIMA.App/MainWindow.NetworkStatus.cpp",
+        "src/IIMA.Core/Playback/PlayerSession.NetworkOpen.cpp"
       ]
     },
     {

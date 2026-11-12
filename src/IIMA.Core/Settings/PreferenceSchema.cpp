@@ -123,6 +123,7 @@ std::span<PreferenceDescriptor const> PreferenceSchema() {
         B("preventScreenSaver",Area::Window,true),
         B("allowScreenSaverForAudio",Area::Window,false),
         B("usePhysicalResolution",Area::Window,true),
+        B("unlockWindowAspectRatio",Area::Window,false),
         S("initialWindowSizePosition",Area::Window,"",{},Timing::NextPlayer),
         E("resizeWindowTiming",Area::Window,1,resizeTiming),
         E("resizeWindowOption",Area::Window,2,resizeSize),

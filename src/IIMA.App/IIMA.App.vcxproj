@@ -112,6 +112,7 @@
     <ClCompile Include="MainWindow.AutomaticVideoSize.cpp" />
     <ClCompile Include="MainWindow.Fullscreen.cpp" />
     <ClCompile Include="MainWindow.WindowScale.cpp" />
+    <ClCompile Include="MainWindow.WindowAspect.cpp" />
     <ClCompile Include="MainWindow.Menus.cpp" />
     <ClCompile Include="MainWindow.Menus.Dynamic.cpp" />
     <ClCompile Include="MainWindow.Menus.Media.cpp" />
@@ -130,6 +131,7 @@
   <ItemGroup>
     <ClCompile Include="MainWindow.Commands.cpp" />
     <ClCompile Include="MainWindow.Network.cpp" />
+    <ClCompile Include="MainWindow.NetworkStatus.cpp" />
     <ClCompile Include="MainWindow.OSD.cpp" />
     <ClCompile Include="MainWindow.Buffering.cpp" />
     <ClCompile Include="MainWindow.FullscreenInformation.cpp" />

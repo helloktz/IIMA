@@ -14,7 +14,10 @@ void MainWindow::WireWindowPlaybackPolicy() {
             if(auto self=weak.get(); self && !self->closing_)
                 self->session_->WindowLifecycleChanged(state.inactive,state.minimized);
         },[weak] {
-            if (auto self=weak.get(); self && !self->closing_) self->RefreshAccessibility();
+            if (auto self=weak.get(); self && !self->closing_) {
+                self->RefreshAccessibility();
+                self->UpdateWindowAspectConstraint();
+            }
         },[weak] {
             if (auto self=weak.get(); self && !self->closing_ && !self->restoringPlacement_ && !self->fullscreenTransition_) {
                 self->placementProgrammaticBounds_.reset();

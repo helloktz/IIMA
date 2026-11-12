@@ -34,6 +34,7 @@ void MainWindow::ReceiveResolvedInput(std::vector<std::string> paths)
     inputAssigned_ = true;
     pendingFiles_ = std::move(paths);
     pendingAppend_ = false;
+    BeginNetworkOpen(pendingFiles_);
     ReceiveActivation({});
     OpenPendingFiles(); // Waits for this window's own settings and mpv startup.
 }

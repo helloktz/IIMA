@@ -46,6 +46,7 @@ void MainWindow::QueueFiles(std::vector<std::string> paths, bool append, bool us
     activationInputs_.clear(); activationDelayElapsed_ = false;
     inputStop_.request_stop();
     auto generation = ++inputGeneration_;
+    UpdateNetworkOpen(session_->Snapshot());
     // New user input supersedes old unresolved/pending input, not active playback.
     pendingFiles_.clear();
     try {
@@ -90,10 +91,13 @@ void MainWindow::OpenPendingFiles()
     if (state.session == iima::SessionState::Initializing) return;
     auto paths = std::move(pendingFiles_); pendingFiles_.clear();
     if (state.session != iima::SessionState::Ready || !state.compositionAvailable) {
+        UpdateNetworkOpen(state);
         ShowError(L"播放内核尚不可用，请安装配套的 libmpv 后重新打开文件。"); return;
     }
     inputAssigned_ = true;
+    BindNetworkOpenAttempt(paths, pendingAppend_);
     session_->OpenMultiple(std::move(paths), pendingAppend_);
+    UpdateNetworkOpen(session_->Snapshot());
 }
 winrt::fire_and_forget MainWindow::SaveScreenshot(bool clipboardOnly)
 {

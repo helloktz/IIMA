@@ -6,7 +6,16 @@
 namespace iima {
 enum class SessionState { Initializing, Ready, Closing, Closed, Failed };
 enum class MediaState { Empty, Loading, Loaded, Ended, Error };
+enum class OpenAttemptPhase { None, Pending, Loading, Loaded, Failed, Cancelled, Superseded, RedirectWaiting };
+struct OpenAttemptState {
+    std::uint64_t intent{};
+    OpenAttemptPhase phase{OpenAttemptPhase::None};
+    // No URL retained here. Only correlated failures populate this field.
+    std::string error;
+};
 struct PlaybackSnapshot {
+    OpenAttemptState networkOpenAttempt;
+
     SessionState session{SessionState::Initializing};
     MediaState media{MediaState::Empty};
     // START_FILE identity, not path/playlist identity or a pause-policy epoch.

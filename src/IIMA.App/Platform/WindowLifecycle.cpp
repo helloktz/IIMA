@@ -2,6 +2,8 @@
 #include "WindowLifecycle.h"
 #include <commctrl.h>
 #include <utility>
+#include <cmath>
+#include <limits>
 #pragma comment(lib,"comctl32.lib")
 
 namespace iima {
@@ -13,6 +15,7 @@ struct WindowLifecycle::State : std::enable_shared_from_this<State> {
     bool settingsPending{};
     WindowLifecycleState value;
     bool closed{};
+    std::optional<WindowAspectConstraint> aspectConstraint, dragAspectConstraint;
     static bool IsOwnedDialog(HWND window,HWND candidate) noexcept {
         if(!candidate) return false;
         DWORD process{};
@@ -48,8 +51,51 @@ struct WindowLifecycle::State : std::enable_shared_from_this<State> {
         auto self=reinterpret_cast<State*>(reference)->weak_from_this().lock();
         if(!self) return DefSubclassProc(hwnd,message,wParam,lParam);
         try {
-            if (message == WM_ENTERSIZEMOVE) self->value.sizing = true;
-            else if (message == WM_EXITSIZEMOVE) self->value.sizing = false;
+            if (message == WM_ENTERSIZEMOVE) {
+                self->dragAspectConstraint.reset();
+                RECT current{};
+                if (!self->closed && self->aspectConstraint && !IsZoomed(hwnd) && !IsIconic(hwnd) &&
+                    GetWindowRect(hwnd,&current) && GetDpiForWindow(hwnd)==self->aspectConstraint->dpi &&
+                    std::abs((double(current.right)-current.left)-self->aspectConstraint->projectedOuter.width)<=1 &&
+                    std::abs((double(current.bottom)-current.top)-self->aspectConstraint->projectedOuter.height)<=1)
+                    self->dragAspectConstraint=self->aspectConstraint;
+                self->value.sizing = true;
+            } else if (message == WM_EXITSIZEMOVE) {
+                self->value.sizing = false;
+                self->aspectConstraint.reset(); self->dragAspectConstraint.reset();
+                self->SettingsChanged(); // Reproject after the final layout, not during drag.
+            } else if (message == WM_DPICHANGED || message == WM_DISPLAYCHANGE) {
+                self->aspectConstraint.reset(); self->dragAspectConstraint.reset();
+                self->SettingsChanged();
+            } else if (message == WM_SIZING && !self->closed && self->value.sizing &&
+                       self->dragAspectConstraint && lParam && !IsZoomed(hwnd) && !IsIconic(hwnd)) {
+                if (GetDpiForWindow(hwnd)!=self->dragAspectConstraint->dpi) {
+                    self->aspectConstraint.reset(); self->dragAspectConstraint.reset();
+                } else {
+                    auto rect=reinterpret_cast<RECT*>(lParam);
+                    MONITORINFO monitor{sizeof(MONITORINFO)};
+                    if (GetMonitorInfoW(MonitorFromRect(rect,MONITOR_DEFAULTTONEAREST),&monitor)) {
+                        const auto work=monitor.rcWork;
+                        auto constrained=ConstrainVideoResize(
+                            {double(rect->left),double(rect->top),double(rect->right)-rect->left,double(rect->bottom)-rect->top},
+                            {double(work.left),double(work.top),double(work.right)-work.left,double(work.bottom)-work.top},
+                            static_cast<SizingEdge>(wParam),*self->dragAspectConstraint);
+                        if (constrained) {
+                            // Inward rounding keeps the result inside the work
+                            // area. Subpixel aspect error is <= two outer pixels.
+                            const auto left=std::ceil(constrained->x), top=std::ceil(constrained->y);
+                            const auto right=std::floor(constrained->x+constrained->width);
+                            const auto bottom=std::floor(constrained->y+constrained->height);
+                            constexpr auto low=double(std::numeric_limits<LONG>::lowest());
+                            constexpr auto high=double(std::numeric_limits<LONG>::max());
+                            if (left>=low && top>=low && right<=high && bottom<=high && right>left && bottom>top) {
+                                *rect={static_cast<LONG>(left),static_cast<LONG>(top),static_cast<LONG>(right),static_cast<LONG>(bottom)};
+                                return TRUE; // Native sizing owns application, no MoveAndResize loop.
+                            }
+                        }
+                    }
+                }
+            }
             if (message == WM_ENTERSIZEMOVE || (message == WM_SYSCOMMAND &&
                 ((wParam & 0xfff0) == SC_MOVE || (wParam & 0xfff0) == SC_SIZE ||
                  (wParam & 0xfff0) == SC_MAXIMIZE || (wParam & 0xfff0) == SC_MINIMIZE ||
@@ -81,6 +127,7 @@ struct WindowLifecycle::State : std::enable_shared_from_this<State> {
                 self->Publish(next);
             } else if(message==WM_NCDESTROY) {
                 self->closed=true;
+                self->aspectConstraint.reset(); self->dragAspectConstraint.reset();
                 self->changed={}; self->settingsChanged={}; self->placementInteraction={};
                 self->window=nullptr;
                 RemoveWindowSubclass(hwnd,Procedure,subclass);
@@ -112,9 +159,16 @@ WindowLifecycle::WindowLifecycle(HWND window,
 }
 WindowLifecycle::~WindowLifecycle() { Close(); }
 WindowLifecycleState WindowLifecycle::Current() const noexcept { return state_?state_->value:WindowLifecycleState{}; }
+void WindowLifecycle::SetAspectConstraint(std::optional<WindowAspectConstraint> constraint) noexcept {
+    if (!state_ || state_->closed) return;
+    if (!constraint) {
+        state_->aspectConstraint.reset(); state_->dragAspectConstraint.reset();
+    } else if (!state_->value.sizing) state_->aspectConstraint=std::move(constraint);
+}
 void WindowLifecycle::Close() noexcept {
     if(!state_) return;
     state_->closed=true;
+    state_->aspectConstraint.reset(); state_->dragAspectConstraint.reset();
     state_->changed={}; state_->settingsChanged={}; state_->placementInteraction={};
     if(state_->window) RemoveWindowSubclass(state_->window,State::Procedure,reinterpret_cast<UINT_PTR>(state_.get()));
     state_->window=nullptr;

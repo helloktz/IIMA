@@ -18,6 +18,7 @@ public:
     // Only a presenter with a verified owned swapchain lifetime may grant this.
     void SetPresentationReady(bool ready);
     void Open(std::string utf8Path);
+    bool CancelNetworkOpen(std::uint64_t expectedIntent);
     void OpenMultiple(std::vector<std::string> paths, bool append = false);
     void PlaylistNext();
     void PlaylistPrevious();
@@ -146,6 +147,17 @@ private:
     std::optional<double> pendingWindowScale_, confirmedWindowScale_, windowScaleEcho_, blockedWindowScale_;
     bool windowScaleWriteSucceeded_{};
     std::uint64_t windowScaleWrite_{}, windowScaleRead_{}, windowScaleGeneration_{}, windowScaleIntent_{};
+    void HandleNetworkOpenEvent(MpvEvent const& event);
+    void EvaluateNetworkOpen();
+    std::uint64_t networkPauseRequest_{}, networkLoadRequest_{};
+    std::optional<std::int64_t> networkEntry_;
+    std::uint64_t networkBaselineGeneration_{};
+    std::optional<std::uint64_t> networkOwnedGeneration_;
+    // Small lifecycle journal handles FILE_LOADED/END_FILE arriving before
+    // the loadfile reply identifies the entry. Never stores paths or metadata.
+    struct NetworkLifecycle { MpvEvent::Kind kind; std::int64_t entry; int error, reason; std::int64_t insertedEntry; std::uint64_t generation; };
+    std::vector<NetworkLifecycle> networkLifecycle_;
+    bool networkJournalOverflow_{};
     void BeginMediaOriginIntent(bool explicitOpen);
     void ObserveMediaOrigin(MpvEvent const& event);
     void ResolveMediaOrigin();

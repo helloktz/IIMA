@@ -89,6 +89,7 @@ MainWindow::MainWindow()
     WireSettingsControls();
     WireAssociationControls();
     WireFileActions();
+    WireNetworkOpen();
     WirePlaylistDrag();
     WirePlaylistClipboard();
     WirePlaylistDeletion();
@@ -242,6 +243,8 @@ void MainWindow::Apply(iima::PlaybackSnapshot const& state)
     else if (loaded) StatusText().Text(state.buffering ? L"正在缓冲…" : L"");
     updating_ = false;
     UpdateAutomaticVideoSize();
+    UpdateWindowAspectConstraint();
+    UpdateNetworkOpen(state);
     QueueWindowScaleFeedback();
     RefreshPlayerMenus();
 }
@@ -283,6 +286,7 @@ void MainWindow::BeginClose()
     if(powerLifecycle_) powerLifecycle_->Close();
     inputStop_.request_stop(); ++inputGeneration_;
     dropResolveStop_.request_stop(); ++dropReadGeneration_;
+    networkOpenUrl_.clear();
     subtitleMatchStop_.request_stop(); ++subtitleMatchGeneration_;
     HideScreenshotPreview();
     if (osdTimer_) osdTimer_.Stop();

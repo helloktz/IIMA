@@ -225,3 +225,10 @@ MenuBar为应用层快照投影，点击复用已有typed session或ApplicationC
 附加字幕必须仍属于同一媒体和打开意图，媒体打开仍统一进入ReceiveResolvedInput。
 音频恢复由Session根据完整观察触发，MpvClient在串行lane执行条件复查；
 用户设备选择与恢复共享该lane，观察快照和持久偏好保持分离。
+
+## 手动尺寸与网络打开所有权（2026-11-12）
+
+手动比例由UI完成布局后的物理chrome投影提供，WindowLifecycle在原生拖动开始冻结，
+Core只计算RECT；窗口程序性尺寸和播放自动尺寸保持独立。未知布局不猜测。
+网络打开结果是Session独立的请求关联状态，不借用当前媒体的一般error或Loaded状态。
+非模态重试UI属于实际接收窗口，源路由窗口不持有跨窗口取消权限。

@@ -48,6 +48,7 @@ winrt::fire_and_forget MainWindow::OpenNetworkUrl(bool invertWindowPolicy) {
                 pendingFiles_.clear();
                 if (activationTimer_) activationTimer_.Stop();
                 activationInputs_.clear(); activationDelayElapsed_ = false;
+                UpdateNetworkOpen(session_->Snapshot());
                 // The modal picker has finished. Release its reuse guard before
                 // App selects a pristine window; otherwise a blank origin would
                 // be incorrectly skipped. URL menus use activeOrNew, not the

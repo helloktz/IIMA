@@ -35,6 +35,7 @@
     <ClInclude Include="Diagnostics\DiagnosticLog.h" />
     <ClCompile Include="Playback\PlaybackState.cpp" />
     <ClCompile Include="Playback\PlayerSession.cpp" />
+    <ClCompile Include="Playback\PlayerSession.NetworkOpen.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Input\LocalInputPolicy.h" />
@@ -51,6 +52,8 @@
     <ClInclude Include="Geometry\Aspect.h" />
     <ClCompile Include="Geometry\WindowGeometry.cpp" />
     <ClInclude Include="Geometry\WindowGeometry.h" />
+    <ClInclude Include="Geometry\AspectResize.h" />
+    <ClCompile Include="Geometry\AspectResize.cpp" />
     <ClCompile Include="Input\KeyMapping.cpp" />
     <ClInclude Include="Input\KeyMapping.h" />
     <ClCompile Include="Input\MenuKeyBinding.cpp" />

@@ -142,7 +142,11 @@ void MainWindow::WirePlayerMenus() {
     auto playback = top(L"播放");
     add(playback, L"播放", [this] { session_->TogglePause(); }, loaded, {"cycle","pause"}, false, {},
         [this] { return hstring{session_->Snapshot().paused ? L"播放" : L"暂停"}; });
-    add(playback, L"停止", [this] { session_->Stop(); }, loaded, {"stop"});
+    add(playback, L"停止", [this] { session_->Stop(); }, [this] {
+        auto const& s = session_->Snapshot();
+        return s.session == iima::SessionState::Ready &&
+            (s.media == iima::MediaState::Loading || s.media == iima::MediaState::Loaded || s.mediaOriginPending);
+    }, {"stop"});
     add(playback, L"上一项", [this] { session_->PlaylistPrevious(); }, loaded, {"playlist-prev"});
     add(playback, L"下一项", [this] { session_->PlaylistNext(); }, loaded, {"playlist-next"});
     add(playback, L"后退5秒", [this] { session_->SeekRelative(-5, true); }, seekable, {"seek","-5"});
