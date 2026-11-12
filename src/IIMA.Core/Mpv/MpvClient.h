@@ -17,6 +17,10 @@ struct MediaTrack {
     std::int64_t id{};
     std::string type, title, lang, externalPath;
     bool selected{}, external{};
+    std::optional<std::int64_t> sourceId, width, height, channelCount, sampleRate;
+    std::optional<std::string> codec, decoderDescription, channelLayout;
+    std::optional<double> framesPerSecond;
+    bool isDefault{}, forced{}, image{}, albumArt{};
     bool operator==(MediaTrack const&) const = default;
 };
 struct Chapter {

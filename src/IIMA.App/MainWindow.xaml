@@ -48,8 +48,24 @@
                 <ScrollViewer Grid.Row="3" MaxHeight="300" HorizontalScrollBarVisibility="Disabled">
                     <StackPanel Spacing="6">
                         <ComboBox x:Name="AudioBox" Header="音轨" HorizontalAlignment="Stretch" AutomationProperties.Name="音轨"/>
+                        <ComboBox x:Name="AudioEqualizerBox" Header="音频均衡预设" HorizontalAlignment="Stretch"/>
+                        <Button x:Name="ApplyAudioEqualizerButton" Content="应用均衡预设"/>
+                        <Button x:Name="RemoveAudioEqualizerButton" Content="移除音频均衡"/>
                         <ComboBox x:Name="SubtitleBox" Header="字幕" HorizontalAlignment="Stretch" AutomationProperties.Name="字幕"/>
                         <Button x:Name="SubtitleButton" Content="加载字幕…"/>
+                        <Button x:Name="MatchSubtitleButton" Content="匹配同目录字幕"/>
+                        <Button x:Name="ReloadSubtitlesButton" Content="重新加载外部字幕"/>
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <Button x:Name="PreviousSubtitleButton" Content="上一句"/>
+                            <Button x:Name="NextSubtitleButton" Content="下一句"/>
+                        </StackPanel>
+                        <TextBox x:Name="SubtitleFontText" Header="字幕字体" Text="sans-serif"/>
+                        <NumberBox x:Name="SubtitleFontSizeBox" Header="字幕字号" Value="55" Minimum="1" Maximum="9000"/>
+                        <CheckBox x:Name="SubtitleBoldCheck" Content="粗体字幕" IsChecked="False"/>
+                        <Button x:Name="ApplySubtitleStyleButton" Content="应用字幕样式"/>
+                        <NumberBox x:Name="SubtitleScaleBox" Header="字幕缩放" Value="1" Minimum="0.01" Maximum="100" SmallChange="0.1"/>
+                        <NumberBox x:Name="SubtitlePositionBox" Header="字幕位置（0顶部，100底部）" Value="100" Minimum="0" Maximum="100"/>
+                        <Button x:Name="ApplySubtitleLayoutButton" Content="应用字幕位置与缩放"/>
                         <Button x:Name="ScreenshotButton" Content="保存截图…"/>
                         <ComboBox x:Name="ChapterBox" Header="章节" HorizontalAlignment="Stretch" AutomationProperties.Name="章节"/>
                         <ComboBox x:Name="SpeedBox" Header="播放速度" HorizontalAlignment="Stretch" AutomationProperties.Name="播放速度"/>

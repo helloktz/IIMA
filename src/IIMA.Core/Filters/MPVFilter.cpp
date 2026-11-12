@@ -92,7 +92,8 @@ std::optional<MPVFilter> MPVFilter::Parse(std::string_view text) {
         label = std::string(name.substr(1, colon - 1));
         name.remove_prefix(colon + 1);
     }
-    if (name.empty()) return std::nullopt;
+    if (name.empty() || !std::all_of(name.begin(), name.end(), IsNameCharacter) ||
+        (label && !std::all_of(label->begin(), label->end(), IsNameCharacter))) return std::nullopt;
     MPVFilter result(std::string(name), std::move(label), std::nullopt);
     if (equal != std::string_view::npos) {
         result.rawParameters_ = std::string(text.substr(equal + 1));

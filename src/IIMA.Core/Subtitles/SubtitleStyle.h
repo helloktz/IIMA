@@ -1,0 +1,27 @@
+// IINA Preference.swift subtitle defaults and PlayerCore subtitle setters.
+// Copyright © 2016 lhc. GPL v3; references/iina/LICENSE.
+#pragma once
+#include <optional>
+#include <string>
+#include <utility>
+#include <vector>
+namespace iima {
+struct SubtitleColor {
+    double red{}, green{}, blue{}, alpha{1};
+    bool Valid() const noexcept;
+    std::string MpvString() const;
+};
+struct SubtitleStyle {
+    std::string font{"sans-serif"};
+    double fontSize{55};
+    bool bold{}, italic{};
+    SubtitleColor color{1, 1, 1, 1};
+    SubtitleColor outlineColor{0, 0, 0, 1};
+    SubtitleColor backgroundColor{0, 0, 0, 0};
+    double outlineSize{3};
+    bool Valid() const noexcept;
+    // A plan, not a transaction: each asynchronous mpv property result must
+    // still be reported; a later failure cannot roll back earlier properties.
+    std::optional<std::vector<std::pair<std::string, std::string>>> Properties() const;
+};
+}

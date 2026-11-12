@@ -68,6 +68,8 @@ MainWindow::MainWindow()
            [weak] { if (auto self = weak.get(); self && self->fullscreen_) self->ToggleFullscreen(); });
     WirePlaybackControls();
     WireVideoControls();
+    WireSubtitleControls();
+    WireAudioControls();
     WireUserDataControls();
     WireSettingsControls();
     WireAssociationControls();
@@ -141,6 +143,10 @@ winrt::fire_and_forget MainWindow::OpenSubtitle()
 }
 void MainWindow::Apply(iima::PlaybackSnapshot const& state)
 {
+    if (state.media != iima::MediaState::Loaded) {
+        subtitleMatchStop_.request_stop();
+        ++subtitleMatchGeneration_;
+    }
     updating_ = true;
     hstring presentationError;
     if (state.swapChain != swapChain_) {
@@ -203,6 +209,7 @@ void MainWindow::BeginClose()
     if (closing_) { FinishClose(); return; }
     closing_ = true;
     inputStop_.request_stop(); ++inputGeneration_;
+    subtitleMatchStop_.request_stop(); ++subtitleMatchGeneration_;
     if (activationTimer_) activationTimer_.Stop();
     if (activationClosing_) activationClosing_();
     if (mediaIntegration_) mediaIntegration_->Close();

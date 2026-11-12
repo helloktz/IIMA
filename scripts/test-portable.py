@@ -10,7 +10,7 @@ out.mkdir(parents=True, exist_ok=True)
 core = 'src/IIMA.Core/'
 suites = {
     'playback-state': ['Playback/PlaybackState.cpp', 'Tests/PlaybackStateTests.cpp'],
-    'mpv-nodes': ['Mpv/MpvNodes.cpp', 'Tests/MpvNodesTests.cpp'],
+    'mpv-nodes': ['Mpv/MpvNodes.cpp', 'Media/TrackPresentation.cpp', 'Tests/MpvNodesTests.cpp'],
     'player-session': ['Playback/PlaybackState.cpp', 'Playback/PlayerSession.cpp', 'Tests/PlayerSessionTests.cpp'],
     'user-data': ['Tests/UserDataTests.cpp'],
     'diagnostic-log': ['Diagnostics/DiagnosticLog.cpp', 'Tests/DiagnosticLogTests.cpp'],

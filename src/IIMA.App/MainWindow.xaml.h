@@ -21,6 +21,9 @@ private:
     winrt::fire_and_forget OpenSubtitle();
     void WirePlaybackControls();
     void WireVideoControls();
+    void WireSubtitleControls();
+    void FindLocalSubtitle();
+    void WireAudioControls();
     void ApplyCollections(iima::PlaybackSnapshot const& state);
     void PlaySelected();
     void MoveSelected(int delta);
@@ -59,6 +62,8 @@ private:
     std::vector<std::string> pendingFiles_;
     bool pendingAppend_{};
     std::stop_source inputStop_;
+    std::stop_source subtitleMatchStop_;
+    std::uint64_t subtitleMatchGeneration_{};
     uint64_t inputGeneration_{};
     Microsoft::UI::Dispatching::DispatcherQueueTimer activationTimer_{nullptr};
     std::vector<std::wstring> activationInputs_;

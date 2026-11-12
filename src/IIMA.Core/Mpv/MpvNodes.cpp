@@ -1,6 +1,7 @@
 // Adapted from IINA PlayerCore.getTrackInfo/getPlaylist/getChapters and MPVTrack.
 // Copyright © 2016 lhc. All rights reserved. See references/iina/LICENSE (GPL-3.0).
 #include "MpvNodes.h"
+#include "../Media/TrackPresentation.h"
 #include <cmath>
 #include <cstring>
 namespace iima {
@@ -32,7 +33,20 @@ void CopyCollectionProperty(MpvEvent& e, mpv_node const& root) {
         } else if(e.name=="track-list") {
             auto id=Integer(node,"id"); auto type=Text(node,"type");
             if(!id || (type!="audio" && type!="video" && type!="sub")) continue;
-            e.tracks.push_back({*id,type,Text(node,"title"),Text(node,"lang"),Text(node,"external-filename"),Flag(node,"selected"),Flag(node,"external")});
+            auto details = TrackPresentation::FromNode(node);
+            if (!details) continue;
+            MediaTrack track;
+            track.id = details->id; track.type = type;
+            track.title = details->title.value_or(""); track.lang = details->language.value_or("");
+            track.externalPath = details->externalFilename.value_or("");
+            track.selected = details->selected; track.external = details->external;
+            track.sourceId = details->sourceId; track.width = details->width; track.height = details->height;
+            track.channelCount = details->channelCount; track.sampleRate = details->sampleRate;
+            track.codec = details->codec; track.decoderDescription = details->decoderDescription;
+            track.channelLayout = details->channelLayout; track.framesPerSecond = details->framesPerSecond;
+            track.isDefault = details->isDefault; track.forced = details->forced;
+            track.image = details->image; track.albumArt = details->albumArt;
+            e.tracks.push_back(std::move(track));
         } else if(e.name=="chapter-list") {
             auto time=Field(node,"time");
             if(!time || time->format!=MPV_FORMAT_DOUBLE || !std::isfinite(time->u.double_) || time->u.double_<0) continue;

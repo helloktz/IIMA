@@ -3,6 +3,7 @@
 #include "pch.h"
 #include "MainWindow.xaml.h"
 #include "../IIMA.Core/Media/MediaChapter.h"
+#include "../IIMA.Core/Media/TrackPresentation.h"
 #include <algorithm>
 #include <cmath>
 #include <tuple>
@@ -20,8 +21,13 @@ std::string Filename(std::string const& path)
 }
 hstring TrackLabel(iima::MediaTrack const& track)
 {
-    std::string name = track.title.empty() ? "#" + std::to_string(track.id) : track.title;
-    if (!track.lang.empty()) name += " (" + track.lang + ")";
+    auto presentation = iima::TrackPresentation::FromMediaTrack(track);
+    if (!presentation) return to_hstring(track.id);
+    iima::TrackLabelStrings strings{"无标题", "关闭", "默认"};
+    auto name = presentation->ReadableString(strings, [](std::string_view code) {
+        // Until localized ISO639 resources are wired, retain the actual code.
+        return std::optional<std::string>{std::string(code)};
+    });
     if (track.external) name += " [外部]";
     return to_hstring(name);
 }

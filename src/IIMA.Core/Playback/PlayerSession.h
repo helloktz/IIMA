@@ -1,5 +1,7 @@
 #pragma once
 #include "PlaybackState.h"
+#include "../Subtitles/SubtitleStyle.h"
+#include "../Audio/Equalizations.h"
 #include "../Persistence/UserData.h"
 
 namespace iima {
@@ -21,6 +23,14 @@ public:
     void SelectTrack(std::string type, std::int64_t id);
     void SelectChapter(std::size_t index);
     void AddSubtitle(std::string path);
+    void ApplySubtitleStyle(SubtitleStyle const& style);
+    void SetSubtitleScale(double scale, bool primary = true);
+    void SetSubtitlePosition(int percent, bool primary = true);
+    void SetSecondarySubtitleDelay(double seconds);
+    void SelectSecondarySubtitle(std::int64_t id);
+    void SetSecondarySubtitlesVisible(bool visible);
+    void ReloadSubtitles();
+    void SeekSubtitle(int direction);
     void ScreenshotToFile(std::string path);
     void Pause(bool paused);
     void TogglePause();
@@ -43,6 +53,8 @@ public:
     void ToggleMute();
     void SetSubtitlesVisible(bool value);
     void SetAudioDelay(double seconds);
+    void SetAudioEqualizer(EQProfile const& profile);
+    void RemoveAudioEqualizer();
     void SetSubtitleDelay(double seconds);
     void SetRepeatMode(RepeatMode mode);
     void SetMaxVolume(double value);

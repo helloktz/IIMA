@@ -129,3 +129,15 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 - `Aspect.swift`、`GeometryDef.swift`、`MainWindowController.windowFrameFromGeometry` → `Geometry/*`：保留 width 优先、百分比、边缘偏移、尺寸居中；Windows 使用顶左坐标并保留未指定轴的绝对位置，防重复叠加显示器原点。拒绝零分母/非有限比例。Geometry 尚未连接窗口初始布局。
 
 来源均为固定 IINA 快照 `685a40ee1d4165107182f7236751ad9d5873f267`，GPL 与作者信息保留。完整移植范围和数量口径见 STATIC_PORT.md；达到数量也不能独立证明行为完整。
+
+### 第二批：音频均衡、字幕操作、匹配与轨道呈现
+
+- `Equalizations.swift` / `PlayerCore.setAudioEq` / `SidebarAudioPane` → `Audio/Equalizations.*`：22 预设原值和拼写、10 频段、原带宽公式、`iina_aeq` 标签、用户预设内存增删改名和滑块回填。`PlayerSession.Audio.cpp` 与 WinUI 预设选择/应用/移除接线；用户预设 JSON 持久化及10频段编辑器尚未接入。
+- `PlayerCore.setSub*` / `Preference.swift` → `Subtitles/SubtitleStyle.*` / `PlayerSession.Subtitles.cpp`：字体、字号、粗体/斜体、RGBA、边缘与背景，主/次字幕位置缩放延迟选择，外部字幕重载与逐句 seek。WinUI 接入样式/主字幕布局、重载/逐句跳转。设置按显式应用提交，不伪装 mpv 已确认状态；多属性异步执行不是可回滚事务。UI 本批只有字体/字号/粗体，其余颜色采用默认值；完整样式编辑和持久化仍待扩展。
+- `AutoFileMatcher.swift` / `FileGroup.swift` / `ObjcUtils.m` → `Matching/*`：系列分组、互为最近、插删1替换4的距离、集数、名称包含、优先词、10000对兜底限额，取消和媒体 generation。Windows 原路径用 filesystem::path，比较用 Unicode scalar；确定性数字排序不冒充 Cocoa 本地化排序，数字分类不是完整 Unicode Nd。
+- `MainWindow.SubtitleMatching.cpp` 提供显式同目录字幕匹配操作：后台枚举（10000项上限、不递归）、取消、entry/path/generation 门控后只选择首候选。没有声称实现用户配置搜索路径、自动 playlist 扩展或自动后台加载；手动操作的 Windows 差异已明确。
+- `MPVTrack.swift` / `ISO639Helper.swift` → `Media/TrackPresentation.*`：元数据复制、标题/格式/分辨率/fps/声道/采样率、字幕类型与 None/Auto/ID；已扩展 MpvClient 事件载荷并接 UI 标签。语言暂显示原代码而不是伪造译名，完整 ISO639 资源未接入。
+
+本批仅静态实现与人工源码审阅，未编译、测试或运行；数量仍远未达到完整移植指标。
+
+轨道解析的明确兼容性差异：IINA 构造器要求全部布尔字段存在；IIMA 对可识别 id/type 的轨道保留缺失可选标志为 false，避免部分 mpv 属性快照令可用轨道消失。滤镜单项解析额外拒绝非法名称/标签字符，防止单项 UI 意外成为多项滤镜列表表达式。

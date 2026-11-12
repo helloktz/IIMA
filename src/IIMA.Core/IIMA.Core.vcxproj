@@ -57,5 +57,19 @@
     <ClInclude Include="Persistence\UserData.h" />
     <ClCompile Include="Playback\PlayerSession.Video.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Audio\Equalizations.cpp" />
+    <ClInclude Include="Audio\Equalizations.h" />
+    <ClCompile Include="Matching\FileGroup.cpp" />
+    <ClInclude Include="Matching\FileGroup.h" />
+    <ClCompile Include="Matching\SubtitleMatcher.cpp" />
+    <ClInclude Include="Matching\SubtitleMatcher.h" />
+    <ClCompile Include="Media\TrackPresentation.cpp" />
+    <ClInclude Include="Media\TrackPresentation.h" />
+    <ClCompile Include="Playback\PlayerSession.Audio.cpp" />
+    <ClCompile Include="Playback\PlayerSession.Subtitles.cpp" />
+    <ClCompile Include="Subtitles\SubtitleStyle.cpp" />
+    <ClInclude Include="Subtitles\SubtitleStyle.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>
