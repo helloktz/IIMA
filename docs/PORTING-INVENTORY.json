@@ -58,8 +58,11 @@
     {
       "source": "references/iina/iina/AssrtSubtitle.swift",
       "physicalLines": 302,
-      "coverage": "not-mapped",
-      "reviewTargets": []
+      "coverage": "partial-static-unverified",
+      "reviewTargets": [
+        "src/IIMA.App/Platform/AssrtClient.cpp",
+        "src/IIMA.App/Platform/SubtitleStaging.cpp"
+      ]
     },
     {
       "source": "references/iina/iina/Atomic.swift",
@@ -781,8 +784,11 @@
     {
       "source": "references/iina/iina/OnlineSubtitle.swift",
       "physicalLines": 342,
-      "coverage": "not-mapped",
-      "reviewTargets": []
+      "coverage": "partial-static-unverified",
+      "reviewTargets": [
+        "src/IIMA.Core/OnlineSubtitles/SearchTransaction.cpp",
+        "src/IIMA.App/MainWindow.OnlineSubtitles.cpp"
+      ]
     },
     {
       "source": "references/iina/iina/OpenSubClient.swift",
@@ -1224,8 +1230,10 @@
     {
       "source": "references/iina/iina/SubChooseViewController.swift",
       "physicalLines": 76,
-      "coverage": "not-mapped",
-      "reviewTargets": []
+      "coverage": "partial-static-unverified",
+      "reviewTargets": [
+        "src/IIMA.App/MainWindow.OnlineSubtitles.cpp"
+      ]
     },
     {
       "source": "references/iina/iina/Sysctl.swift",

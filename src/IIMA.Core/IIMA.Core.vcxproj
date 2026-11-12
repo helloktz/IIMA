@@ -134,5 +134,9 @@
     <ClInclude Include="Geometry\CropSelection.h" />
     <ClCompile Include="Geometry\CropSelection.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="OnlineSubtitles\SearchTransaction.cpp" />
+    <ClInclude Include="OnlineSubtitles\SearchTransaction.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

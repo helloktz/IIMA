@@ -199,3 +199,12 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 - `InteractiveModeController/CropBoxView`、`PlayerCore.setCrop/removeCropFilter` → `CropSelection.*`：顶左坐标、黑边/缩放/平移/明确90度旋转与源轴flip/mirror的逆变换，八方向/移动/自由框选、四像素吸附、取消、确认及代次返回。未知变换/其他空间滤镜/未确认映射拒绝，不猜测GPU实际画面。**本批未接鼠标拖动裁剪覆盖层**；只将像素矩形校验和mpv crop命令接到 `MainWindow.Crop.cpp` 源像素表单，读取video-params/w,h、换片失效、拒绝其他vf，`@iina_crop`替换/移除走已有异步链。保持所有输入为源像素而不是窗口坐标，避免不可靠的显示映射。
 
 仅静态编写与人工审阅，未编译、测试或运行；交互裁剪UI、完整预设编辑本地化、多窗口、插件/在线字幕等仍未完成。新增JSON字段不迁移或删除既有文件，加载不合法字段沿原备份/default策略处理，不能称数据迁移已实测。
+
+### 第九批：Assrt 在线字幕搜索与下载操作链
+
+- `OnlineSubtitle._search/Provider.fetchSubtitles`、`Assrt.Fetcher.search/showSubSelectWindow/loadDetails`、`SubChooseViewController` → `OnlineSubtitles/SearchTransaction.*`、`Platform/AssrtClient.*`、`MainWindow.OnlineSubtitles.cpp`：显式填写查询词和个人令牌、搜索、单项选择、详情、逐个下载、提交当前媒体的字幕轨道；空结果、服务状态、限额、HTTP失败、取消分别反馈。只在用户点击时请求，不上传影片。应用级 `find-online-subs` 打开面板，不默默发起网络请求。当前选择单个搜索结果并下载其文件列表，不等于上游任意多选批量操作。
+- 上游固定 search/detail 地址、POST字段、状态码和空 `subs:{}` 行为保留；JSON严格类型与边界替代Swift强制unwrap。**不复用上游硬编码令牌**；用户在PasswordBox输入个人令牌，搜索时明确展示接收方和用途，令牌仅留在操作内存、不写settings/log。成功下载、取消、换片或失败清除持有值，不承诺所有分配器/系统字符串的安全擦除。后台MTA使用WinRT HttpClient，无UI线程阻塞、无cookie、无交互认证、无自动重定向。每次请求30秒合作式超时，JSON2MiB/200结果/8文件、下载每文件8MiB上限。下载链接仅允许HTTPS assrt.net及其子域443端口、不带userinfo；可能拒绝上游返回的HTTP或第三方CDN，不宣称完整服务可用性或DNS重绑定防护。
+- `Assrt.Subtitle.download` → `SubtitleStaging`：唯一临时目录、CREATE_NEW、完整写入flush、独占拥有路径清理，拒绝归档/执行文件特征和二进制字幕，只允许`.srt/.ass/.ssa/.vtt/.lrc/.smi/.sami/.sub`文本。允许UTF16 BOM及旧单字节编码交给mpv解析，不等于内容安全扫描。每批32MiB、每窗口64MiB/8个已成功批次；失败批次不部分载入。mpv会话完全结束后才清除文件，取消中尚未发布结果由worker释放；崩溃残留清理未实现。
+- 新搜索、停止/换片、关闭使ticket失效；同一路径重开经过Loading仍取消，迟到网络/下载结果不能载入另一媒体。取消后等待后台实际返回才允许新任务，避免重复点击产生无限工作线程。成功下载先保留临时文件，再通过PlayerSession的 `sub-add select/auto` 提交第一条选中、其余添加；界面只称“已提交”，不以HTTP成功宣称mpv加载成功。加载错误沿现有播放器状态反馈。
+
+仍未实现OpenSubtitles/Shooter、在线字幕插件提供商、帐号持久化/注销、多结果多选、保存下载字幕至媒体目录等上游操作。未调用任何在线服务、未传输用户凭据，未编译、测试或运行；这里只完成静态实现与来源/生命周期审阅。

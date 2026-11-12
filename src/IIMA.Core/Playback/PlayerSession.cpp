@@ -126,11 +126,11 @@ void PlayerSession::ScreenshotToFile(std::string path, ScreenshotCompleted compl
     if(!screenshotRequest_) { reject("Player is closing"); return; }
     screenshotCompleted_=std::move(completion);
 }
-void PlayerSession::AddSubtitle(std::string path) {
+void PlayerSession::AddSubtitle(std::string path, bool select) {
     if(snapshot_.session!=SessionState::Ready || path.empty() || path.find('\0')!=std::string::npos) return;
     auto found=std::find_if(snapshot_.tracks.begin(),snapshot_.tracks.end(),[&](auto const& t){return t.type=="sub" && t.externalPath==path;});
     if(found!=snapshot_.tracks.end()) client_->Command({"sub-reload",std::to_string(found->id)});
-    else client_->Command({"sub-add",std::move(path),"select"});
+    else client_->Command({"sub-add",std::move(path),select ? "select" : "auto"});
 }
 void PlayerSession::Pause(bool value) {
     CancelWindowPausePolicy();

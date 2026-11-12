@@ -8,6 +8,9 @@
 #include "Platform/LocalInputResolver.h"
 #include "Platform/ScreenshotStaging.h"
 #include "Platform/ThumbnailExtractor.h"
+#include "Platform/AssrtClient.h"
+#include "Platform/SubtitleStaging.h"
+#include "../IIMA.Core/OnlineSubtitles/SearchTransaction.h"
 #include "../IIMA.Core/Filters/SavedFilterLibrary.h"
 #include <deque>
 #include "../IIMA.Core/History/HistoryBrowser.h"
@@ -72,6 +75,20 @@ private:
     std::optional<std::uint64_t> filterRevision_;
     void WireSubtitleControls();
     void FindLocalSubtitle();
+    void WireOnlineSubtitles();
+    void SearchOnlineSubtitles();
+    void DownloadOnlineSubtitle();
+    void CancelOnlineSubtitles();
+    void UpdateOnlineSubtitleMedia(iima::PlaybackSnapshot const& state);
+    void RefreshOnlineSubtitleButtons();
+    iima::SubtitleSearchTransaction onlineSubtitleTransaction_;
+    std::stop_source onlineSubtitleStop_;
+    bool onlineSubtitleWorkerActive_{};
+    std::vector<iima::assrt::SearchResult> onlineSubtitleResults_;
+    std::string onlineSubtitleToken_; // memory-only, never persisted or logged
+    std::vector<std::shared_ptr<iima::SubtitleStaging>> onlineSubtitleFiles_;
+    std::size_t onlineSubtitleBytes_{};
+
     void WireAudioControls();
     void WireEqualizerEditor();
     std::optional<iima::EQProfile> ReadEqualizerDraft();

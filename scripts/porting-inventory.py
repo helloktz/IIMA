@@ -8,6 +8,9 @@ import json
 from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 MAPPING = {
+    'OnlineSubtitle.swift': ['src/IIMA.Core/OnlineSubtitles/SearchTransaction.cpp', 'src/IIMA.App/MainWindow.OnlineSubtitles.cpp'],
+    'AssrtSubtitle.swift': ['src/IIMA.App/Platform/AssrtClient.cpp', 'src/IIMA.App/Platform/SubtitleStaging.cpp'],
+    'SubChooseViewController.swift': ['src/IIMA.App/MainWindow.OnlineSubtitles.cpp'],
     'AppDelegate.swift': ['src/IIMA.App/App.xaml.cpp', 'src/IIMA.App/Platform/InstanceRouter.cpp'],
     'PlayerCore.swift': ['src/IIMA.Core/Playback/PlayerSession.cpp'],
     'PlaybackInfo.swift': ['src/IIMA.Core/Playback/PlaybackState.h'],

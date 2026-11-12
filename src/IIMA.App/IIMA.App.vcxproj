@@ -140,6 +140,13 @@
     <ClInclude Include="Settings\MediaPresetsJson.h" />
     <ClCompile Include="Settings\MediaPresetsJson.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="MainWindow.OnlineSubtitles.cpp" />
+    <ClCompile Include="Platform\AssrtClient.cpp" />
+    <ClInclude Include="Platform\AssrtClient.h" />
+    <ClCompile Include="Platform\SubtitleStaging.cpp" />
+    <ClInclude Include="Platform\SubtitleStaging.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Import Project="..\..\build\NuGet.targets" />
 </Project>

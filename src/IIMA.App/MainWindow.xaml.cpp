@@ -65,6 +65,7 @@ MainWindow::MainWindow()
     WireSavedFilters();
     WireThumbnailPreview();
     WireSubtitleControls();
+    WireOnlineSubtitles();
     WireAudioControls();
     WireEqualizerEditor();
     WireUserDataControls();
@@ -178,6 +179,7 @@ void MainWindow::Apply(iima::PlaybackSnapshot const& state)
     UpdateMediaInformation(state);
     UpdateFilterEditor(state);
     UpdateThumbnailMedia(state);
+    UpdateOnlineSubtitleMedia(state);
     ApplySettingsSnapshot(state);
     UpdateDiagnostics(state);
     UpdateOSD(state);
@@ -225,6 +227,7 @@ void MainWindow::BeginClose()
     if (closing_) { FinishClose(); return; }
     closing_ = true;
     CancelThumbnailPreview();
+    CancelOnlineSubtitles();
     if(windowLifecycle_) windowLifecycle_->Close();
     inputStop_.request_stop(); ++inputGeneration_;
     subtitleMatchStop_.request_stop(); ++subtitleMatchGeneration_;
@@ -239,7 +242,7 @@ void MainWindow::BeginClose()
     swapChain_.reset();
     auto weak = get_weak();
     session_->CloseAsync([weak] {
-        if (auto self = weak.get()) { self->coreClosed_ = true; self->CloseDiagnostics(); self->FinishClose(); }
+        if (auto self = weak.get()) { self->coreClosed_ = true; self->onlineSubtitleFiles_.clear(); self->CloseDiagnostics(); self->FinishClose(); }
     });
 }
 }

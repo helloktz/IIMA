@@ -103,6 +103,19 @@
                         <ComboBox x:Name="SubtitleBox" Header="字幕" HorizontalAlignment="Stretch" AutomationProperties.Name="字幕"/>
                         <Button x:Name="SubtitleButton" Content="加载字幕…"/>
                         <Button x:Name="MatchSubtitleButton" Content="匹配同目录字幕"/>
+                        <Expander x:Name="OnlineSubtitleExpander" Header="在线字幕（Assrt）" HorizontalAlignment="Stretch">
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="搜索将把查询词和令牌发送给 api.assrt.net；下载会访问服务返回的 HTTPS 链接。不上传媒体文件，令牌不保存。" TextWrapping="Wrap"/>
+                                <PasswordBox x:Name="OnlineSubtitleTokenBox" Header="你的 Assrt API 令牌" MaxLength="32"/>
+                                <TextBox x:Name="OnlineSubtitleQueryBox" Header="搜索词（可修改）" MaxLength="512"/>
+                                <Button x:Name="OnlineSubtitleUseTitleButton" Content="填入当前文件名"/>
+                                <Button x:Name="OnlineSubtitleSearchButton" Content="发送查询"/>
+                                <ListView x:Name="OnlineSubtitleResultsView" MaxHeight="240" SelectionMode="Single" AutomationProperties.Name="在线字幕搜索结果"/>
+                                <Button x:Name="OnlineSubtitleDownloadButton" Content="下载并载入选中结果" IsEnabled="False"/>
+                                <Button x:Name="OnlineSubtitleCancelButton" Content="取消并清除令牌"/>
+                                <TextBlock x:Name="OnlineSubtitleStatusText" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite"/>
+                            </StackPanel>
+                        </Expander>
                         <Button x:Name="ReloadSubtitlesButton" Content="重新加载外部字幕"/>
                         <StackPanel Orientation="Horizontal" Spacing="4">
                             <Button x:Name="PreviousSubtitleButton" Content="上一句"/>

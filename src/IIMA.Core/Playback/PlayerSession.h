@@ -37,7 +37,7 @@ public:
     bool PlaylistShuffled() const noexcept { return playlistShuffled_; }
     void SelectTrack(std::string type, std::int64_t id);
     void SelectChapter(std::size_t index);
-    void AddSubtitle(std::string path);
+    void AddSubtitle(std::string path, bool select = true);
     void ApplySubtitleStyle(SubtitleStyle const& style);
     void SetSubtitleScale(double scale, bool primary = true);
     void SetSubtitlePosition(int percent, bool primary = true);
