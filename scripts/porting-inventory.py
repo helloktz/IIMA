@@ -19,7 +19,7 @@ MAPPING = {
     'JavascriptAPIConsole.swift': ['src/IIMA.App/Plugins/PluginBootstrap.h', 'src/IIMA.App/Plugins/PluginRuntime.cpp'],
     'JavascriptAPIMenu.swift': ['src/IIMA.App/Plugins/PluginRuntime.cpp', 'src/IIMA.App/Plugins/PluginBootstrap.h', 'src/IIMA.App/MainWindow.PluginMenu.cpp'],
     'JavascriptPluginMenuItem.swift': ['src/IIMA.App/Plugins/PluginBootstrap.h', 'src/IIMA.App/MainWindow.PluginMenu.cpp'],
-    'JavascriptAPIHttp.swift': ['src/IIMA.App/Platform/PluginHttpClient.cpp', 'src/IIMA.App/Plugins/PluginRuntime.cpp', 'src/IIMA.App/Plugins/PluginBootstrap.h'],
+    'JavascriptAPIHttp.swift': ['src/IIMA.App/Platform/PluginHttpClient.cpp', 'src/IIMA.App/Plugins/PluginRuntime.cpp', 'src/IIMA.App/Plugins/PluginBootstrap.h', 'src/IIMA.App/Platform/PluginFileStore.cpp', 'src/IIMA.App/MainWindow.PluginRuntime.cpp', 'src/IIMA.App/Platform/PluginXmlRpc.cpp'],
     'JavascriptAPIFile.swift': ['src/IIMA.App/Platform/PluginFileStore.cpp', 'src/IIMA.App/Plugins/PluginBootstrap.h', 'src/IIMA.App/Plugins/PluginRuntime.cpp'],
     'JavascriptAPIPreferences.swift': ['src/IIMA.App/Plugins/PluginRuntime.cpp', 'src/IIMA.App/Plugins/PluginBootstrap.h', 'src/IIMA.App/Platform/PluginPreferenceStore.cpp', 'src/IIMA.App/MainWindow.PluginRuntime.cpp'],
     'JavascriptAPIEvent.swift': ['src/IIMA.App/Plugins/PluginRuntime.cpp', 'src/IIMA.App/Plugins/PluginPlaybackProjection.cpp'],
@@ -77,6 +77,9 @@ MAPPING = {
     'InspectorWindowController.swift': ['src/IIMA.Core/Media/MediaInformation.cpp', 'src/IIMA.App/MainWindow.Information.cpp', 'src/IIMA.App/MainWindow.InspectorWatch.cpp'],
     'Preference.swift': ['src/IIMA.Core/Persistence/UserData.h', 'src/IIMA.Core/Subtitles/SubtitleStyle.h', 'src/IIMA.Core/Settings/PreferenceSchema.cpp', 'src/IIMA.App/MainWindow.Preferences.cpp'],
     'NowPlayingInfoManager.swift': ['src/IIMA.App/Platform/MediaIntegration.cpp'],
+    'LogWindowController.swift': ['src/IIMA.App/MainWindow.Diagnostics.cpp', 'src/IIMA.Core/Diagnostics/DiagnosticLog.cpp'],
+    'JustXMLRPC.swift': ['src/IIMA.App/Platform/PluginXmlRpc.cpp', 'src/IIMA.App/Platform/PluginHttpClient.cpp', 'src/IIMA.App/Plugins/PluginBootstrap.h'],
+    'Logger.swift': ['src/IIMA.Core/Diagnostics/DiagnosticLog.cpp'],
     'SleepPreventer.swift': ['src/IIMA.App/Platform/MediaIntegration.cpp'],
 }
 records = []

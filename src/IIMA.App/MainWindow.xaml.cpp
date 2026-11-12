@@ -63,6 +63,7 @@ MainWindow::MainWindow()
     WirePlaybackControls();
     WireMediaInformation();
     WireInspectorWatch();
+    WireDiagnosticViewer();
     WireVideoControls();
     WireVideoAdjustments();
     WireCropControls();
@@ -260,6 +261,7 @@ void MainWindow::BeginClose()
     subtitleMatchStop_.request_stop(); ++subtitleMatchGeneration_;
     if (osdTimer_) osdTimer_.Stop();
     InvalidateInspectorWatch();
+    if (diagnosticTimer_) diagnosticTimer_.Stop();
     if (activationTimer_) activationTimer_.Stop();
     if (activationClosing_) activationClosing_();
     if (mediaIntegration_) mediaIntegration_->Close();

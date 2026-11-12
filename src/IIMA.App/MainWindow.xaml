@@ -311,6 +311,21 @@
                         <NumberBox x:Name="SubtitleDelayBox" Header="字幕延迟（秒，正数延后）" Value="0" SmallChange="0.1" LargeChange="1" SpinButtonPlacementMode="Compact"/>
                         <ComboBox x:Name="RepeatModeBox" Header="播放循环" HorizontalAlignment="Stretch"/>
                         <ComboBox x:Name="ScreenshotModeBox" Header="截图内容" HorizontalAlignment="Stretch"/>
+                        <Expander x:Name="DiagnosticExpander" Header="本窗口诊断日志" HorizontalAlignment="Stretch">
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="仅保留最近 1024 条诊断，不含完整 mpv 日志；此窗口不会新增媒体路径采集。" TextWrapping="Wrap"/>
+                                <TextBox x:Name="DiagnosticCategoryBox" Header="分类（app 或 playback；空白为全部）" MaxLength="512"/>
+                                <TextBox x:Name="DiagnosticSearchBox" Header="搜索消息（不区分大小写）" MaxLength="512"/>
+                                <CheckBox x:Name="DiagnosticLiveBox" Content="实时刷新" IsChecked="True"/>
+                                <CheckBox x:Name="DiagnosticFollowBox" Content="跟随最新行" IsChecked="False"/>
+                                <Button x:Name="DiagnosticRefreshButton" Content="读取最新快照"/>
+                                <ListView x:Name="DiagnosticList" Height="180" SelectionMode="Extended" AutomationProperties.Name="诊断日志（Ctrl或Shift多选）"/>
+                                <Button x:Name="DiagnosticCopyButton" Content="复制选中日志"/>
+                                <Button x:Name="DiagnosticSaveFilteredButton" Content="保存筛选结果…"/>
+                                <Button x:Name="DiagnosticSaveAllButton" Content="保存全部保留快照…"/>
+                                <TextBlock x:Name="DiagnosticStatusText" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Expander>
                         <Expander x:Name="MediaInformationExpander" Header="媒体信息" HorizontalAlignment="Stretch">
                             <StackPanel Spacing="8">
                                 <TextBlock x:Name="MediaInformationText" TextWrapping="Wrap" IsTextSelectionEnabled="True"/>

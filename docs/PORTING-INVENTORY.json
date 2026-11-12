@@ -626,14 +626,19 @@
     {
       "source": "references/iina/iina/LogWindowController.swift",
       "physicalLines": 554,
-      "coverage": "not-mapped",
-      "reviewTargets": []
+      "coverage": "partial-static-unverified",
+      "reviewTargets": [
+        "src/IIMA.App/MainWindow.Diagnostics.cpp",
+        "src/IIMA.Core/Diagnostics/DiagnosticLog.cpp"
+      ]
     },
     {
       "source": "references/iina/iina/Logger.swift",
       "physicalLines": 348,
-      "coverage": "not-mapped",
-      "reviewTargets": []
+      "coverage": "partial-static-unverified",
+      "reviewTargets": [
+        "src/IIMA.Core/Diagnostics/DiagnosticLog.cpp"
+      ]
     },
     {
       "source": "references/iina/iina/MPVAudioDevice.swift",

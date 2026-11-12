@@ -287,6 +287,14 @@ private:
     std::function<void()> activationClosing_;
     std::function<void()> newWindow_, nextWindow_;
     std::unique_ptr<iima::DiagnosticLog> diagnostics_;
+    void WireDiagnosticViewer();
+    void RefreshDiagnosticViewer(bool force);
+    void RenderDiagnosticViewer();
+    void CopyDiagnosticSelection();
+    winrt::fire_and_forget SaveDiagnosticSnapshot(bool all);
+    Microsoft::UI::Dispatching::DispatcherQueueTimer diagnosticTimer_{nullptr};
+    iima::DiagnosticLogSnapshot diagnosticSnapshot_;
+    std::vector<iima::DiagnosticLogRecord> diagnosticVisible_;
     std::string lastDiagnostics_;
     bool diagnosticsClosed_{};
     iima::UserData userData_;
