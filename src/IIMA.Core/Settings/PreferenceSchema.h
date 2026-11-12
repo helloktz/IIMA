@@ -14,7 +14,7 @@ namespace iima::settings {
 using PreferenceValue = std::variant<bool, std::int64_t, double, std::string>;
 using PreferenceValues = std::map<std::string, PreferenceValue, std::less<>>;
 enum class PreferenceArea { Video, Audio, Subtitles, Window, Interface, Network };
-enum class ApplyTiming { Application, Immediate, NextMedia };
+enum class ApplyTiming { Application, Immediate, NextMedia, NextPlayer };
 struct EnumChoice {
     std::int64_t value;
     std::string_view token; // mpv spelling, not translated display text.
@@ -55,6 +55,10 @@ public:
 private:
     PreferenceValues overrides_;
 };
+// MPVController.mpvInit initialVolume vs softVolume. Evaluate once per new
+// player, not once per media. Result is a request, not observed mpv state.
+// Invalid persisted scalars are handled defensively; never exceed maxVolume.
+double InitialPlayerVolume(PreferenceStore const&, double rememberedVolume, double maxVolume);
 struct PreferenceOption {
     std::string sourceKey;
     std::string property;

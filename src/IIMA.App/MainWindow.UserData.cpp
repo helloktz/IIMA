@@ -82,7 +82,12 @@ void MainWindow::ApplyUserData(iima::PlaybackSnapshot const& state)
         fullscreenPreferenceEntry_.reset();
     if (!settingsApplied_ && state.session == iima::SessionState::Ready && !closing_) {
         settingsApplied_ = true;
-        session_->ApplySettings(userData_.settings);
+        auto startup = userData_.settings;
+        startup.volume = iima::settings::InitialPlayerVolume(preferences_, startup.volume, startup.maxVolume);
+        // Do not overwrite the remembered volume or announce an optimistic
+        // value. This one-time request is queued before pending media opens;
+        // normal mpv observations drive the volume UI afterward.
+        session_->ApplySettings(startup);
         session_->ApplyAdvancedPreferences(preferences_);
     }
     if (state.media == iima::MediaState::Loading || state.media == iima::MediaState::Empty ||

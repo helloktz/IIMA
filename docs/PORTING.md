@@ -927,3 +927,11 @@ Windows新增只读`ReadFullscreenInformation`：GetTimeFormatEx按用户区域�
 - 每窗口持有独立Windows电源请求句柄，模式变化清理旧句柄再按新策略申请，部分失败每秒最多重试一次（由后续状态更新触发），不会因高频播放事件重复累加已持有类型。句柄关闭兜底释放Clear失败的请求。Windows聚合各窗口请求，视频窗口需求不会被另一个音频窗口释放；此行为比IINA当前首个playing播放器即返回更稳定，为明确平台差异。
 - mpv初始化显式`stop-screensaver=no`，由原生host统一拥有策略，接口依据固定 `references/mpv/options/options.c` 与 `DOCS/man/options.rst`；没有第二套mpv请求与用户偏好对抗。
 - 限制：Windows电源请求约束闲置系统/显示睡眠，不保证抑制所有屏保、锁屏、显式睡眠/合盖/组策略；SMTC/MediaIntegration初始化失败时该适配整体不可用，现有错误提示保留，不能宣称防休眠仍可用。没有修改系统电源设置或执行电源API，未编译测试运行。
+
+## 第八十七批：新播放器初始音量
+
+- 追踪 `MPVController.swift` 创建mpv后的用户默认初始化：enableInitialVolume开启使用initialVolume，否则softVolume，两个选项sync:false；`PlayerCore.setVolume` 负责之后的音量调整。Windows复用已保存UserSettings.volume作为记忆音量，不重新定义第二份持久化音量字段。
+- 新增 `InitialPlayerVolume` 纯规则：启用时选配置初始值，否则选记忆值，防非有限输入并钳制到播放器最大音量。`ApplyUserData` 只在settingsApplied首次置位时对设置副本应用该规则，保持既有maxVolume→volume提交顺序和待打开媒体队列顺序。
+- 两项偏好终于进入可见高级设置与搜索/单项恢复默认；新增NextPlayer时机，标注“下次新播放器”，更改不立即改当前响度，同窗口换片不重置音量。显示继续等待mpv观察；不把初始请求写成已确认音量，也不覆写记忆值。
+- Windows差异：沿用当前端口的音量范围/最大值验证（上游初始选项为int，本端double）；初始化失败继续按既有播放器错误路径处理，不承诺实际响度。既有记忆音量目前主要由滑块用户动作保存，并非完整覆盖所有外部mpv音量来源，这一限制不因接入初始值而消失。
+- 未播放声音、未编译测试运行；源码映射和待验证顺序已记录。

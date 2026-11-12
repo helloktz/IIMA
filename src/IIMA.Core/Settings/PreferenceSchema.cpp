@@ -90,8 +90,8 @@ std::span<PreferenceDescriptor const> PreferenceSchema() {
         B("replayGainClip",Area::Audio,false,"replaygain-clip",Timing::Immediate),
         D("replayGainFallback",Area::Audio,0,-150,150,"replaygain-fallback",Timing::Immediate),
         E("gaplessAudio",Area::Audio,1,gapless,"gapless-audio",Timing::NextMedia),
-        B("enableInitialVolume",Area::Audio,false),
-        D("initialVolume",Area::Audio,100,0,1000),
+        B("enableInitialVolume",Area::Audio,false,{},Timing::NextPlayer),
+        D("initialVolume",Area::Audio,100,0,1000,{},Timing::NextPlayer),
         E("subOverrideLevel",Area::Subtitles,3,subOverride,"sub-ass-override",Timing::Immediate),
         E("secondarySubOverrideLevel",Area::Subtitles,3,subOverride,"secondary-sub-ass-override",Timing::Immediate),
         E("subBorderStyle",Area::Subtitles,1,border,"sub-border-style",Timing::Immediate),
@@ -237,6 +237,15 @@ double PreferenceStore::Number(std::string_view key) const {
     return std::get<double>(value);
 }
 std::string const& PreferenceStore::String(std::string_view key) const { return std::get<std::string>(Get(key)); }
+double InitialPlayerVolume(PreferenceStore const& preferences, double rememberedVolume, double maxVolume) {
+    // Persisted UserSettings normally validates these bounds. Retain a safe
+    // fallback here rather than sending a non-finite value into an audio backend.
+    const double ceiling = std::isfinite(maxVolume) ? std::clamp(maxVolume, 0.0, 1000.0) : 100.0;
+    double requested = preferences.Boolean("enableInitialVolume") ?
+        preferences.Number("initialVolume") : rememberedVolume;
+    if (!std::isfinite(requested)) requested = 100.0;
+    return std::clamp(requested, 0.0, ceiling);
+}
 std::vector<PreferenceOption> MpvPreferenceOptions(PreferenceStore const& settings) {
     std::vector<PreferenceOption> out;
     for(auto const& d:PreferenceSchema()) if(!d.mpvProperty.empty())

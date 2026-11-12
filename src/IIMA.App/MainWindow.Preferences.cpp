@@ -22,7 +22,7 @@ struct EditorRefreshScope {
 };
 bool HasApplicationAdapter(std::string_view key) {
     static const std::set<std::string_view> keys{
-        "alwaysOpenInNewWindow", "groupSimultaneousOpensInPlaylist", "allowDuplicatePlayers",
+        "enableInitialVolume", "initialVolume", "alwaysOpenInNewWindow", "groupSimultaneousOpensInPlaylist", "allowDuplicatePlayers",
         "autoSwitchToMusicMode", "musicModeShowPlaylist", "musicModeShowAlbumArt",
         "preventScreenSaver", "allowScreenSaverForAudio", "pauseWhenInactive", "pauseWhenMinimized", "pauseWhenGoesToSleep", "enableThumbnailPreview", "thumbnailWidth", "maxThumbnailPreviewCacheSize",
         "displayTimeAndBatteryInFullScreen", "alwaysFloatOnTop", "fullScreenWhenOpen", "playWhenEnteringFullScreen", "pauseWhenLeavingFullScreen",
@@ -52,6 +52,8 @@ void MainWindow::PopulateAdvancedSettings() {
         auto label = to_hstring(key);
         if (descriptor.timing == iima::settings::ApplyTiming::NextMedia)
             label = label + L"（下次打开）";
+        else if (descriptor.timing == iima::settings::ApplyTiming::NextPlayer)
+            label = label + L"（下次新播放器）";
         auto value = preferences_.Get(key);
         auto refreshing = std::make_shared<bool>(false);
         std::function<void(iima::settings::PreferenceValue const&)> refreshEditor;
@@ -139,7 +141,7 @@ void MainWindow::PopulateAdvancedSettings() {
         reset.Content(box_value(L"恢复此项默认值"));
         Automation::AutomationProperties::SetName(reset, label + L"，恢复默认值");
         Controls::ToolTipService::SetToolTip(reset, box_value(
-            L"只恢复这一项，并丢弃该项未应用的草稿。其他设置和草稿不变。下次打开项仍需重新打开媒体。"));
+            L"只恢复这一项，并丢弃该项未应用的草稿。其他设置和草稿不变。下次打开项需重开媒体；新播放器项只在新窗口初始化时生效。"));
         // Keep enabled even if there is no stored override: a string editor can
         // contain an unapplied draft that the user wants to discard.
         reset.Click([weak, key, refreshing, refreshEditor](auto const&, auto const&) {
@@ -166,7 +168,8 @@ void MainWindow::PopulateAdvancedSettings() {
         std::string searchable=key+" "+std::string(iima::settings::PreferenceAreaTitle(descriptor.area))+" "+
             std::string(descriptor.mpvProperty);
         for (auto const& choice:descriptor.choices) searchable+=" "+std::string(choice.token);
-        searchable+=descriptor.timing==iima::settings::ApplyTiming::NextMedia ? " 下次打开 next media" : " 即时 immediate";
+        searchable += descriptor.timing == iima::settings::ApplyTiming::NextMedia ? " 下次打开 next media" :
+            descriptor.timing == iima::settings::ApplyTiming::NextPlayer ? " 下次新播放器 startup initial player" : " 即时 immediate";
         advancedSettingsRows_.push_back(row);
         advancedSettingsIndex_.push_back({key,descriptor.area,std::move(searchable)});
     }
