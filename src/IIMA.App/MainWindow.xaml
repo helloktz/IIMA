@@ -210,6 +210,16 @@
                             <Button x:Name="PreviousSubtitleButton" Content="上一句"/>
                             <Button x:Name="NextSubtitleButton" Content="下一句"/>
                         </StackPanel>
+                        <Expander Header="字幕时间对齐" HorizontalAlignment="Stretch">
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="将上一句或下一句字幕对齐到当前视频时刻；内嵌字幕受预读取范围限制。" TextWrapping="Wrap"/>
+                                <Button x:Name="PreviousSubtitleTimingButton" Content="主字幕：对齐上一句"/>
+                                <Button x:Name="NextSubtitleTimingButton" Content="主字幕：对齐下一句"/>
+                                <Button x:Name="PreviousSecondaryTimingButton" Content="副字幕：对齐上一句"/>
+                                <Button x:Name="NextSecondaryTimingButton" Content="副字幕：对齐下一句"/>
+                                <TextBlock x:Name="SubtitleTimingStatus" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Expander>
                         <TextBox x:Name="SubtitleFontText" Header="字幕字体" Text="sans-serif"/>
                         <Button x:Name="ChooseSubtitleFontButton" Content="选择本地字体…"/>
                         <NumberBox x:Name="SubtitleFontSizeBox" Header="字幕字号" Value="55" Minimum="1" Maximum="9000"/>

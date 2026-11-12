@@ -5,9 +5,20 @@
 #include <cmath>
 using namespace winrt;
 namespace winrt::IIMA::implementation {
+using namespace Microsoft::UI::Xaml;
 void MainWindow::WireSubtitleControls() {
     WireSubtitleEncoding();
     auto weak = get_weak();
+    auto timing = [weak](Controls::Button button, int direction, bool primary) {
+        button.Click([weak, direction, primary](auto const&, auto const&) {
+            if (auto self = weak.get(); self && !self->closing_)
+                self->session_->StepSubtitleTiming(direction, primary);
+        });
+    };
+    timing(PreviousSubtitleTimingButton(), -1, true);
+    timing(NextSubtitleTimingButton(), 1, true);
+    timing(PreviousSecondaryTimingButton(), -1, false);
+    timing(NextSecondaryTimingButton(), 1, false);
     MatchSubtitleButton().Click([weak](auto const&, auto const&) {
         if (auto self = weak.get(); self && !self->closing_) self->FindLocalSubtitle();
     });

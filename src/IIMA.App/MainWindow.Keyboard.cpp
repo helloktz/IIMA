@@ -227,6 +227,18 @@ bool MainWindow::DispatchKeyBinding(iima::KeyMapping const& binding) {
         else return unsupported();
         return true;
     }
+    if ((command == "sub-step" || command == "sub-seek") && (t.size() == 2 || t.size() == 3)) {
+        auto amount = Number(t[1]);
+        if (!amount || (*amount != -1 && *amount != 0 && *amount != 1)) return unsupported();
+        bool primary = true;
+        if (t.size() == 3) {
+            if (t[2] == "secondary") primary = false;
+            else if (t[2] != "primary") return unsupported();
+        }
+        if (command == "sub-step") session_->StepSubtitleTiming(static_cast<int>(*amount), primary);
+        else session_->SeekSubtitle(static_cast<int>(*amount), primary);
+        return true;
+    }
     if (command == "cycle" && t.size() == 2) {
         if (t[1] == "pause") session_->TogglePause();
         else if (t[1] == "mute") session_->ToggleMute();

@@ -69,6 +69,20 @@ void MainWindow::ApplySecondarySubtitleDraft() {
 void MainWindow::UpdateSecondarySubtitles(iima::PlaybackSnapshot const& state) {
     struct Guard { bool& flag; explicit Guard(bool& f):flag(f){flag=true;} ~Guard(){flag=false;} } guard(projectingSubtitles_);
     const bool active = !closing_ && state.session == iima::SessionState::Ready && state.media == iima::MediaState::Loaded;
+    const bool primaryTiming = active && state.subtitleId && *state.subtitleId > 0;
+    const bool secondaryTiming = active && state.secondarySubtitleId && *state.secondarySubtitleId > 0;
+    PreviousSubtitleTimingButton().IsEnabled(primaryTiming);
+    NextSubtitleTimingButton().IsEnabled(primaryTiming);
+    PreviousSecondaryTimingButton().IsEnabled(secondaryTiming);
+    NextSecondaryTimingButton().IsEnabled(secondaryTiming);
+    PreviousSubtitleButton().IsEnabled(primaryTiming && state.seekable);
+    NextSubtitleButton().IsEnabled(primaryTiming && state.seekable);
+    std::wstring timing = L"实际字幕延迟：主 ";
+    timing += active && state.observedSubtitleDelay ? to_hstring(*state.observedSubtitleDelay).c_str() : L"未知";
+    timing += L" 秒；副 ";
+    timing += active && state.secondarySubtitleDelay ? to_hstring(*state.secondarySubtitleDelay).c_str() : L"未知";
+    timing += L" 秒。时间对齐仅改变字幕延迟，不跳转视频。";
+    SubtitleTimingStatus().Text(timing);
     if (!active || (secondaryDraftEntry_ && (*secondaryDraftEntry_ != state.entryId || secondaryDraftPath_ != state.path)))
         secondaryDraftEntry_.reset();
     if (secondaryTracksRevision_ != state.tracksRevision) {

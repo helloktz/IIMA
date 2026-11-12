@@ -61,10 +61,23 @@ void PlayerSession::ReloadSubtitles() {
         if (track.type == "sub" && track.external)
             client_->Command({"sub-reload", std::to_string(track.id)});
 }
-void PlayerSession::SeekSubtitle(int direction) {
+void PlayerSession::SeekSubtitle(int direction, bool primary) {
     if (snapshot_.session != SessionState::Ready || snapshot_.media != MediaState::Loaded ||
-        direction < -1 || direction > 1) return;
-    client_->Command({"sub-seek", std::to_string(direction)});
+        !snapshot_.seekable || waitingForStart_ || playlistEdit_ || direction < -1 || direction > 1) return;
+    auto id = primary ? snapshot_.subtitleId : snapshot_.secondarySubtitleId;
+    if (!id || *id <= 0) return;
+    client_->Command({"sub-seek", std::to_string(direction), primary ? "primary" : "secondary"});
+}
+// IINA's shipped input.conf Ctrl+Shift+LEFT/RIGHT uses sub-step, which
+// changes subtitle delay rather than moving the audio/video playback position.
+void PlayerSession::StepSubtitleTiming(int direction, bool primary) {
+    if (snapshot_.session != SessionState::Ready || snapshot_.media != MediaState::Loaded ||
+        waitingForStart_ || playlistEdit_ || direction < -1 || direction > 1) return;
+    auto id = primary ? snapshot_.subtitleId : snapshot_.secondarySubtitleId;
+    if (!id || *id <= 0) return;
+    client_->Command({"sub-step", std::to_string(direction), primary ? "primary" : "secondary"});
+    // Neither compute a synthetic delay nor seek/resume: observed delay is
+    // authoritative and available events depend on mpv's subtitle prefetch.
 }
 bool PlayerSession::SetSubtitleEncoding(std::string encoding) {
     if (snapshot_.session != SessionState::Ready || snapshot_.media != MediaState::Loaded ||

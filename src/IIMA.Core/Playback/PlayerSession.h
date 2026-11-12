@@ -52,7 +52,8 @@ public:
     // Queue the encoding change; reload matching external tracks only after success.
     bool SetSubtitleEncoding(std::string encoding);
     bool SubtitleEncodingBusy() const noexcept { return subtitleEncodingRequest_ != 0; }
-    void SeekSubtitle(int direction);
+    void SeekSubtitle(int direction, bool primary = true);
+    void StepSubtitleTiming(int direction, bool primary = true);
     // Completion runs on the UI dispatcher, including immediate rejection.
     // Close cancellation is delivered only after mpv has released its file writes.
     using ScreenshotCompleted = std::function<void(bool, std::string)>;
