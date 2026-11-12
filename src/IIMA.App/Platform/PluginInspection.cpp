@@ -2,6 +2,7 @@
 // Copyright (c) 2018 lhc and IINA contributors. GPL-3.0; references/iina/LICENSE.
 #include "pch.h"
 #include "PluginInspection.h"
+#include "PluginPreferenceStore.h"
 #include "../../IIMA.Core/Plugins/PluginManifest.h"
 #include <winrt/Windows.Data.Json.h>
 #include <algorithm>
@@ -278,7 +279,7 @@ std::wstring InspectPluginFolder(std::filesystem::path const& root, std::stop_to
     } else report << L"\n\n清单校验未通过。";
     report << L"\n另有手动启动的受限插件运行入口；HTML 页面、插件字幕提供商和大部分 IINA API 仍不支持。";
     if (json.HasKey(L"localized")) report << L"\nlocalized 信息尚未投影，显示基础名称。";
-    if (json.HasKey(L"preferenceDefaults")) report << L"\npreferenceDefaults 未应用或持久化。";
+    if (json.HasKey(L"preferenceDefaults")) report << L"\npreferenceDefaults 仅在明确运行后由受限 preferences API 应用；此检查不读取已保存偏好。";
     if (json.HasKey(L"subtitleProviders")) report << L"\nsubtitleProviders 未注册。";
     return report.str();
 }
@@ -299,7 +300,14 @@ PluginProgram LoadPluginProgram(std::filesystem::path const& root, std::stop_tok
     auto source = ReadProgram(folder, manifest.entry, stop);
     CheckStop(stop);
     auto modules = ReadModules(folder, manifest.entry, source, stop);
-    return {std::move(manifest), std::move(source), std::move(modules)};
+    std::string defaults = "{}";
+    if (json.HasKey(L"preferenceDefaults")) {
+        auto value = json.GetNamedValue(L"preferenceDefaults");
+        if (value.ValueType() != JsonValueType::Object)
+            throw hresult_invalid_argument(L"preferenceDefaults 必须是 JSON 对象。");
+        defaults = PluginPreferenceStore::Normalize(to_string(value.Stringify()));
+    }
+    return {std::move(manifest), std::move(source), std::move(defaults), std::move(modules)};
 }
 
 }

@@ -273,3 +273,12 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 - `MPVController`属性事件与上述API → 增加`mpv.volume.changed/mute.changed/audio-delay.changed/sub-delay.changed`；读取均来自有界已复制快照。轨道/章节元数据读取已加入运行确认，外部轨道路径、完整媒体URL和媒体title仍不投影。256轨、2048章、单文本4096字节、总JSON64KiB上限，超限明确停止插件，不静默截断为“完整列表”。同时选择多个同类型轨而无法判主次时`id/currentTrack`为null，不猜测。
 
 本批继续仅静态源码编写和人工阅读；没有编译、测试、执行任何JS或运行Windows。已写模块与API不表示插件整体兼容；偏好持久化、菜单、HTTP/文件/HTML、全局控制器、完整字幕提供商和任意mpv接口仍缺失。数量和全量功能目标仍未达到。
+
+### 第十七批：插件偏好默认值、显式保存与跨窗口合并
+
+- `JavascriptAPIPreferences.get/set/sync`、`JavascriptPlugin.defaultPreferences/preferences/syncPreferences` → `PluginRuntime` 的 `iina.preferences`、`PluginProgram` 默认值快照与 `Platform/PluginPreferenceStore`。先从当前插件清单读取 `preferenceDefaults`，运行前加载该标识已保存值；运行确认明确说明同标识共享偏好和不应用于秘密存储。`get` 先查已设置值，再查默认值；未定义返回 undefined 并警告。`set` 只更新当前实例内存，`sync` 才同步调用后台 worker 的原子保存，不在 UI 阻塞磁盘，不自动在停止时保存。
+- Windows 使用应用私有 JSON 而非 macOS plist；运行时最多256个顶层键、键1..256 UTF-8字节（比存储UTF-16上限更保守）、4096节点、16层容器、64KiB总JSON，sync至少间隔250ms。严格 JSON 值、深度和容量限制，拒绝不可表达对象而不是保存后悄悄改变值。读取返回深副本，避免未经 `set` 的对象修改偷偷改变持久状态。默认值不自动拷入用户文件；已有保存值（包括 null）覆盖默认。HTML 偏好界面仍未实现。
+- 通过应用专用独占锁文件串行、按插件标识差分合并，未改的字段保留其他窗口的新值，同字段最后成功提交胜出；成功后推进当前实例本次提交基线，不将其他窗口的值反向视为当前实例已编辑。损坏文件拒绝加载/覆盖；保存失败变成 JS 异常，与 IINA 只记录错误不同，不冒称成功。文件与目录路径由宿主决定，JS 不能指定任意目标。
+- 原生磁盘 I/O 不可被 QuickJS 中断；输入有界、锁等待有界，但系统存储阻塞仍可延迟 worker 关闭。偏好并非加密凭据存储，也不是不同同标识插件之间的安全隔离。锁保护使用同一存储实现的进程；外部编辑器未遵循锁协议时不承诺跨进程事务，也没有实时跨窗口偏好广播。
+
+本批只静态编写和人工阅读，未编译、自动测试、运行 Windows 或执行插件。插件菜单、输入、HTML、文件/网络等其余 API 仍未完成，数量与完整移植目标仍未达到。

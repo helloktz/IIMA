@@ -3,6 +3,7 @@
 #include "pch.h"
 #include "MainWindow.xaml.h"
 #include "Platform/PluginInspection.h"
+#include "Platform/PluginPreferenceStore.h"
 #include <ShObjIdl_core.h>
 #include <microsoft.ui.xaml.window.h>
 #include <winrt/Windows.Storage.Pickers.h>
@@ -48,13 +49,17 @@ winrt::fire_and_forget MainWindow::StartLocalPlugin() {
             co_await resume_background();
             std::optional<iima::PluginProgram> program;
             std::wstring failure;
-            try { program = iima::LoadPluginProgram(path, stop); }
+            std::string storedPreferences;
+            try {
+                program = iima::LoadPluginProgram(path, stop);
+                storedPreferences = iima::PluginPreferenceStore::Load(program->manifest.identifier);
+            }
             catch (hresult_error const& error) { failure = error.message(); }
             catch (std::exception const& error) { failure = to_hstring(error.what()); }
             catch (...) { failure = L"无法读取插件。"; }
             try { co_await apartment; } catch (...) { co_return; }
             if (!closing_ && !failure.empty()) PluginRuntimeStatus().Text(failure);
-            if (!closing_ && program) {
+            if (!closing_ && program && failure.empty()) {
                 Controls::ContentDialog consent;
                 consent.XamlRoot(Root().XamlRoot());
                 consent.Title(box_value(L"运行受信任的插件？"));
@@ -64,7 +69,8 @@ winrt::fire_and_forget MainWindow::StartLocalPlugin() {
                     L"\n\n该插件可暂停、继续、停止、跳转或调整此窗口的播放速度，读取播放时间、状态、轨道和章节元数据，并可调整音量、静音、延迟、轨道和章节。";
                 pluginOsdAllowed_ = program->manifest.HasPermission(iima::PluginPermission::ShowOSD);
                 if (pluginOsdAllowed_) message += L"它还申请在播放器画面上显示文字。";
-                message += L"\n不提供网络、任意文件、进程、HTML 或完整 IINA 插件 API。"
+                message += L"\n它还可读取并保存此标识对应的插件偏好；相同标识的其他插件可读取这些值，请勿用于保存密码或令牌。"
+                    L"\n不提供网络、任意文件、进程、HTML 或完整 IINA 插件 API。"
                     L"只有部分插件可以使用。运行时不是操作系统安全沙箱，请只运行你信任的来源。"
                     L"\n此次仅运行已读入的入口和目录内 JS 模块快照，不安装、不自动启动；可随时停止。";
                 consent.Content(box_value(message));
@@ -96,6 +102,13 @@ winrt::fire_and_forget MainWindow::StartLocalPlugin() {
                         }
                     };
                     iima::plugins::PluginRuntime::Callbacks callbacks;
+                    callbacks.preferencesSync = [identifier = program->manifest.identifier,
+                        base = storedPreferences](std::string edited) mutable {
+                        // Called only by the JS worker: no UI wait, and no live
+                        // module code participates in path selection or JSON I/O.
+                        iima::PluginPreferenceStore::SaveMerged(identifier, base, edited);
+                        base = std::move(edited); // only advance after atomic publish
+                    };
                     callbacks.command = [weak, post, generation](iima::plugins::PluginCommand command) {
                         post([weak, generation, command = std::move(command)]() mutable {
                             if (auto self = weak.get(); self && !self->closing_ && self->pluginRuntime_ &&
@@ -131,7 +144,8 @@ winrt::fire_and_forget MainWindow::StartLocalPlugin() {
                     pluginRuntime_ = iima::plugins::PluginRuntime::Start(std::move(program->source),
                         program->manifest.name, pluginOsdAllowed_, std::move(callbacks),
                         iima::plugins::PlaybackStatusJson(session_->Snapshot(), pluginMediaEpoch_),
-                        program->manifest.entry, std::move(program->modules));
+                        program->manifest.entry, std::move(program->modules),
+                        std::move(program->preferenceDefaultsJson), std::move(storedPreferences));
                     StopPluginButton().IsEnabled(true);
                     PluginRuntimeStatus().Text(L"正在启动受限插件…");
                     // No synthetic window-loaded/file-loaded event: this plugin was

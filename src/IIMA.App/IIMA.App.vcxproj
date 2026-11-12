@@ -174,6 +174,10 @@
     <ClCompile Include="Plugins\PluginPlaybackProjection.cpp" />
     <ClInclude Include="Plugins\PluginPlaybackProjection.h" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Platform\PluginPreferenceStore.h" />
+    <ClCompile Include="Platform\PluginPreferenceStore.cpp" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Import Project="..\..\build\NuGet.targets" />
   <ItemGroup>

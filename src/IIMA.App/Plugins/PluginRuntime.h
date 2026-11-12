@@ -31,6 +31,10 @@ public:
         std::function<void(PluginCommand)> command;
         std::function<void(std::string level, std::string message)> log;
         std::function<void(bool running, std::string message)> state;
+        // Explicit preferences.sync only. Called synchronously on the engine
+        // worker, never UI; return means durable host save succeeded. Throw to
+        // report failure to JavaScript. Do not wait for UI or reenter runtime.
+        std::function<void(std::string json)> preferencesSync;
     };
     // Modules use canonical package-relative keys, exact filenames, no automatic
     // extensions; at most 128 modules, 1 MiB each and 8 MiB including the entry.
@@ -39,7 +43,8 @@ public:
         std::string pluginName, bool allowOsd, Callbacks callbacks,
         std::string initialStatusJson = "{}",
         std::string entryRelativePath = "main.js",
-        std::map<std::string, std::string> modules = {});
+        std::map<std::string, std::string> modules = {},
+        std::string defaultsJson = "{}", std::string storedJson = "{}");
     ~PluginRuntime();
     PluginRuntime(PluginRuntime const&) = delete;
     PluginRuntime& operator=(PluginRuntime const&) = delete;

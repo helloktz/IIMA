@@ -391,8 +391,13 @@
     {
       "source": "references/iina/iina/JavascriptAPIPreferences.swift",
       "physicalLines": 38,
-      "coverage": "not-mapped",
-      "reviewTargets": []
+      "coverage": "partial-static-unverified",
+      "reviewTargets": [
+        "src/IIMA.App/Plugins/PluginRuntime.cpp",
+        "src/IIMA.App/Plugins/PluginBootstrap.h",
+        "src/IIMA.App/Platform/PluginPreferenceStore.cpp",
+        "src/IIMA.App/MainWindow.PluginRuntime.cpp"
+      ]
     },
     {
       "source": "references/iina/iina/JavascriptAPISidebarView.swift",

@@ -8,6 +8,7 @@ namespace iima {
 struct PluginProgram {
     PluginManifest manifest;
     std::string source;
+    std::string preferenceDefaultsJson{"{}"}; // bounded JSON snapshot, never executable
     std::map<std::string, std::string> modules; // package-local .js snapshots
 };
 // Snapshot source before confirmation. No later reread can change approved code.

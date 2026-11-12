@@ -61,3 +61,5 @@
 第十五批首次静态接入固定 QuickJS-ng 和受限本地插件执行：选择/验证/确认入口、独立worker、部分core/status/event/console/timer API、停止和窗口关闭。仅支持受信任、无需外部权限/模块的入口；绝不是完整IINA插件兼容或不可信代码沙箱。require、完整mpv/文件/网络/HTML/菜单/偏好API仍未移植。本批没有编译、测试或执行任何脚本，详见PORTING和QUICKJS。
 
 第十六批把本地`require`模块快照/词法解析/缓存、部分轨道/章节API及属性事件接到真实worker与会话。运行前确认的是完整有界JS快照，不提供任意读盘；仍不支持Node/ESM/JSON模块或完整IINA API。先前“require未实现”描述第十五批状态；当前范围以第十六批PORTING为准。没有编译测试运行。
+
+第十七批接入插件 preferences 的默认值、get/set/sync、原子JSON保存和同标识跨窗口差分合并；保存只在显式sync发生，失败抛出JS异常。HTML偏好页面、全部插件API仍未实现，不能称插件兼容完成。未编译测试运行。

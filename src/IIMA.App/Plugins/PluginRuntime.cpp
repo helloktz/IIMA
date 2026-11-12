@@ -1,5 +1,6 @@
 // IINA JavascriptPluginInstance / JavascriptPolyfill / JavascriptAPIEvent /
-// JavascriptAPICore / JavascriptAPIConsole adaptation, not full API compatibility.
+// JavascriptAPICore / JavascriptAPIConsole / JavascriptAPIPreferences adaptation,
+// not full API compatibility.
 // Copyright (c) 2018-2020 lhc and IINA contributors. GPL-3.0.
 #include "pch.h"
 #include "PluginRuntime.h"
@@ -84,16 +85,18 @@ struct PluginRuntime::Impl {
     std::size_t queuedBytes{};
     std::string latestStatus;
     std::uint64_t statusRevision{1};
-    std::string source, name, entryPath;
+    std::string source, name, entryPath, defaultsJson, storedJson;
     std::map<std::string, std::string> modules;
     bool allowOsd{};
     Callbacks callbacks;
     std::jthread thread;
 
     Impl(std::string text, std::string pluginName, bool grant, Callbacks cb, std::string status,
-         std::string entry, std::map<std::string, std::string> package)
+         std::string entry, std::map<std::string, std::string> package,
+         std::string defaults, std::string stored)
         : latestStatus(std::move(status)), source(std::move(text)), name(std::move(pluginName)),
-          entryPath(std::move(entry)), modules(std::move(package)), allowOsd(grant), callbacks(std::move(cb)) {}
+          entryPath(std::move(entry)), defaultsJson(std::move(defaults)), storedJson(std::move(stored)),
+          modules(std::move(package)), allowOsd(grant), callbacks(std::move(cb)) {}
     ~Impl() {
         stop.store(true); changed.notify_all();
         // The public ownership contract prevents destruction from a callback.
@@ -125,7 +128,8 @@ struct PluginRuntime::Impl {
         enum Function {
             Pause, Resume, StopPlayback, Seek, SeekTo, Speed, Osd,
             Log, Warn, Error, Status, On, Off, Timeout, Interval, ClearTimer, Require,
-            PlayChapter, AudioVolume, AudioMuted, AudioDelay, AudioId, SubtitleDelay, SubtitleId, VideoId
+            PlayChapter, AudioVolume, AudioMuted, AudioDelay, AudioId, SubtitleDelay, SubtitleId, VideoId,
+            PreferenceDefaults, PreferenceStored, PreferenceSync
         };
         Impl& owner;
         JSRuntime* runtime{};
@@ -138,6 +142,7 @@ struct PluginRuntime::Impl {
         std::string status;
         Clock::time_point deadline{Clock::now()};
         Clock::time_point rateWindow{Clock::now()};
+        Clock::time_point lastPreferenceSync{};
         unsigned outboundInWindow{}, callbacksInWindow{}, outboundInTurn{};
         bool interrupted{}, failed{};
         std::string failure;
@@ -337,6 +342,34 @@ struct PluginRuntime::Impl {
                 if (index >= argc) throw std::invalid_argument("Missing API argument.");
                 return argv[index];
             };
+            if (function == PreferenceDefaults || function == PreferenceStored) {
+                auto const& json = function == PreferenceDefaults ? owner.defaultsJson : owner.storedJson;
+                return JS_ParseJSON(context, json.data(), json.size(), "iima-plugin-preferences");
+            }
+            if (function == PreferenceSync) {
+                auto json = String(context, argument(0), MaxJson);
+                Value parsed(context, JS_ParseJSON(context, json.data(), json.size(), "iima-plugin-preferences"));
+                if (JS_IsException(parsed.value)) return JS_EXCEPTION;
+                if (!JS_IsObject(parsed.value) || JS_IsArray(parsed.value))
+                    throw std::invalid_argument("Plugin preferences must be a JSON object.");
+                if (!owner.callbacks.preferencesSync)
+                    throw std::runtime_error("Plugin preference storage is unavailable.");
+                if (!TakeOutbound()) throw std::invalid_argument("Plugin preference sync rate limit exceeded.");
+                auto now = Clock::now();
+                if (lastPreferenceSync != Clock::time_point{} && now - lastPreferenceSync < std::chrono::milliseconds(250))
+                    throw std::invalid_argument("Plugin preferences.sync is limited to four calls per second.");
+                lastPreferenceSync = now;
+                // Native I/O cannot be interrupted by the JS deadline. Exclude
+                // precisely this host call's elapsed time on success or failure,
+                // not subsequent JS work. Stop remains visible to Interrupt.
+                struct NativeCallBudget {
+                    Clock::time_point& deadline;
+                    Clock::time_point started{Clock::now()};
+                    ~NativeCallBudget() { deadline += Clock::now() - started; }
+                } budget{deadline};
+                owner.callbacks.preferencesSync(std::move(json));
+                return JS_UNDEFINED;
+            }
             if (function == Require) return RequireModule(owner.entryPath, String(context, argument(0), 4096));
             if (function == Status) {
                 // Parse anew: JavaScript never holds the host's mutable snapshot
@@ -459,7 +492,7 @@ struct PluginRuntime::Impl {
             Value global(context, JS_GetGlobalObject(context));
             Value host(context, JS_NewObject(context));
             if (JS_IsException(host.value)) { Fail(ExceptionText()); return false; }
-            constexpr std::array<std::tuple<char const*, int, Function>, 25> definitions{{
+            constexpr std::array<std::tuple<char const*, int, Function>, 28> definitions{{
                 {"pause", 0, Pause}, {"resume", 0, Resume}, {"stop", 0, StopPlayback},
                 {"seek", 2, Seek}, {"seekTo", 1, SeekTo}, {"setSpeed", 1, Speed}, {"osd", 1, Osd},
                 {"log", 1, Log}, {"warn", 1, Warn}, {"error", 1, Error}, {"status", 0, Status},
@@ -468,7 +501,9 @@ struct PluginRuntime::Impl {
                 {"playChapter", 1, PlayChapter}, {"audioVolume", 1, AudioVolume},
                 {"audioMuted", 1, AudioMuted}, {"audioDelay", 1, AudioDelay},
                 {"audioId", 1, AudioId}, {"subtitleDelay", 1, SubtitleDelay},
-                {"subtitleId", 1, SubtitleId}, {"videoId", 1, VideoId}
+                {"subtitleId", 1, SubtitleId}, {"videoId", 1, VideoId},
+                {"preferenceDefaults", 0, PreferenceDefaults}, {"preferenceStored", 0, PreferenceStored},
+                {"preferenceSync", 1, PreferenceSync}
             }};
             for (auto const& [name, arity, function] : definitions) {
                 if (!SetFunction(host.value, name, arity, function)) return false;
@@ -587,11 +622,14 @@ bool PluginRuntime::SupportsEvent(std::string_view name) noexcept {
 PluginRuntime::PluginRuntime(std::unique_ptr<Impl> impl) : impl_(std::move(impl)) {}
 std::unique_ptr<PluginRuntime> PluginRuntime::Start(std::string source, std::string pluginName,
     bool allowOsd, Callbacks callbacks, std::string initialStatusJson,
-    std::string entryRelativePath, std::map<std::string, std::string> modules) {
+    std::string entryRelativePath, std::map<std::string, std::string> modules,
+    std::string defaultsJson, std::string storedJson) {
     if (source.empty() || source.size() > MaxSource || source.find('\0') != source.npos)
         throw std::invalid_argument("Plugin entry must contain 1 byte to 1 MiB of UTF-8 source without NUL.");
     if (pluginName.size() > 512 || initialStatusJson.empty() || initialStatusJson.size() > MaxJson)
         throw std::invalid_argument("Plugin name or initial status exceeds limits.");
+    if (defaultsJson.empty() || storedJson.empty() || defaultsJson.size() > MaxJson || storedJson.size() > MaxJson)
+        throw std::invalid_argument("Plugin preference documents must be JSON objects no larger than 64 KiB.");
     auto entry = ResolvePluginModulePath("__iima_root__.js", entryRelativePath);
     if (!entry || *entry != entryRelativePath) throw std::invalid_argument("Plugin entry path must be canonical and package-relative.");
     if (modules.size() > MaxModules) throw std::invalid_argument("Plugin module snapshot has too many files.");
@@ -606,7 +644,7 @@ std::unique_ptr<PluginRuntime> PluginRuntime::Start(std::string source, std::str
     }
     auto instance = std::unique_ptr<PluginRuntime>(new PluginRuntime(std::make_unique<Impl>(
         std::move(source), std::move(pluginName), allowOsd, std::move(callbacks), std::move(initialStatusJson),
-        std::move(entryRelativePath), std::move(modules))));
+        std::move(entryRelativePath), std::move(modules), std::move(defaultsJson), std::move(storedJson))));
     auto impl = instance->impl_.get();
     impl->thread = std::jthread([impl] { impl->Run(); });
     return instance;

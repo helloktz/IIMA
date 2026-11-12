@@ -12,6 +12,7 @@ MAPPING = {
     'JavascriptPolyfill.swift': ['src/IIMA.App/Plugins/PluginRuntime.cpp', 'src/IIMA.App/Plugins/PluginBootstrap.h', 'src/IIMA.Core/Plugins/PluginModulePath.cpp'],
     'JavascriptAPICore.swift': ['src/IIMA.App/Plugins/PluginBootstrap.h', 'src/IIMA.App/Plugins/PluginPlaybackProjection.cpp', 'src/IIMA.App/MainWindow.PluginRuntime.cpp'],
     'JavascriptAPIConsole.swift': ['src/IIMA.App/Plugins/PluginBootstrap.h', 'src/IIMA.App/Plugins/PluginRuntime.cpp'],
+    'JavascriptAPIPreferences.swift': ['src/IIMA.App/Plugins/PluginRuntime.cpp', 'src/IIMA.App/Plugins/PluginBootstrap.h', 'src/IIMA.App/Platform/PluginPreferenceStore.cpp', 'src/IIMA.App/MainWindow.PluginRuntime.cpp'],
     'JavascriptAPIEvent.swift': ['src/IIMA.App/Plugins/PluginRuntime.cpp', 'src/IIMA.App/Plugins/PluginPlaybackProjection.cpp'],
     'JavascriptPlugin.swift': ['src/IIMA.Core/Plugins/PluginManifest.cpp', 'src/IIMA.App/Platform/PluginInspection.cpp'],
     'MiniPlayerWindowController.swift': ['src/IIMA.Core/Windows/MusicModePolicy.cpp', 'src/IIMA.App/MainWindow.Music.cpp'],
