@@ -53,7 +53,7 @@ struct MainWindow : MainWindowT<MainWindow> {
     using OpenInputRouter = std::function<void(std::vector<std::string>, bool, bool, bool, bool)>;
     void SetOpenInputRouter(OpenInputRouter router) { openInputRouter_ = std::move(router); }
     void ReceiveResolvedInput(std::vector<std::string> paths, bool singleExplicitMedia = false);
-    void SetHistoryNewWindowRouter(std::function<void(std::vector<std::string>)> router) { historyNewWindowRouter_ = std::move(router); }
+    void SetSelectedInputNewWindowRouter(std::function<void(std::vector<std::string>)> router) { selectedInputNewWindowRouter_ = std::move(router); }
     bool CanReuseForInput() const;
     bool HasOpenInput(std::string const& path) const;
     bool IsClosing() const noexcept { return closing_; }
@@ -441,7 +441,7 @@ private:
     std::uint64_t playlistSubtitleInput_{}, playlistSubtitleSeenGeneration_{}, playlistSubtitleWaitingGeneration_{}, playlistSubtitleUserIntent_{};
     std::chrono::steady_clock::time_point playlistSubtitleDeadline_{};
     void WirePlaylistClipboard();
-    void CopyPlaylistPaths(bool networkOnly);
+    void CopyPlaylistPaths(bool networkOnly, bool cut = false);
     winrt::fire_and_forget PastePlaylistPaths();
     bool playlistPasteBusy_{};
     std::stop_source playlistPasteStop_;
@@ -457,6 +457,10 @@ private:
     std::uint64_t playlistDragRevision_{};
     void RemoveSelectedPlaylistItems();
     void QueueSelectedPlaylistNext();
+    void PlaySelectedPlaylistInNewWindow();
+    void UpdatePlaylistBrowserControls();
+    winrt::fire_and_forget OpenSelectedPlaylistInBrowser();
+    bool playlistBrowserBusy_{};
     void MoveSelected(int delta);
     void Apply(iima::PlaybackSnapshot const& state);
     void ToggleFullscreen();
@@ -512,7 +516,7 @@ private:
     void UpdateHistorySelection();
     void OpenSelectedHistory(bool newWindow = false);
     std::uint64_t historySelectionRevision_{};
-    std::function<void(std::vector<std::string>)> historyNewWindowRouter_;
+    std::function<void(std::vector<std::string>)> selectedInputNewWindowRouter_;
     bool projectingHistory_{};
     winrt::fire_and_forget RevealSelection(bool history);
     void WirePlaylistDeletion();

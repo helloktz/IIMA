@@ -175,6 +175,10 @@
                 </StackPanel>
                 <ScrollViewer Grid.Row="3" MaxHeight="300" HorizontalScrollBarVisibility="Disabled">
                     <StackPanel Spacing="6">
+                        <Button x:Name="CutPlaylistPathsButton" Content="剪切队列条目" ToolTipService.ToolTip="复制成功后从队列移除，不删除磁盘文件；移除当前项可能切换播放"/>
+                        <Button x:Name="PlaySelectedNewWindowButton" Content="在新窗口播放所选项" IsEnabled="False"/>
+                        <Button x:Name="OpenPlaylistBrowserButton" Content="在默认浏览器打开所选URL" IsEnabled="False"
+                                ToolTipService.ToolTip="仅单个不含凭据的HTTP(S)地址；会交给外部浏览器，不能撤回，也不验证页面加载"/>
                         <Expander Header="所选条目字幕关联" HorizontalAlignment="Stretch">
                             <StackPanel Spacing="6">
                                 <TextBlock x:Name="PlaylistSubtitleAssociationStatus" Text="请选择一个队列条目。" TextWrapping="Wrap"/>

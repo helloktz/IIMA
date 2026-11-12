@@ -97,7 +97,7 @@ void MainWindow::UpdateHistorySelection() {
     const bool enabled = !closing_ && userDataLoaded_ && !rows.empty();
     auto identities = iima::SelectHistoryRows(historyProjection_, rows);
     OpenHistoryButton().IsEnabled(enabled && !iima::PlayableHistoryPaths(historyProjection_, identities).empty());
-    OpenHistoryNewWindowButton().IsEnabled(enabled && static_cast<bool>(historyNewWindowRouter_) &&
+    OpenHistoryNewWindowButton().IsEnabled(enabled && static_cast<bool>(selectedInputNewWindowRouter_) &&
         !iima::PlayableHistoryPaths(historyProjection_, identities).empty());
     RemoveHistoryButton().IsEnabled(enabled);
     RevealHistoryButton().IsEnabled(enabled && !revealSelectionBusy_);
@@ -107,7 +107,7 @@ void MainWindow::UpdateHistorySelection() {
 // shouldAutoLoad:false. Do not send history through generic single-file open.
 void MainWindow::OpenSelectedHistory(bool newWindow) {
     if (closing_ || !userDataLoaded_ || projectingHistory_ || pickerOpen_ ||
-        interactiveCrop_.Active() || cropOriginal_ || (newWindow && !historyNewWindowRouter_)) return;
+        interactiveCrop_.Active() || cropOriginal_ || (newWindow && !selectedInputNewWindowRouter_)) return;
     auto identities=iima::SelectHistoryRows(historyProjection_,SelectedHistoryRows());
     auto paths=iima::PlayableHistoryPaths(historyProjection_,identities);
     if (paths.empty()) return;
@@ -160,7 +160,7 @@ void MainWindow::OpenSelectedHistory(bool newWindow) {
                 try {
                     // Ignore singleExplicitMedia deliberately: history provenance
                     // survives resolution and both receiving-window routes.
-                    if (newWindow) self->historyNewWindowRouter_(std::move(result.paths));
+                    if (newWindow) self->selectedInputNewWindowRouter_(std::move(result.paths));
                     else self->ReceiveResolvedInput(std::move(result.paths),false);
                     if (!result.warnings.empty()) self->ShowError(L"部分历史文件无法打开或被跳过；其余文件已请求打开。");
                 } catch (hresult_error const& error) { self->ShowError(error.message()); }

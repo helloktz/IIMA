@@ -77,6 +77,12 @@ void MainWindow::WirePlaybackControls()
     RemoveButton().Click([weak](auto const&, auto const&) {
         if (auto self = weak.get()) self->RemoveSelectedPlaylistItems();
     });
+    PlaySelectedNewWindowButton().Click([weak](auto const&,auto const&) {
+        if(auto self=weak.get()) self->PlaySelectedPlaylistInNewWindow();
+    });
+    OpenPlaylistBrowserButton().Click([weak](auto const&,auto const&) {
+        if(auto self=weak.get()) self->OpenSelectedPlaylistInBrowser();
+    });
     QueueSelectedNextButton().Click([weak](auto const&, auto const&) {
         if (auto self = weak.get()) self->QueueSelectedPlaylistNext();
     });

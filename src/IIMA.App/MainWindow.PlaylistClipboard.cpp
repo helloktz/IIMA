@@ -19,6 +19,9 @@ void MainWindow::WirePlaylistClipboard() {
             self->StatusText().Text(L"已取消待处理粘贴；已经提交的播放器操作不受影响。");
         }
     });
+    CutPlaylistPathsButton().Click([weak](auto const&, auto const&) {
+        if (auto self = weak.get()) self->CopyPlaylistPaths(false,true);
+    });
     CopyPlaylistPathsButton().Click([weak](auto const&, auto const&) {
         if (auto self = weak.get()) self->CopyPlaylistPaths(false);
     });
@@ -29,14 +32,21 @@ void MainWindow::WirePlaylistClipboard() {
         if (auto self = weak.get()) self->PastePlaylistPaths();
     });
 }
-void MainWindow::CopyPlaylistPaths(bool networkOnly) {
-    if (closing_) return;
+void MainWindow::CopyPlaylistPaths(bool networkOnly, bool cut) {
+    if ((cut && networkOnly) || closing_ || (cut && (pickerOpen_ || interactiveCrop_.Active() || cropOriginal_ ||
+        inputResolving_ || !pendingFiles_.empty() || !activationInputs_.empty()))) return;
+    bool copied=false;
     try {
         auto rows = SelectedPlaylistRows();
+        auto const& snapshot=session_->Snapshot();
+        const auto queue=snapshot.playlist;
+        const auto revision=snapshot.playlistRevision, media=snapshot.mediaGeneration, intent=snapshot.mediaOpenIntentRevision;
+        const auto edit=session_->PlaylistEditIntentRevision(), input=inputGeneration_;
+        const auto selected=SelectedPlaylistIds();
         std::string text;
         std::size_t count{};
         for (auto row : rows) {
-            auto const& path = playlist_[row].path;
+            auto const& path = queue[row].path;
             if (networkOnly && !iima::IsNetworkMediaPath(path)) continue;
             if (path.empty() || path.find_first_of("\r\n") != std::string::npos ||
                 path.find('\0') != std::string::npos) {
@@ -58,9 +68,32 @@ void MainWindow::CopyPlaylistPaths(bool networkOnly) {
         if (!Clipboard::SetContentWithOptions(package, options)) {
             ShowError(L"剪贴板正忙，未复制。请重试。"); return;
         }
+        copied=true;
+        if (cut) {
+            auto const& now=session_->Snapshot();
+            if (closing_ || pickerOpen_ || interactiveCrop_.Active() || cropOriginal_ || inputResolving_ ||
+                !pendingFiles_.empty() || !activationInputs_.empty() ||
+                now.session!=iima::SessionState::Ready || session_->PlaylistEditBusy() ||
+                now.playlistRevision!=revision || now.mediaGeneration!=media || now.mediaOpenIntentRevision!=intent ||
+                session_->PlaylistEditIntentRevision()!=edit || inputGeneration_!=input ||
+                SelectedPlaylistIds()!=selected || now.playlist.size()!=queue.size() ||
+                !std::equal(now.playlist.begin(),now.playlist.end(),queue.begin(),
+                    [](auto const& a,auto const& b) { return a.id==b.id && a.path==b.path; })) {
+                ShowError(L"已复制，但队列或播放请求已变化；未移除任何条目。"); return;
+            }
+            // Clipboard stays pure text with Copy operation: this never asks
+            // Explorer to move/delete files. Removal is the typed mpv edit plan.
+            session_->RemovePlaylistItems(std::move(rows));
+            if (!session_->PlaylistEditBusy()) {
+                ShowError(L"已复制，但队列移除事务未开始；未确认任何条目已移除。");
+                return; // Core snapshot.error retains the concrete rejection.
+            }
+            StatusText().Text(L"已复制并请求从队列移除，结果以列表为准；磁盘文件不受影响。网络地址可能含私密参数。");
+            return;
+        }
         // No Flush: retain neither paths nor signed URLs in clipboard history.
         StatusText().Text(L"已复制所选路径文本。网络地址可能包含私密参数，请谨慎粘贴。");
-    } catch (...) { ShowError(L"无法写入剪贴板。"); }
+    } catch (...) { ShowError(copied ? L"已复制，但移除请求失败；请检查队列。" : L"无法写入剪贴板；未移除队列条目。"); }
 }
 fire_and_forget MainWindow::PastePlaylistPaths() {
     auto lifetime = get_strong();

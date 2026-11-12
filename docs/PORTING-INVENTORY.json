@@ -1295,6 +1295,8 @@
       "physicalLines": 970,
       "coverage": "partial-static-unverified",
       "reviewTargets": [
+        "src/IIMA.App/MainWindow.PlaylistBrowser.cpp",
+        "src/IIMA.App/MainWindow.PlaylistClipboard.cpp",
         "src/IIMA.App/MainWindow.PlaylistSubtitles.cpp",
         "src/IIMA.App/MainWindow.PlaylistSubtitleApply.cpp",
         "src/IIMA.Core/Playlist/PlaylistSubtitleAssociations.cpp",
