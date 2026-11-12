@@ -1,5 +1,6 @@
 #pragma once
 #include <chrono>
+#include "../IIMA.Core/Matching/SubtitleMatcher.h"
 #include "../IIMA.Core/Settings/SettingsSearch.h"
 #include "MainWindow.g.h"
 #include "VideoSurface.h"
@@ -304,6 +305,15 @@ private:
     void PrepareAutomaticFiles(std::vector<std::string> const& paths, bool eligible);
     void UpdateAutomaticFiles();
     void CancelAutomaticFiles();
+    void ClearAutomaticSubtitleCache();
+    void UpdateAutomaticSubtitleCache();
+    void RetainAutomaticSubtitleMatches(iima::SubtitleMatchResult const& matches);
+    std::vector<iima::MediaSubtitleMatch> automaticSubtitleMatches_;
+    std::vector<iima::PlaylistItem> automaticSubtitleQueue_;
+    bool automaticSubtitlePending_{};
+    std::uint64_t automaticSubtitleExpansion_{}, automaticSubtitleExpansionGeneration_{}, automaticSubtitleIntent_{}, automaticSubtitleInput_{}, automaticSubtitleEditIntent_{};
+    std::uint64_t automaticSubtitleSeenGeneration_{}, automaticSubtitleWaitingGeneration_{}, automaticSubtitleUserIntent_{};
+    std::chrono::steady_clock::time_point automaticSubtitleDeadline_{};
     bool pendingAutoFileMatch_{}, automaticFilesStarted_{};
     std::string automaticFilesPath_;
     std::uint64_t automaticFilesGeneration_{}, automaticFilesIntent_{}, automaticFilesInputRevision_{}, automaticFilesEditIntent_{}, automaticFilesMediaGeneration_{}, automaticFilesSubtitleIntent_{};

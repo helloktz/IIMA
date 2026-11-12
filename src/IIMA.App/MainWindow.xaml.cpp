@@ -245,6 +245,7 @@ void MainWindow::Apply(iima::PlaybackSnapshot const& state)
     UpdateAutomaticVideoSize();
     UpdateWindowAspectConstraint();
     UpdateNetworkOpen(state);
+    UpdateAutomaticSubtitleCache();
     UpdateAutomaticFiles();
     QueueWindowScaleFeedback();
     RefreshPlayerMenus();

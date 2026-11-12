@@ -3,6 +3,7 @@
 #include "pch.h"
 #include "AutomaticFileMatcher.h"
 #include "../../IIMA.Core/Input/LocalInputPolicy.h"
+#include "../../IIMA.Core/Matching/SubtitleSearchPath.h"
 #include <algorithm>
 #include <atomic>
 #include <thread>
@@ -26,6 +27,23 @@ bool SamePath(fs::path const& a,fs::path const& b) {
     auto const& x=a.native(); auto const& y=b.native();
     return CompareStringOrdinal(x.c_str(),static_cast<int>(x.size()),y.c_str(),static_cast<int>(y.size()),TRUE)==CSTR_EQUAL;
 }
+// Reject links/hidden ancestors as well as the final directory. A UNC server
+// root is not an enumerable directory; stop after validating its share root.
+int SafeDirectory(fs::path const& path,std::stop_token stop) {
+    for (auto part=path; !part.empty();) {
+        if (stop.stop_requested()) return 0;
+        if (part==part.root_path() && part.native().starts_with(L"\\\\")) break;
+        auto attr=GetFileAttributesW(part.c_str());
+        if (attr==INVALID_FILE_ATTRIBUTES || !(attr & FILE_ATTRIBUTE_DIRECTORY)) return -1;
+        auto name=part.filename().native();
+        if ((attr & (FILE_ATTRIBUTE_REPARSE_POINT|FILE_ATTRIBUTE_HIDDEN|FILE_ATTRIBUTE_DEVICE)) ||
+            (!name.empty() && name.front()==L'.' && name!=L"." && name!=L"..")) return 0;
+        auto parent=part.parent_path();
+        if (parent==part) break;
+        part=std::move(parent);
+    }
+    return 1;
+}
 AutomaticFileMatchResult Scan(fs::path current, AutomaticFileMatchOptions options,
     std::uint64_t generation,std::stop_token stop) {
     AutomaticFileMatchResult result; result.current=current; result.generation=generation;
@@ -41,6 +59,8 @@ AutomaticFileMatchResult Scan(fs::path current, AutomaticFileMatchOptions option
         !current.is_absolute() || !AcceptDiscoveredFile(text) || IsPlaylistPath(text))
         return reject(L"自动匹配仅支持显式打开的普通本地媒体文件。");
     current=current.lexically_normal(); result.current=current;
+    if (SafeDirectory(current.parent_path(),stop)!=1)
+        return reject(L"媒体目录不可读或包含隐藏/链接目录，未应用自动匹配。");
     auto mediaAttributes=GetFileAttributesW(current.c_str());
     auto folderAttributes=GetFileAttributesW(current.parent_path().c_str());
     if (mediaAttributes==INVALID_FILE_ATTRIBUTES || folderAttributes==INVALID_FILE_ATTRIBUTES ||
@@ -78,6 +98,82 @@ AutomaticFileMatchResult Scan(fs::path current, AutomaticFileMatchOptions option
     if (stop.stop_requested()) { result.cancelled=true; return result; }
     if (error) return reject(L"无法完整读取媒体目录，未应用自动匹配结果。");
     if (currentMatches!=1) return reject(L"目录中无法唯一确认当前媒体，未应用自动匹配结果。");
+    // Parse even when loading is disabled: invalid persisted settings must not
+    // silently become a different search. Directory I/O is skipped in that mode.
+    std::wstring parseError;
+    auto searches=ParseSubtitleSearchPaths(options.subtitleSearchPaths,parseError);
+    if (!searches) return reject(parseError.c_str());
+    std::vector<fs::path> scanned{current.parent_path()}, expanded;
+    auto contains=[&](auto const& paths,fs::path const& path) {
+        return std::any_of(paths.begin(),paths.end(),[&](auto const& value) { return SamePath(value,path); });
+    };
+    auto addDirectory=[&](fs::path path) {
+        path=path.lexically_normal();
+        // Remove a trailing separator so X:\Subs and X:\Subs\ deduplicate.
+        if (path.filename().empty() && path!=path.root_path()) path=path.parent_path();
+        if (contains(scanned,path)) return true;
+        if (scanned.size()+expanded.size()>=64 || path.native().size()>32767) return false;
+        const auto safe=SafeDirectory(path,stop);
+        if (safe<0) return false;
+        if (safe==0) return true;
+        retainedBytes+=path.native().size()*sizeof(wchar_t);
+        if (retainedBytes>1024*1024) return false;
+        scanned.push_back(std::move(path));
+        return true;
+    };
+    if (options.subtitles.mode!=SubtitleAutoLoad::Disabled) {
+        for (auto const& search:*searches) {
+            if (stop.stop_requested()) { result.cancelled=true; return result; }
+            fs::path directory(search.directory);
+            if (!directory.is_absolute()) directory=current.parent_path()/directory;
+            directory=directory.lexically_normal();
+            if (directory.filename().empty() && directory!=directory.root_path()) directory=directory.parent_path();
+            if (!search.immediateChildren) {
+                if (!addDirectory(directory)) return reject(L"字幕搜索目录不可读或超过安全限制，未应用结果。");
+                continue;
+            }
+            if (contains(expanded,directory)) continue;
+            if (scanned.size()+expanded.size()>=64 || directory.native().size()>32767)
+                return reject(L"字幕搜索目录超过64项或路径长度限制，未应用结果。");
+            const auto safe=SafeDirectory(directory,stop);
+            if (safe<0) return reject(L"无法读取字幕搜索目录，未应用不完整结果。");
+            if (safe==0) continue;
+            expanded.push_back(directory);
+            fs::directory_iterator children(directory,error);
+            for (;!error && children!=end && !stop.stop_requested();children.increment(error)) {
+                if (++visited>10000) return reject(L"字幕搜索超过10000项访问限制，未应用结果。");
+                auto child=children->path(); auto name=child.filename().native();
+                auto attr=GetFileAttributesW(child.c_str());
+                if (attr==INVALID_FILE_ATTRIBUTES) return reject(L"读取字幕搜索子目录属性失败，未应用结果。");
+                if ((attr & (FILE_ATTRIBUTE_HIDDEN|FILE_ATTRIBUTE_REPARSE_POINT|FILE_ATTRIBUTE_DEVICE)) ||
+                    (!name.empty() && name.front()==L'.') || !(attr & FILE_ATTRIBUTE_DIRECTORY)) continue;
+                if (!addDirectory(child)) return reject(L"字幕搜索子目录不可读或超过安全限制，未应用结果。");
+            }
+            if (error) return reject(L"无法完整枚举字幕搜索子目录，未应用结果。");
+        }
+        // Index zero was already scanned for both media and subtitles above.
+        for (std::size_t i=1;i<scanned.size() && !stop.stop_requested();++i) {
+            fs::directory_iterator files(scanned[i],error);
+            for (;!error && files!=end && !stop.stop_requested();files.increment(error)) {
+                if (++visited>10000) return reject(L"字幕搜索超过10000项访问限制，未应用结果。");
+                auto path=files->path().lexically_normal(); auto name=path.filename().native();
+                auto attr=GetFileAttributesW(path.c_str());
+                if (attr==INVALID_FILE_ATTRIBUTES) return reject(L"读取字幕文件属性失败，未应用结果。");
+                if ((attr & (FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_HIDDEN|FILE_ATTRIBUTE_REPARSE_POINT|FILE_ATTRIBUTE_DEVICE)) ||
+                    (!name.empty() && name.front()==L'.') || !Subtitle(path)) continue;
+                const bool regular=files->is_regular_file(error);
+                if (error) return reject(L"无法确认字幕文件类型，未应用结果。");
+                if (!regular) continue;
+                if (std::any_of(subtitles.begin(),subtitles.end(),[&](auto const& value) { return SamePath(fs::path(value),path); })) continue;
+                retainedBytes+=path.native().size()*sizeof(wchar_t);
+                if (retainedBytes>1024*1024 || subtitles.size()>=512)
+                    return reject(L"字幕搜索超过512个字幕或1 MiB路径限制，未应用结果。");
+                subtitles.push_back(path.native());
+            }
+            if (error) return reject(L"无法完整读取字幕搜索目录，未应用结果。");
+        }
+    }
+    if (stop.stop_requested()) { result.cancelled=true; return result; }
     SortUniquePaths(videos); SortUniquePaths(audios); SortUniquePaths(subtitles);
     for (auto const& path:videos) result.orderedMedia.emplace_back(path);
     for (auto const& path:audios) result.orderedMedia.emplace_back(path);

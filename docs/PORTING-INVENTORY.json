@@ -79,6 +79,7 @@
       "reviewTargets": [
         "src/IIMA.Core/Matching/SubtitleMatcher.cpp",
         "src/IIMA.App/Platform/AutomaticFileMatcher.cpp",
+        "src/IIMA.Core/Matching/SubtitleSearchPath.cpp",
         "src/IIMA.App/MainWindow.AutomaticFiles.cpp",
         "src/IIMA.Core/Playlist/PlaylistPlan.cpp"
       ]

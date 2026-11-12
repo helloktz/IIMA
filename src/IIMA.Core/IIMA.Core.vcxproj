@@ -177,4 +177,8 @@
     <ClInclude Include="Playback\SpeedControl.h" />
     <ClCompile Include="Playback\SpeedControl.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Matching\SubtitleSearchPath.h" />
+    <ClCompile Include="Matching\SubtitleSearchPath.cpp" />
+  </ItemGroup>
 </Project>

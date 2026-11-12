@@ -6,7 +6,13 @@
 #include <utility>
 
 namespace iima {
+void PlayerSession::InvalidateAutoPlaylistExpansion() {
+    if (autoPlaylistExpansion_.phase == AutoPlaylistExpansionPhase::None) return;
+    autoPlaylistExpansion_.phase = AutoPlaylistExpansionPhase::Cancelled;
+    autoPlaylistExpansion_.playlist.clear();
+}
 void PlayerSession::CancelPlaylistEdits() {
+    InvalidateAutoPlaylistExpansion();
     if(playlistEdit_) playlistEdit_->Cancel();
     playlistEdit_.reset();
     playlistEditCommand_=0;
@@ -23,7 +29,10 @@ void PlayerSession::FailPlaylistEdit(std::string error) {
 void PlayerSession::BeginPlaylistEdit(PlaylistEditPlan plan, std::optional<bool> shuffledAfter, bool automatic) {
     // Intent, not observed mutation: even rejected/no-op user edits supersede
     // background automatic discovery that started before this action.
-    if (!automatic) ++playlistEditIntentRevision_;
+    if (!automatic) {
+        ++playlistEditIntentRevision_;
+        InvalidateAutoPlaylistExpansion();
+    }
     if(snapshot_.session!=SessionState::Ready) return;
     // Do not replace an executing edit with one based on its not-yet-observed
     // intermediate state. Explicit Open/Stop/Close may cancel it instead.
@@ -55,8 +64,27 @@ void PlayerSession::AdvancePlaylistEdit(std::span<const PlaylistItem> refreshed)
     if(playlistEdit_->Finished()) {
         const auto error=playlistEdit_->Error();
         if(!error.empty()) { FailPlaylistEdit(error); return; }
+        // Only the cursor's final GET reply supplies authoritative new IDs.
+        // Manual no-op/rejected edits also revoke a pending automatic result.
+        if (autoPlaylistExpansion_.phase == AutoPlaylistExpansionPhase::Running) {
+            if (autoPlaylistExpansion_.openIntent == snapshot_.mediaOpenIntentRevision &&
+                autoPlaylistExpansion_.mediaGeneration == snapshot_.mediaGeneration &&
+                autoPlaylistExpansion_.editIntent == playlistEditIntentRevision_ &&
+                snapshot_.entryId == autoPlaylistExpansion_.sourceEntry &&
+                std::count_if(refreshed.begin(), refreshed.end(), [](auto const& item) { return item.current; }) == 1 &&
+                std::any_of(refreshed.begin(), refreshed.end(), [&](auto const& item) {
+                    return item.id == autoPlaylistExpansion_.sourceEntry && item.current;
+                })) {
+                autoPlaylistExpansion_.playlist.assign(refreshed.begin(), refreshed.end());
+                autoPlaylistExpansion_.phase = AutoPlaylistExpansionPhase::Completed;
+            } else InvalidateAutoPlaylistExpansion();
+        }
         const auto shuffled=playlistShuffleAfter_;
+        std::optional<AutoPlaylistExpansionState> completed;
+        if (autoPlaylistExpansion_.phase == AutoPlaylistExpansionPhase::Completed)
+            completed = std::move(autoPlaylistExpansion_);
         CancelPlaylistEdits();
+        if (completed) autoPlaylistExpansion_ = std::move(*completed);
         if(shuffled) playlistShuffled_=*shuffled;
         Notify();
         return;
@@ -148,7 +176,17 @@ bool PlayerSession::ExpandAutoPlaylist(std::vector<std::string> before, std::vec
         Notify();
         return false;
     }
-    if (plan.steps.empty()) return true;
+    const auto resultRevision = autoPlaylistExpansion_.revision + 1;
+    autoPlaylistExpansion_ = {resultRevision, expectedIntent, expectedGeneration,
+        playlistEditIntentRevision_, expectedEntry, AutoPlaylistExpansionPhase::Running, {}};
+    if (plan.steps.empty()) {
+        // No new entries need identification. Publish the existing singleton;
+        // the caller already supplied its observed revision/entry identity.
+        autoPlaylistExpansion_.playlist = snapshot_.playlist;
+        autoPlaylistExpansion_.phase = AutoPlaylistExpansionPhase::Completed;
+        Notify();
+        return true;
+    }
     BeginPlaylistEdit(std::move(plan), {}, true);
     return static_cast<bool>(playlistEdit_);
 }
@@ -166,7 +204,7 @@ void PlayerSession::PlaylistRemove(std::size_t index) {
 }
 void PlayerSession::PlaylistMove(std::size_t from,std::size_t finalIndex) {
     if(from>=snapshot_.playlist.size() || finalIndex>=snapshot_.playlist.size() || from==finalIndex) {
-        ++playlistEditIntentRevision_; return;
+        ++playlistEditIntentRevision_; InvalidateAutoPlaylistExpansion(); return;
     }
     std::vector<std::int64_t> desired;
     for(const auto& item:snapshot_.playlist) desired.push_back(item.id);

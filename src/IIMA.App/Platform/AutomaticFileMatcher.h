@@ -10,6 +10,7 @@ namespace iima {
 struct AutomaticFileMatchOptions {
     bool expandPlaylist{true};
     SubtitleMatchOptions subtitles;
+    std::wstring subtitleSearchPaths{L"./*"};
 };
 struct AutomaticFileMatchResult {
     std::filesystem::path current;
@@ -25,7 +26,8 @@ class AutomaticFileMatcher final {
 public:
     // Caller must prove a single explicit regular media source, and recheck
     // media/open-intent/playlist-edit generations before applying any result.
-    // Same directory only; no recursion, custom search paths or network fetch.
+    // Media discovery is same-directory only; subtitle paths support one-level
+    // child expansion. No recursive search or URL fetch (UNC paths may use network shares).
     // Cancellation is cooperative between filesystem calls, not an I/O timeout.
     // At most four outstanding scans process-wide; busy rejection is delivered
     // on the UI dispatcher. No window is retained by this discovery adapter.

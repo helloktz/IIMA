@@ -9,6 +9,15 @@
 #include "../Settings/WindowPlaybackPolicy.h"
 
 namespace iima {
+enum class AutoPlaylistExpansionPhase { None, Running, Completed, Cancelled };
+struct AutoPlaylistExpansionState {
+    std::uint64_t revision{}, openIntent{}, mediaGeneration{}, editIntent{};
+    std::int64_t sourceEntry{-1};
+    AutoPlaylistExpansionPhase phase{AutoPlaylistExpansionPhase::None};
+    // Populated only from the final successful explicit playlist readback.
+    // IDs of newly appended entries are never inferred from paths or counters.
+    std::vector<PlaylistItem> playlist;
+};
 class PlayerSession final : public std::enable_shared_from_this<PlayerSession> {
 public:
     using Dispatch = std::function<void(std::function<void()>)>;
@@ -40,6 +49,7 @@ public:
     void QueuePlaylistItemsNext(std::vector<std::size_t> indices);
     // Cancels only unsent work, never claims rollback of a submitted command.
     void CancelPlaylistEdits();
+    AutoPlaylistExpansionState const& AutoPlaylistExpansion() const noexcept { return autoPlaylistExpansion_; }
     std::uint64_t PlaylistEditIntentRevision() const noexcept { return playlistEditIntentRevision_; }
     bool PlaylistEditBusy() const noexcept { return static_cast<bool>(playlistEdit_); }
     bool PlaylistShuffled() const noexcept { return playlistShuffled_; }
@@ -188,6 +198,8 @@ private:
     void CancelFilterEditCallbacks();
     std::map<std::uint64_t, FilterEditCompleted> filterEditCallbacks_;
     void PausedCommand(std::vector<std::string> command);
+    AutoPlaylistExpansionState autoPlaylistExpansion_;
+    void InvalidateAutoPlaylistExpansion();
     std::uint64_t playlistEditIntentRevision_{};
     std::uint64_t subtitleEditIntentRevision_{};
     void BeginPlaylistEdit(PlaylistEditPlan plan, std::optional<bool> shuffledAfter = {}, bool automatic = false);

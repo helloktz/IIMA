@@ -26,6 +26,7 @@ void MainWindow::CancelAutomaticFiles() {
     automaticFilesStop_.request_stop();
     ++automaticFilesGeneration_;
     automaticFilesPath_.clear(); automaticFilesStarted_=false;
+    ClearAutomaticSubtitleCache();
 }
 void MainWindow::PrepareAutomaticFiles(std::vector<std::string> const& paths, bool eligible) {
     CancelAutomaticFiles();
@@ -68,6 +69,7 @@ void MainWindow::UpdateAutomaticFiles() {
         !state.playlist.front().current || !SameLocalText(state.playlist.front().path,state.path)) return;
     iima::AutomaticFileMatchOptions options;
     options.expandPlaylist=preferences_.Boolean("playlistAutoAdd");
+    options.subtitleSearchPaths=to_hstring(preferences_.String("subAutoLoadSearchPath"));
     options.subtitles.mode=static_cast<iima::SubtitleAutoLoad>(preferences_.Integer("subAutoLoadIINA"));
     options.subtitles.forceMatchUnmatched=options.expandPlaylist;
     const auto priority=preferences_.String("subAutoLoadPriorityString");
@@ -134,8 +136,20 @@ void MainWindow::UpdateAutomaticFiles() {
                         if (std::find(subtitles.begin(),subtitles.end(),text)==subtitles.end()) subtitles.push_back(std::move(text));
                     }
                 }
-                if (expand && (!before.empty() || !after.empty()))
-                    self->session_->ExpandAutoPlaylist(std::move(before),std::move(after),entry,revision,intent,mediaGeneration);
+                self->RetainAutomaticSubtitleMatches(result.matches);
+                self->automaticSubtitleIntent_=intent;
+                self->automaticSubtitleInput_=input;
+                self->automaticSubtitleEditIntent_=editIntent;
+                self->automaticSubtitleSeenGeneration_=mediaGeneration; // Initial media handled below.
+                if (expand && (!before.empty() || !after.empty())) {
+                    self->automaticSubtitlePending_=!self->automaticSubtitleMatches_.empty();
+                    self->automaticSubtitleExpansion_=self->session_->AutoPlaylistExpansion().revision+1;
+                    self->automaticSubtitleExpansionGeneration_=mediaGeneration;
+                    if (!self->session_->ExpandAutoPlaylist(std::move(before),std::move(after),entry,revision,intent,mediaGeneration))
+                        self->ClearAutomaticSubtitleCache();
+                } else if (!self->automaticSubtitleMatches_.empty()) {
+                    self->automaticSubtitleQueue_=current.playlist;
+                }
                 for (auto const& path:subtitles) {
                     auto const& latest=self->session_->Snapshot();
                     if (latest.mediaGeneration!=mediaGeneration || latest.mediaOpenIntentRevision!=intent) break;
@@ -154,4 +168,109 @@ void MainWindow::UpdateAutomaticFiles() {
         ShowError(L"无法开始同目录自动匹配，未修改队列或字幕。");
     }
 }
+void MainWindow::ClearAutomaticSubtitleCache() {
+    automaticSubtitleMatches_.clear(); automaticSubtitleQueue_.clear();
+    automaticSubtitlePending_=false; automaticSubtitleExpansion_=0;
+    automaticSubtitleWaitingGeneration_=0; automaticSubtitleSeenGeneration_=0;
+    automaticSubtitleDeadline_={};
+}
+void MainWindow::RetainAutomaticSubtitleMatches(iima::SubtitleMatchResult const& matches) {
+    ClearAutomaticSubtitleCache();
+    std::vector<iima::MediaSubtitleMatch> retained;
+    std::size_t references{}, bytes{};
+    bool limited=false;
+    for (auto const& match:matches.media) {
+        if (match.subtitles.empty()) continue;
+        iima::MediaSubtitleMatch item;
+        item.media=match.media;
+        bytes+=item.media.native().size()*sizeof(wchar_t);
+        for (auto const& path:match.subtitles) {
+            if (item.subtitles.size()==64) { limited=true; break; }
+            bytes+=path.native().size()*sizeof(wchar_t);
+            if (++references>4096 || bytes>4*1024*1024) {
+                ShowError(L"自动字幕缓存超过4096条引用或4MiB预算，后续切换不使用此缓存。");
+                return; // Do not publish a partial cross-media cache.
+            }
+            item.subtitles.push_back(path);
+        }
+        retained.push_back(std::move(item)); // relatedSubtitles intentionally not retained.
+    }
+    automaticSubtitleMatches_=std::move(retained);
+    if (limited) ShowError(L"自动字幕缓存每个媒体最多保留64项，其余匹配未缓存。");
+}
+void MainWindow::UpdateAutomaticSubtitleCache() {
+    if (automaticSubtitleMatches_.empty()) return;
+    auto const& state=session_->Snapshot();
+    if (closing_ || state.session==iima::SessionState::Failed ||
+        state.session==iima::SessionState::Closing || state.session==iima::SessionState::Closed ||
+        inputGeneration_!=automaticSubtitleInput_ || state.mediaOpenIntentRevision!=automaticSubtitleIntent_ ||
+        session_->PlaylistEditIntentRevision()!=automaticSubtitleEditIntent_) {
+        ClearAutomaticSubtitleCache(); return;
+    }
+    if (automaticSubtitlePending_) {
+        auto const& result=session_->AutoPlaylistExpansion();
+        if (result.revision!=automaticSubtitleExpansion_ || result.openIntent!=automaticSubtitleIntent_ ||
+            result.mediaGeneration!=automaticSubtitleExpansionGeneration_ ||
+            result.editIntent!=automaticSubtitleEditIntent_ ||
+            result.phase==iima::AutoPlaylistExpansionPhase::Cancelled) {
+            ClearAutomaticSubtitleCache(); return;
+        }
+        if (result.phase!=iima::AutoPlaylistExpansionPhase::Completed) return;
+        automaticSubtitleQueue_=result.playlist; // IDs only from the final successful GET.
+        automaticSubtitlePending_=false;
+    }
+    if (session_->PlaylistEditBusy() || state.playlist.size()!=automaticSubtitleQueue_.size()) {
+        ClearAutomaticSubtitleCache(); return;
+    }
+    for (std::size_t i=0;i<state.playlist.size();++i) {
+        if (state.playlist[i].id!=automaticSubtitleQueue_[i].id ||
+            !SameLocalText(state.playlist[i].path,automaticSubtitleQueue_[i].path)) {
+            ClearAutomaticSubtitleCache(); return;
+        }
+    }
+    if (!state.mediaGeneration || state.mediaGeneration==automaticSubtitleSeenGeneration_) return;
+    if (automaticSubtitleWaitingGeneration_!=state.mediaGeneration) {
+        automaticSubtitleWaitingGeneration_=state.mediaGeneration;
+        automaticSubtitleUserIntent_=session_->SubtitleEditIntentRevision();
+        automaticSubtitleDeadline_={};
+    }
+    // A new explicit selection/add/reload wins, including commands whose
+    // property observations have not yet arrived. Never replay later this media.
+    if (pickerOpen_ || interactiveCrop_.Active() || cropOriginal_ ||
+        session_->SubtitleEditIntentRevision()!=automaticSubtitleUserIntent_) {
+        automaticSubtitleSeenGeneration_=state.mediaGeneration; return;
+    }
+    if (state.media!=iima::MediaState::Loaded) return;
+    const auto now=std::chrono::steady_clock::now();
+    if (automaticSubtitleDeadline_==std::chrono::steady_clock::time_point{})
+        automaticSubtitleDeadline_=now+std::chrono::seconds(10);
+    if (now>automaticSubtitleDeadline_) { automaticSubtitleSeenGeneration_=state.mediaGeneration; return; }
+    if (state.path.empty() || state.tracks.empty() || !state.mediaPlaybackRestarted) return;
+    auto owned=std::find_if(automaticSubtitleQueue_.begin(),automaticSubtitleQueue_.end(),
+        [&](auto const& item) { return item.id==state.entryId && SameLocalText(item.path,state.path); });
+    if (owned==automaticSubtitleQueue_.end()) { ClearAutomaticSubtitleCache(); return; }
+    const auto media=std::filesystem::path(to_hstring(state.path).c_str());
+    auto match=std::find_if(automaticSubtitleMatches_.begin(),automaticSubtitleMatches_.end(),
+        [&](auto const& value) { return SameLocalPath(value.media,media); });
+    automaticSubtitleSeenGeneration_=state.mediaGeneration; // Commit before any reentrant callback.
+    if (match==automaticSubtitleMatches_.end()) return;
+    std::vector<std::string> paths;
+    for (auto const& path:match->subtitles) {
+        if (std::any_of(state.tracks.begin(),state.tracks.end(),[&](auto const& track) {
+            return track.type=="sub" && !track.externalPath.empty() &&
+                SameLocalPath(std::filesystem::path(to_hstring(track.externalPath).c_str()),path);
+        })) continue;
+        const auto text=to_string(path.native());
+        if (std::find(paths.begin(),paths.end(),text)==paths.end()) paths.push_back(text);
+    }
+    const auto generation=state.mediaGeneration;
+    for (auto const& path:paths) {
+        if (session_->Snapshot().mediaGeneration!=generation ||
+            session_->Snapshot().mediaOpenIntentRevision!=automaticSubtitleIntent_) break;
+        session_->AddSubtitle(path,false);
+    }
+    // Own auto additions must not masquerade as a later user selection.
+    automaticSubtitleUserIntent_=session_->SubtitleEditIntentRevision();
+}
+
 }

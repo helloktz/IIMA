@@ -110,6 +110,7 @@ std::span<PreferenceDescriptor const> PreferenceSchema() {
         B("playlistAutoAdd",Area::Interface,true),
         E("subAutoLoadIINA",Area::Subtitles,2,subtitleAutoLoad),
         S("subAutoLoadPriorityString",Area::Subtitles,""),
+        S("subAutoLoadSearchPath",Area::Subtitles,"./*"),
         B("alwaysOpenInNewWindow",Area::Window,true),
         B("groupSimultaneousOpensInPlaylist",Area::Window,false),
         B("allowDuplicatePlayers",Area::Window,false),

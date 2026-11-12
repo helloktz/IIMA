@@ -3,6 +3,7 @@
 #include "pch.h"
 #include "MainWindow.xaml.h"
 #include "../IIMA.Core/Geometry/WindowGeometry.h"
+#include "../IIMA.Core/Matching/SubtitleSearchPath.h"
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -23,7 +24,7 @@ struct EditorRefreshScope {
 };
 bool HasApplicationAdapter(std::string_view key) {
     static const std::set<std::string_view> keys{
-        "playlistAutoAdd", "subAutoLoadIINA", "subAutoLoadPriorityString", "initialWindowSizePosition", "enableInitialVolume", "initialVolume", "alwaysOpenInNewWindow", "groupSimultaneousOpensInPlaylist", "allowDuplicatePlayers",
+        "playlistAutoAdd", "subAutoLoadIINA", "subAutoLoadPriorityString", "subAutoLoadSearchPath", "initialWindowSizePosition", "enableInitialVolume", "initialVolume", "alwaysOpenInNewWindow", "groupSimultaneousOpensInPlaylist", "allowDuplicatePlayers",
         "autoSwitchToMusicMode", "musicModeShowPlaylist", "musicModeShowAlbumArt",
         "resizeWindowTiming", "resizeWindowOption", "usePhysicalResolution", "unlockWindowAspectRatio", "preventScreenSaver", "allowScreenSaverForAudio", "pauseWhenInactive", "pauseWhenMinimized", "pauseWhenGoesToSleep", "enableThumbnailPreview", "thumbnailWidth", "maxThumbnailPreviewCacheSize",
         "displayTimeAndBatteryInFullScreen", "alwaysFloatOnTop", "fullScreenWhenOpen", "playWhenEnteringFullScreen", "pauseWhenLeavingFullScreen",
@@ -144,6 +145,12 @@ void MainWindow::PopulateAdvancedSettings() {
         Controls::StackPanel settingsRow;
         settingsRow.Spacing(4);
         settingsRow.Children().Append(editor);
+        if (key == "subAutoLoadSearchPath") {
+            Controls::TextBlock hint;
+            hint.Text(L"下次单文件打开生效。用分号分隔，如 Subs;D:\\Subtitles;./*。末尾 /* 仅搜索直接子目录；当前目录始终包含。不支持 ~。");
+            hint.TextWrapping(TextWrapping::Wrap);
+            settingsRow.Children().Append(hint);
+        }
         Controls::Button reset;
         reset.Content(box_value(L"恢复此项默认值"));
         Automation::AutomationProperties::SetName(reset, label + L"，恢复默认值");
@@ -192,9 +199,17 @@ void MainWindow::ApplyAdvancedSetting(std::string const& key, iima::settings::Pr
             return;
         }
     }
+    if (key == "subAutoLoadSearchPath") {
+        auto text = std::get_if<std::string>(&value);
+        std::wstring issue;
+        if (!text || !iima::ParseSubtitleSearchPaths(to_hstring(*text), issue)) {
+            ShowError(issue.empty() ? L"字幕目录格式无效；Windows路径请用分号分隔。" : hstring(issue));
+            return;
+        }
+    }
     std::string error;
     if (!preferences_.Set(key, std::move(value), error)) { ShowError(to_hstring(error)); return; }
-    if (key == "playlistAutoAdd" || key == "subAutoLoadIINA" || key == "subAutoLoadPriorityString")
+    if (key == "playlistAutoAdd" || key == "subAutoLoadIINA" || key == "subAutoLoadPriorityString" || key == "subAutoLoadSearchPath")
         CancelAutomaticFiles(); // Changes apply to the next explicit single-file open.
     userData_.settings.advancedPreferences = preferences_.Overrides();
     session_->ApplyAdvancedPreferences(preferences_, key == "audioDevice");
