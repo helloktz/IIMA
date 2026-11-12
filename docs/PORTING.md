@@ -490,3 +490,10 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 - 不修改原始音频文件，不复制到配置目录、不持久化绝对路径作为偏好，也不创建新播放列表条目。没有上游选择器“当前媒体目录”定位、外置视频添加、外部轨道删除/重载和专门错误类型翻译；底层解码格式取决于实际libmpv产物。
 
 只静态编写、人工阅读与统计、Git核验。未编译、测试、运行或实际加载文件。
+
+### 第四十一批：截图成功后的内存预览
+
+- IINA `PlayerCore.screenshotCallback`、`ScreenshotOSDView.setImage` 和 `Preference.screenshotShowPreview` → `FinishScreenshot`、`MakeScreenshotPreview` 与 `MainWindow.ScreenshotPreview.cpp`。继承默认开启、成功截图后解码、300×200内适配和5秒显示。保存文件先原子发布；解码/显示失败不撤销已保存的截图，剪贴板保持原始分辨率。
+- WIC解码和缩小位于后台，UI只复制最多240KB的预乘BGRA至WriteableBitmap。与原版NSImage缩放不同，缩图使用最近邻且不放大小图；不宣称色彩管理、HDR、透明度或视觉一致性。临时PNG由既有staging生命周期释放，图像不依赖已删除文件。
+- 新预览替换旧预览并重新计时，关闭窗口或关闭预览/OSD偏好立即清空图像和计时器。偏好在开始与结果到达时均检查。截图是请求当时的历史结果，不在换片时把其改标为新媒体；本批不添加拖动、删除、编辑或定位按钮，也不覆盖其他截图格式。
+- 保存和复制成功的文案不因预览失败改报为截图失败。所有格式支持仍受配套mpv与WIC约束，未执行编译、测试、播放或真实截图。

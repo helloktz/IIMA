@@ -262,6 +262,7 @@ void MainWindow::BeginClose()
     if(powerLifecycle_) powerLifecycle_->Close();
     inputStop_.request_stop(); ++inputGeneration_;
     subtitleMatchStop_.request_stop(); ++subtitleMatchGeneration_;
+    HideScreenshotPreview();
     if (osdTimer_) osdTimer_.Stop();
     InvalidateInspectorWatch();
     if (diagnosticTimer_) diagnosticTimer_.Stop();

@@ -132,6 +132,7 @@ std::span<PreferenceDescriptor const> PreferenceSchema() {
         B("showRemainingTime",Area::Interface,false),
         B("scaleRemainingTime",Area::Interface,false),
         I("timeDisplayPrecision",Area::Interface,0,0,3),
+        B("screenshotShowPreview",Area::Interface,true),
         B("enableThumbnailPreview",Area::Interface,true),
         B("enableThumbnailForRemoteFiles",Area::Interface,false),
         I("maxThumbnailPreviewCacheSize",Area::Interface,500,0,102400),

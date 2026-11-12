@@ -65,6 +65,7 @@
     <ClCompile Include="MainWindow.OpenPolicy.cpp" />
     <ClCompile Include="MainWindow.UserData.cpp" />
     <ClCompile Include="MainWindow.Files.cpp" />
+    <ClCompile Include="MainWindow.ScreenshotPreview.cpp" />
     <ClCompile Include="MainWindow.Folders.cpp" />
     <ClCompile Include="MainWindow.Settings.cpp" />
     <ClCompile Include="MainWindow.System.cpp" />

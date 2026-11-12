@@ -16,7 +16,7 @@ bool HasApplicationAdapter(std::string_view key) {
         "autoSwitchToMusicMode", "musicModeShowPlaylist", "musicModeShowAlbumArt",
         "pauseWhenInactive", "pauseWhenMinimized", "pauseWhenGoesToSleep", "enableThumbnailPreview", "thumbnailWidth", "maxThumbnailPreviewCacheSize",
         "alwaysFloatOnTop", "fullScreenWhenOpen", "playWhenEnteringFullScreen", "pauseWhenLeavingFullScreen",
-        "enableOSD", "disableOSDPauseResumeMsgs", "disableOSDSpeedMsg", "osdAutoHideTimeout", "osdTextSize"
+        "screenshotShowPreview", "enableOSD", "disableOSDPauseResumeMsgs", "disableOSDSpeedMsg", "osdAutoHideTimeout", "osdTextSize"
     };
     return keys.contains(key);
 }
@@ -103,6 +103,7 @@ void MainWindow::ApplyAdvancedSetting(std::string const& key, iima::settings::Pr
     userData_.settings.advancedPreferences = preferences_.Overrides();
     session_->ApplyAdvancedPreferences(preferences_);
     ApplyWindowPreferences();
+    if (key == "screenshotShowPreview" && !preferences_.Boolean(key)) HideScreenshotPreview();
     if (key == "enableThumbnailPreview" || key == "thumbnailWidth" || key == "maxThumbnailPreviewCacheSize") {
         CancelThumbnailPreview(); thumbnailMemory_.clear();
     }
@@ -115,6 +116,7 @@ void MainWindow::ApplyWindowPreferences() {
             presenter.IsAlwaysOnTop(preferences_.Boolean("alwaysFloatOnTop"));
         OSDTitle().FontSize(preferences_.Number("osdTextSize"));
         if (!preferences_.Boolean("enableOSD")) {
+            HideScreenshotPreview();
             OSDBorder().Visibility(Visibility::Collapsed);
             if (osdTimer_) osdTimer_.Stop();
         }

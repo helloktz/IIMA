@@ -1105,8 +1105,11 @@
     {
       "source": "references/iina/iina/ScreenshotOSDView.swift",
       "physicalLines": 78,
-      "coverage": "not-mapped",
-      "reviewTargets": []
+      "coverage": "partial/static/unverified",
+      "reviewTargets": [
+        "src/IIMA.App/MainWindow.ScreenshotPreview.cpp",
+        "src/IIMA.App/Platform/ScreenshotImage.cpp"
+      ]
     },
     {
       "source": "references/iina/iina/ScrollingTextField.swift",

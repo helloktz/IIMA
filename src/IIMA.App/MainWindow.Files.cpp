@@ -151,14 +151,27 @@ winrt::fire_and_forget MainWindow::FinishScreenshot(std::shared_ptr<iima::Screen
     screenshotPostProcessing_ = true;
     apartment_context ui;
     std::optional<iima::ScreenshotPixels> pixels;
+    std::optional<iima::ScreenshotPixels> preview;
+    const bool showPreview = preferences_.Boolean("screenshotShowPreview") && preferences_.Boolean("enableOSD");
     std::exception_ptr failure;
+    bool previewFailed = false;
     co_await resume_background();
     auto initialized = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
     try {
         if (destination) staging->Publish(*destination);
-        if (copyToClipboard) {
-            check_hresult(initialized);
-            pixels = iima::DecodeScreenshot(staging->Path());
+        if (copyToClipboard || showPreview) {
+            try {
+                check_hresult(initialized);
+                auto decoded = iima::DecodeScreenshot(staging->Path());
+                if (showPreview) {
+                    try { preview = iima::MakeScreenshotPreview(decoded); }
+                    catch (...) { previewFailed = true; }
+                }
+                if (copyToClipboard) pixels = std::move(decoded);
+            } catch (...) {
+                if (copyToClipboard) throw;
+                previewFailed = true; // A decode failure does not undo a saved PNG.
+            }
         }
     } catch (...) { failure = std::current_exception(); }
     if (SUCCEEDED(initialized)) CoUninitialize();
@@ -172,7 +185,12 @@ winrt::fire_and_forget MainWindow::FinishScreenshot(std::shared_ptr<iima::Screen
             check_hresult(this->as<::IWindowNative>()->get_WindowHandle(&hwnd));
             iima::CopyScreenshotToClipboard(hwnd, *pixels);
         }
-        ShowError(copyToClipboard ? L"截图已复制到剪贴板。" : L"截图已保存。");
+        if (preview && preferences_.Boolean("screenshotShowPreview") && preferences_.Boolean("enableOSD")) {
+            try { ShowScreenshotPreview(*preview); }
+            catch (...) { previewFailed = true; HideScreenshotPreview(); }
+        }
+        ShowError(previewFailed ? (copyToClipboard ? L"截图已复制，但预览不可用。" : L"截图已保存，但预览不可用。") :
+            (copyToClipboard ? L"截图已复制到剪贴板。" : L"截图已保存。"));
     } catch (hresult_error const& error) { ShowError(error.message()); }
       catch (std::exception const& error) { ShowError(to_hstring(error.what())); }
 }

@@ -4,6 +4,8 @@
 #include "ScreenshotImage.h"
 #include <wincodec.h>
 #include <cstring>
+#include <algorithm>
+#include <cmath>
 #include <limits>
 #pragma comment(lib, "windowscodecs.lib")
 
@@ -59,6 +61,28 @@ ScreenshotPixels DecodeScreenshot(const std::filesystem::path& source, std::size
     result.bgra.resize(static_cast<std::size_t>(bytes));
     winrt::check_hresult(converter->CopyPixels(nullptr, result.stride,
         static_cast<UINT>(bytes), result.bgra.data()));
+    return result;
+}
+ScreenshotPixels MakeScreenshotPreview(const ScreenshotPixels& source) {
+    PixelBytes(source);
+    const auto scale = std::min({1.0, 300.0 / source.width, 200.0 / source.height});
+    ScreenshotPixels result;
+    result.width = std::max(1u, static_cast<unsigned>(std::floor(source.width * scale)));
+    result.height = std::max(1u, static_cast<unsigned>(std::floor(source.height * scale)));
+    result.stride = result.width * 4;
+    result.bgra.resize(static_cast<std::size_t>(result.stride) * result.height);
+    // Bounded nearest-neighbor thumbnail; clipboard retains original resolution.
+    for (unsigned y = 0; y < result.height; ++y) {
+        auto sy = static_cast<std::uint64_t>(y) * source.height / result.height;
+        for (unsigned x = 0; x < result.width; ++x) {
+            auto sx = static_cast<std::uint64_t>(x) * source.width / result.width;
+            auto input = source.bgra.data() + sy * source.stride + sx * 4;
+            auto output = result.bgra.data() + y * result.stride + x * 4;
+            for (unsigned channel = 0; channel < 3; ++channel)
+                output[channel] = static_cast<std::uint8_t>((unsigned(input[channel]) * input[3] + 127) / 255);
+            output[3] = input[3];
+        }
+    }
     return result;
 }
 void CopyScreenshotToClipboard(HWND owner, const ScreenshotPixels& pixels) {

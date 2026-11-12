@@ -31,6 +31,15 @@
                 </StackPanel>
             </StackPanel>
         </Border>
+        <Border x:Name="ScreenshotPreviewBorder" Visibility="Collapsed" Canvas.ZIndex="9"
+                HorizontalAlignment="Left" VerticalAlignment="Top" Margin="16,64,16,0"
+                Background="#EE202020" Padding="8" IsHitTestVisible="False">
+            <StackPanel Spacing="6">
+                <TextBlock Text="截图预览" Foreground="White"/>
+                <Image x:Name="ScreenshotPreviewImage" MaxWidth="300" MaxHeight="200" Stretch="Uniform"
+                       AutomationProperties.Name="刚完成的截图预览"/>
+            </StackPanel>
+        </Border>
         <Border x:Name="ThumbnailPreviewBorder" Visibility="Collapsed" Canvas.ZIndex="8"
                 VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,100"
                 Background="#EE202020" Padding="6">

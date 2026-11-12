@@ -11,6 +11,7 @@
 #include "Platform/WindowPlacement.h"
 #include "Platform/LocalInputResolver.h"
 #include "Platform/ScreenshotStaging.h"
+#include "Platform/ScreenshotImage.h"
 #include "Platform/ThumbnailExtractor.h"
 #include "Platform/AssrtClient.h"
 #include "Platform/OpenSubClient.h"
@@ -311,6 +312,9 @@ private:
     std::optional<int64_t> fullscreenPreferenceEntry_;
     bool discardUserData_{}, saveDialogOpen_{}, userDataLoaded_{}, settingsApplied_{}, saving_{}, saveDirty_{}, saveFailed_{}, coreClosed_{};
     bool screenshotPostProcessing_{};
+    void ShowScreenshotPreview(iima::ScreenshotPixels const& preview);
+    void HideScreenshotPreview();
+    Microsoft::UI::Dispatching::DispatcherQueueTimer screenshotPreviewTimer_{nullptr};
     bool updating_{}, closing_{}, closeComplete_{}, pickerOpen_{}, fullscreen_{};
 };
 }

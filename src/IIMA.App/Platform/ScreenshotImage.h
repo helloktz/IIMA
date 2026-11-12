@@ -20,6 +20,9 @@ struct ScreenshotPixels {
 // A missing codec is an error, not a reason to remove a successfully saved file.
 ScreenshotPixels DecodeScreenshot(const std::filesystem::path& source,
     std::size_t maximumBytes = 128 * 1024 * 1024);
+// Worker-side bounded preview, premultiplied BGRA for XAML WriteableBitmap.
+// No upscale; maximum 300 x 200 pixels. Does not mutate clipboard pixels.
+ScreenshotPixels MakeScreenshotPreview(const ScreenshotPixels& pixels);
 // UI-thread only with a live HWND owned by the calling thread. Copies pixels
 // into CF_DIBV5; after success Windows owns the HGLOBAL. Does not retain source.
 // OpenClipboard failure leaves previous clipboard contents intact. A failure
