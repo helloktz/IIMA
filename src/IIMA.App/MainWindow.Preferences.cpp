@@ -2,6 +2,7 @@
 // explicit commit semantics replace Cocoa bindings. GPL-3.0, references/iina/LICENSE.
 #include "pch.h"
 #include "MainWindow.xaml.h"
+#include "../IIMA.Core/Geometry/WindowGeometry.h"
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -22,7 +23,7 @@ struct EditorRefreshScope {
 };
 bool HasApplicationAdapter(std::string_view key) {
     static const std::set<std::string_view> keys{
-        "enableInitialVolume", "initialVolume", "alwaysOpenInNewWindow", "groupSimultaneousOpensInPlaylist", "allowDuplicatePlayers",
+        "initialWindowSizePosition", "enableInitialVolume", "initialVolume", "alwaysOpenInNewWindow", "groupSimultaneousOpensInPlaylist", "allowDuplicatePlayers",
         "autoSwitchToMusicMode", "musicModeShowPlaylist", "musicModeShowAlbumArt",
         "usePhysicalResolution", "preventScreenSaver", "allowScreenSaverForAudio", "pauseWhenInactive", "pauseWhenMinimized", "pauseWhenGoesToSleep", "enableThumbnailPreview", "thumbnailWidth", "maxThumbnailPreviewCacheSize",
         "displayTimeAndBatteryInFullScreen", "alwaysFloatOnTop", "fullScreenWhenOpen", "playWhenEnteringFullScreen", "pauseWhenLeavingFullScreen",
@@ -100,6 +101,12 @@ void MainWindow::PopulateAdvancedSettings() {
         } else if (auto text = std::get_if<std::string>(&value)) {
             Controls::StackPanel row;
             Controls::TextBox box; box.Header(box_value(label)); box.Text(to_hstring(*text)); box.MaxLength(4096);
+            if (key == "initialWindowSizePosition") {
+                box.MaxLength(128);
+                box.PlaceholderText(L"1000x600+20+30 或 80%+50%+50%");
+                Automation::AutomationProperties::SetHelpText(box,
+                    L"物理像素窗口几何；宽度优先于高度，保留窗口宽高比。正偏移从左上，负偏移从右下；百分比定位中心。留空使用保存位置，下次新播放器生效。");
+            }
             Controls::Button apply; apply.Content(box_value(L"应用"));
             apply.Click([weak, key, box](auto const&, auto const&) {
                 if (auto self = weak.get(); self && !self->closing_) self->ApplyAdvancedSetting(key, to_string(box.Text()));
@@ -177,6 +184,14 @@ void MainWindow::PopulateAdvancedSettings() {
 }
 void MainWindow::ApplyAdvancedSetting(std::string const& key, iima::settings::PreferenceValue value) {
     if (closing_ || !userDataLoaded_) return;
+    if (key == "initialWindowSizePosition") {
+        auto geometry = std::get_if<std::string>(&value);
+        if (!geometry || geometry->size() > 128 ||
+            (!geometry->empty() && !iima::WindowGeometry::Parse(*geometry))) {
+            ShowError(L"窗口几何格式无效。示例：1000x600+20+30、80%+50%+50%、+20-30；留空使用保存的位置。下次新播放器生效。");
+            return;
+        }
+    }
     std::string error;
     if (!preferences_.Set(key, std::move(value), error)) { ShowError(to_hstring(error)); return; }
     userData_.settings.advancedPreferences = preferences_.Overrides();

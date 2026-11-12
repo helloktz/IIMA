@@ -967,3 +967,11 @@ Windows新增只读`ReadFullscreenInformation`：GetTimeFormatEx按用户区域�
 现在 SMTC 初始化失败仅释放 transport：先清原子 ready、递增 epoch，再分别撤销已成功注册的订阅、停用控件/清状态/时间轴/元数据，最后释放 WinRT 引用。撤销失败也不能通过旧回调操作播放器，工作线程和 UI 队列双重检查 ready/epoch。成功完成全部订阅才设置 ready。窗口保留独立的 PowerCreateRequest 生命周期，Update 仍先应用播放/偏好策略，再在无 transport 时返回；关闭幂等释放两者。UI 一次显示降级提示，不每帧重试激活；重新打开播放器才重新尝试，避免权限/服务故障下反复订阅。
 
 这是故障隔离，不保证 Windows 接受电源请求，也不恢复失效的 SMTC 服务；有效 HWND/UI dispatcher 仍是初始化前置条件。没有修改系统设置。仅静态审阅、diff 空白检查，未编译、测试或调用 Windows 原生接口。
+
+## 第九十二批：新播放器初始窗口几何
+
+源链 `MainWindowController.windowDidLoad → windowFrameFromGeometry`、`GeometryDef` 和 `Preference.initialWindowSizePosition`。接通已有 WindowGeometry 解析/解析结果到 Windows 启动流程：异步载入偏好、恢复上次位置后，初始几何覆盖保存位置；为空不干预。用户已移动/缩放、关闭、音乐模式或非普通还原窗口不覆盖。仅该启动点应用一次，设置编辑/换片不移动当前窗口；schema 明确 NextPlayer，设置页可搜索、输入、提交和单项恢复默认。提交前拒绝非字符串、超128字节、非法语法，旧存储非法值在启动时提示并保留窗口。
+
+保留宽度优先、高度回退、零值保持原尺寸、当前框架宽高比、尺寸百分比、正负边缘偏移和百分比中心锚点。新增 ResolveVisible 按同一缩放因子满足最小尺寸并服从工作区上限，拟合后重新计算锚点和限制位置，避免超大值/断开屏幕使窗口不可达。Windows 坐标采用左上原点，负号从右/下计算；绝对值为物理像素，最小窗口按 DPI 调整。它控制含侧栏/边框的外框，不冒充视频区域尺寸。工作区过小优先可见范围。
+
+差异与边界：本批对应 IINA 初始 windowDidLoad 几何应用，不包含打开媒体后按视频宽高比再应用、resizeWindowTiming/Option、mpv geometry 外部同步；已有手动视频尺寸缩放独立。无自动重试，保存加载期间用户交互优先；平台异步窗口通知及强制最小尺寸仍需原生验证。来源版权许可保留，未编译测试运行，仅静态审阅和 diff 检查。

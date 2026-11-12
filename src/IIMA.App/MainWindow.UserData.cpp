@@ -46,6 +46,7 @@ void MainWindow::LoadUserData()
                 self->ApplyWindowPreferences();
                 self->placementWritable_ = placementWritable;
                 self->RestorePlacement(placement);
+                self->ApplyInitialWindowGeometry();
                 self->UpdateMusicMode();
                 self->ApplyUserData(self->session_->Snapshot());
                 self->OpenPendingFiles();

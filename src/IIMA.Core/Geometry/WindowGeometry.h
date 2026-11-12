@@ -17,6 +17,8 @@ struct WindowGeometry final {
     static std::optional<WindowGeometry> Parse(std::string_view text);
     // Inputs are physical pixels in Windows top-left coordinates. Width takes
     // precedence over height, preserving the existing video's aspect ratio.
+    std::optional<GeometryRect> ResolveVisible(GeometryRect current, GeometryRect workArea,
+        GeometrySize minimum) const noexcept;
     std::optional<GeometryRect> Resolve(GeometryRect current, GeometryRect workArea,
         GeometrySize minimum) const noexcept;
 };

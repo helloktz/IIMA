@@ -50,6 +50,35 @@ std::optional<WindowGeometry> WindowGeometry::Parse(std::string_view text) {
     if (offset != text.size() || (!result.width && !result.height && !result.x)) return {};
     return result;
 }
+std::optional<GeometryRect> WindowGeometry::ResolveVisible(GeometryRect current,
+    GeometryRect work, GeometrySize minimum) const noexcept {
+    auto resolved = Resolve(current, work, minimum);
+    if (!resolved) return {};
+    // Fit once, preserving the frame aspect ratio even on a monitor smaller
+    // than the preferred minimum. A disconnected/off-screen geometry is not
+    // allowed to strand the title bar outside the current work area.
+    const bool resized = (width && (width->value != 0 || width->percentage)) ||
+        (height && (height->value != 0 || height->percentage));
+    const double minimumFactor = resized ? std::max({1.0, minimum.width / resolved->width,
+        minimum.height / resolved->height}) : 1.0;
+    const double factor = std::min({minimumFactor, work.width / resolved->width, work.height / resolved->height});
+    resolved->width *= factor;
+    resolved->height *= factor;
+    if (!ValidRect(*resolved) || resolved->width < 1 || resolved->height < 1) return {};
+    resolved->width = std::min(resolved->width, work.width);
+    resolved->height = std::min(resolved->height, work.height);
+    // Re-evaluate anchors after fitting: percentage coordinates refer to the
+    // fitted window center, and negative offsets to its right/bottom edges.
+    auto anchors = *this;
+    anchors.width.reset(); anchors.height.reset();
+    if (!x && resized) resolved->x = work.x + (work.width - resolved->width) / 2;
+    if (!y && resized) resolved->y = work.y + (work.height - resolved->height) / 2;
+    resolved = anchors.Resolve(*resolved, work, minimum);
+    if (!resolved) return {};
+    resolved->x = std::clamp(resolved->x, work.x, work.x + work.width - resolved->width);
+    resolved->y = std::clamp(resolved->y, work.y, work.y + work.height - resolved->height);
+    return resolved;
+}
 std::optional<GeometryRect> WindowGeometry::Resolve(GeometryRect current,
     GeometryRect workArea, GeometrySize minimum) const noexcept {
     if (!ValidRect(current) || !ValidRect(workArea) ||
