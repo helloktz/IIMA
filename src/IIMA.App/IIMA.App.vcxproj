@@ -124,6 +124,8 @@
     <ClCompile Include="MainWindow.Audio.cpp" />
     <ClCompile Include="MainWindow.SubtitleMatching.cpp" />
     <ClCompile Include="MainWindow.AutomaticFiles.cpp" />
+    <ClCompile Include="MainWindow.PlaylistSubtitleApply.cpp" />
+    <ClCompile Include="MainWindow.PlaylistSubtitles.cpp" />
     <ClCompile Include="MainWindow.Subtitles.cpp" />
     <ClCompile Include="MainWindow.SubtitleEncoding.cpp" />
     <ClCompile Include="MainWindow.SubtitleStyle.cpp" />

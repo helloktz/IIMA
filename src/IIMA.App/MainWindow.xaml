@@ -175,6 +175,16 @@
                 </StackPanel>
                 <ScrollViewer Grid.Row="3" MaxHeight="300" HorizontalScrollBarVisibility="Disabled">
                     <StackPanel Spacing="6">
+                        <Expander Header="所选条目字幕关联" HorizontalAlignment="Stretch">
+                            <StackPanel Spacing="6">
+                                <TextBlock x:Name="PlaylistSubtitleAssociationStatus" Text="请选择一个队列条目。" TextWrapping="Wrap"/>
+                                <ListView x:Name="PlaylistSubtitleAssociationList" MaxHeight="120" SelectionMode="None"
+                                          ScrollViewer.HorizontalScrollBarVisibility="Disabled" AutomationProperties.Name="所选条目的字幕关联路径"/>
+                                <Button x:Name="AddPlaylistSubtitleAssociationButton" Content="关联字幕…" IsEnabled="False"/>
+                                <Button x:Name="ClearPlaylistSubtitleAssociationButton" Content="清除关联（不卸载）" IsEnabled="False"/>
+                                <TextBlock Text="仅支持单个本地媒体条目；修改在下次播放该条目时生效，不保存到磁盘。清除关联不卸载当前字幕，也不禁用mpv自行加载；当前轨道请在字幕菜单中调整。" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Expander>
                         <StackPanel Orientation="Horizontal" Spacing="4">
                             <Button x:Name="NewWindowButton" Content="新建窗口"/>
                             <Button x:Name="NextWindowButton" Content="下个窗口"/>

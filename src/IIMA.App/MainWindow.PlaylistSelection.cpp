@@ -62,6 +62,7 @@ void MainWindow::UpdatePlaylistSelection() {
     MoveDownButton().IsEnabled(selected != playlist_.end() && std::next(selected) != playlist_.end());
     PlaylistSelectionText().Text(ids.empty() ? L"未选择条目；Ctrl或Shift可多选" :
         L"已选 " + to_hstring(ids.size()) + L" 项；移除不会删除磁盘文件。");
+    UpdatePlaylistSubtitleControls();
 }
 void MainWindow::RemoveSelectedPlaylistItems() {
     auto rows = SelectedPlaylistRows();

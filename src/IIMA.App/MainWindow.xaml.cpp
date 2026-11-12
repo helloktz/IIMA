@@ -92,6 +92,7 @@ MainWindow::MainWindow()
     WireNetworkOpen();
     WirePlaylistDrag();
     WirePlaylistClipboard();
+    WirePlaylistSubtitleControls();
     WirePlaylistDeletion();
     WirePlayerMenus();
     try {
@@ -245,6 +246,7 @@ void MainWindow::Apply(iima::PlaybackSnapshot const& state)
     UpdateAutomaticVideoSize();
     UpdateWindowAspectConstraint();
     UpdateNetworkOpen(state);
+    UpdatePlaylistSubtitleAssociations();
     UpdateAutomaticSubtitleCache();
     UpdateAutomaticFiles();
     QueueWindowScaleFeedback();

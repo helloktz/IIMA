@@ -181,4 +181,8 @@
     <ClInclude Include="Matching\SubtitleSearchPath.h" />
     <ClCompile Include="Matching\SubtitleSearchPath.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Playlist\PlaylistSubtitleAssociations.h" />
+    <ClCompile Include="Playlist\PlaylistSubtitleAssociations.cpp" />
+  </ItemGroup>
 </Project>

@@ -1,6 +1,7 @@
 #pragma once
 #include <chrono>
 #include "../IIMA.Core/Matching/SubtitleMatcher.h"
+#include "../IIMA.Core/Playlist/PlaylistSubtitleAssociations.h"
 #include "../IIMA.Core/Settings/SettingsSearch.h"
 #include "MainWindow.g.h"
 #include "VideoSurface.h"
@@ -426,6 +427,19 @@ private:
     bool CanHideControlBar();
     Microsoft::UI::Dispatching::DispatcherQueueTimer controlBarTimer_{nullptr};
     bool controlBarHovered_{}, controlBarInactive_{};
+    void WirePlaylistSubtitleControls();
+    void UpdatePlaylistSubtitleControls();
+    winrt::fire_and_forget AddPlaylistSubtitleAssociation();
+    void ClearPlaylistSubtitleAssociation();
+    std::uint64_t playlistSubtitleSelectionRevision_{};
+    std::vector<std::string> playlistSubtitleDisplayPaths_;
+    std::vector<std::string> PlaylistSubtitlePaths(std::int64_t id, std::string const& path) const;
+    bool SetPlaylistSubtitlePaths(std::int64_t id, std::string const& path, std::vector<std::string> paths);
+    void UpdatePlaylistSubtitleAssociations();
+    bool HasPlaylistSubtitleOverride(std::int64_t id, std::string const& path) const;
+    iima::PlaylistSubtitleAssociations playlistSubtitleAssociations_;
+    std::uint64_t playlistSubtitleInput_{}, playlistSubtitleSeenGeneration_{}, playlistSubtitleWaitingGeneration_{}, playlistSubtitleUserIntent_{};
+    std::chrono::steady_clock::time_point playlistSubtitleDeadline_{};
     void WirePlaylistClipboard();
     void CopyPlaylistPaths(bool networkOnly);
     winrt::fire_and_forget PastePlaylistPaths();

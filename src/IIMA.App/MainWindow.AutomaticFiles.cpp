@@ -122,7 +122,8 @@ void MainWindow::UpdateAutomaticFiles() {
                 // user while discovery ran. Existing external paths are deduped.
                 std::vector<std::string> subtitles;
                 bool subtitleLimited=false;
-                if (current.tracksRevision==tracks && current.subtitleId==selectedSubtitle &&
+                if (!self->HasPlaylistSubtitleOverride(entry,current.path) &&
+                    current.tracksRevision==tracks && current.subtitleId==selectedSubtitle &&
                     self->session_->SubtitleEditIntentRevision()==subtitleIntent) {
                     auto match=std::find_if(result.matches.media.begin(),result.matches.media.end(),
                         [&](auto const& item) { return SameLocalPath(item.media,media); });
@@ -229,6 +230,9 @@ void MainWindow::UpdateAutomaticSubtitleCache() {
         }
     }
     if (!state.mediaGeneration || state.mediaGeneration==automaticSubtitleSeenGeneration_) return;
+    if (HasPlaylistSubtitleOverride(state.entryId,state.path)) {
+        automaticSubtitleSeenGeneration_=state.mediaGeneration; return;
+    }
     if (automaticSubtitleWaitingGeneration_!=state.mediaGeneration) {
         automaticSubtitleWaitingGeneration_=state.mediaGeneration;
         automaticSubtitleUserIntent_=session_->SubtitleEditIntentRevision();
