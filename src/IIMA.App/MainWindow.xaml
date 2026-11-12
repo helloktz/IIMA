@@ -103,15 +103,25 @@
                         <ComboBox x:Name="SubtitleBox" Header="字幕" HorizontalAlignment="Stretch" AutomationProperties.Name="字幕"/>
                         <Button x:Name="SubtitleButton" Content="加载字幕…"/>
                         <Button x:Name="MatchSubtitleButton" Content="匹配同目录字幕"/>
-                        <Expander x:Name="OnlineSubtitleExpander" Header="在线字幕（Assrt）" HorizontalAlignment="Stretch">
+                        <Expander x:Name="OnlineSubtitleExpander" Header="在线字幕" HorizontalAlignment="Stretch">
                             <StackPanel Spacing="6">
-                                <TextBlock Text="搜索将把查询词和令牌发送给 api.assrt.net；下载会访问服务返回的 HTTPS 链接。不上传媒体文件，令牌不保存。" TextWrapping="Wrap"/>
-                                <PasswordBox x:Name="OnlineSubtitleTokenBox" Header="你的 Assrt API 令牌" MaxLength="32"/>
+                                <TextBlock Text="搜索把查询词、语言和凭据发送给选中的服务。可选影片哈希也会发送。不上传媒体文件；凭据不保存，下载只访问服务域名下的 HTTPS 链接。" TextWrapping="Wrap"/>
+                                <ComboBox x:Name="OnlineSubtitleProviderBox" Header="服务" SelectedIndex="0">
+                                    <ComboBoxItem Content="Assrt (api.assrt.net)"/>
+                                    <ComboBoxItem Content="OpenSubtitles (api.opensubtitles.com)"/>
+                                </ComboBox>
+                                <PasswordBox x:Name="OnlineSubtitleApiKeyBox" Header="OpenSubtitles 个人 API Key" MaxLength="512"/>
+                                <PasswordBox x:Name="OnlineSubtitleTokenBox" Header="Assrt 令牌 / OpenSubtitles JWT（可选）" MaxLength="8192"/>
+                                <TextBox x:Name="OnlineSubtitleLanguageBox" Header="OpenSubtitles 语言代码（如 en、zh-cn，可留空）" MaxLength="32"/>
+                                <CheckBox x:Name="OnlineSubtitleHashCheck" Content="OpenSubtitles：发送当前本地影片哈希以提高匹配度"/>
+                                <TextBlock Text="不使用 IINA 的服务凭据；OpenSubtitles 需自行提供 API Key，此界面不进行账户登录。点击下载会消耗服务额度，即使随后取消或文件下载失败。" TextWrapping="Wrap"/>
                                 <TextBox x:Name="OnlineSubtitleQueryBox" Header="搜索词（可修改）" MaxLength="512"/>
                                 <Button x:Name="OnlineSubtitleUseTitleButton" Content="填入当前文件名"/>
                                 <Button x:Name="OnlineSubtitleSearchButton" Content="发送查询"/>
                                 <ListView x:Name="OnlineSubtitleResultsView" MaxHeight="240" SelectionMode="Single" AutomationProperties.Name="在线字幕搜索结果"/>
                                 <Button x:Name="OnlineSubtitleDownloadButton" Content="下载并载入选中结果" IsEnabled="False"/>
+                                <ComboBox x:Name="DownloadedSubtitleBox" Header="本窗口下载的字幕"/>
+                                <Button x:Name="SaveOnlineSubtitleButton" Content="将选中字幕另存为…"/>
                                 <Button x:Name="OnlineSubtitleCancelButton" Content="取消并清除令牌"/>
                                 <TextBlock x:Name="OnlineSubtitleStatusText" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite"/>
                             </StackPanel>

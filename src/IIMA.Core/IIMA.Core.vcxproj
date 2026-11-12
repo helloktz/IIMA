@@ -138,5 +138,9 @@
     <ClCompile Include="OnlineSubtitles\SearchTransaction.cpp" />
     <ClInclude Include="OnlineSubtitles\SearchTransaction.h" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="OnlineSubtitles\MediaHash.h" />
+    <ClCompile Include="OnlineSubtitles\MediaHash.cpp" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

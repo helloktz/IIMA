@@ -208,3 +208,12 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 - 新搜索、停止/换片、关闭使ticket失效；同一路径重开经过Loading仍取消，迟到网络/下载结果不能载入另一媒体。取消后等待后台实际返回才允许新任务，避免重复点击产生无限工作线程。成功下载先保留临时文件，再通过PlayerSession的 `sub-add select/auto` 提交第一条选中、其余添加；界面只称“已提交”，不以HTTP成功宣称mpv加载成功。加载错误沿现有播放器状态反馈。
 
 仍未实现OpenSubtitles/Shooter、在线字幕插件提供商、帐号持久化/注销、多结果多选、保存下载字幕至媒体目录等上游操作。未调用任何在线服务、未传输用户凭据，未编译、测试或运行；这里只完成静态实现与来源/生命周期审阅。
+
+### 第十批：OpenSubtitles、影片哈希与下载字幕另存
+
+- `OpenSubClient.subtitles/download/RateLimiter`、`OpenSub.Fetcher.search` → `Platform/OpenSubClient.*`及现有在线字幕面板：个人API Key、可选用户JWT、语言代码、关键词/可选moviehash的固定REST查询；每个文件ID为独立选项，显示评分/听障标记，搜索仅第一页并明确提示缩小查询。下载先取得服务票据/配额，再获取文件；不自动重试耗额度的POST。remaining=-1、HTTP鉴权、限流和过期等错误分别建模；API请求保守串行限流，只展示有界的重置时间字段、不展示服务原始错误体。UI明确提示点击下载即可能消耗额度，取消无法撤回服务侧额度。
+- 不复制IINA API key，User-Agent使用IIMA。只访问固定api.opensubtitles.com API和HTTPS opensubtitles.com及子域下载，不接受服务返回的base_url/VIP域迁移、cookie、跳转或第三方CDN。用户Key/JWT仅操作内存、无密码登录/自动刷新/凭据持久化；不代表完整IINA帐号功能。API当前部署、发行所需应用注册与域名限制是否覆盖实际链接均待后续验证；本批没有发送请求。
+- `OpenSubSubtitle.hash` / `ShooterSubtitle.hash` → `OnlineSubtitles/MediaHash.*`、`Platform/SubtitleMediaHash.*`：OpenSub严格>128KiB、首尾64KiB显式小端uint64模2^64和、16位hex；Shooter>=12KiB、4096/(size/3)*2/size/3/size-8192的4096字节块、Windows CNG MD5串联。MD5只作协议媒体识别，不作安全摘要。Windows读取仅本地普通盘文件，不访问URL/网络/离线/reparse/ADS；同一句柄完整读取、取消检查、前后size/mtime/changetime校验。显式勾选后OpenSub查询才发送hash，失败不默默退回或上传原文件。Shooter hash已实现但服务仍未接，不能称Shooter在线字幕完成。
+- `MainMenuActions.saveDownloadedSub` → `MainWindow.OnlineSubtitleSave.cpp`、`SubtitleStaging::Publish`：可选本窗口下载列表、原生SaveFilePicker、捕获文件身份和暂存所有权、后台复制到目标同目录新文件、flush后替换；失败保留原字幕，不像上游先删除目标再复制。播放器继续用暂存副本，另存不偷偷切换当前字幕；关闭或切换期间已开始的保存保持捕获的文件。当前提供下载列表选项，而不是仅按当前外部轨道猜测tmp目录。
+
+未编译、测试、运行或联网。全量移植仍未完成：多结果分页、完整登录/刷新/注销、自动搜索、插件提供商、字幕配额本地化等不在本批完成范围。源码静态可审阅不等于服务或Windows功能已通过验证。

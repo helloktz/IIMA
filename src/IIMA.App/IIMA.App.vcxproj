@@ -147,6 +147,13 @@
     <ClCompile Include="Platform\SubtitleStaging.cpp" />
     <ClInclude Include="Platform\SubtitleStaging.h" />
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="MainWindow.OnlineSubtitleSave.cpp" />
+    <ClInclude Include="Platform\OpenSubClient.h" />
+    <ClCompile Include="Platform\OpenSubClient.cpp" />
+    <ClInclude Include="Platform\SubtitleMediaHash.h" />
+    <ClCompile Include="Platform\SubtitleMediaHash.cpp" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Import Project="..\..\build\NuGet.targets" />
 </Project>

@@ -186,6 +186,36 @@ std::filesystem::path SubtitleStaging::Write(std::string_view filename,
         throw;
     }
 }
+void SubtitleStaging::Publish(std::filesystem::path const& source,
+    std::filesystem::path const& destination) const {
+    if (std::find(files_.begin(), files_.end(), source) == files_.end() ||
+        destination.empty() || destination.filename().empty())
+        throw winrt::hresult_invalid_argument(L"Invalid downloaded subtitle save request");
+    // Lock the owned source against replacement while CopyFile reopens it. This
+    // also ensures cancellation/closing cannot delete the source during publish.
+    auto raw = CreateFileW(source.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr,
+        OPEN_EXISTING, FILE_FLAG_OPEN_REPARSE_POINT, nullptr);
+    if (raw == INVALID_HANDLE_VALUE) winrt::throw_last_error();
+    winrt::handle sourceLock(raw);
+    BY_HANDLE_FILE_INFORMATION info{};
+    winrt::check_bool(GetFileInformationByHandle(sourceLock.get(), &info));
+    if ((info.dwFileAttributes & (FILE_ATTRIBUTE_DIRECTORY | FILE_ATTRIBUTE_REPARSE_POINT)) ||
+        info.nFileSizeHigh || info.nFileSizeLow > MaximumFileBytes || info.nFileSizeLow == 0)
+        throw winrt::hresult_error(E_ACCESSDENIED, L"Downloaded subtitle is no longer a regular bounded file");
+    auto temporary = destination.parent_path() / (UniqueDirectoryName() + L".tmp");
+    winrt::check_bool(CopyFileW(source.c_str(), temporary.c_str(), TRUE));
+    try {
+        winrt::check_bool(SetFileAttributesW(temporary.c_str(), FILE_ATTRIBUTE_NORMAL));
+        auto rawOutput = CreateFileW(temporary.c_str(), GENERIC_WRITE, 0, nullptr,
+            OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+        if (rawOutput == INVALID_HANDLE_VALUE) winrt::throw_last_error();
+        winrt::handle output(rawOutput);
+        winrt::check_bool(FlushFileBuffers(output.get()));
+        output.close();
+        winrt::check_bool(MoveFileExW(temporary.c_str(), destination.c_str(),
+            MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH));
+    } catch (...) { DeleteFileW(temporary.c_str()); throw; }
+}
 void SubtitleStaging::Cleanup() noexcept {
     // Never recurse through a provider-controlled name, directory or junction.
     for (const auto& path : files_) DeleteFileW(path.c_str());

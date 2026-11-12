@@ -9,6 +9,8 @@
 #include "Platform/ScreenshotStaging.h"
 #include "Platform/ThumbnailExtractor.h"
 #include "Platform/AssrtClient.h"
+#include "Platform/OpenSubClient.h"
+#include "Platform/SubtitleMediaHash.h"
 #include "Platform/SubtitleStaging.h"
 #include "../IIMA.Core/OnlineSubtitles/SearchTransaction.h"
 #include "../IIMA.Core/Filters/SavedFilterLibrary.h"
@@ -78,6 +80,7 @@ private:
     void WireOnlineSubtitles();
     void SearchOnlineSubtitles();
     void DownloadOnlineSubtitle();
+    winrt::fire_and_forget SaveOnlineSubtitle();
     void CancelOnlineSubtitles();
     void UpdateOnlineSubtitleMedia(iima::PlaybackSnapshot const& state);
     void RefreshOnlineSubtitleButtons();
@@ -85,8 +88,15 @@ private:
     std::stop_source onlineSubtitleStop_;
     bool onlineSubtitleWorkerActive_{};
     std::vector<iima::assrt::SearchResult> onlineSubtitleResults_;
+    int onlineSubtitleProvider_{};
+    std::string onlineSubtitleApiKey_;
     std::string onlineSubtitleToken_; // memory-only, never persisted or logged
     std::vector<std::shared_ptr<iima::SubtitleStaging>> onlineSubtitleFiles_;
+    struct DownloadedSubtitle {
+        std::filesystem::path path;
+        std::shared_ptr<iima::SubtitleStaging> owner;
+    };
+    std::vector<DownloadedSubtitle> downloadedSubtitles_;
     std::size_t onlineSubtitleBytes_{};
 
     void WireAudioControls();

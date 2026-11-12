@@ -36,6 +36,10 @@ public:
     std::filesystem::path Write(std::string_view providerFilenameUtf8,
         const std::vector<std::uint8_t>& bytes);
     const std::filesystem::path& Directory() const noexcept;
+    // Copy only a file owned by this object to an explicitly chosen destination.
+    // Blocking: call off UI, and retain shared ownership through completion.
+    void Publish(std::filesystem::path const& source,
+        std::filesystem::path const& destination) const;
 private:
     SubtitleStaging(std::filesystem::path directory, winrt::handle directoryLock);
     void Cleanup() noexcept;

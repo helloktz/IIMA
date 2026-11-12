@@ -678,7 +678,8 @@
       "coverage": "partial-static-unverified",
       "reviewTargets": [
         "src/IIMA.App/MainWindow.Playlist.cpp",
-        "src/IIMA.App/Platform/ShellFileActions.cpp"
+        "src/IIMA.App/Platform/ShellFileActions.cpp",
+        "src/IIMA.App/MainWindow.OnlineSubtitleSave.cpp"
       ]
     },
     {
@@ -793,14 +794,20 @@
     {
       "source": "references/iina/iina/OpenSubClient.swift",
       "physicalLines": 890,
-      "coverage": "not-mapped",
-      "reviewTargets": []
+      "coverage": "partial-static-unverified",
+      "reviewTargets": [
+        "src/IIMA.App/Platform/OpenSubClient.cpp"
+      ]
     },
     {
       "source": "references/iina/iina/OpenSubSubtitle.swift",
       "physicalLines": 396,
-      "coverage": "not-mapped",
-      "reviewTargets": []
+      "coverage": "partial-static-unverified",
+      "reviewTargets": [
+        "src/IIMA.Core/OnlineSubtitles/MediaHash.cpp",
+        "src/IIMA.App/Platform/SubtitleMediaHash.cpp",
+        "src/IIMA.App/MainWindow.OnlineSubtitles.cpp"
+      ]
     },
     {
       "source": "references/iina/iina/OpenURLWindowController.swift",
@@ -1127,8 +1134,11 @@
     {
       "source": "references/iina/iina/ShooterSubtitle.swift",
       "physicalLines": 154,
-      "coverage": "not-mapped",
-      "reviewTargets": []
+      "coverage": "partial-static-unverified",
+      "reviewTargets": [
+        "src/IIMA.Core/OnlineSubtitles/MediaHash.cpp",
+        "src/IIMA.App/Platform/SubtitleMediaHash.cpp"
+      ]
     },
     {
       "source": "references/iina/iina/SideBar.swift",

@@ -242,7 +242,7 @@ void MainWindow::BeginClose()
     swapChain_.reset();
     auto weak = get_weak();
     session_->CloseAsync([weak] {
-        if (auto self = weak.get()) { self->coreClosed_ = true; self->onlineSubtitleFiles_.clear(); self->CloseDiagnostics(); self->FinishClose(); }
+        if (auto self = weak.get()) { self->coreClosed_ = true; self->onlineSubtitleFiles_.clear(); self->downloadedSubtitles_.clear(); self->CloseDiagnostics(); self->FinishClose(); }
     });
 }
 }

@@ -8,6 +8,9 @@ import json
 from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 MAPPING = {
+    'OpenSubClient.swift': ['src/IIMA.App/Platform/OpenSubClient.cpp'],
+    'OpenSubSubtitle.swift': ['src/IIMA.Core/OnlineSubtitles/MediaHash.cpp', 'src/IIMA.App/Platform/SubtitleMediaHash.cpp', 'src/IIMA.App/MainWindow.OnlineSubtitles.cpp'],
+    'ShooterSubtitle.swift': ['src/IIMA.Core/OnlineSubtitles/MediaHash.cpp', 'src/IIMA.App/Platform/SubtitleMediaHash.cpp'],
     'OnlineSubtitle.swift': ['src/IIMA.Core/OnlineSubtitles/SearchTransaction.cpp', 'src/IIMA.App/MainWindow.OnlineSubtitles.cpp'],
     'AssrtSubtitle.swift': ['src/IIMA.App/Platform/AssrtClient.cpp', 'src/IIMA.App/Platform/SubtitleStaging.cpp'],
     'SubChooseViewController.swift': ['src/IIMA.App/MainWindow.OnlineSubtitles.cpp'],
@@ -33,7 +36,7 @@ MAPPING = {
     'KeyBindingTranslator.swift': ['src/IIMA.Core/Commands/KeyBindingTranslator.cpp'],
     'IINACommand.swift': ['src/IIMA.Core/Commands/ApplicationCommand.cpp'],
     'MPVCommandWrappers.swift': ['src/IIMA.Core/Commands/PlaylistCommands.cpp'],
-    'MainMenuActions.swift': ['src/IIMA.App/MainWindow.Playlist.cpp', 'src/IIMA.App/Platform/ShellFileActions.cpp'],
+    'MainMenuActions.swift': ['src/IIMA.App/MainWindow.Playlist.cpp', 'src/IIMA.App/Platform/ShellFileActions.cpp', 'src/IIMA.App/MainWindow.OnlineSubtitleSave.cpp'],
     'SidebarPlaylistPane.swift': ['src/IIMA.Core/Playlist/PlaylistPlan.cpp'],
     'VideoTime.swift': ['src/IIMA.Core/Media/VideoTime.cpp'],
     'MPVChapter.swift': ['src/IIMA.Core/Media/MediaChapter.cpp'],
