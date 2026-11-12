@@ -985,3 +985,26 @@ Windows新增只读`ReadFullscreenInformation`：GetTimeFormatEx按用户区域�
 启动 ApplySettings 包括初始音量与最大音量应用明确抑制记忆，避免初始值覆盖既存软音量。UI 的播放快照继续仅由 mpv 观察驱动，不把记忆读回冒充 property-change。最大音量编辑原有持久化钳制保留，新修订消费也按当前用户上限钳制，避免旧记忆快照在后续无关事件恢复超限值。
 
 区别：IINA 在 setVolume 意图时记忆；此处等待成功与实际读回。快照读回不是与外部客户端的原子事务，外部脚本若在成功命令和读回之间改音量，记忆的是读回时实际值；没有任何应用音量动作时，不跟踪外部任意 mpv 变化。关闭/worker失败前未完成的读回不强行等待、不猜测记忆，已有保存机制可能失败且仍需其正常反馈。仅静态源码审阅与 diff 检查，未编译/测试/播放/写入实际用户数据。
+
+## 自动窗口尺寸：事件关联与有界应用（2026-11-12）
+
+- 来源：固定 IINA `PlayerCore.openMainWindow/fileStarted` 的 `justOpenedFile/justStartedFile`，
+  `MainWindowController.handleVideoSizeChange` 与 `Preference.ResizeWindowTiming/ResizeWindowOption`。
+  mpv 固定快照 `player/command.c:cmd_loadfile` 返回新创建的 `playlist_entry_id`，
+  `common/playlist.c` 为新 entry 单调分配 ID。引用快照未修改，移植版权保留。
+- `PlayerSession` 独立发布实际 START_FILE 代数、意图修订、明确打开来源和来源待定状态。
+  只有非追加 Open 的 loadfile 回复与对应新 entry 的 START_FILE 均到达才能确认来源；
+  回复先到/后到均可关联。同 entry 重启歧义、超过16条待匹配启动记录保守跳过。
+  追加、播放列表手选、自然下一项和同 entry reload 不被冒充为显式 Open。
+- `MainWindow.AutomaticVideoSize` 每代最多应用一次；设置就绪、Loaded、VO、尺寸、布局和普通
+  还原窗口均满足才尝试。仅视频输出修订与布局事件重试，最多32次且 Loaded 后10秒过期；
+  无计时轮询，过期后任何事件均不能迟到移动窗口。新意图/新媒体、关闭、失败、手动窗口操作
+  与模式转换取消旧请求。Win32 拖动/系统窗口命令在布局前同步取消。
+- 手动与自动共用 `TryResizeToVideo` 的成功/重试/不支持结果，自动静默，不重复弹错。
+  保留旋转、像素比例、内建裁剪与 DPI 保护；自动 fitScreen 从1倍缩小并居中，
+  不等同于手动最大化适合工作区。启动已应用的显式几何和启动位置交互优先于首媒体缩放。
+- 有意限制：不实现 IINA 播放中 video-reconfig/keepWindowSize 或“不缩放时保持面积改变纵横比”。
+  never 不增加首视频强制尺寸例外；初始几何沿现有启动链应用一次，不按首视频重新解析。
+  最大化/全屏/PIP/音乐/裁剪/选择器期间跳过，而非保存尺寸到将来恢复普通窗口时应用。
+  Loaded 后超过10秒才取得可信尺寸的流保持当前窗口，用户仍可手动缩放。
+- 已曝光两项 resize 偏好消费者；仅静态实现与审阅，未编译、测试、运行或验证真实窗口行为。

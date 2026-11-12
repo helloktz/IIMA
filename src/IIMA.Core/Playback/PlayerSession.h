@@ -129,6 +129,15 @@ private:
     std::uint64_t subtitleEncodingRequest_{}, subtitleEncodingGeneration_{};
     std::vector<std::pair<std::int64_t, std::string>> subtitleEncodingTracks_;
     void Notify();
+    void BeginMediaOriginIntent(bool explicitOpen);
+    void ObserveMediaOrigin(MpvEvent const& event);
+    void ResolveMediaOrigin();
+    struct OpenStart { std::int64_t entry; std::uint64_t generation; };
+    // Bounded observations of START_FILE since the replace command submission.
+    // More than the bound is conservatively unknown, never guessed explicit.
+    std::vector<OpenStart> openStarts_;
+    std::uint64_t openOriginRequest_{};
+    std::optional<std::int64_t> openOriginEntry_;
     bool CanOpen();
     void MaybeResume();
     void ApplyAdvancedPreferencesOnReady();

@@ -14,6 +14,7 @@ void MainWindow::WireWindowPlacement()
     AppWindow().Changed([weak](auto const&, auto const& args) {
         if (auto self = weak.get(); self && !self->closing_ && !self->restoringPlacement_ &&
             !self->musicTransition_ && (args.DidPositionChange() || args.DidSizeChange())) {
+            self->CancelAutomaticVideoSize();
             self->placementTouched_ = true;
             self->CapturePlacement();
         }
@@ -85,6 +86,7 @@ void MainWindow::ApplyInitialWindowGeometry()
             {double(point.X), double(point.Y), double(size.Width), double(size.Height)},
             {double(work.X), double(work.Y), double(work.Width), double(work.Height)}, {640 * dpi, 360 * dpi});
         if (!rect) { ShowError(L"初始窗口几何无法适用于当前屏幕，保留当前窗口位置。"); return; }
+        initialGeometryApplied_ = true;
         restoringPlacement_ = true;
         window.MoveAndResize({static_cast<int>(std::ceil(rect->x)), static_cast<int>(std::ceil(rect->y)),
             static_cast<int>(std::floor(rect->width)), static_cast<int>(std::floor(rect->height))});

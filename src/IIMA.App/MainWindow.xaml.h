@@ -172,6 +172,16 @@ private:
     void WireVideoControls();
     void WireVideoSize();
     void ResizeToVideo(std::optional<double> scale);
+    enum class VideoResizeResult { Applied, Retry, Unsupported };
+    VideoResizeResult TryResizeToVideo(std::optional<double> scale, bool automatic);
+    void UpdateAutomaticVideoSize(bool layoutChanged = false);
+    void CancelAutomaticVideoSize();
+    std::uint64_t automaticResizeGeneration_{}, automaticResizeIntent_{}, automaticResizeInformation_{};
+    bool automaticResizeConsumed_{true}, automaticResizeAttempting_{}, automaticResizeLoaded_{};
+    bool initialGeometryApplied_{}, automaticResizePhysical_{};
+    int automaticResizeTiming_{}, automaticResizeOption_{};
+    unsigned automaticResizeAttempts_{};
+    std::chrono::steady_clock::time_point automaticResizeDeadline_{};
     void WireVideoAdjustments();
     void UpdateVideoAdjustments(iima::PlaybackSnapshot const& state);
     bool projectingVideoAdjustments_{};

@@ -48,6 +48,7 @@ void MainWindow::WireApplicationCommands() {
     commandRouter_.Register(Command::ChapterPanel, [weak] { if (auto self = weak.get()) self->ChapterBox().Focus(FocusState::Programmatic); }, available);
     commandRouter_.Register(Command::TogglePictureInPicture, [weak] {
         if (auto self = weak.get()) {
+            self->CancelAutomaticVideoSize();
             auto window = self->AppWindow();
             auto overlay = window.Presenter().Kind() == Microsoft::UI::Windowing::AppWindowPresenterKind::CompactOverlay;
             window.SetPresenter(overlay ? Microsoft::UI::Windowing::AppWindowPresenterKind::Default :
@@ -58,6 +59,7 @@ void MainWindow::WireApplicationCommands() {
     }, available);
     auto resize = [weak](double multiplier) {
         if (auto self = weak.get(); self && !self->fullscreen_) {
+            self->CancelAutomaticVideoSize();
             auto size = self->AppWindow().Size();
             self->AppWindow().Resize({std::clamp(static_cast<int>(size.Width * multiplier), 640, 16384),
                 std::clamp(static_cast<int>(size.Height * multiplier), 360, 16384)});
@@ -67,6 +69,7 @@ void MainWindow::WireApplicationCommands() {
     commandRouter_.Register(Command::SmallerWindow, [resize] { resize(1.0 / 1.1); }, available);
     commandRouter_.Register(Command::FitToScreen, [weak] {
         if (auto self = weak.get()) {
+            self->CancelAutomaticVideoSize();
             auto window = self->AppWindow();
             auto display = Microsoft::UI::Windowing::DisplayArea::GetFromWindowId(window.Id(),
                 Microsoft::UI::Windowing::DisplayAreaFallback::Nearest);

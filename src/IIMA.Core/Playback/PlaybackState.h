@@ -9,6 +9,11 @@ enum class MediaState { Empty, Loading, Loaded, Ended, Error };
 struct PlaybackSnapshot {
     SessionState session{SessionState::Initializing};
     MediaState media{MediaState::Empty};
+    // START_FILE identity, not path/playlist identity or a pause-policy epoch.
+    std::uint64_t mediaGeneration{}, mediaOpenIntentRevision{};
+    // Explicit only after a replace-load reply and its START_FILE correlate.
+    // Pending is not permission to resize the previous loaded media.
+    bool mediaExplicitOpen{}, mediaOriginPending{};
     bool paused{true}, seeking{}, buffering{};
     std::optional<bool> demuxerViaNetwork;
     std::optional<std::int64_t> cacheForwardBytes, cacheBytesPerSecond, cacheBufferingPercent;
@@ -47,6 +52,7 @@ struct PlaybackSnapshot {
     std::string mediaTitle, metadataTitle, metadataAlbum, metadataArtist;
     MediaProperties metadata, videoParameters, audioParameters;
     MediaProperties videoOutputParameters, osdDimensions;
+    std::uint64_t videoOutputRevision{};
     std::optional<std::int64_t> videoRotation;
     std::optional<double> videoBitrate, audioBitrate, fileSize;
     std::vector<AudioDevice> audioDevices;

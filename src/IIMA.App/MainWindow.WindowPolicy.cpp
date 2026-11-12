@@ -15,6 +15,11 @@ void MainWindow::WireWindowPlaybackPolicy() {
                 self->session_->WindowLifecycleChanged(state.inactive,state.minimized);
         },[weak] {
             if (auto self=weak.get(); self && !self->closing_) self->RefreshAccessibility();
+        },[weak] {
+            if (auto self=weak.get(); self && !self->closing_) {
+                self->placementTouched_ = true;
+                self->CancelAutomaticVideoSize();
+            }
         });
     powerLifecycle_=std::make_unique<iima::PowerLifecycle>(window, [weak] {
         if(auto self=weak.get(); self && !self->closing_ &&

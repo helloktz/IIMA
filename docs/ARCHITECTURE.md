@@ -187,3 +187,11 @@ mpv 阅读入口：`include/mpv/client.h`、`include/mpv/render.h`、`include/mp
 ## 多窗口静态扩展（2026-11-12）
 
 App持有以单调ID索引的MainWindow强引用集合，并以UI线程PlayerWindowRegistry选择激活目标；单窗口异步关闭完成后才从集合移除。窗口各自拥有播放器/图形/系统媒体资源，关闭一个窗口不停止全局InstanceRouter。并发UserData保存使用窗口基线差分合并，IO锁中读取最新磁盘，避免整份旧快照覆盖其他窗口；UI暂不实时同步其他窗口偏好。此扩展尚未编译或运行验证，不撤销原验收条件。
+
+## 自动窗口尺寸事件边界（2026-11-12）
+
+PlayerSession 的 mediaGeneration 仅在实际 START_FILE 递增，与暂停策略代次分离；
+mediaOpenIntentRevision 用于立即取消旧 UI 工作。明确 Open 来源由 loadfile 唯一新 entry 回复
+及启动事件共同确定，不由 Loaded/path 推断。窗口独立有界状态机消费每代一次，
+只读播放快照，原生用户窗口操作优先。视频输出独立修订避免码率/进度驱动几何重试。
+当前支持媒体开始时缩放；播放中 keepWindowSize 及完整上游首次几何例外未迁移。

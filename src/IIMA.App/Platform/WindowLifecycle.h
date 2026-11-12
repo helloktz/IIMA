@@ -15,7 +15,8 @@ public:
     WindowLifecycle(HWND window,
         winrt::Microsoft::UI::Dispatching::DispatcherQueue const& dispatcher,
         std::function<void(WindowLifecycleState)> changed,
-        std::function<void()> settingsChanged = {});
+        std::function<void()> settingsChanged = {},
+        std::function<void()> placementInteraction = {});
     ~WindowLifecycle();
     WindowLifecycle(WindowLifecycle const&)=delete;
     WindowLifecycle& operator=(WindowLifecycle const&)=delete;

@@ -9,7 +9,7 @@ struct WindowLifecycle::State : std::enable_shared_from_this<State> {
     HWND window{};
     winrt::Microsoft::UI::Dispatching::DispatcherQueue dispatcher{nullptr};
     std::function<void(WindowLifecycleState)> changed;
-    std::function<void()> settingsChanged;
+    std::function<void()> settingsChanged, placementInteraction;
     bool settingsPending{};
     WindowLifecycleState value;
     bool closed{};
@@ -48,6 +48,13 @@ struct WindowLifecycle::State : std::enable_shared_from_this<State> {
         auto self=reinterpret_cast<State*>(reference)->weak_from_this().lock();
         if(!self) return DefSubclassProc(hwnd,message,wParam,lParam);
         try {
+            if (message == WM_ENTERSIZEMOVE || (message == WM_SYSCOMMAND &&
+                ((wParam & 0xfff0) == SC_MOVE || (wParam & 0xfff0) == SC_SIZE ||
+                 (wParam & 0xfff0) == SC_MAXIMIZE || (wParam & 0xfff0) == SC_MINIMIZE ||
+                 (wParam & 0xfff0) == SC_RESTORE))) {
+                // Synchronous UI-thread cancellation precedes XAML layout.
+                if (!self->closed && self->placementInteraction) self->placementInteraction();
+            }
             auto next=self->value;
             if (message==WM_SETTINGCHANGE || message==WM_THEMECHANGED || message==WM_SYSCOLORCHANGE) {
                 self->SettingsChanged();
@@ -72,7 +79,7 @@ struct WindowLifecycle::State : std::enable_shared_from_this<State> {
                 self->Publish(next);
             } else if(message==WM_NCDESTROY) {
                 self->closed=true;
-                self->changed={}; self->settingsChanged={};
+                self->changed={}; self->settingsChanged={}; self->placementInteraction={};
                 self->window=nullptr;
                 RemoveWindowSubclass(hwnd,Procedure,subclass);
             }
@@ -85,12 +92,14 @@ struct WindowLifecycle::State : std::enable_shared_from_this<State> {
 };
 WindowLifecycle::WindowLifecycle(HWND window,
     winrt::Microsoft::UI::Dispatching::DispatcherQueue const& dispatcher,
-    std::function<void(WindowLifecycleState)> changed,std::function<void()> settingsChanged) {
+    std::function<void(WindowLifecycleState)> changed,std::function<void()> settingsChanged,
+    std::function<void()> placementInteraction) {
     if(!window || !dispatcher || GetWindowThreadProcessId(window,nullptr)!=GetCurrentThreadId())
         throw winrt::hresult_invalid_argument(L"Window lifecycle requires the owning UI thread");
     auto state=std::make_shared<State>();
     state->window=window; state->dispatcher=dispatcher; state->changed=std::move(changed);
     state->settingsChanged=std::move(settingsChanged);
+    state->placementInteraction=std::move(placementInteraction);
     auto foreground=GetForegroundWindow();
     state->value.inactive=foreground!=window && !State::IsOwnedDialog(window,foreground);
     state->value.minimized=IsIconic(window)!=FALSE;
@@ -104,7 +113,7 @@ WindowLifecycleState WindowLifecycle::Current() const noexcept { return state_?s
 void WindowLifecycle::Close() noexcept {
     if(!state_) return;
     state_->closed=true;
-    state_->changed={}; state_->settingsChanged={};
+    state_->changed={}; state_->settingsChanged={}; state_->placementInteraction={};
     if(state_->window) RemoveWindowSubclass(state_->window,State::Procedure,reinterpret_cast<UINT_PTR>(state_.get()));
     state_->window=nullptr;
     state_.reset();

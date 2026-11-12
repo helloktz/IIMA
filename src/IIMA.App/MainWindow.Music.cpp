@@ -55,6 +55,7 @@ void MainWindow::UpdateMusicMode()
 void MainWindow::ApplyMusicTransition(iima::MusicModePolicy::Transition const& transition)
 {
     if (closing_) return;
+    CancelAutomaticVideoSize();
     musicTransition_ = true;
     try {
         auto window = AppWindow();

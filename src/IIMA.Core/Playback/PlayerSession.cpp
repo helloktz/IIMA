@@ -21,6 +21,66 @@ std::shared_ptr<PlayerSession> PlayerSession::Create(Dispatch dispatch, Changed 
 }
 void PlayerSession::Start(std::wstring path) { client_->Start(std::move(path)); }
 void PlayerSession::Notify() { if(changed_) changed_(snapshot_); }
+// IINA distinguishes openMainWindow's justOpenedFile from fileStarted's
+// justStartedFile. A bool attached to the next event cannot preserve that
+// distinction across queued old events. Pinned mpv cmd_loadfile creates a new,
+// monotonically allocated playlist entry and returns playlist_entry_id.
+void PlayerSession::BeginMediaOriginIntent(bool explicitOpen) {
+    ++snapshot_.mediaOpenIntentRevision;
+    snapshot_.mediaExplicitOpen = false;
+    snapshot_.mediaOriginPending = explicitOpen;
+    openOriginRequest_ = 0;
+    openOriginEntry_.reset();
+    openStarts_.clear();
+}
+void PlayerSession::ResolveMediaOrigin() {
+    if (!snapshot_.mediaOriginPending || !openOriginEntry_) return;
+    auto found = std::find_if(openStarts_.begin(), openStarts_.end(), [&](auto const& start) {
+        return start.entry == *openOriginEntry_;
+    });
+    if (found == openStarts_.end()) return; // Reply preceded the actual start.
+    const auto occurrences = std::count_if(openStarts_.begin(), openStarts_.end(), [&](auto const& start) {
+        return start.entry == *openOriginEntry_;
+    });
+    // Same-entry reload before the reply is ambiguous. Never give that reload
+    // the original Open's permission, nor revive a generation that has ended.
+    snapshot_.mediaExplicitOpen = occurrences == 1 && found->generation == snapshot_.mediaGeneration &&
+        snapshot_.entryId == *openOriginEntry_ &&
+        (snapshot_.media == MediaState::Loading || snapshot_.media == MediaState::Loaded);
+    snapshot_.mediaOriginPending = false;
+    openOriginRequest_ = 0; openOriginEntry_.reset(); openStarts_.clear();
+}
+void PlayerSession::ObserveMediaOrigin(MpvEvent const& event) {
+    if (event.kind == MpvEvent::Kind::StartFile) {
+        ++snapshot_.mediaGeneration;
+        snapshot_.mediaExplicitOpen = false;
+        // Events while the pause command is outstanding cannot belong to the
+        // not-yet-submitted replacement. Matching the returned unique ID also
+        // rejects older START_FILE events queued before submission.
+        if (snapshot_.mediaOriginPending && (openOriginRequest_ || openOriginEntry_)) {
+            if (openStarts_.size() == 16) {
+                snapshot_.mediaOriginPending = false;
+                openOriginRequest_ = 0; openOriginEntry_.reset(); openStarts_.clear();
+            } else openStarts_.push_back({event.entryId, snapshot_.mediaGeneration});
+        }
+        ResolveMediaOrigin();
+    } else if (event.kind == MpvEvent::Kind::CommandReply && openOriginRequest_ &&
+               event.requestId == openOriginRequest_) {
+        openOriginRequest_ = 0;
+        if (event.error < 0 || event.entryId < 0) {
+            snapshot_.mediaOriginPending = false; openStarts_.clear();
+        } else {
+            openOriginEntry_ = event.entryId;
+            ResolveMediaOrigin();
+        }
+    } else if (event.kind == MpvEvent::Kind::EndFile && event.entryId == snapshot_.entryId) {
+        snapshot_.mediaExplicitOpen = false;
+        ResolveMediaOrigin();
+    } else if (event.kind == MpvEvent::Kind::Failure || event.kind == MpvEvent::Kind::Shutdown) {
+        snapshot_.mediaExplicitOpen = false; snapshot_.mediaOriginPending = false;
+        openOriginRequest_ = 0; openOriginEntry_.reset(); openStarts_.clear();
+    }
+}
 void PlayerSession::SetPresentationReady(bool ready) {
     // Known audio-only media needs no video swapchain. Empty/unknown tracks
     // never bypass the handshake; real video still requires UI binding.
@@ -61,6 +121,7 @@ void PlayerSession::OpenMultiple(std::vector<std::string> paths,bool append) {
         for(auto& path:paths) client_->Command({"loadfile",std::move(path),"append"});
         return;
     }
+    BeginMediaOriginIntent(true);
     presentationReady_=false; resumePending_=!settings_.pauseWhenOpen; expectedEntry_=-1; loadRequest_=0;
     pendingCommands_.clear();
     transitionIssued_=false; waitingForStart_=true; loadReturnsEntry_=true;
@@ -72,10 +133,12 @@ void PlayerSession::OpenMultiple(std::vector<std::string> paths,bool append) {
         pendingCommands_.push_back({"loadfile",std::move(paths[i]),i==0 ? "replace" : "append"});
     PrependNextMediaPreferences();
     pauseRequest_=client_->Command({"set","pause","yes"});
-    if(!pauseRequest_) { pendingCommands_.clear(); resumePending_=false; snapshot_.error="Player is closing"; Notify(); }
+    if(!pauseRequest_) { snapshot_.mediaOriginPending=false; pendingCommands_.clear(); resumePending_=false; snapshot_.error="Player is closing"; }
+    Notify();
 }
 void PlayerSession::PausedCommand(std::vector<std::string> command) {
     if(!CanOpen()) return;
+    BeginMediaOriginIntent(false);
     subtitleEncodingRequest_=0; subtitleEncodingTracks_.clear();
     sleepPauseHeld_=false;
     CancelWindowPausePolicy();
@@ -86,7 +149,8 @@ void PlayerSession::PausedCommand(std::vector<std::string> command) {
     pendingCommands_={std::move(command)};
     PrependNextMediaPreferences();
     pauseRequest_=client_->Command({"set","pause","yes"});
-    if(!pauseRequest_) { pendingCommands_.clear(); resumePending_=false; snapshot_.error="Player is closing"; Notify(); }
+    if(!pauseRequest_) { snapshot_.mediaOriginPending=false; pendingCommands_.clear(); resumePending_=false; snapshot_.error="Player is closing"; }
+    Notify();
 }
 void PlayerSession::PlaylistNext() {
     auto current=std::find_if(snapshot_.playlist.begin(),snapshot_.playlist.end(),[](auto const& p){return p.current;});
@@ -194,6 +258,7 @@ void PlayerSession::Seek(double seconds) {
     client_->Command({"seek",std::to_string(std::clamp(seconds,0.0,*snapshot_.duration)),"absolute+exact"});
 }
 void PlayerSession::Stop() {
+    BeginMediaOriginIntent(false);
     subtitleEncodingRequest_=0; subtitleEncodingTracks_.clear();
     CancelWatchedProperties();
     CancelFilterEditCallbacks();
@@ -202,6 +267,7 @@ void PlayerSession::Stop() {
     pendingCommands_.clear(); pauseRequest_=0; resumePending_=false; loadRequest_=0;
     transitionIssued_=false; waitingForStart_=false; expectedEntry_=-1;
     if(snapshot_.session==SessionState::Ready) client_->Command({"stop"});
+    Notify();
 }
 void PlayerSession::SetVolume(double value) {
     if(snapshot_.session==SessionState::Ready && std::isfinite(value))
@@ -464,12 +530,16 @@ void PlayerSession::OnEvent(MpvEvent e) {
                 (command[0]=="playlist-next" || command[0]=="playlist-prev" || command[0]=="playlist-play-index");
             const auto id=client_->Command(std::move(command));
             if(firstLoad || playlistSwitch) {
+                if (firstLoad && snapshot_.mediaOriginPending) {
+                    openOriginRequest_ = id;
+                    if (!id) snapshot_.mediaOriginPending = false;
+                }
                 loadRequest_=id;
                 transitionIssued_=id!=0;
                 if(!id) resumePending_=false;
             }
         }
-        else resumePending_=false;
+        else { resumePending_=false; snapshot_.mediaOriginPending=false; }
         pendingCommands_.clear();
     }
     if(e.kind==MpvEvent::Kind::CommandReply && loadRequest_ && e.requestId==loadRequest_) {
@@ -485,6 +555,7 @@ void PlayerSession::OnEvent(MpvEvent e) {
     const auto previousChain=snapshot_.swapChain;
     const bool wasPlaying=!snapshot_.paused;
     ApplyPlaybackEvent(snapshot_,e);
+    ObserveMediaOrigin(e);
     HandleFilterEditReply(e);
     if(e.kind==MpvEvent::Kind::StartFile) {
         CancelWindowPausePolicy();
@@ -511,6 +582,7 @@ void PlayerSession::OnEvent(MpvEvent e) {
     if(e.kind==MpvEvent::Kind::Shutdown) CloseAsync();
 }
 void PlayerSession::CloseAsync(std::function<void()> completion) {
+    BeginMediaOriginIntent(false);
     subtitleEncodingRequest_=0; subtitleEncodingTracks_.clear();
     // Mark closing before cancellation so reentrant UI callbacks cannot enqueue work.
     if (snapshot_.session != SessionState::Closed) snapshot_.session = SessionState::Closing;

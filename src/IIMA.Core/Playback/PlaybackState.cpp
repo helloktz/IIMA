@@ -32,7 +32,7 @@ void ApplyPlaybackEvent(PlaybackSnapshot& s, MpvEvent const& e) {
         s.abLoopA.reset(); s.abLoopB.reset(); s.abLoopCount.clear();
         s.seekable=false; s.mediaTitle.clear(); s.metadataTitle.clear(); s.metadataAlbum.clear(); s.metadataArtist.clear();
         s.metadata.clear(); s.videoParameters.clear(); s.audioParameters.clear();
-        s.videoOutputParameters.clear(); s.osdDimensions.clear();
+        s.videoOutputParameters.clear(); ++s.videoOutputRevision; s.osdDimensions.clear();
         s.videoBitrate.reset(); s.audioBitrate.reset(); s.fileSize.reset(); ++s.informationRevision;
         s.demuxerViaNetwork.reset(); s.cacheForwardBytes.reset();
         s.cacheBytesPerSecond.reset(); s.cacheBufferingPercent.reset();
@@ -95,7 +95,7 @@ void ApplyPlaybackEvent(PlaybackSnapshot& s, MpvEvent const& e) {
             ++s.informationRevision;
         }
         else if(e.name=="video-params") { s.videoParameters=e.properties; ++s.informationRevision; }
-        else if(e.name=="video-out-params") s.videoOutputParameters=e.properties;
+        else if(e.name=="video-out-params") { s.videoOutputParameters=e.properties; ++s.videoOutputRevision; }
         else if(e.name=="osd-dimensions") s.osdDimensions=e.properties;
         else if(e.name=="video-rotate") s.videoRotation=e.error>=0 ? e.integer : std::nullopt;
         else if(e.name=="audio-params") { s.audioParameters=e.properties; ++s.informationRevision; }

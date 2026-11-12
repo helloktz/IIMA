@@ -240,10 +240,12 @@ void MainWindow::Apply(iima::PlaybackSnapshot const& state)
     else if (state.media == iima::MediaState::Loading) StatusText().Text(L"正在打开…");
     else if (loaded) StatusText().Text(state.buffering ? L"正在缓冲…" : L"");
     updating_ = false;
+    UpdateAutomaticVideoSize();
 }
 void MainWindow::ToggleFullscreen()
 {
     if (closing_) return;
+    CancelAutomaticVideoSize();
     try {
         fullscreen_ = !fullscreen_;
         AppWindow().SetPresenter(fullscreen_ ? Microsoft::UI::Windowing::AppWindowPresenterKind::FullScreen
