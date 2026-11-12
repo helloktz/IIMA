@@ -1262,3 +1262,10 @@ Windows新增只读`ReadFullscreenInformation`：GetTimeFormatEx按用户区域�
 - 返回时先在仍小窗的当前显示器取工作区和DPI，再重挂原Presenter、按DPI缩放并夹入可见区域，恢复最大化。音乐小窗保留其实际几何，不覆盖音乐模式已有的普通窗口备份。全屏记录与小窗记录独立，支持普通→小窗→全屏→小窗→普通；音乐和FitToScreen先走统一出口再应用自身布局。
 - 失败恢复记录保留以供重试，实际Presenter决定控制层；显式普通窗口移动/缩放可取代未完成恢复。过渡和未完成XAML布局阻断位置持久化、自动视频尺寸与window-scale回写，完成布局后再重新投影。取消恢复不意味着恢复播放。
 - 此批替代上一批仅依赖WinUI默认Presenter恢复的限制；不新增跨会话小窗模式持久化，不模拟macOS独立PiP窗动画/隐藏原窗。仅静态实现和审阅，未编译、测试或运行，原生窗口事件及跨屏DPI结果仍待Windows验收。
+
+## 音乐模式独立音量入口（2026-11-12）
+
+- IINA MiniPlayerWindowController的volumeControlContainer、showVolumePopover/hideVolumeControl、muteButtonAction与updateVolume → 音乐标题区的独立WinUI音量Flyout。侧栏/播放列表隐藏时仍能访问音量、静音与当前观察值，不强迫展开侧栏或退出音乐模式。
+- Windows采用显式打开弹层、弹层内独立静音按钮以及原生轻关闭/Esc和键盘焦点；不照搬macOS首次点击展开/再次点击静音的复合按钮，也不仿制Cocoa触控板phase、动画或触觉反馈。
+- 音量上限来自已有maxVolume，滑块及静音调用既有typed播放命令；滚轮遵守disableVolumeSliderScrolling并沿用有界相对音量规则。 Windows有意差异：鼠标/触控拖动仅保留本地草稿，正常释放提交一次；取消不提交，键盘即时提交。不会在拖动期间实时试听，避免高频排队及陈旧回报抢动滑块。观察回报决定显示与保存，不把滑块草稿或点击本身当mpv确认。打开会话绑定媒体和输入，模式/生命周期失效撤销旧弹层动作。
+- 本批仅静态实现/审阅、Git差异检查及数量统计，未编译、测试或运行；Flyout焦点、原生滑块拖动/滚轮与模式关闭顺序仍待Windows验证。

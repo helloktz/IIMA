@@ -47,6 +47,7 @@ MainWindow::MainWindow()
     }, [weak](hstring const& error) { if (auto self = weak.get(); self && !self->closing_) self->ShowError(error); });
     WireApplicationCommands();
     WireMusicMode();
+    WireMusicVolume();
     WirePluginInspection();
     WirePluginPointer();
     WireMouseWheel();
@@ -275,6 +276,7 @@ void MainWindow::BeginClose()
     CancelControlBarDrag();
     CancelScrubbing();
     closing_ = true;
+    CloseMusicVolume();
     UpdateInitialWindow(true);
     ApplicationMenuBar().IsEnabled(false);
     CloseFullscreenInformation();

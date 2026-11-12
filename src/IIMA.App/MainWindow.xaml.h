@@ -117,6 +117,13 @@ private:
     bool pluginInspectionBusy_{};
     std::stop_source pluginInspectionStop_;
     void WireMusicMode();
+    void WireMusicVolume();
+    void UpdateMusicVolume();
+    void CloseMusicVolume();
+    bool MusicVolumeAvailable();
+    bool MusicVolumeContextValid();
+    bool musicVolumeOpen_{}, musicVolumeUpdating_{};
+    std::uint64_t musicVolumeGeneration_{}, musicVolumeIntent_{}, musicVolumeInput_{};
     std::optional<iima::MusicModePolicy::Transition> UpdateMusicContext();
     void UpdateMusicMode();
     void ApplyMusicTransition(iima::MusicModePolicy::Transition const& transition);

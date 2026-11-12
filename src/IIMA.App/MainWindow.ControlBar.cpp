@@ -89,6 +89,7 @@ void MainWindow::UpdateControlBarPolicy() {
     UpdateScrubbing();
     UpdateControlBarToolbar();
     UpdateCompactOverlayControls();
+    UpdateMusicVolume();
     UpdateControlBarLayout();
     UpdateVideoCursor();
     UpdateBufferingIndicator(session_->Snapshot());

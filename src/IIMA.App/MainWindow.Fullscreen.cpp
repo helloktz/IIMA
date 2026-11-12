@@ -8,6 +8,7 @@
 namespace winrt::IIMA::implementation {
 void MainWindow::ToggleFullscreen() {
     if (closing_ || fullscreenTransition_ || compactTransition_) return;
+    CloseMusicVolume();
     if (fullscreen_) {
         if (ExitFullscreen() && preferences_.Boolean("pauseWhenLeavingFullScreen") &&
             session_->Snapshot().media == iima::MediaState::Loaded && !session_->Snapshot().paused)

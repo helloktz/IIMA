@@ -12,11 +12,12 @@ using namespace winrt;
 namespace winrt::IIMA::implementation {
 void MainWindow::WireSliderWheels() {
     auto weak=get_weak();
-    auto wire=[weak](IIMA::WheelSlider const& slider,bool volume) {
-        slider.WheelInput([weak,volume](auto const& sender,Microsoft::UI::Xaml::Input::PointerRoutedEventArgs const& args) {
+    auto wire=[weak](IIMA::WheelSlider const& slider,bool volume,bool music=false) {
+        slider.WheelInput([weak,volume,music](auto const& sender,Microsoft::UI::Xaml::Input::PointerRoutedEventArgs const& args) {
             // WheelSlider has already swallowed the native wheel operation,
             // including disabled/modified input. Never mutate Slider.Value here.
             auto self=weak.get();if(!self) return;
+            if(music && (!self->MusicVolumeContextValid() || self->MusicVolumeSlider().Tracking())) return;
             if(self->closing_ || !self->userDataLoaded_ || self->pickerOpen_ || (!volume && (self->scrubStarting_ || self->PositionSlider().Tracking())) || self->oscDragging_ ||
                 self->interactiveCrop_.Active() || self->cropOriginal_ || self->inputResolving_ ||
                 !self->pendingFiles_.empty() || !self->activationInputs_.empty() || self->session_->PlaylistEditBusy()) return;
@@ -53,6 +54,6 @@ void MainWindow::WireSliderWheels() {
             } catch(...) {if(!self->closing_) self->ShowError(L"无法提交滑块滚轮操作。");}
         });
     };
-    wire(PositionSlider(),false);wire(VolumeSlider(),true);
+    wire(PositionSlider(),false);wire(VolumeSlider(),true);wire(MusicVolumeSlider(),true,true);
 }
 }

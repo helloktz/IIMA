@@ -122,6 +122,18 @@
                 <StackPanel Orientation="Horizontal" Spacing="6">
                     <Button x:Name="MusicReturnButton" Content="返回播放器"/>
                     <Button x:Name="MusicPlaylistButton" Content="显示列表"/>
+                    <Button x:Name="MusicVolumeButton" Content="音量" IsEnabled="False">
+                        <Button.Flyout>
+                            <Flyout x:Name="MusicVolumeFlyout" Placement="Bottom">
+                                <StackPanel Spacing="8" Width="220">
+                                    <TextBlock x:Name="MusicVolumeValue" Text="不可用" AutomationProperties.Name="观测音量"/>
+                                    <local:WheelSlider x:Name="MusicVolumeSlider" Minimum="0" Maximum="100" SmallChange="1"
+                                                       IsEnabled="False" AutomationProperties.Name="音乐模式音量"/>
+                                    <Button x:Name="MusicMuteButton" Content="静音" IsEnabled="False"/>
+                                </StackPanel>
+                            </Flyout>
+                        </Button.Flyout>
+                    </Button>
                 </StackPanel>
             </StackPanel>
         </Border>
