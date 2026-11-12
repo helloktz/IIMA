@@ -1,5 +1,6 @@
 #pragma once
 #include "PlaybackState.h"
+#include "PlaybackActions.h"
 #include "../Subtitles/SubtitleStyle.h"
 #include "../Audio/Equalizations.h"
 #include "../Persistence/UserData.h"
@@ -74,6 +75,7 @@ public:
     void SystemWillSuspend();
     void Seek(double seconds);
     void SeekRelative(double seconds, bool exact = true);
+    void SeekRelativeWithMode(double seconds, RelativeSeekMode mode);
     void StepFrame(bool backwards = false);
     void CycleABLoop();
     void ClearABLoop();
@@ -156,6 +158,8 @@ private:
     bool sleepPauseHeld_{}; // explicit Play/new-media intent releases sleep pause
     std::uint64_t windowMediaGeneration_{}, windowPauseRequest_{};
     std::optional<settings::WindowPauseDirective> windowPauseDirective_;
+    AutomaticSeekPolicy automaticSeekPolicy_;
+    std::uint64_t seekMediaGeneration_{}, seekMeasurementRequest_{};
     bool presentationReady_{};
     std::uint64_t pauseRequest_{}, loadRequest_{};
     std::int64_t expectedEntry_{-1};

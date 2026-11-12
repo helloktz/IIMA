@@ -1,5 +1,6 @@
 #include "MpvClient.h"
 #include "MpvNodes.h"
+#include "SeekLatency.h"
 #include <Unknwn.h>
 #include <Windows.h>
 #include "include/mpv/client.h"
@@ -57,6 +58,7 @@ struct MpvClient::State {
         std::optional<FilterEditPlan> filterEdit;
         std::optional<std::int64_t> filterEntry;
         std::string filterPath;
+        bool measureSeek{};
     };
     std::deque<Request> commands;
     std::vector<std::function<void()>> closedCallbacks;
@@ -99,6 +101,13 @@ struct MpvClient::State {
                 check(api.observe_property(handle, id++, name, MPV_FORMAT_INT64), name);
             MpvEvent ready{MpvEvent::Kind::Ready}; ready.flag=api.acquireSwapChain!=nullptr; ready.integer=api.client_api_version(); Emit(std::move(ready));
             std::uint64_t inFlight{};
+            SeekLatency seekLatency;
+            auto reportSeek = [&](std::optional<SeekLatencyResult> sample) {
+                if (!sample) return;
+                MpvEvent event{MpvEvent::Kind::SeekMeasurement};
+                event.requestId = sample->request; event.number = sample->seconds;
+                Emit(std::move(event));
+            };
             std::string inFlightFilter;
             auto readFilterResult = [&](MpvEvent& event, std::string const& name) {
                 event.name = name;
@@ -126,6 +135,10 @@ struct MpvClient::State {
                 // client.h explicitly permits async command reordering. Serialize at replies.
                 if(pending) {
                     const auto request=pending->id;
+                    if (!pending->playlistQuery && !pending->watchedPropertiesQuery) {
+                        reportSeek(seekLatency.Cancel());
+                        if (pending->measureSeek) seekLatency.Begin(request);
+                    }
                     inFlightFilter.clear();
                     int error{};
                     if (pending->watchedPropertiesQuery) {
@@ -196,6 +209,7 @@ struct MpvClient::State {
                         error=api.command_async(handle,request,argv.data());
                     }
                     if(error<0) {
+                        reportSeek(seekLatency.Reply(request,false));
                         MpvEvent e{pending->playlistQuery ? MpvEvent::Kind::PlaylistReply : MpvEvent::Kind::CommandReply};
                         e.requestId=request; e.error=error; e.text=api.error_string(error);
                         if(pending->playlistQuery) e.name="playlist";
@@ -303,6 +317,13 @@ struct MpvClient::State {
                         e.swapChain=std::shared_ptr<void>(chain,[lease=api.moduleLease](void* p) { static_cast<IUnknown*>(p)->Release(); });
                     else e.text=std::string("Composition output is not ready: ") + (result<0 ? api.error_string(result) : "no swapchain returned");
                 }
+                // Timestamp before UI dispatch; UI queue delay must not select
+                // exact versus keyframe seeking. Require a successful reply too.
+                if (e.kind == MpvEvent::Kind::Seek) reportSeek(seekLatency.Seek(SeekLatency::Clock::now()));
+                else if (e.kind == MpvEvent::Kind::Restart) reportSeek(seekLatency.Restart(SeekLatency::Clock::now()));
+                else if (e.kind == MpvEvent::Kind::CommandReply) reportSeek(seekLatency.Reply(e.requestId,e.error >= 0));
+                else if (e.kind == MpvEvent::Kind::StartFile || e.kind == MpvEvent::Kind::EndFile ||
+                         e.kind == MpvEvent::Kind::Shutdown) reportSeek(seekLatency.Cancel());
                 const bool loaded = e.kind == MpvEvent::Kind::Loaded;
                 Emit(std::move(e));
                 if (loaded) {
@@ -360,10 +381,14 @@ void MpvClient::Start(std::wstring path) {
     try { std::thread([state=state_, path=std::move(path)] { state->Run(path); }).detach(); }
     catch(...) { state_->started=false; throw; }
 }
-std::uint64_t MpvClient::Command(std::vector<std::string> args) {
+std::uint64_t MpvClient::Command(std::vector<std::string> args, bool measureSeek) {
     std::lock_guard lock(state_->mutex);
     if(state_->closing || !state_->started || args.empty()) return 0;
-    auto id=state_->nextId++; state_->commands.push_back({id,std::move(args),false}); return id;
+    if (measureSeek && (args.size() != 3 || args[0] != "seek" ||
+        (args[2] != "relative" && args[2] != "relative+exact"))) return 0;
+    auto id=state_->nextId++;
+    State::Request request{id,std::move(args),false}; request.measureSeek = measureSeek;
+    state_->commands.push_back(std::move(request)); return id;
 }
 std::uint64_t MpvClient::GetPlaylistAsync() {
     std::lock_guard lock(state_->mutex);

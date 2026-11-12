@@ -16,7 +16,7 @@ bool HasApplicationAdapter(std::string_view key) {
         "autoSwitchToMusicMode", "musicModeShowPlaylist", "musicModeShowAlbumArt",
         "pauseWhenInactive", "pauseWhenMinimized", "pauseWhenGoesToSleep", "enableThumbnailPreview", "thumbnailWidth", "maxThumbnailPreviewCacheSize",
         "alwaysFloatOnTop", "fullScreenWhenOpen", "playWhenEnteringFullScreen", "pauseWhenLeavingFullScreen",
-        "screenshotShowPreview", "enableOSD", "disableOSDPauseResumeMsgs", "disableOSDSpeedMsg", "osdAutoHideTimeout", "osdTextSize"
+        "useExactSeek", "screenshotShowPreview", "enableOSD", "disableOSDPauseResumeMsgs", "disableOSDSpeedMsg", "osdAutoHideTimeout", "osdTextSize"
     };
     return keys.contains(key);
 }

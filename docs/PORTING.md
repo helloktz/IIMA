@@ -774,3 +774,13 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 ### 限制
 
 目录/符号链接/网络/超长路径不支持。硬链接/短路径等别名未做完整文件身份解析；路径检查与系统删除之间存在文件系统TOCTOU，不能承诺原子身份锁定。系统对话框期间外部控制仍可能改变播放状态；本批不自动释放新打开的句柄。系统错误码不当作HRESULT解析；错误只报告未完成并由系统提供细节。未实际删除任何文件，未编译测试运行。
+
+## 第七十三批：自动相对seek策略的实际事件接线
+
+`PlayerCore.seek(relativeSecond:option:)`按Preference.SeekOption的relative=0/exact=1/auto=2选择命令；auto每文件首次请求记录耗时，`MPVController.handleEvent`在SEEK记录起点、PLAYBACK_RESTART计算间隔，低于0.05秒使用exact，否则relative。`PlayerCore.fileLoaded`重置试验标志，但保留上一文件决策。此前IIMA只有AutomaticSeekPolicy模型，实际SeekRelative创建临时对象且未测量，不能算已接通auto。
+
+现在会话持有策略，START_FILE启动新代次。新增`useExactSeek`枚举偏好（默认relative），两个±5秒按钮及滚轮seek读取它；已有wheelExactSeek=true仍强制exact，显式input.conf/插件seek参数不被偏好覆盖。相对seek拒绝不可seek、零/非有限参数。accepted仍仅表示入队，不表示已完成。
+
+MpvClient为首次自动请求标记测量窗口，在worker用steady_clock记录SEEK→RESTART，排除UI调度延迟。成功command reply与完整事件对同时到齐后才上报请求ID/间隔，支持reply先于或晚于restart；失败、第二次SEEK、无SEEK的RESTART、超过10秒样本、其他写命令/滤镜修改、换片/结束/关闭都会放弃样本。只读查询不使样本失效。会话仅接收自己的待测request，放弃样本时保留原决策且本文件不反复试验。新文件可再次试验。
+
+**限制：mpv的SEEK/RESTART没有命令因果ID。这里的request只是本机相关窗口，无法证明与外部客户端、内部自动循环或尚未消费事件的绝对因果关系；不能称为精确性能测量。**相比上游加了重叠/失败拒绝，但没有屏蔽其他客户端。50ms阈值沿用上游，不代表Windows上的最佳阈值；没有执行性能或播放验证。未编译测试运行。

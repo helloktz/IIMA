@@ -43,8 +43,11 @@ void MainWindow::WireMouseWheel() {
             if (!state.seekable) return;
             constexpr std::array<double, 5> amounts{0, 0.5, 1, 2, 4};
             auto level = std::clamp<std::int64_t>(self->preferences_.Integer("relativeSeekAmount"), 1, 4);
-            self->session_->SeekRelative(amount * amounts[static_cast<std::size_t>(level)],
-                                         self->preferences_.Boolean("wheelExactSeek"));
+            auto choice = self->preferences_.Integer("useExactSeek");
+            auto mode = self->preferences_.Boolean("wheelExactSeek") || choice == 1
+                ? iima::RelativeSeekMode::Exact : choice == 2
+                ? iima::RelativeSeekMode::Automatic : iima::RelativeSeekMode::Relative;
+            self->session_->SeekRelativeWithMode(amount * amounts[static_cast<std::size_t>(level)],mode);
             args.Handled(true);
             break;
         }

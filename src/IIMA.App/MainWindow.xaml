@@ -160,6 +160,8 @@
                             </DropDownButton.Flyout>
                         </DropDownButton>
                         <StackPanel Orientation="Horizontal" Spacing="4">
+                            <Button x:Name="RelativeSeekBackButton" Content="后退5秒" ToolTipService.ToolTip="遵循useExactSeek：relative/exact/auto"/>
+                            <Button x:Name="RelativeSeekForwardButton" Content="前进5秒" ToolTipService.ToolTip="遵循useExactSeek：relative/exact/auto"/>
                             <Button x:Name="StepBackButton" Content="上一帧"/>
                             <Button x:Name="StepForwardButton" Content="下一帧"/>
                         </StackPanel>

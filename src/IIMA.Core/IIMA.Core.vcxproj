@@ -21,6 +21,7 @@
   <ItemGroup><ClInclude Include="BuildInfo.h" /><ClCompile Include="BuildInfo.cpp" /></ItemGroup>
   <ItemGroup>
     <ClInclude Include="Mpv\MpvClient.h" />
+    <ClInclude Include="Mpv\SeekLatency.h" />
     <ClInclude Include="Mpv\include\mpv\client.h" />
     <ClInclude Include="Mpv\MpvNodes.h" />
     <ClCompile Include="Mpv\MpvNodes.cpp" />

@@ -301,6 +301,18 @@ void PlayerSession::OnEvent(MpvEvent e) {
         }
         return;
     }
+    if (e.kind == MpvEvent::Kind::SeekMeasurement) {
+        if (e.requestId == seekMeasurementRequest_) {
+            seekMeasurementRequest_ = 0;
+            if (e.number) automaticSeekPolicy_.ObserveSeekElapsed(seekMediaGeneration_,*e.number);
+        }
+        return;
+    }
+    if (e.kind == MpvEvent::Kind::StartFile) {
+        seekMeasurementRequest_ = 0;
+        automaticSeekPolicy_.BeginMedia(++seekMediaGeneration_);
+    } else if (e.kind == MpvEvent::Kind::EndFile || e.kind == MpvEvent::Kind::Failure || e.kind == MpvEvent::Kind::Shutdown)
+        seekMeasurementRequest_ = 0;
     if (e.kind == MpvEvent::Kind::Failure || e.kind == MpvEvent::Kind::Shutdown ||
         e.kind == MpvEvent::Kind::StartFile || e.kind == MpvEvent::Kind::EndFile) CancelWatchedProperties();
     if(e.kind==MpvEvent::Kind::Failure || e.kind==MpvEvent::Kind::Shutdown || e.kind==MpvEvent::Kind::EndFile) CancelWindowPausePolicy();

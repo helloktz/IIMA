@@ -48,7 +48,7 @@ struct Chapter {
 };
 // Owns all payloads; never exports mpv's borrowed event memory.
 struct MpvEvent {
-    enum class Kind { Ready, Failure, StartFile, Loaded, EndFile, Seek, Restart,
+    enum class Kind { Ready, Failure, StartFile, Loaded, EndFile, Seek, Restart, SeekMeasurement,
                       Property, CommandReply, PlaylistReply, WatchedPropertiesReply, VideoReconfig, Shutdown } kind;
     std::string name, text;
     std::optional<double> number;
@@ -77,7 +77,7 @@ public:
     // DLL must be absolute and supplied from the application deployment directory.
     void Start(std::wstring dllPath);
     void SetPauseWhenOpen(bool value);
-    std::uint64_t Command(std::vector<std::string> arguments);
+    std::uint64_t Command(std::vector<std::string> arguments, bool measureSeek = false);
     // Queued in the SAME serialized worker lane as commands. PlaylistReply
     // owns a fresh node copy; ordinary observed properties are not substitutes.
     std::uint64_t GetPlaylistAsync();

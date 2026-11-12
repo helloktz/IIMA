@@ -5,11 +5,16 @@
 #include <cmath>
 namespace iima {
 void PlayerSession::SeekRelative(double seconds, bool exact) {
+    SeekRelativeWithMode(seconds,exact ? RelativeSeekMode::Exact : RelativeSeekMode::Relative);
+}
+void PlayerSession::SeekRelativeWithMode(double seconds, RelativeSeekMode mode) {
     if (snapshot_.session != SessionState::Ready || snapshot_.media != MediaState::Loaded ||
-        !std::isfinite(seconds)) return;
-    AutomaticSeekPolicy policy;
-    auto plan = policy.Prepare(seconds, exact ? RelativeSeekMode::Exact : RelativeSeekMode::Relative);
-    if (plan) client_->Command(std::move(plan->command));
+        !snapshot_.seekable || !std::isfinite(seconds) || seconds == 0) return;
+    auto plan = automaticSeekPolicy_.Prepare(seconds,mode);
+    if (!plan) return;
+    auto request = client_->Command(plan->command,plan->recordLatency);
+    automaticSeekPolicy_.CommandSubmitted(*plan,request != 0);
+    if (request && plan->recordLatency) seekMeasurementRequest_ = request;
 }
 void PlayerSession::AdjustVolumeByWheel(double delta) {
     if (snapshot_.session != SessionState::Ready || snapshot_.media != MediaState::Loaded ||

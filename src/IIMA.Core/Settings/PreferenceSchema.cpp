@@ -24,6 +24,7 @@ constexpr EnumChoice resizeTiming[]{{0,"always"},{1,"onlyWhenOpen"},{2,"never"}}
 constexpr EnumChoice resizeSize[]{{0,"fit-screen"},{1,"0.5"},{2,"1"},{3,"1.5"},{4,"2"}};
 constexpr EnumChoice clickActions[]{{0,"none"},{1,"fullscreen"},{2,"pause"},{3,"hide-controls"},
     {4,"picture-in-picture"},{5,"ab-loop"},{6,"reset-speed"}};
+constexpr EnumChoice seekModes[]{{0,"relative"},{1,"exact"},{2,"auto"}};
 constexpr EnumChoice scrollActions[]{{0,"volume"},{1,"seek"},{2,"none"},{4,"playback-speed"}};
 constexpr EnumChoice rtsp[]{{0,"lavf"},{1,"tcp"},{2,"udp"},{3,"http"}};
 using Area = PreferenceArea;
@@ -131,6 +132,7 @@ std::span<PreferenceDescriptor const> PreferenceSchema() {
         I("relativeSeekAmount",Area::Interface,3,1,4),
         I("playbackSpeedScrollAmount",Area::Interface,3,1,4),
         B("wheelExactSeek",Area::Interface,false),
+        E("useExactSeek",Area::Interface,0,seekModes),
         B("enableOSD",Area::Interface,true),
         B("disableOSDFileStartMsg",Area::Interface,false),
         B("disableOSDPauseResumeMsgs",Area::Interface,false),

@@ -20,6 +20,16 @@ bool MainWindow::KeyboardPlaybackAllowed() const {
 }
 void MainWindow::WireAdvancedPlayback() {
     auto weak = get_weak();
+    auto relativeSeek = [weak](double seconds) {
+        if (auto self = weak.get(); self && !self->closing_ && !self->pickerOpen_ && self->KeyboardPlaybackAllowed()) {
+            auto choice = self->preferences_.Integer("useExactSeek");
+            auto mode = choice == 2 ? iima::RelativeSeekMode::Automatic :
+                choice == 1 ? iima::RelativeSeekMode::Exact : iima::RelativeSeekMode::Relative;
+            self->session_->SeekRelativeWithMode(seconds,mode);
+        }
+    };
+    RelativeSeekBackButton().Click([relativeSeek](auto const&, auto const&) { relativeSeek(-5); });
+    RelativeSeekForwardButton().Click([relativeSeek](auto const&, auto const&) { relativeSeek(5); });
     StepBackButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get(); self && !self->closing_) self->session_->StepFrame(true); });
     StepForwardButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get(); self && !self->closing_) self->session_->StepFrame(false); });
     ABLoopButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get(); self && !self->closing_) self->session_->CycleABLoop(); });
