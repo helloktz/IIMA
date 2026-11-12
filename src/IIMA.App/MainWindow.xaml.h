@@ -4,6 +4,7 @@
 #include "../IIMA.Core/Playlist/PlaylistSubtitleAssociations.h"
 #include "../IIMA.Core/Settings/SettingsSearch.h"
 #include "../IIMA.Core/Settings/ControlBarToolbar.h"
+#include "../IIMA.Core/Settings/ControlBarLayout.h"
 #include "MainWindow.g.h"
 #include "VideoSurface.h"
 #include "../IIMA.Core/Playback/PlayerSession.h"
@@ -242,6 +243,18 @@ private:
     void WireVideoAdjustments();
     void UpdateVideoAdjustments(iima::PlaybackSnapshot const& state);
     bool projectingVideoAdjustments_{};
+    void WireControlBarLayout();
+    void UpdateControlBarLayout();
+    void UpdateControlBarOverlays();
+    void CancelControlBarDrag();
+    void FinishControlBarDrag(bool cancel);
+    bool oscDragging_{}, oscLayoutUpdating_{};
+    iima::GeometryRect oscRect_{};
+    iima::GeometrySize oscViewport_{};
+    double oscTopInset_{}, oscDragScale_{};
+    std::int64_t oscDragMode_{};
+    bool oscDragFullscreen_{}, oscDragMusic_{};
+    iima::settings::FloatingControlBarPosition oscDragPosition_{}, oscDragBaseline_{};
     void WireToolbarSettings();
     void UpdateControlBarToolbar();
     void RenderToolbarDraft(int selection = -1);

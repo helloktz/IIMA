@@ -265,6 +265,7 @@ void MainWindow::BeginClose()
     CapturePlacement();
     SaveWindowPlacement();
     FinishInteractiveCrop(false, false);
+    CancelControlBarDrag();
     closing_ = true;
     UpdateInitialWindow(true);
     ApplicationMenuBar().IsEnabled(false);

@@ -16,6 +16,7 @@ bool DescendantOf(DependencyObject child, DependencyObject const& parent) {
 }
 void MainWindow::WireControlBarVisibility() {
     WireToolbarSettings();
+    WireControlBarLayout();
     controlBarTimer_ = DispatcherQueue().CreateTimer();
     controlBarTimer_.IsRepeating(false);
     auto weak = get_weak();
@@ -63,7 +64,7 @@ void MainWindow::WireControlBarVisibility() {
     });
 }
 bool MainWindow::CanHideControlBar() {
-    if (closing_ || pickerOpen_ || controlBarInactive_ || controlBarHovered_ ||
+    if (closing_ || oscDragging_ || pickerOpen_ || controlBarInactive_ || controlBarHovered_ ||
         !preferences_.Boolean("enableControlBarAutoHide") ||
         AppWindow().Presenter().Kind() == Microsoft::UI::Windowing::AppWindowPresenterKind::CompactOverlay)
         return false;
@@ -86,6 +87,7 @@ void MainWindow::ControlBarActivity() {
 void MainWindow::UpdateControlBarPolicy() {
     if (!controlBarTimer_ || closing_) return;
     UpdateControlBarToolbar();
+    UpdateControlBarLayout();
     UpdateVideoCursor();
     UpdateBufferingIndicator(session_->Snapshot());
     UpdateFullscreenInformation();

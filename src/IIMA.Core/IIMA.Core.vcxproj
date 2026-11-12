@@ -197,4 +197,8 @@
     <ClInclude Include="Settings\ControlBarToolbar.h" />
     <ClCompile Include="Settings\ControlBarToolbar.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Settings\ControlBarLayout.h" />
+    <ClCompile Include="Settings\ControlBarLayout.cpp" />
+  </ItemGroup>
 </Project>

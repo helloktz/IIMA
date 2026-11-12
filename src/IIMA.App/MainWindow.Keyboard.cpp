@@ -88,6 +88,9 @@ void MainWindow::WireKeyboardControls() {
     // actually replace defaults. Text entry and modal pickers retain all keys.
     Root().PreviewKeyDown([weak](auto const&, Input::KeyRoutedEventArgs const& args) {
         auto self = weak.get();
+        if(self && self->oscDragging_ && args.Key()==Windows::System::VirtualKey::Escape) {
+            self->CancelControlBarDrag();args.Handled(true);return;
+        }
         if (!self || self->closing_ || self->pickerOpen_ || !self->keyBindings_ ||
             !self->KeyboardPlaybackAllowed() || args.Handled()) return;
         auto focused = Input::FocusManager::GetFocusedElement(self->Root().XamlRoot()).try_as<DependencyObject>();

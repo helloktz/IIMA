@@ -22,6 +22,7 @@ constexpr EnumChoice subOverride[]{{0,"yes"},{1,"force"},{2,"strip"},{3,"scale"}
 constexpr EnumChoice border[]{{1,"outline-and-shadow"},{3,"opaque-box"},{4,"background-box"}};
 constexpr EnumChoice alignX[]{{0,"left"},{1,"center"},{2,"right"}};
 constexpr EnumChoice alignY[]{{0,"top"},{1,"center"},{2,"bottom"}};
+constexpr EnumChoice oscPositions[]{{0,"floating"},{1,"top"},{2,"bottom"}};
 constexpr EnumChoice resizeTiming[]{{0,"always"},{1,"onlyWhenOpen"},{2,"never"}};
 constexpr EnumChoice resizeSize[]{{0,"fit-screen"},{1,"0.5"},{2,"1"},{3,"1.5"},{4,"2"}};
 constexpr EnumChoice clickActions[]{{0,"none"},{1,"fullscreen"},{2,"pause"},{3,"hide-controls"},
@@ -152,6 +153,10 @@ std::span<PreferenceDescriptor const> PreferenceSchema() {
         B("disableOSDSpeedMsg",Area::Interface,false),
         D("osdAutoHideTimeout",Area::Interface,1,0,60),
         D("osdTextSize",Area::Interface,20,8,96),
+        E("oscPosition",Area::Interface,0,oscPositions),
+        D("controlBarPositionHorizontal",Area::Interface,0.5,0,1),
+        D("controlBarPositionVertical",Area::Interface,0.1,0,1),
+        B("controlBarStickToCenter",Area::Interface,true),
         B("enableControlBarAutoHide",Area::Interface,true),
         D("controlBarAutoHideTimeout",Area::Interface,2.5,0,60),
         S("controlBarToolbarButtons",Area::Interface,"plugins,pip,playlist,settings"),

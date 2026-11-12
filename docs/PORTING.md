@@ -1214,3 +1214,11 @@ Windows新增只读`ReadFullscreenInformation`：GetTimeFormatEx按用户区域�
 - 持久键controlBarToolbarButtons采用最多128字节的逗号token字符串而非上游整数数组，未知/重复/超过5项整体拒绝，读取非法值沿偏好层退默认。基础打开、播放与进度控件不随空配置消失；全屏复用原生named按钮，避免固定按钮与可配置项重复。
 - 动作沿已有模式切换、截图和侧栏入口；设置导航到高级播放与窗口偏好，字幕到现有字幕控件，插件到本地插件管理区域，并不宣称实现上游所有Quick Settings/插件侧栏形态。音乐模式明确隐藏侧栏时禁用侧栏导航，不隐式改写该偏好。顶部/浮动OSC位置与拖动布局仍不在本批范围。
 - 本批仅静态实现/审阅、Git差异检查及数量统计，未编译、测试或运行。
+
+## OSC位置与浮动拖动（2026-11-12）
+
+- IINA MainWindowController.setupOnScreenController及OSCFloatingView.initPosition/updatePosition/mouseDragged/mouseUp → 同一Windows控制条的浮动/顶部/底部覆盖布局。持久键沿用oscPosition（0/1/2，默认浮动）、controlBarPositionHorizontal（默认0.5）、controlBarPositionVertical（默认0.1）及controlBarStickToCenter（默认开启）。
+- Core在DIP坐标中投影中心横向比例/底部间距比例，使用实际控制条尺寸，边界与5DIP居中吸附；窄小可用区域缩减边距而不产生负范围。窗口/DPI/侧栏变化仅重投影夹紧，不回写保存位置。专用把手负责拖动，只有正常释放才保存一组最终比例，取消/关闭/模式或几何变化不保存中间值。
+- Windows差异：顶部仍覆盖视频区，不融入macOS标题栏；三种位置均不改变VideoPanel实际大小，不能把控制条位置变化解释为新视频尺寸或触发窗口缩放。顶部占用区域有避让，比例相对于可用覆盖区域；水平按Windows物理X保存，不镜像为RTL坐标。不复刻Cocoa振动反馈与四个fragment的原布局。
+- 缩略图预览跟随控制条位置选择上/下侧并限制在视频区；拖动期间禁自动隐藏并取消旧预览，保留既有PIP/crop隐藏约束。全屏信息与顶部位置共同避让，而不改全屏窗口还原状态。
+- 本批仅静态实现/审阅、Git差异检查及数量统计，未编译、测试或运行。

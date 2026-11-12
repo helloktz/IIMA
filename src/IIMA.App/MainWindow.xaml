@@ -123,7 +123,7 @@
                 <Button x:Name="DismissScreenshotPreviewButton" Content="关闭预览"/>
             </StackPanel>
         </Border>
-        <Border x:Name="ThumbnailPreviewBorder" Visibility="Collapsed" Canvas.ZIndex="8"
+        <Border x:Name="ThumbnailPreviewBorder" Visibility="Collapsed" Canvas.ZIndex="8" IsHitTestVisible="False"
                 VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,100"
                 Background="{ThemeResource IimaOverlayBackgroundBrush}" Padding="6">
             <StackPanel Spacing="4">
@@ -131,7 +131,17 @@
                 <TextBlock x:Name="ThumbnailPreviewTime" HorizontalAlignment="Center"/>
             </StackPanel>
         </Border>
-        <Border x:Name="BottomControlsBorder" Background="{ThemeResource IimaOverlayBackgroundBrush}" VerticalAlignment="Bottom" Padding="12">
+        <Canvas x:Name="OscLayoutHost" Canvas.ZIndex="4">
+        <Border x:Name="BottomControlsBorder" Background="{ThemeResource IimaOverlayBackgroundBrush}" Padding="12">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Spacing="4">
+                <Thumb x:Name="OscDragHandle" Height="20" IsTabStop="False" AutomationProperties.Name="拖动浮动播放控制栏">
+                    <Thumb.Template><ControlTemplate TargetType="Thumb">
+                        <Border Background="{ThemeResource IimaOverlayBackgroundBrush}" CornerRadius="4">
+                            <TextBlock Text="⋮⋮  拖动控制栏" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate></Thumb.Template>
+                </Thumb>
             <Grid ColumnSpacing="12" RowSpacing="6">
                 <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
@@ -153,7 +163,10 @@
                     </StackPanel>
                 </ScrollViewer>
             </Grid>
+            </StackPanel>
+            </ScrollViewer>
         </Border>
+        </Canvas>
         <Border x:Name="PlayerSidebar" Grid.Column="1" Background="{ThemeResource IimaPanelBackgroundBrush}" Padding="12">
             <Grid RowSpacing="8">
                 <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>

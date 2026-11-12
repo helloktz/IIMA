@@ -29,7 +29,7 @@ bool HasApplicationAdapter(std::string_view key) {
         "resizeWindowTiming", "resizeWindowOption", "usePhysicalResolution", "unlockWindowAspectRatio", "preventScreenSaver", "allowScreenSaverForAudio", "pauseWhenInactive", "pauseWhenMinimized", "pauseWhenGoesToSleep", "enableThumbnailPreview", "thumbnailWidth", "maxThumbnailPreviewCacheSize",
         "displayTimeAndBatteryInFullScreen", "alwaysFloatOnTop", "fullScreenWhenOpen", "playWhenEnteringFullScreen", "pauseWhenLeavingFullScreen",
         "singleClickAction", "doubleClickAction", "rightClickAction", "verticalScrollAction", "horizontalScrollAction",
-        "relativeSeekAmount", "playbackSpeedScrollAmount", "wheelExactSeek", "enableControlBarAutoHide", "controlBarAutoHideTimeout", "controlBarToolbarButtons",
+        "relativeSeekAmount", "playbackSpeedScrollAmount", "wheelExactSeek", "enableControlBarAutoHide", "controlBarAutoHideTimeout", "controlBarToolbarButtons", "oscPosition", "controlBarPositionHorizontal", "controlBarPositionVertical", "controlBarStickToCenter",
         "showRemainingTime", "scaleRemainingTime", "timeDisplayPrecision", "disableOSDFileStartMsg", "disableOSDSeekMsg",
         "disableAnimations", "showBufferingThrobber", "showSeekingThrobber", "useExactSeek", "screenShotTemplate", "screenShotFormat", "screenshotSaveToFile", "screenshotCopyToClipboard", "screenshotShowPreview", "enableOSD", "disableOSDPauseResumeMsgs", "disableOSDSpeedMsg", "osdAutoHideTimeout", "osdTextSize"
     };
@@ -214,6 +214,7 @@ void MainWindow::ApplyAdvancedSetting(std::string const& key, iima::settings::Pr
             return;
         }
     }
+    if (key=="oscPosition" || key.starts_with("controlBarPosition") || key=="controlBarStickToCenter") CancelControlBarDrag();
     std::string error;
     if (!preferences_.Set(key, std::move(value), error)) { ShowError(to_hstring(error)); return; }
     if (key == "playlistAutoAdd" || key == "subAutoLoadIINA" || key == "subAutoLoadPriorityString" || key == "subAutoLoadSearchPath")

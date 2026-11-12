@@ -132,6 +132,7 @@ winrt::fire_and_forget MainWindow::DisplayThumbnail(iima::ThumbnailExtractionRes
         ThumbnailPreviewImage().Source(image);
         ThumbnailPreviewTime().Text(to_hstring(iima::VideoTime(result.actualSeconds).StringRepresentation()));
         ThumbnailPreviewBorder().Visibility(Visibility::Visible);
+        UpdateControlBarOverlays();
     } catch (...) {
         if (!closing_ && result.generation == thumbnailGeneration_)
             ThumbnailPreviewBorder().Visibility(Visibility::Collapsed);
