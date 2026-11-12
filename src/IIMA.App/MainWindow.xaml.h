@@ -267,6 +267,10 @@ private:
     void RecordLastMedia();
     void RefreshHistory();
     void WireHistoryControls();
+    std::vector<std::size_t> SelectedHistoryRows() const;
+    void UpdateHistorySelection();
+    void OpenSelectedHistory();
+    bool projectingHistory_{};
     iima::HistoryView historyProjection_;
     std::optional<iima::HistoryRemoval> historyUndo_;
     void MarkUserDataDirty();

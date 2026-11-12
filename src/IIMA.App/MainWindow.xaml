@@ -413,7 +413,7 @@
                             <ComboBoxItem Content="完整路径"/><ComboBoxItem Content="文件名"/>
                         </ComboBox>
                         <TextBlock x:Name="HistoryCountText"/>
-                        <ListView x:Name="HistoryView" MaxHeight="160" SelectionMode="Single" AutomationProperties.Name="播放历史"/>
+                        <ListView x:Name="HistoryView" MaxHeight="160" SelectionMode="Extended" AutomationProperties.Name="播放历史"/>
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <Button x:Name="OpenHistoryButton" Content="打开历史"/>
                             <Button x:Name="ClearHistoryButton" Content="清空历史"/>
