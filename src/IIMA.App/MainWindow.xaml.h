@@ -289,8 +289,9 @@ private:
     iima::FilterNode cropExpectedEmpty_;
     std::uint64_t cropTransactionGeneration_{};
     bool cropCancelRequested_{};
+    bool interactiveDelogo_{}; // Shared region UI; transaction owns the selected mode.
     void BeginManagedCropTransaction();
-    void FinishManagedCropTransaction(bool commit);
+    void FinishManagedCropTransaction(bool commit, bool removeDelogo = false);
     void CompleteManagedCropTransaction(bool restorePlayback);
     void AbandonManagedCropTransaction(winrt::hstring const& message);
     std::optional<std::uint32_t> cropPointer_;

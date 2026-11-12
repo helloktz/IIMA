@@ -740,3 +740,19 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 修正第69批静态审阅发现的缺口：通用 `Replace` 重建行，实际未保留未知字段。受管crop身份不变的替换现在仅以新params覆盖原完整行，保留未知字段及enabled；不改变通用Replace语义。提交最终请求前结束拖动、释放捕获并冻结画布；数字/比例更新按Editing阶段守卫，防止等待期间改动草稿或覆盖状态提示。
 
 首次与已有裁剪统一采用等待最终确认再退出，是对上游exit后setCrop顺序的有意调整。mpv不是原子CAS，外部脚本仍可在检查后竞争。本批仅静态编码/源码审阅，未编译测试运行。
+
+## 第七十一批：交互去标志完整编辑链
+
+### 源码追踪
+
+- `MainWindowMenuActions.menuSetDelogo`：未启用时进入 `.delogo`，已启用时移除 `info.delogoFilter`。
+- `InteractiveMode.enter`：保存播放状态、暂停并显示共享CropBoxView；上游delogo默认零大小选区。`doneAction → delogoAction`：将翻转后的源坐标x/y/w/h构造成 `lavfi delogo`，移除既有滤镜、添加带 `Constants.FilterName.delogo`（AppData.swift中为iina_delogo）的滤镜，失败反馈。cancel退出。
+- `MPVFilter.init(lavfiName:label:paramDict:)` 与 mpv `filters/f_lavfi.c` 的graph字符串选项：IIMA使用同一delogo参数，但通过结构化 `lavfi` 节点的graph字段传递，不向原始表达式拼接用户文本。
+
+### Windows实现与差异
+
+复用真实视频选区、数字草稿、移动/八向缩放、捕获/媒体代次保护和异步滤镜事务。新增去标志入口、专用标题/确认文案，隐藏裁剪比例选项。初始为源画面中间半宽半高选区而不是零面积；只生成草稿，不自动应用。delogo量化不使用裁剪的4像素贴边吸附，并要求四边至少保留1源像素，拒绝全幅/贴边区域，降低FFmpeg边缘取样失败风险；实际滤镜格式/色度对齐仍以底层结果为准。
+
+空链首次提交以完整读回为准；唯一iina_delogo/lavfi且graph为单一delogo表达式可临时移除后编辑、确认替换、取消完整恢复。多滤镜、另一模式的受管滤镜、复杂lavfi图形、重复标签拒绝，不假定输出坐标等于源坐标。替换只更新params、保留原enabled及未知节点字段。已有去标志可在编辑器明确选择“移除原去标志滤镜”，保留已读回确认的空链；这替代上游菜单同一入口的开关语义，避免误把编辑当删除。错误/换片/关闭保护沿用69/70批事务。没有扩大旋转/空间变换支持，也不是AI对象移除。
+
+未编译、测试或运行，未验证FFmpeg是否包含delogo、具体像素效果或硬解格式协商。

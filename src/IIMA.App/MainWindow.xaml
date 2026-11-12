@@ -11,7 +11,7 @@
                 Visibility="Collapsed" Canvas.ZIndex="21">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel Spacing="10">
-                <TextBlock Text="交互裁剪" FontSize="22"/>
+                <TextBlock x:Name="InteractiveCropTitle" Text="交互裁剪" FontSize="22"/>
                 <TextBlock Text="拖动边缘或角点调整；内部拖动移动；外部拖动新建。Enter确认，Esc取消。" TextWrapping="Wrap"/>
                 <TextBlock x:Name="InteractiveCropStatus" TextWrapping="Wrap"/>
                 <ComboBox x:Name="InteractiveCropAspect" Header="居中比例" SelectedIndex="0">
@@ -26,6 +26,7 @@
                 <Button x:Name="InteractiveCropNumbersButton" Content="更新坐标草稿"/>
                 <CheckBox x:Name="InteractiveCropResume" Content="退出时恢复进入前的播放状态" IsChecked="True"/>
                 <Button x:Name="InteractiveCropConfirmButton" Content="确认裁剪"/>
+                <Button x:Name="InteractiveDelogoRemoveButton" Content="移除原去标志滤镜" Visibility="Collapsed"/>
                 <Button x:Name="InteractiveCropCancelButton" Content="取消"/>
             </StackPanel>
             </ScrollViewer>
@@ -344,6 +345,7 @@
                             <StackPanel Spacing="6">
                                 <Button x:Name="LoadCropSizeButton" Content="读取当前视频尺寸"/>
                                 <Button x:Name="StartInteractiveCropButton" Content="在视频上交互裁剪…"/>
+                                <Button x:Name="StartInteractiveDelogoButton" Content="在视频上选择去标志区域…"/>
                                 <TextBox x:Name="CropAspectText" Header="居中比例（源像素）" PlaceholderText="16:9、4:3、1:1、2.35:1"/>
                                 <Button x:Name="PrepareCropAspectButton" Content="生成比例裁剪草稿"/>
                                 <TextBlock x:Name="CropSourceLabel" TextWrapping="Wrap"/>

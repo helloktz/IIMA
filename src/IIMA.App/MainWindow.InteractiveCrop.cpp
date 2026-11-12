@@ -70,7 +70,19 @@ void MainWindow::WireInteractiveCrop() {
         InteractiveCropCanvas().Children().Append(handle);
     }
     StartInteractiveCropButton().Click([weak](auto const&, auto const&) {
-        if (auto self = weak.get()) self->StartInteractiveCrop();
+        if (auto self = weak.get(); self && !self->cropOriginal_ && !self->interactiveCrop_.Active()) {
+            self->interactiveDelogo_ = false; self->StartInteractiveCrop();
+        }
+    });
+    StartInteractiveDelogoButton().Click([weak](auto const&, auto const&) {
+        if (auto self = weak.get(); self && !self->cropOriginal_ && !self->interactiveCrop_.Active()) {
+            self->interactiveDelogo_ = true; self->StartInteractiveCrop();
+        }
+    });
+    InteractiveDelogoRemoveButton().Click([weak](auto const&, auto const&) {
+        if (auto self = weak.get(); self && self->interactiveDelogo_ && self->cropOriginal_ &&
+            self->cropTransactionPhase_ == CropTransactionPhase::Editing)
+            self->FinishManagedCropTransaction(true,true);
     });
     InteractiveCropCancelButton().Click([weak](auto const&, auto const&) {
         if (auto self = weak.get()) self->FinishInteractiveCrop(false);
@@ -167,10 +179,25 @@ void MainWindow::StartInteractiveCrop() {
     }
     auto mapping = InteractiveCropMapping();
     if (!mapping) {
-        if (cropOriginal_) { InteractiveCropStatus().Text(L"原裁剪已临时移除，等待完整源图像映射；取消将请求恢复原裁剪。"); return; }
-        ShowError(L"交互裁剪需要已确认的未旋转视频映射。请移除现有视频滤镜/裁剪，恢复旋转为0，等待画面尺寸稳定后重试。"); return;
+        if (cropOriginal_) { InteractiveCropStatus().Text(L"原区域滤镜已临时移除，等待完整源图像映射；取消将请求恢复原区域滤镜。"); return; }
+        ShowError(L"交互区域选择需要已确认的未旋转视频映射。请移除现有视频滤镜/裁剪，恢复旋转为0，等待画面尺寸稳定后重试。"); return;
     }
-    if (!interactiveCrop_.Begin(*mapping)) return;
+    std::optional<iima::CropPixels> initial;
+    if (interactiveDelogo_) {
+        if (mapping->sourceWidth < 4 || mapping->sourceHeight < 4) {
+            if (cropOriginal_) {
+                FinishManagedCropTransaction(false);
+                ShowError(L"源画面过小，无法选择去标志区域；已请求恢复原滤镜，请等待结果。");
+            }
+            else ShowError(L"源画面过小，无法选择去标志区域。");
+            return;
+        }
+        // Unlike crop, delogo needs a bounded interior region, not the full
+        // frame. Use a centered draft; never apply it merely by opening UI.
+        initial = iima::CropPixels{mapping->sourceWidth/4,mapping->sourceHeight/4,
+            mapping->sourceWidth/2,mapping->sourceHeight/2};
+    }
+    if (!interactiveCrop_.Begin(*mapping,initial)) return;
     cropMapping_ = mapping;
     auto const& state = session_->Snapshot();
     if (!cropOriginal_) {
@@ -191,6 +218,12 @@ void MainWindow::StartInteractiveCrop() {
         ++cropTransactionGeneration_; cropCancelRequested_ = false;
     }
     cropTransactionPhase_ = CropTransactionPhase::Editing;
+    InteractiveDelogoRemoveButton().Visibility(interactiveDelogo_ && !cropOriginal_->entries.empty()
+        ? Visibility::Visible : Visibility::Collapsed);
+    InteractiveCropTitle().Text(interactiveDelogo_ ? L"交互去标志" : L"交互裁剪");
+    InteractiveCropConfirmButton().Content(box_value(interactiveDelogo_ ? L"确认去标志区域" : L"确认裁剪"));
+    InteractiveCropAspect().Visibility(interactiveDelogo_ ? Visibility::Collapsed : Visibility::Visible);
+    InteractiveCropAspectButton().Visibility(interactiveDelogo_ ? Visibility::Collapsed : Visibility::Visible);
     InteractiveCropCanvas().IsEnabled(true);
     InteractiveCropConfirmButton().IsEnabled(true);
     PlayerSidebar().IsEnabled(false);
@@ -215,23 +248,23 @@ void MainWindow::PaintInteractiveCrop() {
         Controls::Canvas::SetLeft(cropHandles_[n],points[n].x-5);
         Controls::Canvas::SetTop(cropHandles_[n],points[n].y-5);
     }
-    auto pixels = iima::QuantizeCropRect(interactiveCrop_.Selection(),cropMapping_->sourceWidth,cropMapping_->sourceHeight);
+    auto pixels = iima::QuantizeCropRect(interactiveCrop_.Selection(),cropMapping_->sourceWidth,cropMapping_->sourceHeight,interactiveDelogo_ ? 0 : 4);
     if (!pixels) return;
     InteractiveCropX().Value(pixels->x); InteractiveCropY().Value(pixels->y);
     InteractiveCropWidth().Value(pixels->width); InteractiveCropHeight().Value(pixels->height);
     InteractiveCropStatus().Text(L"草稿：("+to_hstring(pixels->x)+L", "+to_hstring(pixels->y)+L") "+
-        to_hstring(pixels->width)+L" × "+to_hstring(pixels->height)+L"；确认才提交滤镜。");
+        to_hstring(pixels->width)+L" × "+to_hstring(pixels->height)+(interactiveDelogo_ ? L"；区域须与四边至少相隔1像素，确认才提交。" : L"；确认才提交滤镜。"));
 }
 void MainWindow::UpdateInteractiveCrop(iima::PlaybackSnapshot const& state) {
     if (cropOriginal_) {
         if (navigationEpoch_ != interactiveCropEpoch_ || state.entryId != interactiveCropEntry_ ||
             state.session != iima::SessionState::Ready || state.media != iima::MediaState::Loaded) {
-            AbandonManagedCropTransaction(L"媒体或会话已变化，未把原裁剪写入新的媒体；原表达式已保留供手动恢复。"); return;
+            AbandonManagedCropTransaction(L"媒体或会话已变化，未把原区域滤镜写入新的媒体；原表达式已保留供手动恢复。"); return;
         }
         if (cropTransactionPhase_ == CropTransactionPhase::Removing || cropTransactionPhase_ == CropTransactionPhase::Writing) return;
         iima::FilterEditPlan expected{cropExpectedEmpty_,{},true,{}};
         if (!expected.FreshMatches(state.videoFilters)) {
-            AbandonManagedCropTransaction(L"预览期间视频滤镜被其他操作改变，未覆盖；原裁剪表达式已保留。"); return;
+            AbandonManagedCropTransaction(L"预览期间视频滤镜被其他操作改变，未覆盖；原区域滤镜表达式已保留。"); return;
         }
         interactiveCropFilterRevision_ = state.videoFilters.revision;
         if (cropTransactionPhase_ == CropTransactionPhase::Preparing) { StartInteractiveCrop(); return; }
@@ -245,7 +278,7 @@ void MainWindow::UpdateInteractiveCrop(iima::PlaybackSnapshot const& state) {
     if (!cropMapping_ || CropNumber(state.videoParameters,"w") != std::optional<double>{cropMapping_->sourceWidth} ||
         CropNumber(state.videoParameters,"h") != std::optional<double>{cropMapping_->sourceHeight}) {
         FinishInteractiveCrop(false,false);
-        if (!closing_) ShowError(L"源视频尺寸已改变，交互裁剪已取消；未自动恢复播放。");
+        if (!closing_) ShowError(L"源视频尺寸已改变，交互区域选择已取消；未自动恢复播放。");
         return;
     }
     if (!mapping) {
@@ -286,9 +319,12 @@ void MainWindow::FinishInteractiveCrop(bool commit, bool restorePlayback) {
     InteractiveCropCanvas().Visibility(Visibility::Collapsed);
     InteractiveCropToolbar().Visibility(Visibility::Collapsed);
     PlayerSidebar().IsEnabled(true);
-    if (commit && !closing_) ShowError(L"裁剪事务已失效，未提交滤镜。");
+    if (commit && !closing_) ShowError(L"区域编辑事务已失效，未提交滤镜。");
     if (resume) session_->Pause(false);
     ControlBarActivity();
-    if (!closing_) StartInteractiveCropButton().Focus(FocusState::Programmatic);
+    if (!closing_) {
+        if (interactiveDelogo_) StartInteractiveDelogoButton().Focus(FocusState::Programmatic);
+        else StartInteractiveCropButton().Focus(FocusState::Programmatic);
+    }
 }
 }
