@@ -594,12 +594,14 @@ private:
     void ResolvePlaylistPaste(std::vector<std::wstring> inputs,
         std::uint64_t operation, std::uint64_t epoch, std::uint64_t revision,
         std::size_t destination);
-    bool PlaylistDragCurrent(Microsoft::UI::Xaml::DragEventArgs const& args) const;
+    bool PlaylistDragReady() const;
+    void ResetPlaylistDrag();
+    bool PlaylistDragCurrent(Microsoft::UI::Xaml::DragEventArgs const& args, bool verifyVisual = false);
     std::optional<std::size_t> PlaylistDropRow(Microsoft::UI::Xaml::DragEventArgs const& args) const;
     std::optional<winrt::guid> playlistDragToken_;
-    std::vector<std::int64_t> playlistDragIds_;
+    std::vector<std::pair<std::int64_t,std::string>> playlistDragItems_;
     std::vector<std::size_t> playlistDragRows_;
-    std::uint64_t playlistDragRevision_{};
+    std::uint64_t playlistDragRevision_{}, playlistDragMedia_{}, playlistDragOpenIntent_{}, playlistDragInput_{}, playlistDragEditIntent_{};
     void RemoveSelectedPlaylistItems();
     void QueueSelectedPlaylistNext();
     void PlaySelectedPlaylistInNewWindow();

@@ -84,7 +84,7 @@ public:
                             std::int64_t expectedEntry, std::uint64_t expectedRevision,
                             std::uint64_t expectedIntent, std::uint64_t expectedGeneration);
     void RemovePlaylistItems(std::vector<std::size_t> indices);
-    void DropPlaylistItems(std::vector<std::size_t> indices, std::size_t beforeRow);
+    bool DropPlaylistItems(std::vector<std::size_t> indices, std::size_t beforeRow);
     void QueuePlaylistItemsNext(std::vector<std::size_t> indices);
     // Cancels only unsent work, never claims rollback of a submitted command.
     void CancelPlaylistEdits();

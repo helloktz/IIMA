@@ -198,8 +198,15 @@ bool PlayerSession::ExpandAutoPlaylist(std::vector<std::string> before, std::vec
 void PlayerSession::RemovePlaylistItems(std::vector<std::size_t> indices) {
     BeginPlaylistEdit(PlanPlaylistRemove(snapshot_.playlist,indices,snapshot_.playlistRevision));
 }
-void PlayerSession::DropPlaylistItems(std::vector<std::size_t> indices,std::size_t beforeRow) {
+bool PlayerSession::DropPlaylistItems(std::vector<std::size_t> indices,std::size_t beforeRow) {
+    const bool alreadyEditing = static_cast<bool>(playlistEdit_);
+    const auto expectedIntent = playlistEditIntentRevision_ + 1;
     BeginPlaylistEdit(PlanPlaylistDrop(snapshot_.playlist,indices,beforeRow,snapshot_.playlistRevision));
+    // A rejected request must not borrow an older transaction's busy state.
+    // Notify can reenter the UI: only this still-current intent counts. Empty
+    // plans are deliberately not accepted as moves; true means queued, not done.
+    return !alreadyEditing && playlistEditIntentRevision_ == expectedIntent &&
+        static_cast<bool>(playlistEdit_);
 }
 void PlayerSession::QueuePlaylistItemsNext(std::vector<std::size_t> indices) {
     BeginPlaylistEdit(PlanPlaylistPlayNext(snapshot_.playlist,indices,snapshot_.playlistRevision));

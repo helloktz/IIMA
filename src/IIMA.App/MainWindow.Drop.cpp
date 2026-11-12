@@ -66,27 +66,41 @@ fire_and_forget MainWindow::DropFiles(DragEventArgs args, std::optional<std::siz
     const auto intent = session_->Snapshot().mediaOpenIntentRevision;
     const auto revision=session_->Snapshot().playlistRevision;
     const auto editIntent=session_->PlaylistEditIntentRevision();
-    std::vector<std::int64_t> ids;
-    if (playlistRow) {
-        auto const& items=session_->Snapshot().playlist;
-        if (*playlistRow>items.size() || playlist_.size()!=items.size()) co_return;
-        for (std::size_t i=0;i<items.size();++i) {
-            if (items[i].id<0 || playlist_[i].id!=items[i].id) co_return;
-            ids.push_back(items[i].id);
+    // Shared immutable identity avoids copying all paths into resolver closures.
+    using DropIdentities = std::vector<std::pair<std::int64_t, std::string>>;
+    std::shared_ptr<DropIdentities const> identities;
+    try {
+        auto captured = std::make_shared<DropIdentities>();
+        std::size_t identityBytes{};
+        if (playlistRow) {
+            auto const& items=session_->Snapshot().playlist;
+            if (*playlistRow>items.size() || playlist_.size()!=items.size()) co_return;
+            for (std::size_t i=0;i<items.size();++i) {
+                if (items[i].id<0 || playlist_[i].id!=items[i].id || playlist_[i].path!=items[i].path) co_return;
+                constexpr std::size_t budget=32*1024*1024;
+                constexpr auto overhead=sizeof(DropIdentities::value_type);
+                if(identityBytes>budget-overhead || items[i].path.size()>budget-overhead-identityBytes) {
+                    ShowError(L"播放列表过大，无法保留插入上下文；请分批操作。");co_return;
+                }
+                identityBytes+=items[i].path.size()+overhead;
+                captured->emplace_back(items[i].id, items[i].path);
+            }
+            // An accepted insertion gesture supersedes background auto expansion
+            // before the provider/resolver yields; it must not race for this row.
+            CancelAutomaticFiles();
         }
-        // An accepted insertion gesture supersedes background auto expansion
-        // before the provider/resolver yields; it must not race for this row.
-        CancelAutomaticFiles();
-    }
-    auto current = [this, operation, inputRevision, generation, intent, playlistRow, revision, editIntent, ids] {
+        identities=std::move(captured);
+    } catch(...) { co_return; } // Allocation failure rejects rather than escaping fire_and_forget.
+    auto current = [this, operation, inputRevision, generation, intent, playlistRow, revision, editIntent, identities] {
         auto const& state = session_->Snapshot();
         if (playlistRow) {
             if (state.session!=iima::SessionState::Ready || inputResolving_ || !pendingFiles_.empty() ||
                 !activationInputs_.empty() || state.playlistRevision!=revision ||
-                session_->PlaylistEditIntentRevision()!=editIntent || state.playlist.size()!=ids.size() ||
-                playlist_.size()!=ids.size()) return false;
-            for (std::size_t i=0;i<ids.size();++i)
-                if (state.playlist[i].id!=ids[i] || playlist_[i].id!=ids[i]) return false;
+                session_->PlaylistEditIntentRevision()!=editIntent || state.playlist.size()!=identities->size() ||
+                playlist_.size()!=identities->size()) return false;
+            for (std::size_t i=0;i<identities->size();++i)
+                if (state.playlist[i].id!=(*identities)[i].first || playlist_[i].id!=(*identities)[i].first ||
+                    state.playlist[i].path!=(*identities)[i].second || playlist_[i].path!=(*identities)[i].second) return false;
         }
         return !closing_ && userDataLoaded_ && !pickerOpen_ && !interactiveCrop_.Active() && !cropOriginal_ &&
             !session_->PlaylistEditBusy() && dropReadGeneration_ == operation && inputGeneration_ == inputRevision &&

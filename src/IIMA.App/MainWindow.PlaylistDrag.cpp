@@ -3,6 +3,8 @@
 #include "pch.h"
 #include "MainWindow.xaml.h"
 #include <algorithm>
+#include <cmath>
+#include <set>
 #include <winrt/Windows.ApplicationModel.DataTransfer.h>
 using namespace winrt;
 using namespace Microsoft::UI::Xaml;
@@ -14,26 +16,49 @@ bool HasPlaylistDrag(DragEventArgs const& args) {
     return args.DataView().Properties().HasKey(DragKey);
 }
 }
-bool MainWindow::PlaylistDragCurrent(DragEventArgs const& args) const {
-    if (closing_ || !playlistDragToken_ || !HasPlaylistDrag(args) ||
-        session_->Snapshot().session != iima::SessionState::Ready || session_->PlaylistEditBusy()) return false;
+bool MainWindow::PlaylistDragReady() const {
+    auto const& state=session_->Snapshot();
+    return !closing_ && userDataLoaded_ && !pickerOpen_ && !inputResolving_ && pendingFiles_.empty() &&
+        activationInputs_.empty() && !interactiveCrop_.Active() && !cropOriginal_ &&
+        state.session==iima::SessionState::Ready && !state.mediaOriginPending && !session_->PlaylistEditBusy();
+}
+void MainWindow::ResetPlaylistDrag() {
+    playlistDragToken_.reset();playlistDragRows_.clear();playlistDragItems_.clear();
+}
+bool MainWindow::PlaylistDragCurrent(DragEventArgs const& args,bool verifyVisual) {
     try {
-        if (unbox_value<guid>(args.DataView().Properties().Lookup(DragKey)) != *playlistDragToken_) return false;
-    } catch (...) { return false; }
-    auto const& state = session_->Snapshot();
-    if (state.playlistRevision != playlistDragRevision_ || state.playlist.size() != playlistDragIds_.size() ||
-        playlist_.size() != playlistDragIds_.size()) return false;
-    for (std::size_t i = 0; i < playlistDragIds_.size(); ++i)
-        if (state.playlist[i].id != playlistDragIds_[i] || playlist_[i].id != playlistDragIds_[i]) return false;
-    return !playlistDragRows_.empty();
+        if(!PlaylistDragReady() || !playlistDragToken_ || !HasPlaylistDrag(args)) {ResetPlaylistDrag();return false;}
+        if(unbox_value<guid>(args.DataView().Properties().Lookup(DragKey))!=*playlistDragToken_) return false;
+        auto const& state=session_->Snapshot();
+        if(state.playlistRevision!=playlistDragRevision_ || state.mediaGeneration!=playlistDragMedia_ ||
+            state.mediaOpenIntentRevision!=playlistDragOpenIntent_ || inputGeneration_!=playlistDragInput_ ||
+            session_->PlaylistEditIntentRevision()!=playlistDragEditIntent_ || state.playlist.size()!=playlistDragItems_.size() ||
+            playlist_.size()!=playlistDragItems_.size() || (verifyVisual && PlaylistView().Items().Size()!=playlistDragItems_.size())) {
+            ResetPlaylistDrag();return false;
+        }
+        for(std::size_t i=0;i<playlistDragItems_.size();++i) {
+            auto const& [id,path]=playlistDragItems_[i];
+            if(state.playlist[i].id!=id || state.playlist[i].path!=path || playlist_[i].id!=id || playlist_[i].path!=path) {
+                ResetPlaylistDrag();return false;
+            }
+            if(verifyVisual) {
+                auto item=PlaylistView().Items().GetAt(static_cast<uint32_t>(i)).try_as<Controls::ListViewItem>();
+                if(!item || unbox_value<std::int64_t>(item.Tag())!=id) {ResetPlaylistDrag();return false;}
+            }
+        }
+        return !playlistDragRows_.empty();
+    } catch(...) {ResetPlaylistDrag();return false;}
 }
 std::optional<std::size_t> MainWindow::PlaylistDropRow(DragEventArgs const& args) const {
+    try {
     // Ignore scrollbar surfaces rather than interpreting a scroll operation as
     // a drop onto the nearest row. No automatic ListView model reordering.
     for (auto node = args.OriginalSource().try_as<DependencyObject>(); node && node != PlaylistView();
          node = Media::VisualTreeHelper::GetParent(node))
         if (node.try_as<Controls::Primitives::ScrollBar>()) return {};
     auto point = args.GetPosition(PlaylistView());
+    if(!std::isfinite(point.X) || !std::isfinite(point.Y) || !std::isfinite(PlaylistView().ActualWidth()) ||
+        !std::isfinite(PlaylistView().ActualHeight()) || PlaylistView().ActualWidth()<=0 || PlaylistView().ActualHeight()<=0) return {};
     if (point.X < 0 || point.Y < 0 || point.X > PlaylistView().ActualWidth() ||
         point.Y > PlaylistView().ActualHeight()) return {};
     if (playlist_.empty() && session_->Snapshot().playlist.empty()) return 0;
@@ -49,6 +74,7 @@ std::optional<std::size_t> MainWindow::PlaylistDropRow(DragEventArgs const& args
         if (index < 0 || static_cast<std::size_t>(index) >= playlist_.size()) continue;
         auto row = static_cast<std::size_t>(index);
         auto top = item.TransformToVisual(PlaylistView()).TransformPoint({0, 0}).Y;
+        if(!std::isfinite(top) || !std::isfinite(item.ActualHeight())) return {};
         if (top + item.ActualHeight() < 0 || top > PlaylistView().ActualHeight()) continue;
         // Upper half inserts before this row; lower half inserts after it.
         if (point.Y < top + item.ActualHeight() / 2) {
@@ -58,44 +84,68 @@ std::optional<std::size_t> MainWindow::PlaylistDropRow(DragEventArgs const& args
     if (nextRealized) return nextRealized;
     if (lastRealized) return *lastRealized + 1;
     return {}; // No realized rows: do not guess an off-screen target.
+    } catch(...) {return {};}
 }
 void MainWindow::WirePlaylistDrag() {
     auto weak = get_weak();
     PlaylistView().DragItemsStarting([weak](auto const&, Controls::DragItemsStartingEventArgs const& args) {
         auto self = weak.get();
         if (!self) { args.Cancel(true); return; }
-        self->playlistDragToken_.reset(); self->playlistDragRows_.clear(); self->playlistDragIds_.clear();
+        self->ResetPlaylistDrag();
         try {
+            if(!self->PlaylistDragReady()) {args.Cancel(true);return;}
+            auto const& state=self->session_->Snapshot();
+            if(state.playlist.size()!=self->playlist_.size() || self->PlaylistView().Items().Size()!=state.playlist.size()) {args.Cancel(true);return;}
+            std::size_t bytes{};
+            std::set<std::int64_t> ids;
+            for(std::size_t i=0;i<state.playlist.size();++i) {
+                auto const& entry=state.playlist[i];
+                auto item=self->PlaylistView().Items().GetAt(static_cast<uint32_t>(i)).try_as<Controls::ListViewItem>();
+                // Bound the extra retained identity snapshot without truncation.
+                constexpr std::size_t budget=32*1024*1024;
+                const auto overhead=sizeof(std::pair<std::int64_t,std::string>);
+                if(bytes>budget-overhead || entry.path.size()>budget-overhead-bytes) {
+                    args.Cancel(true);self->ShowError(L"播放列表过大，无法安全保留拖动快照；请改用队列按钮分批操作。");return;
+                }
+                if(entry.path.empty() || entry.id<0 || !ids.insert(entry.id).second ||
+                    self->playlist_[i].id!=entry.id || self->playlist_[i].path!=entry.path ||
+                    !item || unbox_value<std::int64_t>(item.Tag())!=entry.id) {args.Cancel(true);return;}
+                bytes+=entry.path.size()+overhead;
+            }
             auto rows = self->SelectedPlaylistRows();
             if (rows.empty() || rows.size() != args.Items().Size()) { args.Cancel(true); return; }
             // The drag framework and the selected UI rows must refer to exactly
             // the same entries; never silently move only a subset of a drag.
+            std::set<std::int64_t> draggedIds;
             for (auto const& dragged : args.Items()) {
                 auto item = dragged.try_as<Controls::ListViewItem>();
                 if (!item) { args.Cancel(true); return; }
                 auto id = unbox_value<std::int64_t>(item.Tag());
-                if (std::none_of(rows.begin(), rows.end(), [&](auto row) { return self->playlist_[row].id == id; })) {
+                if (!draggedIds.insert(id).second || std::none_of(rows.begin(), rows.end(), [&](auto row) { return self->playlist_[row].id == id; })) {
                     args.Cancel(true); return;
                 }
             }
             GUID token{}; check_hresult(CoCreateGuid(&token));
             self->playlistDragToken_ = guid{token};
             self->playlistDragRows_ = std::move(rows);
-            for (auto const& item : self->playlist_) self->playlistDragIds_.push_back(item.id);
-            self->playlistDragRevision_ = self->session_->Snapshot().playlistRevision;
+            for (auto const& item : self->playlist_) self->playlistDragItems_.emplace_back(item.id,item.path);
+            self->playlistDragRevision_=state.playlistRevision;
+            self->playlistDragMedia_=state.mediaGeneration;self->playlistDragOpenIntent_=state.mediaOpenIntentRevision;
+            self->playlistDragInput_=self->inputGeneration_;self->playlistDragEditIntent_=self->session_->PlaylistEditIntentRevision();
             // Only an opaque, per-drag capability leaves this window. File paths
             // and row indices are not placed on the OS drag clipboard.
             args.Data().Properties().Insert(DragKey, box_value(*self->playlistDragToken_));
             args.Data().SetData(DragKey, box_value(*self->playlistDragToken_));
             args.Data().RequestedOperation(DataPackageOperation::Move);
-        } catch (...) { self->playlistDragToken_.reset(); args.Cancel(true); }
+        } catch (...) { self->ResetPlaylistDrag(); args.Cancel(true); }
     });
     PlaylistView().DragItemsCompleted([weak](auto const&, auto const&) {
         if (auto self = weak.get()) {
-            self->playlistDragToken_.reset(); self->playlistDragRows_.clear(); self->playlistDragIds_.clear();
+            self->ResetPlaylistDrag();
         }
     });
     PlaylistView().DragOver([weak](auto const&, DragEventArgs const& args) {
+        try {
         if (!HasPlaylistDrag(args)) {
             args.AcceptedOperation(DataPackageOperation::None);
             if (auto self=weak.get()) try {
@@ -121,8 +171,10 @@ void MainWindow::WirePlaylistDrag() {
                 args.DragUIOverride().IsCaptionVisible(true);
             }
         }
+        } catch(...) {try {args.Handled(true);args.AcceptedOperation(DataPackageOperation::None);}catch(...) {}}
     });
     PlaylistView().Drop([weak](auto const&, DragEventArgs const& args) {
+        try {
         if (!HasPlaylistDrag(args)) {
             try {
                 if (auto self=weak.get()) {
@@ -135,21 +187,26 @@ void MainWindow::WirePlaylistDrag() {
         args.Handled(true); args.AcceptedOperation(DataPackageOperation::None);
         if (auto self = weak.get()) {
             try {
-                if (!self->PlaylistDragCurrent(args)) {
+                if (!self->PlaylistDragCurrent(args,true)) {
+                    self->ResetPlaylistDrag();
                     if (!self->closing_) self->ShowError(L"拖动来源或播放列表已变化，请重新拖动。");
                     return;
                 }
                 auto row = self->PlaylistDropRow(args);
-                if (!row) return;
+                if (!row || !self->PlaylistDragCurrent(args,true)) {self->ResetPlaylistDrag();return;}
                 auto rows = std::move(self->playlistDragRows_);
-                self->playlistDragToken_.reset();
-                self->session_->DropPlaylistItems(std::move(rows), *row);
+                self->ResetPlaylistDrag(); // Consume before Core can synchronously Notify.
+                const bool submitted=self->session_->DropPlaylistItems(std::move(rows), *row);
                 self->UpdatePlaylistSelection();
-                args.AcceptedOperation(DataPackageOperation::Move);
+                if(submitted) args.AcceptedOperation(DataPackageOperation::Move);
                 // Move means the plan was submitted, not that asynchronous mpv
                 // edits are complete. Existing cursor reports partial failures.
-            } catch (std::exception const& error) { self->ShowError(to_hstring(error.what())); }
-              catch (hresult_error const& error) { self->ShowError(error.message()); }
+            } catch (std::exception const& error) { self->ResetPlaylistDrag();if(!self->closing_) self->ShowError(to_hstring(error.what())); }
+              catch (hresult_error const& error) { self->ResetPlaylistDrag();if(!self->closing_) self->ShowError(error.message()); }
+        }
+        } catch(...) {
+            if(auto self=weak.get()) self->ResetPlaylistDrag();
+            try {args.Handled(true);args.AcceptedOperation(DataPackageOperation::None);}catch(...) {}
         }
     });
 }
