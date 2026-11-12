@@ -270,6 +270,8 @@ void MainWindow::BeginClose()
     if (jumpDialog_) jumpDialog_.Hide();
     fontCatalogStop_.request_stop();
     revealSelectionStop_.request_stop();
+    historyDeletionStop_.request_stop();
+    if (historyDeletionDialog_) historyDeletionDialog_.Hide();
     playlistDeletionStop_.request_stop();
     if (playlistDeletionDialog_) playlistDeletionDialog_.Hide();
     playlistPasteStop_.request_stop(); ++playlistPasteGeneration_;

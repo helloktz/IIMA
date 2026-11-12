@@ -161,6 +161,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MainWindow.History.cpp" />
+    <ClCompile Include="MainWindow.HistoryDeletion.cpp" />
     <ClCompile Include="MainWindow.RevealSelection.cpp" />
     <ClCompile Include="MainWindow.Information.cpp" />
     <ClCompile Include="MainWindow.InspectorWatch.cpp" />

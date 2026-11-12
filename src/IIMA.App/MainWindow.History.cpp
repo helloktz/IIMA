@@ -10,6 +10,7 @@ using namespace winrt;
 using namespace Microsoft::UI::Xaml;
 namespace winrt::IIMA::implementation {
 void MainWindow::WireHistoryControls() {
+    WireHistoryDeletion();
     auto weak = get_weak();
     RevealHistoryButton().Click([weak](auto const&, auto const&) {
         if (auto self = weak.get()) self->RevealSelection(true);
@@ -90,6 +91,7 @@ void MainWindow::UpdateHistorySelection() {
     OpenHistoryButton().IsEnabled(enabled);
     RemoveHistoryButton().IsEnabled(enabled);
     RevealHistoryButton().IsEnabled(enabled && !revealSelectionBusy_);
+    DeleteHistoryFilesButton().IsEnabled(enabled && !historyDeletionBusy_ && !playlistDeletionBusy_ && !pickerOpen_);
 }
 void MainWindow::OpenSelectedHistory() {
     if (closing_ || !userDataLoaded_ || projectingHistory_) return;

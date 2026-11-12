@@ -408,6 +408,11 @@ private:
     bool revealSelectionBusy_{};
     std::stop_source revealSelectionStop_;
     iima::HistoryView historyProjection_;
+    void WireHistoryDeletion();
+    winrt::fire_and_forget DeleteSelectedHistoryFiles();
+    bool historyDeletionBusy_{};
+    std::stop_source historyDeletionStop_;
+    Microsoft::UI::Xaml::Controls::ContentDialog historyDeletionDialog_{nullptr};
     std::optional<iima::HistoryRemoval> historyUndo_;
     void MarkUserDataDirty();
     void PumpSave();

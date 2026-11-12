@@ -568,6 +568,7 @@
                         <ComboBox x:Name="HistorySearchScopeBox" Header="搜索范围" SelectedIndex="0">
                             <ComboBoxItem Content="完整路径"/><ComboBoxItem Content="文件名"/>
                         </ComboBox>
+                        <TextBlock x:Name="HistoryFileStatus" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite"/>
                         <TextBlock x:Name="HistoryCountText"/>
                         <ListView x:Name="HistoryView" MaxHeight="160" SelectionMode="Extended" AutomationProperties.Name="播放历史"/>
                         <StackPanel Orientation="Horizontal" Spacing="6">
@@ -578,6 +579,10 @@
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <Button x:Name="RemoveHistoryButton" Content="移除所选"/>
                             <Button x:Name="UndoHistoryButton" Content="撤销移除" IsEnabled="False"/>
+                        </StackPanel>
+                        <StackPanel Spacing="6">
+                            <Button x:Name="DeleteHistoryFilesButton" Content="删除磁盘文件…" IsEnabled="False"/>
+                            <Button x:Name="CancelHistoryDeletionButton" Content="停止文件删除" IsEnabled="False"/>
                         </StackPanel>
                     </StackPanel>
                 </ScrollViewer>
