@@ -1285,3 +1285,11 @@ Windows新增只读`ReadFullscreenInformation`：GetTimeFormatEx按用户区域�
 - 新鲜字幕状态读取与命令共用worker串行通道，最多256轨道、64字幕、单路径128KiB及总路径1MiB，歧义或超限整笔拒绝，返回完整身份和主/次选择；手动/编码启动捕获媒体与用户字幕意图，逐项回复后再读取并复验下一项。恢复按唯一外部路径、仍匹配的内嵌ID或关闭状态，不按猜测的新ID选轨。
 - 成功/失败/跳过/剩余计数只针对重载命令回复，编码或选择恢复失败单独报告。取消不回滚已经生效的编码/重载，也不承诺撤回已排队请求；换片、新输入或新字幕意图撤销旧批次后续操作。不会以命令成功冒称新字幕已在画面上显示。
 - libmpv没有跨客户端原子比较交换，多个属性读取不是原子快照，最后读取与写入之间仍可能被外部脚本修改；只能在可识别的身份/意图变化后停止，不声称消除所有外部并发。仅静态实现/审阅，未编译、测试或运行，实际轨道ID变化、双字幕恢复及事件顺序待Windows验收。
+
+## 进度条 A/B 可视编辑（2026-11-12）
+
+来源：IINA `PlaySliderLoopKnob.doubleValue/x/mouseDown/mouseDragged`、`PlaySliderCell`、`MainWindowController` 的 `iinaPlaySliderLoopKnobChanged` 观察与 `PlayerCore.abLoopA/abLoopB`；mpv `command.c::mp_property_ab_loop`、`cmd_ab_loop`。对应 IIMA `MainWindow.ABLoopMarkers.cpp`、`WheelSlider::HorizontalTravel` 及现有 `PlayerSession::EditABLoopPoint`。
+
+仅显示已观察建立的端点，按实际滑块轨道行程映射，允许 A/B 交叉和重合；保留既有零秒编辑调整为 0.000001 秒与数值精确编辑。Windows 适配将 A/B 放在进度条下方的独立区域，避免端点抢占播放位置拇指；不同于 IINA 每次 mouseDragged 即写入，IIMA 拖动只更新草稿，正常释放提交一个端点，不 seek、不暂停，不把草稿写进播放快照。键盘编辑沿同一端点入口。
+
+草稿绑定媒体、输入、时长、观察端点、布局/窗口模式及显式 A/B 意图修订；清除或循环命令即使尚未回读也使旧草稿失效。失败不乐观回滚或伪造成功，已排队操作不能撤回，其他 mpv 客户端同值或未观察竞争不具原子保护。未编译、测试或运行，原生捕获、模板坐标、DPI 与辅助技术待 Windows 验证。

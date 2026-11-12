@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "WheelSlider.h"
+#include <cmath>
 #include "WheelSlider.g.cpp"
 namespace winrt::IIMA::implementation {
 void WheelSlider::OnPointerWheelChanged(Microsoft::UI::Xaml::Input::PointerRoutedEventArgs const& args) {
@@ -38,6 +39,7 @@ WheelSlider::WheelSlider() {
     Unloaded([weak](auto const&,auto const&) {if(auto self=weak.get()) self->CancelTracking();});
 }
 void WheelSlider::OnApplyTemplate() {
+    ++templateRevision_;
     CancelTracking();
     for(auto const& hooks:thumbs_) {hooks.thumb.DragStarted(hooks.started);hooks.thumb.DragCompleted(hooks.completed);}
     thumbs_.clear();
@@ -128,4 +130,22 @@ winrt::event_token WheelSlider::TrackingStarted(Windows::Foundation::EventHandle
 void WheelSlider::TrackingStarted(winrt::event_token const& token) noexcept {trackingStarted_.remove(token);}
 winrt::event_token WheelSlider::TrackingEnded(Windows::Foundation::EventHandler<bool> const& handler) {return trackingEnded_.add(handler);}
 void WheelSlider::TrackingEnded(winrt::event_token const& token) noexcept {trackingEnded_.remove(token);}
+}
+
+namespace winrt::IIMA::implementation {
+std::optional<std::pair<double,double>> WheelSlider::HorizontalTravel() {
+    try {
+    if(!horizontalTrack_ || Orientation()!=Microsoft::UI::Xaml::Controls::Orientation::Horizontal) return {};
+    for(auto const& hooks:thumbs_) if(hooks.thumb.Name()==L"HorizontalThumb") {
+        const auto width=horizontalTrack_.ActualWidth(), thumb=hooks.thumb.ActualWidth();
+        if(!std::isfinite(width) || !std::isfinite(thumb) || thumb<=0 || width<=thumb) return {};
+        const auto origin=horizontalTrack_.TransformToVisual(*this).TransformPoint({0,0});
+        if(!std::isfinite(origin.X)) return {};
+        double start=origin.X+thumb/2, travel=width-thumb;
+        if(IsDirectionReversed() != (FlowDirection()==Microsoft::UI::Xaml::FlowDirection::RightToLeft)) {start+=travel;travel=-travel;}
+        return std::pair{start,travel};
+    }
+    return {};
+    } catch(...) { return {}; }
+}
 }

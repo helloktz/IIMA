@@ -19,6 +19,7 @@ hstring PointText(std::optional<double> point) {
 }
 namespace winrt::IIMA::implementation {
 void MainWindow::WireABLoopEditor() {
+    WireABLoopMarkers();
     auto weak = get_weak();
     LoadABDraftButton().Click([weak](auto const&, auto const&) {
         if (auto self = weak.get()) self->LoadABLoopDraft();
@@ -35,6 +36,7 @@ void MainWindow::LoadABLoopDraft() {
     abDraftEpoch_.reset();
     if (!closing_ && CanEditLoop(state)) {
         abDraftEpoch_ = navigationEpoch_;
+        abDraftIntent_ = session_->ABLoopEditIntentRevision();
         abDraftA_ = state.abLoopA;
         abDraftB_ = state.abLoopB;
         ABPointABox().Value(abDraftA_.value_or(std::numeric_limits<double>::quiet_NaN()));
@@ -44,7 +46,7 @@ void MainWindow::LoadABLoopDraft() {
 }
 void MainWindow::UpdateABLoopEditor(iima::PlaybackSnapshot const& state) {
     const bool ready = !closing_ && CanEditLoop(state);
-    if (!ready || (abDraftEpoch_ && (*abDraftEpoch_ != navigationEpoch_ ||
+    if (!ready || (abDraftEpoch_ && (*abDraftEpoch_ != navigationEpoch_ || abDraftIntent_ != session_->ABLoopEditIntentRevision() ||
         abDraftA_ != state.abLoopA || abDraftB_ != state.abLoopB))) abDraftEpoch_.reset();
     const bool draft = ready && abDraftEpoch_.has_value();
     LoadABDraftButton().IsEnabled(ready && (state.abLoopA || state.abLoopB));
@@ -61,10 +63,11 @@ void MainWindow::UpdateABLoopEditor(iima::PlaybackSnapshot const& state) {
     if (state.abLoopA && state.abLoopB && *state.abLoopA == *state.abLoopB)
         text += L" 两个端点相同，当前不会形成有效区间。";
     ABEditStatus().Text(text);
+    UpdateABLoopMarkers();
 }
 void MainWindow::ApplyABLoopDraft(bool pointB) {
     auto const& state = session_->Snapshot();
-    if (closing_ || !abDraftEpoch_ || *abDraftEpoch_ != navigationEpoch_ ||
+    if (closing_ || !abDraftEpoch_ || *abDraftEpoch_ != navigationEpoch_ || abDraftIntent_ != session_->ABLoopEditIntentRevision() ||
         !CanEditLoop(state) || abDraftA_ != state.abLoopA || abDraftB_ != state.abLoopB) {
         abDraftEpoch_.reset();
         UpdateABLoopEditor(state);

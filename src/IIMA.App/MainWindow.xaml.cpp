@@ -273,6 +273,7 @@ void MainWindow::BeginClose()
     CapturePlacement();
     SaveWindowPlacement();
     FinishInteractiveCrop(false, false);
+    CancelABMarker();
     CancelControlBarDrag();
     CancelScrubbing();
     closing_ = true;

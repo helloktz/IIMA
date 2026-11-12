@@ -12,6 +12,7 @@ void MainWindow::WireScrubbing() {
     PositionSlider().TrackingEnded([weak](auto const&,bool cancelled) {if(auto self=weak.get()) self->FinishScrubbing(cancelled);});
 }
 void MainWindow::BeginScrubbing() {
+    if(abMarkerDragging_) {PositionSlider().CancelTracking();return;}
     if(scrubToken_ || scrubStarting_) {PositionSlider().CancelTracking();return;}
     scrubStarting_=true;scrubSuppress_=true;++scrubSuppressEpoch_;
     auto const& state=session_->Snapshot();
@@ -63,7 +64,7 @@ void MainWindow::FinishScrubbing(bool cancelled) {
     UpdateScrubbing();UpdateControlBarPolicy();
 }
 void MainWindow::PositionSliderChanged(double value) {
-    if(updating_ || closing_ || scrubStarting_ || scrubSuppress_) return;
+    if(updating_ || closing_ || abMarkerDragging_ || scrubStarting_ || scrubSuppress_) return;
     if(scrubToken_ && !PositionSlider().Tracking()) {
         // A new keyboard adjustment after pointer-up is a new explicit seek,
         // not another target in the already-ending pointer transaction.

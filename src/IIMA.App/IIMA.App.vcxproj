@@ -143,6 +143,7 @@
     <ClCompile Include="MainWindow.SecondarySubtitles.cpp" />
     <ClCompile Include="MainWindow.Navigation.cpp" />
     <ClCompile Include="MainWindow.ABLoop.cpp" />
+    <ClCompile Include="MainWindow.ABLoopMarkers.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MainWindow.Commands.cpp" />

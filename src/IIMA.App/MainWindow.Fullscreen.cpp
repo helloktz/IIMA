@@ -8,6 +8,7 @@
 namespace winrt::IIMA::implementation {
 void MainWindow::ToggleFullscreen() {
     if (closing_ || fullscreenTransition_ || compactTransition_) return;
+    CancelABMarker();
     CloseMusicVolume();
     if (fullscreen_) {
         if (ExitFullscreen() && preferences_.Boolean("pauseWhenLeavingFullScreen") &&

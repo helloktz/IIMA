@@ -124,6 +124,9 @@ public:
     void SeekRelative(double seconds, bool exact = true);
     void SeekRelativeWithMode(double seconds, RelativeSeekMode mode);
     void StepFrame(bool backwards = false);
+    // Explicit typed loop intents, including rejected/no-op attempts. Drag
+    // drafts compare this before submission, not only delayed observed A/B.
+    std::uint64_t ABLoopEditIntentRevision() const noexcept { return abLoopEditIntentRevision_; }
     void CycleABLoop();
     void ClearABLoop();
     // UI-thread draft guard; returns submission acceptance, not mpv success.
@@ -258,6 +261,7 @@ private:
     void InvalidateAutoPlaylistExpansion();
     std::uint64_t playlistEditIntentRevision_{};
     std::uint64_t subtitleEditIntentRevision_{};
+    std::uint64_t abLoopEditIntentRevision_{};
     void BeginPlaylistEdit(PlaylistEditPlan plan, std::optional<bool> shuffledAfter = {}, bool automatic = false);
     void AdvancePlaylistEdit(std::span<const PlaylistItem> refreshed);
     bool HandlePlaylistEditEvent(MpvEvent const& event);

@@ -88,6 +88,9 @@ void MainWindow::WireKeyboardControls() {
     // actually replace defaults. Text entry and modal pickers retain all keys.
     Root().PreviewKeyDown([weak](auto const&, Input::KeyRoutedEventArgs const& args) {
         auto self = weak.get();
+        if(self && self->abMarkerDragging_ && args.Key()==Windows::System::VirtualKey::Escape) {
+            self->CancelABMarker();args.Handled(true);return;
+        }
         if(self && (self->scrubToken_ || self->scrubStarting_) && args.Key()==Windows::System::VirtualKey::Escape) {
             self->CancelScrubbing();args.Handled(true);return;
         }
@@ -97,6 +100,10 @@ void MainWindow::WireKeyboardControls() {
         if (!self || self->closing_ || self->pickerOpen_ || !self->keyBindings_ ||
             !self->KeyboardPlaybackAllowed() || args.Handled()) return;
         auto focused = Input::FocusManager::GetFocusedElement(self->Root().XamlRoot()).try_as<DependencyObject>();
+        if(focused==self->ABLoopThumbA() || focused==self->ABLoopThumbB()) {
+            self->ABMarkerKey(focused==self->ABLoopThumbB(),args);
+            if(args.Handled()) return;
+        }
         if (NativeControlOwnsKey(focused, args.Key())) return;
         auto status = args.KeyStatus();
         auto key = iima::WindowsMpvKey(static_cast<std::uint32_t>(args.Key()), status.ScanCode, status.IsExtendedKey);
@@ -122,6 +129,13 @@ void MainWindow::WireKeyboardControls() {
         if (!self || self->closing_ || self->pickerOpen_ || args.Handled() ||
             !self->KeyboardPlaybackAllowed()) return;
         auto focused = Input::FocusManager::GetFocusedElement(self->Root().XamlRoot()).try_as<DependencyObject>();
+        if(focused==self->ABLoopThumbA() || focused==self->ABLoopThumbB()) {
+            using Key=Windows::System::VirtualKey;
+            const auto key=args.Key();
+            if(key==Key::Left || key==Key::Right || key==Key::Home || key==Key::End ||
+                key==Key::Up || key==Key::Down || key==Key::PageUp || key==Key::PageDown ||
+                key==Key::Space || key==Key::Enter || key==Key::Escape) {args.Handled(true);return;}
+        }
         if (NativeControlOwnsKey(focused, args.Key())) return;
         auto status = args.KeyStatus();
         if (auto key = iima::WindowsMpvKey(static_cast<std::uint32_t>(args.Key()), status.ScanCode, status.IsExtendedKey))

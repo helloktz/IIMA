@@ -29,15 +29,20 @@ void PlayerSession::StepFrame(bool backwards) {
         client_->Command(PlaybackActions::FrameStep(backwards));
 }
 void PlayerSession::CycleABLoop() {
+    ++abLoopEditIntentRevision_;
     CancelScrub();
     if (snapshot_.session == SessionState::Ready && snapshot_.media == MediaState::Loaded)
         client_->Command(ABLoopState::Cycle());
 }
 bool PlayerSession::EditABLoopPoint(bool pointB, double seconds,
     std::optional<double> expectedA, std::optional<double> expectedB) {
+    ++abLoopEditIntentRevision_;
     CancelScrub();
+    // pendingCommands_ contains only the paused open/playlist-transition
+    // transaction, not ordinary volume/subtitle commands in MpvClient's queue.
     if (snapshot_.session != SessionState::Ready || snapshot_.media != MediaState::Loaded ||
-        !snapshot_.seekable || !snapshot_.duration || !std::isfinite(*snapshot_.duration) ||
+        waitingForStart_ || snapshot_.mediaOriginPending || playlistEdit_ || pauseRequest_ || loadRequest_ ||
+        !pendingCommands_.empty() || !snapshot_.seekable || !snapshot_.duration || !std::isfinite(*snapshot_.duration) ||
         !std::isfinite(seconds) || seconds < 0 || seconds > *snapshot_.duration ||
         *snapshot_.duration < ABLoopState::MinimumEditedPoint ||
         snapshot_.abLoopA != expectedA || snapshot_.abLoopB != expectedB ||
@@ -49,6 +54,7 @@ bool PlayerSession::EditABLoopPoint(bool pointB, double seconds,
     return command && client_->Command(std::move(*command)) != 0;
 }
 void PlayerSession::ClearABLoop() {
+    ++abLoopEditIntentRevision_;
     CancelScrub();
     if (snapshot_.session != SessionState::Ready) return;
     for (auto const& command : ABLoopState::Clear()) client_->Command(command);

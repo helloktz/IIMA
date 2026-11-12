@@ -7,6 +7,7 @@
 #include <vector>
 #include <cstdint>
 #include <optional>
+#include <utility>
 namespace winrt::IIMA::implementation {
 struct WheelSlider : WheelSliderT<WheelSlider> {
     WheelSlider();
@@ -16,6 +17,8 @@ struct WheelSlider : WheelSliderT<WheelSlider> {
     void SetTrackingEnabled(bool enabled);
     bool Tracking() const noexcept { return tracking_; }
     void CancelTracking();
+    std::optional<std::pair<double,double>> HorizontalTravel();
+    std::uint64_t TemplateRevision() const noexcept {return templateRevision_;}
     winrt::event_token TrackingStarted(Windows::Foundation::EventHandler<bool> const& handler);
     void TrackingStarted(winrt::event_token const& token) noexcept;
     winrt::event_token TrackingEnded(Windows::Foundation::EventHandler<bool> const& handler);
@@ -30,6 +33,7 @@ private:
     void QueueTrackingEnd(bool cancelled);
     bool trackingEnabled_{}, tracking_{}, endQueued_{}, endCancelled_{};
     std::uint64_t trackingEpoch_{};
+    std::uint64_t templateRevision_{};
     std::optional<std::uint32_t> trackingPointerId_;
     Microsoft::UI::Xaml::FrameworkElement horizontalTrack_{nullptr}, verticalTrack_{nullptr};
     struct ThumbHooks {

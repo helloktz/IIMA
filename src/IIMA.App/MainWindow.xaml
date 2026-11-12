@@ -176,8 +176,19 @@
                     <ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <local:WheelSlider x:Name="PositionSlider" SmallChange="1" Grid.ColumnSpan="4" Minimum="0" Maximum="1"
-                        IsEnabled="False" AutomationProperties.Name="播放进度" />
+                <Grid Grid.ColumnSpan="4">
+                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                    <local:WheelSlider x:Name="PositionSlider" SmallChange="1" Minimum="0" Maximum="1"
+                            IsEnabled="False" AutomationProperties.Name="播放进度" />
+                    <Canvas x:Name="ABLoopMarkers" Grid.Row="1" Height="24" Visibility="Collapsed">
+                        <Thumb x:Name="ABLoopThumbA" IsTabStop="True" Width="24" Height="22" AutomationProperties.Name="循环起点A；左右键调整一秒" ToolTipService.ToolTip="拖动循环起点A；不跳转播放位置">
+                            <Thumb.Template><ControlTemplate TargetType="Thumb"><Border Background="{ThemeResource IimaOverlayBackgroundBrush}" CornerRadius="3"><TextBlock Text="A" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border></ControlTemplate></Thumb.Template>
+                        </Thumb>
+                        <Thumb x:Name="ABLoopThumbB" IsTabStop="True" Width="24" Height="22" AutomationProperties.Name="循环终点B；左右键调整一秒" ToolTipService.ToolTip="拖动循环终点B；不跳转播放位置">
+                            <Thumb.Template><ControlTemplate TargetType="Thumb"><Border Background="{ThemeResource IimaOverlayBackgroundBrush}" CornerRadius="3"><TextBlock Text="B" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border></ControlTemplate></Thumb.Template>
+                        </Thumb>
+                    </Canvas>
+                </Grid>
                 <Button x:Name="OpenButton" Grid.Row="1" Content="打开文件" AutomationProperties.Name="打开文件" />
                 <Button x:Name="PauseButton" Grid.Row="1" Grid.Column="1" Content="播放" IsEnabled="False" />
                 <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">

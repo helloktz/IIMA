@@ -18,7 +18,7 @@ void MainWindow::WireSliderWheels() {
             // including disabled/modified input. Never mutate Slider.Value here.
             auto self=weak.get();if(!self) return;
             if(music && (!self->MusicVolumeContextValid() || self->MusicVolumeSlider().Tracking())) return;
-            if(self->closing_ || !self->userDataLoaded_ || self->pickerOpen_ || (!volume && (self->scrubStarting_ || self->PositionSlider().Tracking())) || self->oscDragging_ ||
+            if(self->closing_ || !self->userDataLoaded_ || self->pickerOpen_ || (!volume && (self->abMarkerDragging_ || self->scrubStarting_ || self->PositionSlider().Tracking())) || self->oscDragging_ ||
                 self->interactiveCrop_.Active() || self->cropOriginal_ || self->inputResolving_ ||
                 !self->pendingFiles_.empty() || !self->activationInputs_.empty() || self->session_->PlaylistEditBusy()) return;
             if(self->preferences_.Boolean(volume ? "disableVolumeSliderScrolling" : "disablePlaySliderScrolling") ||

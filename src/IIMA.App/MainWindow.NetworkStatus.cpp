@@ -39,6 +39,7 @@ void MainWindow::BindNetworkOpenAttempt(std::vector<std::string> const& paths,bo
     networkOpenIntent_=session_->Snapshot().mediaOpenIntentRevision+1;
 }
 void MainWindow::UpdateNetworkOpen(iima::PlaybackSnapshot const& state) {
+    UpdateABLoopMarkers();
     UpdateSubtitleReload();
     if(playlistDurationInput_!=inputGeneration_ && !playlistDurationStop_.stop_requested()) CancelPlaylistDurations();
     if(musicVolumeOpen_ && !MusicVolumeContextValid()) CloseMusicVolume();

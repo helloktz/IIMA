@@ -12,6 +12,7 @@ using namespace Microsoft::UI::Windowing;
 namespace winrt::IIMA::implementation {
 bool MainWindow::EnterCompactOverlay() {
     if(closing_ || !userDataLoaded_ || compactTransition_ || fullscreenTransition_ || pickerOpen_ || interactiveCrop_.Active() || cropOriginal_) return false;
+    CancelABMarker();
     CloseMusicVolume();
     if(!ExitFullscreen()) return false;
     if(compactRestore_) return ExitCompactOverlay();
