@@ -16,6 +16,9 @@ bool HasApplicationAdapter(std::string_view key) {
         "autoSwitchToMusicMode", "musicModeShowPlaylist", "musicModeShowAlbumArt",
         "pauseWhenInactive", "pauseWhenMinimized", "pauseWhenGoesToSleep", "enableThumbnailPreview", "thumbnailWidth", "maxThumbnailPreviewCacheSize",
         "alwaysFloatOnTop", "fullScreenWhenOpen", "playWhenEnteringFullScreen", "pauseWhenLeavingFullScreen",
+        "singleClickAction", "doubleClickAction", "rightClickAction", "verticalScrollAction", "horizontalScrollAction",
+        "relativeSeekAmount", "playbackSpeedScrollAmount", "wheelExactSeek", "enableControlBarAutoHide", "controlBarAutoHideTimeout",
+        "showRemainingTime", "scaleRemainingTime", "timeDisplayPrecision", "disableOSDFileStartMsg", "disableOSDSeekMsg",
         "useExactSeek", "screenshotShowPreview", "enableOSD", "disableOSDPauseResumeMsgs", "disableOSDSpeedMsg", "osdAutoHideTimeout", "osdTextSize"
     };
     return keys.contains(key);
@@ -25,6 +28,7 @@ namespace winrt::IIMA::implementation {
 void MainWindow::PopulateAdvancedSettings() {
     auto panel = AdvancedSettingsPanel();
     panel.Children().Clear();
+    advancedSettingsRows_.clear(); advancedSettingsIndex_.clear();
     Controls::TextBlock explanation;
     explanation.Text(L"播放器选项采用上游键名。即时项会提交至内核；标注“下次打开”的项不会改写当前媒体。控制值表示偏好，不代表内核已确认。");
     explanation.TextWrapping(TextWrapping::Wrap);
@@ -94,7 +98,15 @@ void MainWindow::PopulateAdvancedSettings() {
             });
             panel.Children().Append(box);
         }
+        auto row=panel.Children().GetAt(panel.Children().Size()-1).as<FrameworkElement>();
+        std::string searchable=key+" "+std::string(iima::settings::PreferenceAreaTitle(descriptor.area))+" "+
+            std::string(descriptor.mpvProperty);
+        for (auto const& choice:descriptor.choices) searchable+=" "+std::string(choice.token);
+        searchable+=descriptor.timing==iima::settings::ApplyTiming::NextMedia ? " 下次打开 next media" : " 即时 immediate";
+        advancedSettingsRows_.push_back(row);
+        advancedSettingsIndex_.push_back({key,descriptor.area,std::move(searchable)});
     }
+    FilterAdvancedSettings();
 }
 void MainWindow::ApplyAdvancedSetting(std::string const& key, iima::settings::PreferenceValue value) {
     if (closing_ || !userDataLoaded_) return;
@@ -112,6 +124,7 @@ void MainWindow::ApplyAdvancedSetting(std::string const& key, iima::settings::Pr
     }
     if (key == "autoSwitchToMusicMode" || key.starts_with("musicMode")) { UpdateMusicMode(); UpdatePresentationLayout(); }
     MarkUserDataDirty();
+    FilterAdvancedSettings();
 }
 void MainWindow::ApplyWindowPreferences() {
     try {

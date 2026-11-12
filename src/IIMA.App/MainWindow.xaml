@@ -461,7 +461,17 @@
                             </StackPanel>
                         </Expander>
                         <Expander Header="高级播放与窗口偏好" HorizontalAlignment="Stretch">
-                            <StackPanel x:Name="AdvancedSettingsPanel" Spacing="8"/>
+                            <StackPanel Spacing="8">
+                                <TextBox x:Name="AdvancedSettingsSearchBox" Header="搜索已接入的高级偏好" PlaceholderText="键名、mpv属性或分类；空格分隔多个词" MaxLength="256"/>
+                                <ComboBox x:Name="AdvancedSettingsCategory" Header="分类" SelectedIndex="0">
+                                    <ComboBoxItem Content="全部"/><ComboBoxItem Content="视频 Video"/><ComboBoxItem Content="音频 Audio"/>
+                                    <ComboBoxItem Content="字幕 Subtitles"/><ComboBoxItem Content="窗口 Window"/><ComboBoxItem Content="界面 Interface"/><ComboBoxItem Content="网络 Network"/>
+                                </ComboBox>
+                                <CheckBox x:Name="AdvancedSettingsModifiedOnly" Content="仅显示已修改的偏好"/>
+                                <Button x:Name="ClearAdvancedSettingsSearchButton" Content="清除全部过滤条件"/>
+                                <TextBlock x:Name="AdvancedSettingsSearchStatus" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite"/>
+                                <StackPanel x:Name="AdvancedSettingsPanel" Spacing="8"/>
+                            </StackPanel>
                         </Expander>
                         <Expander Header="快捷键配置" HorizontalAlignment="Stretch">
                             <StackPanel Spacing="8">

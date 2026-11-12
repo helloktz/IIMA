@@ -141,6 +141,7 @@
     <ClCompile Include="MainWindow.BindingEditor.cpp" />
     <ClCompile Include="MainWindow.KeyRecorder.cpp" />
     <ClCompile Include="MainWindow.Preferences.cpp" />
+    <ClCompile Include="MainWindow.SettingsSearch.cpp" />
     <ClCompile Include="Platform\KeyboardInput.cpp" />
     <ClInclude Include="Platform\KeyboardInput.h" />
     <ClCompile Include="Platform\ScreenshotImage.cpp" />

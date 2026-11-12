@@ -117,6 +117,8 @@
     <ClInclude Include="Screenshots\ScreenshotOptions.h" />
     <ClCompile Include="Settings\PreferenceSchema.cpp" />
     <ClInclude Include="Settings\PreferenceSchema.h" />
+    <ClCompile Include="Settings\SettingsSearch.cpp" />
+    <ClInclude Include="Settings\SettingsSearch.h" />
     <ClCompile Include="Settings\WindowPlaybackPolicy.cpp" />
     <ClInclude Include="Settings\WindowPlaybackPolicy.h" />
   </ItemGroup>

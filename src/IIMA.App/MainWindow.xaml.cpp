@@ -56,6 +56,7 @@ MainWindow::MainWindow()
     WireInteractiveCrop();
     WireOSD();
     WireAdvancedPlayback();
+    WireSettingsSearch();
     OpenButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->ExecuteApplicationCommand(iima::ApplicationCommand::OpenFile); });
     OpenUrlButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->ExecuteApplicationCommand(iima::ApplicationCommand::OpenUrl); });
     CompactOverlayButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->ExecuteApplicationCommand(iima::ApplicationCommand::TogglePictureInPicture); });

@@ -1,5 +1,6 @@
 #pragma once
 #include <chrono>
+#include "../IIMA.Core/Settings/SettingsSearch.h"
 #include "MainWindow.g.h"
 #include "../IIMA.Core/Playback/PlayerSession.h"
 #include "../IIMA.Core/Commands/ApplicationCommand.h"
@@ -351,6 +352,10 @@ private:
     void WireFileActions();
     void WireSettingsControls();
     void PopulateAdvancedSettings();
+    void WireSettingsSearch();
+    void FilterAdvancedSettings();
+    std::vector<iima::settings::SettingsSearchEntry> advancedSettingsIndex_;
+    std::vector<Microsoft::UI::Xaml::FrameworkElement> advancedSettingsRows_;
     void ApplyAdvancedSetting(std::string const& key, iima::settings::PreferenceValue value);
     void ApplyWindowPreferences();
     void WireWindowPlaybackPolicy();
