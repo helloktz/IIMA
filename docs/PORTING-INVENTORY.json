@@ -1255,7 +1255,8 @@
       "physicalLines": 970,
       "coverage": "partial-static-unverified",
       "reviewTargets": [
-        "src/IIMA.Core/Playlist/PlaylistPlan.cpp"
+        "src/IIMA.Core/Playlist/PlaylistPlan.cpp",
+        "src/IIMA.App/MainWindow.PlaylistSelection.cpp"
       ]
     },
     {

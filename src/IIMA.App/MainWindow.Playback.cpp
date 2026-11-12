@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <cmath>
 #include <tuple>
+#include <unordered_set>
 #include <winrt/Microsoft.UI.Xaml.Input.h>
 #include <winrt/Windows.System.h>
 
@@ -52,11 +53,33 @@ void MainWindow::WirePlaybackControls()
     SubtitleButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->OpenSubtitle(); });
     PreviousButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->session_->PlaylistPrevious(); });
     NextButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->session_->PlaylistNext(); });
-    PlaylistView().DoubleTapped([weak](auto const&, auto const&) { if (auto self = weak.get()) self->PlaySelected(); });
+    PlaylistView().DoubleTapped([weak](auto const&, Input::DoubleTappedRoutedEventArgs const& args) {
+        if (auto self = weak.get(); self && !self->closing_) {
+            // A double click targets the clicked row, not an unrelated first
+            // selected row left over from an Extended Ctrl/Shift selection.
+            auto element = args.OriginalSource().try_as<DependencyObject>();
+            while (element && element != self->PlaylistView()) {
+                if (auto item = element.try_as<Controls::ListViewItem>()) {
+                    self->PlaylistView().SelectedItems().Clear();
+                    self->PlaylistView().SelectedItems().Append(item);
+                    self->PlaySelected();
+                    args.Handled(true);
+                    break;
+                }
+                element = Media::VisualTreeHelper::GetParent(element);
+            }
+        }
+    });
     PlaySelectedButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->PlaySelected(); });
     RemoveButton().Click([weak](auto const&, auto const&) {
-        if (auto self = weak.get(); self && self->PlaylistView().SelectedIndex() >= 0)
-            self->session_->PlaylistRemove(static_cast<size_t>(self->PlaylistView().SelectedIndex()));
+        if (auto self = weak.get()) self->RemoveSelectedPlaylistItems();
+    });
+    QueueSelectedNextButton().Click([weak](auto const&, auto const&) {
+        if (auto self = weak.get()) self->QueueSelectedPlaylistNext();
+    });
+    PlaylistView().SelectionChanged([weak](auto const&, auto const&) {
+        if (auto self = weak.get(); self && !self->updating_ && !self->closing_)
+            self->UpdatePlaylistSelection();
     });
     MoveUpButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->MoveSelected(-1); });
     MoveDownButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->MoveSelected(1); });
@@ -92,15 +115,18 @@ void MainWindow::WirePlaybackControls()
 }
 void MainWindow::PlaySelected()
 {
-    auto index = PlaylistView().SelectedIndex();
-    if (!closing_ && index >= 0) session_->PlaylistPlay(static_cast<size_t>(index));
+    auto rows = SelectedPlaylistRows();
+    // Like a table's first selected row, playback starts at the topmost selected
+    // entry; multi-selection does not create a replacement playlist.
+    if (!rows.empty()) session_->PlaylistPlay(rows.front());
 }
 void MainWindow::MoveSelected(int delta)
 {
-    auto index = PlaylistView().SelectedIndex();
-    auto target = index + delta;
-    if (!closing_ && index >= 0 && target >= 0 && target < static_cast<int>(playlist_.size()))
-        session_->PlaylistMove(static_cast<size_t>(index), static_cast<size_t>(target));
+    auto rows = SelectedPlaylistRows();
+    if (rows.size() != 1) return; // Batch movement uses the explicit Play Next operation.
+    auto target = static_cast<std::int64_t>(rows.front()) + delta;
+    if (target >= 0 && target < static_cast<std::int64_t>(playlist_.size()))
+        session_->PlaylistMove(rows.front(), static_cast<std::size_t>(target));
 }
 void MainWindow::ApplyCollections(iima::PlaybackSnapshot const& state)
 {
@@ -112,20 +138,22 @@ void MainWindow::ApplyCollections(iima::PlaybackSnapshot const& state)
     // Called under updating_: property projections must never issue commands.
     if (playlistRevision_ != state.playlistRevision) {
         playlistRevision_ = state.playlistRevision;
-        std::optional<int64_t> selected;
-        auto index = PlaylistView().SelectedIndex();
-        if (index >= 0 && index < static_cast<int>(playlist_.size())) selected = playlist_[index].id;
+        auto selected = SelectedPlaylistIds();
+        std::unordered_set<std::int64_t> selectedIds(selected.begin(), selected.end());
         playlist_ = state.playlist;
         PlaylistView().Items().Clear();
-        int nextSelection = -1;
         for (size_t i = 0; i < playlist_.size(); ++i) {
             auto const& entry = playlist_[i];
             auto text = (entry.current ? L"▶ " : L"") + to_hstring(entry.title.empty() ? Filename(entry.path) : entry.title);
-            PlaylistView().Items().Append(box_value(text));
-            if ((selected && entry.id == *selected) || (!selected && entry.current)) nextSelection = static_cast<int>(i);
+            Controls::ListViewItem item;
+            item.Content(box_value(text));
+            item.Tag(box_value(entry.id));
+            PlaylistView().Items().Append(item);
+            if (selectedIds.contains(entry.id) ||
+                (selected.empty() && entry.current)) PlaylistView().SelectedItems().Append(item);
         }
-        PlaylistView().SelectedIndex(nextSelection);
     }
+    UpdatePlaylistSelection();
     if (tracksRevision_ != state.tracksRevision) {
         tracksRevision_ = state.tracksRevision;
         tracks_ = state.tracks;

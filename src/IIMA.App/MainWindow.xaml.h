@@ -203,6 +203,11 @@ private:
     void ExecuteApplicationCommand(iima::ApplicationCommand command);
     void ApplyCollections(iima::PlaybackSnapshot const& state);
     void PlaySelected();
+    std::vector<std::int64_t> SelectedPlaylistIds() const;
+    std::vector<std::size_t> SelectedPlaylistRows();
+    void UpdatePlaylistSelection();
+    void RemoveSelectedPlaylistItems();
+    void QueueSelectedPlaylistNext();
     void MoveSelected(int delta);
     void Apply(iima::PlaybackSnapshot const& state);
     void ToggleFullscreen();

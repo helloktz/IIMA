@@ -62,8 +62,8 @@
                     <Button x:Name="AppendButton" Content="添加"/>
                     <Button x:Name="SavePlaylistButton" Content="保存"/>
                 </StackPanel>
-                <ListView x:Name="PlaylistView" Grid.Row="1" Foreground="White" SelectionMode="Single"
-                          AutomationProperties.Name="播放列表" />
+                <ListView x:Name="PlaylistView" Grid.Row="1" Foreground="White" SelectionMode="Extended"
+                          AutomationProperties.Name="播放列表（Ctrl或Shift多选）" />
                 <StackPanel Grid.Row="2" Spacing="6">
                     <StackPanel Orientation="Horizontal" Spacing="4">
                         <Button x:Name="SortPlaylistButton" Content="排序"/>
@@ -75,6 +75,8 @@
                         <Button x:Name="PlaySelectedButton" Content="播放"/>
                         <Button x:Name="NextButton" Content="下一项"/>
                     </StackPanel>
+                    <TextBlock x:Name="PlaylistSelectionText" Text="未选择条目；Ctrl或Shift可多选" TextWrapping="Wrap"/>
+                    <Button x:Name="QueueSelectedNextButton" Content="选中项接下来播放"/>
                     <StackPanel Orientation="Horizontal" Spacing="4">
                         <Button x:Name="RemoveButton" Content="移除"/>
                         <Button x:Name="MoveUpButton" Content="上移"/>

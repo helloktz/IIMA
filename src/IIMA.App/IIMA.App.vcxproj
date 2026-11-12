@@ -59,6 +59,7 @@
     <ClCompile Include="MainWindow.xaml.cpp"><DependentUpon>MainWindow.xaml</DependentUpon></ClCompile>
     <ClCompile Include="Presentation\VideoPresenter.cpp" />
     <ClCompile Include="MainWindow.Playback.cpp" />
+    <ClCompile Include="MainWindow.PlaylistSelection.cpp" />
     <ClCompile Include="MainWindow.UserData.cpp" />
     <ClCompile Include="MainWindow.Files.cpp" />
     <ClCompile Include="MainWindow.Settings.cpp" />
