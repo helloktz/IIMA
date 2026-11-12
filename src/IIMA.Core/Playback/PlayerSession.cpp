@@ -28,7 +28,7 @@ void PlayerSession::Notify() { if(changed_) changed_(snapshot_); }
 // monotonically allocated playlist entry and returns playlist_entry_id.
 void PlayerSession::BeginMediaOriginIntent(bool explicitOpen) {
     CancelExternalTrackReload();
-    CancelExternalVideoLoad();
+    CancelExternalAVLoad();
     CancelExternalTrackRemoval();
     CancelSubtitleReload();
     CancelScrub();
@@ -269,16 +269,6 @@ void PlayerSession::AddSubtitle(std::string path, bool select) {
     auto found=std::find_if(snapshot_.tracks.begin(),snapshot_.tracks.end(),[&](auto const& t){return t.type=="sub" && t.externalPath==path;});
     if(found!=snapshot_.tracks.end()) client_->Command({"sub-reload",std::to_string(found->id)});
     else client_->Command({"sub-add",std::move(path),select ? "select" : "auto"});
-}
-// IINA loadExternalAudioFile uses audio-add with the default select flag.
-bool PlayerSession::LoadExternalAudio(std::string path) {
-    BeginTrackEditIntent();
-    if(snapshot_.session!=SessionState::Ready || snapshot_.media!=MediaState::Loaded ||
-        pauseRequest_ || loadRequest_ || !pendingCommands_.empty() || PlaylistEditBusy() ||
-        path.empty() || path.size()>131072 || path.find('\0')!=std::string::npos) return false;
-    // Pass argv directly, never interpret a chosen filename as a command string.
-    // Preserve upstream behavior: do not silently use cached or deduplicate paths.
-    return client_->Command({"audio-add",std::move(path),"select"}) != 0;
 }
 void PlayerSession::Pause(bool value) {
     CancelScrub();
@@ -688,7 +678,7 @@ void PlayerSession::OnEvent(MpvEvent e) {
     if (e.kind == MpvEvent::Kind::Failure || e.kind == MpvEvent::Kind::Shutdown ||
         e.kind == MpvEvent::Kind::StartFile || e.kind == MpvEvent::Kind::EndFile) {
         CancelExternalTrackReload();
-        CancelExternalVideoLoad();
+        CancelExternalAVLoad();
         CancelExternalTrackRemoval();
         CancelSubtitleReload();
     }
@@ -698,9 +688,9 @@ void PlayerSession::OnEvent(MpvEvent e) {
         externalTrackReloadStatus_.targetPresentConfirmed = false;
         externalTrackReloadStatus_.selectionRestoredConfirmed = false;
         externalTrackReloadCancelled_.reset();
-        externalVideoLoadRequest_ = 0;
-        externalVideoLoadStatus_.inFlight = false;
-        externalVideoLoadCancelled_.reset();
+        externalAVLoadRequest_ = 0;
+        externalAVLoadStatus_.inFlight = false;
+        externalAVLoadCancelled_.reset();
         externalTrackRemovalRequest_ = 0;
         externalTrackRemovalStatus_.inFlight = false;
         externalTrackRemovalCancelled_.reset();
@@ -708,7 +698,7 @@ void PlayerSession::OnEvent(MpvEvent e) {
         subtitleReloadStatus_.inFlight = false;
     }
     if (HandleExternalTrackReloadReply(e)) return;
-    if (HandleExternalVideoLoadReply(e)) return;
+    if (HandleExternalAVLoadReply(e)) return;
     if (HandleExternalTrackRemovalReply(e)) return;
     if (HandleSubtitleReloadReply(e)) return;
     HandleWindowPauseReply(e);
@@ -852,8 +842,8 @@ void PlayerSession::CloseAsync(std::function<void()> completion) {
             if(auto self=weak.lock()) {
                 self->externalTrackReloadRequest_=0; self->externalTrackReloadStatus_.inFlight=false;
                 self->externalTrackReloadCancelled_.reset();
-                self->externalVideoLoadRequest_=0; self->externalVideoLoadStatus_.inFlight=false;
-                self->externalVideoLoadCancelled_.reset();
+                self->externalAVLoadRequest_=0; self->externalAVLoadStatus_.inFlight=false;
+                self->externalAVLoadCancelled_.reset();
                 self->externalTrackRemovalRequest_=0; self->externalTrackRemovalStatus_.inFlight=false;
                 self->externalTrackRemovalCancelled_.reset();
                 self->subtitleReloadRequest_=0; self->subtitleReloadStatus_.inFlight=false;

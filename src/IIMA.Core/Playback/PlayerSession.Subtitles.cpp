@@ -137,7 +137,7 @@ void PlayerSession::SubmitSubtitleReloadCommand(std::vector<std::string> command
 }
 bool PlayerSession::BeginSubtitleReload(std::optional<std::string> encoding) {
     BeginTrackEditIntent();
-    if (ExternalTrackReloadBusy() || ExternalVideoLoadBusy() || ExternalTrackRemovalBusy()) return false;
+    if (ExternalTrackReloadBusy() || ExternalAVLoadBusy() || ExternalTrackRemovalBusy()) return false;
     if (SubtitleReloadBusy()) { CancelSubtitleReload(); ++subtitleEditIntentRevision_; return false; }
     if (snapshot_.session != SessionState::Ready || snapshot_.media != MediaState::Loaded ||
         waitingForStart_ || playlistEdit_ || snapshot_.mediaOriginPending || pauseRequest_ || loadRequest_ ||

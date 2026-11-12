@@ -212,7 +212,7 @@ void MainWindow::Apply(iima::PlaybackSnapshot const& state)
         fullscreenPreferenceEntry_ = state.entryId;
         if (userDataLoaded_ && !musicMode_.IsMusic() && preferences_.Boolean("fullScreenWhenOpen") && !fullscreen_) ToggleFullscreen();
     }
-    UpdateExternalVideoLoad();
+    UpdateExternalAVLoad();
     ApplyCollections(state);
     UpdateSecondarySubtitles(state);
     UpdateNavigationControls(state);
@@ -281,7 +281,7 @@ void MainWindow::BeginClose()
     ClearChapterMarkers();
     ResetPlaylistDrag();
     UpdatePlaylistProgress();
-    InvalidateExternalVideoLoad();
+    InvalidateExternalAVLoad();
     InvalidateExternalTrackReload();
     InvalidateExternalTrackRemoval();
     InvalidateSubtitleReload();

@@ -51,7 +51,7 @@ struct Chapter {
 // Owns all payloads; never exports mpv's borrowed event memory.
 struct MpvEvent {
     enum class Kind { Ready, Failure, StartFile, Loaded, EndFile, Seek, Restart, SeekMeasurement,
-                      Property, CommandReply, PlaylistReply, ExternalTrackStateReply, ExternalTrackEditReply, ExternalVideoLoadReply, ExternalTrackRemovalReply, SubtitleStateReply, PauseReply, VideoGeometryReply, WindowScaleReply, WatchedPropertiesReply, VideoReconfig, Shutdown } kind;
+                      Property, CommandReply, PlaylistReply, ExternalTrackStateReply, ExternalTrackEditReply, ExternalAVLoadReply, ExternalTrackRemovalReply, SubtitleStateReply, PauseReply, VideoGeometryReply, WindowScaleReply, WatchedPropertiesReply, VideoReconfig, Shutdown } kind;
     std::string name, text;
     std::optional<double> number;
     std::optional<bool> flag;
@@ -67,7 +67,7 @@ struct MpvEvent {
     bool externalTrackStateComplete{}, externalTrackEditSubmitted{}, externalTrackEditCommandSucceeded{};
     std::optional<std::int64_t> audioTrack, videoTrack; // Fresh AV slots; 0 means off.
     bool externalTrackRemovalSubmitted{}, externalTrackRemovedConfirmed{};
-    bool externalVideoLoadSubmitted{}, externalVideoSelectedConfirmed{};
+    bool externalAVLoadSubmitted{}, externalAVSelectedConfirmed{}, externalAVLoadCommandSucceeded{};
     std::optional<std::int64_t> primarySubtitle, secondarySubtitle; // 0 means no selection.
     std::vector<Chapter> chapters;
     FilterChainSnapshot filters;
@@ -112,9 +112,9 @@ public:
     std::uint64_t RemoveExternalTrackAsync(std::string type, std::int64_t id,
         std::string externalPath, std::int64_t expectedEntry, std::string mediaPath,
         std::shared_ptr<std::atomic_bool> cancelled = {});
-    // video-add select with fresh media checks and selected external vid readback.
+    // audio/video-add select with fresh media checks and actual aid/vid readback.
     // Confirmation is track selection, not output binding or frame presentation.
-    std::uint64_t LoadExternalVideoAsync(std::string path, std::int64_t expectedEntry,
+    std::uint64_t LoadExternalAVAsync(std::string type, std::string path, std::int64_t expectedEntry,
         std::string mediaPath, std::shared_ptr<std::atomic_bool> cancelled = {});
     // Genuine async GET reply through mpv's event queue, not cached observation.
     std::uint64_t GetVideoGeometryAsync();

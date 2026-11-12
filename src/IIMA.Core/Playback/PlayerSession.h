@@ -37,12 +37,13 @@ struct ExternalTrackRemovalStatus {
     bool inFlight{}, submitted{}, removedConfirmed{};
     std::string error;
 };
-struct ExternalVideoLoadStatus {
+struct ExternalAVLoadStatus {
     enum class Phase { Idle, Loading, Completed, Cancelled, Failed };
     Phase phase{Phase::Idle};
     std::uint64_t revision{};
     // Flags become known at reply; false while inFlight is not proof of no action.
-    bool inFlight{}, submitted{}, selectedConfirmed{};
+    bool inFlight{}, submitted{}, commandAcknowledged{}, selectedConfirmed{};
+    std::string type; // audio/video for an accepted attempt; empty while Idle.
     std::string error;
 };
 struct ExternalTrackReloadStatus {
@@ -107,9 +108,9 @@ public:
     // Adds/selects a video track in the current media, never a playlist open.
     // Completed confirms fresh external path + vid, not rendered video output.
     bool LoadExternalVideo(std::string path);
-    void CancelExternalVideoLoad();
-    bool ExternalVideoLoadBusy() const noexcept { return externalVideoLoadStatus_.inFlight; }
-    ExternalVideoLoadStatus const& ExternalVideoLoad() const noexcept { return externalVideoLoadStatus_; }
+    void CancelExternalAVLoad();
+    bool ExternalAVLoadBusy() const noexcept { return externalAVLoadStatus_.inFlight; }
+    ExternalAVLoadStatus const& ExternalAVLoad() const noexcept { return externalAVLoadStatus_; }
     // Removes a player track only, never its file. Completed requires a fresh
     // complete list confirming absence, not just a successful command reply.
     bool RemoveExternalTrack(std::string type, std::int64_t id, std::string externalPath);
@@ -231,12 +232,13 @@ private:
     std::int64_t externalTrackReloadEntry_{-1}, externalTrackReloadTargetId_{}, externalTrackReloadOriginalId_{};
     std::string externalTrackReloadMediaPath_, externalTrackReloadType_, externalTrackReloadTargetPath_, externalTrackReloadOriginalPath_;
     bool externalTrackReloadOriginalExternal_{}, externalTrackReloadHadError_{}, externalTrackReloadRequestWasReload_{}, externalTrackReloadBaselineCaptured_{};
-    bool HandleExternalVideoLoadReply(MpvEvent const& event);
-    ExternalVideoLoadStatus externalVideoLoadStatus_;
-    std::shared_ptr<std::atomic_bool> externalVideoLoadCancelled_;
-    std::uint64_t externalVideoLoadRequest_{}, externalVideoLoadGeneration_{}, externalVideoLoadOpenIntent_{}, externalVideoLoadEditIntent_{};
-    std::int64_t externalVideoLoadEntry_{-1};
-    std::string externalVideoLoadMediaPath_;
+    bool LoadExternalAV(std::string type, std::string path);
+    bool HandleExternalAVLoadReply(MpvEvent const& event);
+    ExternalAVLoadStatus externalAVLoadStatus_;
+    std::shared_ptr<std::atomic_bool> externalAVLoadCancelled_;
+    std::uint64_t externalAVLoadRequest_{}, externalAVLoadGeneration_{}, externalAVLoadOpenIntent_{}, externalAVLoadEditIntent_{};
+    std::int64_t externalAVLoadEntry_{-1};
+    std::string externalAVLoadMediaPath_;
     bool HandleExternalTrackRemovalReply(MpvEvent const& event);
     ExternalTrackRemovalStatus externalTrackRemovalStatus_;
     std::shared_ptr<std::atomic_bool> externalTrackRemovalCancelled_;

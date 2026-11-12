@@ -313,7 +313,9 @@
                         <TextBlock x:Name="ExternalVideoStatus" TextWrapping="Wrap" FontSize="12"/>
                         <Button x:Name="CycleAudioTrackButton" Content="切换下一音轨"/>
                         <ComboBox x:Name="AudioBox" Header="音轨" HorizontalAlignment="Stretch" AutomationProperties.Name="音轨"/>
-                        <Button x:Name="LoadExternalAudioButton" Content="载入外置音频…" IsEnabled="False"/>
+                        <Button x:Name="LoadExternalAudioButton" Content="载入外置音频…" IsEnabled="False" ToolTipService.ToolTip="载入并选择当前媒体的外部音轨，可能替换声音；不主动播放、不改变队列"/>
+                        <Button x:Name="CancelExternalAudioButton" Content="取消音频载入后续确认" IsEnabled="False"/>
+                        <TextBlock x:Name="ExternalAudioStatus" TextWrapping="Wrap" FontSize="12"/>
                         <ComboBox x:Name="AudioEqualizerBox" Header="音频均衡预设" HorizontalAlignment="Stretch"/>
                         <Button x:Name="ApplyAudioEqualizerButton" Content="应用均衡预设"/>
                         <Button x:Name="RemoveAudioEqualizerButton" Content="移除音频均衡"/>

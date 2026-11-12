@@ -168,7 +168,7 @@ void MainWindow::WirePlayerMenus() {
 
     auto picture = top(L"视频");
     videoTrackMenu_ = sub(picture, L"视频轨道");
-    add(picture, L"载入外部视频…", [this] {LoadExternalVideo();}, [this] {return CanLoadExternalVideo();});
+    add(picture, L"载入外部视频…", [this] {LoadExternalVideo();}, [this] {return CanLoadExternalAV();});
     auto sizes = sub(picture, L"窗口尺寸");
     for (double value : {0.5, 1.0, 1.5, 2.0})
         add(sizes, to_hstring(value) + L" 倍", [this, value] { ResizeToVideo(value); }, normalVideo);
@@ -191,7 +191,7 @@ void MainWindow::WirePlayerMenus() {
     audioTrackMenu_ = sub(audio, L"音轨");
     audioDeviceMenu_ = sub(audio, L"输出设备");
     savedAudioFilterMenu_ = sub(audio, L"保存的音频滤镜");
-    add(audio, L"加载外部音轨…", [this] { LoadExternalAudio(); }, [this, loaded] { return loaded() && !session_->ExternalVideoLoadBusy() && !session_->ExternalTrackRemovalBusy() && !session_->ExternalTrackReloadBusy() && !session_->SubtitleReloadBusy(); });
+    add(audio, L"加载外部音轨…", [this] { LoadExternalAudio(); }, [this] {return CanLoadExternalAV();});
     add(audio, L"静音", [this] { session_->ToggleMute(); }, loaded, {"cycle","mute"}, false,
         [this] { return session_->Snapshot().muted; });
     add(audio, L"增大音量", [this] { session_->SetVolume(session_->Snapshot().volume + 5); }, loaded, {"add","volume","5"});

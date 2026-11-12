@@ -1,13 +1,14 @@
-// IINA PlayerCore.loadExternalVideoFile / JavascriptAPICore.TrackAPI.loadTrack.
-// Copyright (c) 2016-2026 lhc and IINA contributors. GPL-3.0.
+// IINA PlayerCore.loadExternalAudioFile/loadExternalVideoFile and
+// JavascriptAPICore.TrackAPI.loadTrack. Copyright (c) 2016, 2018 lhc. GPL-3.0.
 // See references/iina-source.txt and references/iina/LICENSE.
 // Windows local-file picker adaptation; no raw command or playlist-load surface.
 #include "PlayerSession.h"
 #include <algorithm>
 #include <string_view>
+#include <utility>
 namespace iima {
 namespace {
-bool LocalVideoPath(std::string_view path) {
+bool LocalAVPath(std::string_view path) {
     if (path.size() < 4 || path.size() > 131072 ||
         !((path[0] >= 'A' && path[0] <= 'Z') || (path[0] >= 'a' && path[0] <= 'z')) ||
         path[1] != ':' || (path[2] != '\\' && path[2] != '/') || path.find(':', 2) != path.npos ||
@@ -30,71 +31,79 @@ bool LocalVideoPath(std::string_view path) {
     return false;
 }
 }
-void PlayerSession::CancelExternalVideoLoad() {
-    if (externalVideoLoadCancelled_) externalVideoLoadCancelled_->store(true);
-    if (externalVideoLoadStatus_.phase != ExternalVideoLoadStatus::Phase::Loading) return;
-    externalVideoLoadStatus_.phase = ExternalVideoLoadStatus::Phase::Cancelled;
+void PlayerSession::CancelExternalAVLoad() {
+    if (externalAVLoadCancelled_) externalAVLoadCancelled_->store(true);
+    if (externalAVLoadStatus_.phase != ExternalAVLoadStatus::Phase::Loading) return;
+    externalAVLoadStatus_.phase = ExternalAVLoadStatus::Phase::Cancelled;
     Notify(); // Retain the request until drain; no promise to recall submitted work.
 }
+bool PlayerSession::LoadExternalAudio(std::string path) {
+    return LoadExternalAV("audio", std::move(path));
+}
 bool PlayerSession::LoadExternalVideo(std::string path) {
+    return LoadExternalAV("video", std::move(path));
+}
+bool PlayerSession::LoadExternalAV(std::string type, std::string path) {
     BeginTrackEditIntent();
     CancelScrub();
     CancelSubtitleReload();
-    if (ExternalTrackReloadBusy() || ExternalVideoLoadBusy() || ExternalTrackRemovalBusy() || SubtitleReloadBusy() ||
+    if ((type != "audio" && type != "video") || ExternalTrackReloadBusy() || ExternalAVLoadBusy() || ExternalTrackRemovalBusy() || SubtitleReloadBusy() ||
         snapshot_.session != SessionState::Ready || snapshot_.media != MediaState::Loaded ||
         waitingForStart_ || snapshot_.mediaOriginPending || pauseRequest_ || loadRequest_ ||
         !pendingCommands_.empty() || playlistEdit_ || snapshot_.entryId < 0 ||
-        snapshot_.path.empty() || snapshot_.path.size() > 131072 || !LocalVideoPath(path)) return false;
-    // No presentationReady_ requirement: adding a video is useful for an
-    // audio-only source or one whose output is not currently ready.
-    externalVideoLoadGeneration_ = snapshot_.mediaGeneration;
-    externalVideoLoadOpenIntent_ = snapshot_.mediaOpenIntentRevision;
-    externalVideoLoadEditIntent_ = trackEditIntentRevision_;
-    externalVideoLoadEntry_ = snapshot_.entryId;
-    externalVideoLoadMediaPath_ = snapshot_.path;
-    const auto revision = externalVideoLoadStatus_.revision + 1;
-    externalVideoLoadStatus_ = {};
-    externalVideoLoadStatus_.revision = revision;
-    externalVideoLoadStatus_.phase = ExternalVideoLoadStatus::Phase::Loading;
+        snapshot_.path.empty() || snapshot_.path.size() > 131072 || !LocalAVPath(path)) return false;
+    // No presentationReady_ requirement: adding an external track can repair
+    // a source whose audio/video output is not currently ready.
+    externalAVLoadGeneration_ = snapshot_.mediaGeneration;
+    externalAVLoadOpenIntent_ = snapshot_.mediaOpenIntentRevision;
+    externalAVLoadEditIntent_ = trackEditIntentRevision_;
+    externalAVLoadEntry_ = snapshot_.entryId;
+    externalAVLoadMediaPath_ = snapshot_.path;
+    const auto revision = externalAVLoadStatus_.revision + 1;
+    externalAVLoadStatus_ = {};
+    externalAVLoadStatus_.revision = revision;
+    externalAVLoadStatus_.type = type;
+    externalAVLoadStatus_.phase = ExternalAVLoadStatus::Phase::Loading;
     try {
-        externalVideoLoadCancelled_ = std::make_shared<std::atomic_bool>(false);
-        externalVideoLoadRequest_ = client_->LoadExternalVideoAsync(std::move(path), externalVideoLoadEntry_,
-            externalVideoLoadMediaPath_, externalVideoLoadCancelled_);
-    } catch (...) { externalVideoLoadRequest_ = 0; }
-    externalVideoLoadStatus_.inFlight = externalVideoLoadRequest_ != 0;
-    if (!externalVideoLoadRequest_) {
-        externalVideoLoadStatus_.phase = ExternalVideoLoadStatus::Phase::Failed;
-        externalVideoLoadStatus_.error = "Playback worker rejected external video loading";
-        externalVideoLoadCancelled_.reset();
+        externalAVLoadCancelled_ = std::make_shared<std::atomic_bool>(false);
+        externalAVLoadRequest_ = client_->LoadExternalAVAsync(std::move(type), std::move(path), externalAVLoadEntry_,
+            externalAVLoadMediaPath_, externalAVLoadCancelled_);
+    } catch (...) { externalAVLoadRequest_ = 0; }
+    externalAVLoadStatus_.inFlight = externalAVLoadRequest_ != 0;
+    if (!externalAVLoadRequest_) {
+        externalAVLoadStatus_.phase = ExternalAVLoadStatus::Phase::Failed;
+        externalAVLoadStatus_.error = "Playback worker rejected external audio/video loading";
+        externalAVLoadCancelled_.reset();
     }
-    const bool accepted = externalVideoLoadRequest_ != 0;
+    const bool accepted = externalAVLoadRequest_ != 0;
     Notify(); return accepted;
 }
-bool PlayerSession::HandleExternalVideoLoadReply(MpvEvent const& event) {
-    if (event.kind != MpvEvent::Kind::ExternalVideoLoadReply) return false;
-    if (!externalVideoLoadRequest_ || event.requestId != externalVideoLoadRequest_) return true;
-    externalVideoLoadRequest_ = 0;
-    externalVideoLoadStatus_.inFlight = false;
-    externalVideoLoadStatus_.submitted = event.externalVideoLoadSubmitted;
-    externalVideoLoadStatus_.selectedConfirmed = event.externalVideoSelectedConfirmed;
-    const bool cancelled = externalVideoLoadStatus_.phase == ExternalVideoLoadStatus::Phase::Cancelled ||
-        (externalVideoLoadCancelled_ && externalVideoLoadCancelled_->load()) ||
+bool PlayerSession::HandleExternalAVLoadReply(MpvEvent const& event) {
+    if (event.kind != MpvEvent::Kind::ExternalAVLoadReply) return false;
+    if (!externalAVLoadRequest_ || event.requestId != externalAVLoadRequest_) return true;
+    externalAVLoadRequest_ = 0;
+    externalAVLoadStatus_.inFlight = false;
+    externalAVLoadStatus_.submitted = event.externalAVLoadSubmitted;
+    externalAVLoadStatus_.commandAcknowledged = event.externalAVLoadCommandSucceeded;
+    externalAVLoadStatus_.selectedConfirmed = event.externalAVSelectedConfirmed;
+    const bool cancelled = externalAVLoadStatus_.phase == ExternalAVLoadStatus::Phase::Cancelled ||
+        (externalAVLoadCancelled_ && externalAVLoadCancelled_->load()) ||
         snapshot_.session != SessionState::Ready || snapshot_.media != MediaState::Loaded ||
-        snapshot_.mediaGeneration != externalVideoLoadGeneration_ || snapshot_.mediaOpenIntentRevision != externalVideoLoadOpenIntent_ ||
-        trackEditIntentRevision_ != externalVideoLoadEditIntent_ || snapshot_.entryId != externalVideoLoadEntry_ ||
-        snapshot_.path != externalVideoLoadMediaPath_;
-    externalVideoLoadCancelled_.reset();
-    if (cancelled) externalVideoLoadStatus_.phase = ExternalVideoLoadStatus::Phase::Cancelled;
-    else if (event.error >= 0 && event.externalVideoSelectedConfirmed) externalVideoLoadStatus_.phase = ExternalVideoLoadStatus::Phase::Completed;
+        snapshot_.mediaGeneration != externalAVLoadGeneration_ || snapshot_.mediaOpenIntentRevision != externalAVLoadOpenIntent_ ||
+        trackEditIntentRevision_ != externalAVLoadEditIntent_ || snapshot_.entryId != externalAVLoadEntry_ ||
+        snapshot_.path != externalAVLoadMediaPath_;
+    externalAVLoadCancelled_.reset();
+    if (cancelled) externalAVLoadStatus_.phase = ExternalAVLoadStatus::Phase::Cancelled;
+    else if (event.error >= 0 && event.externalAVSelectedConfirmed) externalAVLoadStatus_.phase = ExternalAVLoadStatus::Phase::Completed;
     else {
-        externalVideoLoadStatus_.phase = ExternalVideoLoadStatus::Phase::Failed;
-        externalVideoLoadStatus_.error = event.externalVideoSelectedConfirmed ?
-            "mpv reported an error, although fresh state confirms the requested external video is selected" :
-            event.externalVideoLoadSubmitted ?
-            "Loading was submitted, but selection of the requested external video could not be confirmed; tracks may have changed" :
+        externalAVLoadStatus_.phase = ExternalAVLoadStatus::Phase::Failed;
+        externalAVLoadStatus_.error = event.externalAVSelectedConfirmed ?
+            "mpv reported an error, although fresh state confirms the requested external audio/video track is selected" :
+            event.externalAVLoadSubmitted ?
+            "Loading was submitted, but selection of the requested external audio/video track could not be confirmed; tracks may have changed" :
             "Loading was not submitted because the player, media identity, or local path was unavailable";
     }
-    // Track-list/vid/video-reconfig and owned swapchain observations drive all
+    // Track-list/aid/vid/video-reconfig and owned swapchain observations drive all
     // playback, music-mode and geometry changes. This reply cannot grant a VO
     // readiness lease or synthesize successful rendering.
     Notify(); return true;

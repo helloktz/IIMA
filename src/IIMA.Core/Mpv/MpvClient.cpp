@@ -57,8 +57,8 @@ struct MpvClient::State {
         std::int64_t id{}, entry{-1};
         std::shared_ptr<std::atomic_bool> cancelled;
     };
-    struct ExternalVideoLoad {
-        std::string path, mediaPath;
+    struct ExternalAVLoad {
+        std::string type, path, mediaPath;
         std::int64_t entry{-1};
         std::shared_ptr<std::atomic_bool> cancelled;
     };
@@ -84,7 +84,7 @@ struct MpvClient::State {
         std::optional<TrackRemoval> trackRemoval;
         std::optional<std::pair<std::int64_t,std::string>> externalTrackState;
         std::optional<TrackEdit> trackEdit;
-        std::optional<ExternalVideoLoad> externalVideoLoad;
+        std::optional<ExternalAVLoad> externalAVLoad;
         std::optional<std::string> recoverAudioDevice;
     };
     std::deque<Request> commands;
@@ -143,7 +143,7 @@ struct MpvClient::State {
             std::string inFlightFilter;
             std::optional<TrackRemoval> inFlightRemoval;
             std::optional<TrackEdit> inFlightTrackEdit;
-            std::optional<ExternalVideoLoad> inFlightVideoLoad;
+            std::optional<ExternalAVLoad> inFlightAVLoad;
             auto readFilterResult = [&](MpvEvent& event, std::string const& name) {
                 event.name = name;
                 mpv_node value{};
@@ -164,7 +164,7 @@ struct MpvClient::State {
             };
             // cmd_track_remove ignores mp_remove_track's bool result. A command
             // acknowledgement alone therefore cannot confirm removal.
-            auto readTrackState=[&](MpvEvent& event, std::int64_t expectedEntry, std::string const& expectedPath, bool readVideoSlot=false, bool readAVSlots=false) {
+            auto readTrackState=[&](MpvEvent& event, std::int64_t expectedEntry, std::string const& expectedPath, bool readAVSlots=false, std::string_view selectedType={}) {
                 try {
                     auto require=[&](int code) {
                         if(code<0) {event.error=code;throw std::runtime_error(api.error_string(code));}
@@ -193,15 +193,7 @@ struct MpvClient::State {
                     require(code);
                     if(!CopyCompleteTrackIdentities(event,node))
                         throw std::runtime_error("Track identities are incomplete, malformed or exceed limits");
-                    if(readVideoSlot) {
-                        std::int64_t vid{-1};
-                        require(api.get_property(handle,"vid",MPV_FORMAT_INT64,&vid));
-                        if(vid!=-2 && (vid<=0 || std::none_of(event.tracks.begin(),event.tracks.end(),
-                            [&](auto const& track){return track.type=="video" && track.id==vid;})))
-                            throw std::runtime_error("Selected video does not match complete track identities");
-                        event.integer=vid; // -2 is confirmed off; -1 auto is not confirmed.
-                    }
-                    if(readAVSlots) {
+                    if(readAVSlots || !selectedType.empty()) {
                         auto slot=[&](char const* property, char const* type) {
                             std::int64_t id{-1};
                             require(api.get_property(handle,property,MPV_FORMAT_INT64,&id));
@@ -211,7 +203,8 @@ struct MpvClient::State {
                                 throw std::runtime_error("Selected AV slot does not match complete track identities");
                             return id;
                         };
-                        event.audioTrack=slot("aid","audio");event.videoTrack=slot("vid","video");
+                        if(readAVSlots || selectedType=="audio") event.audioTrack=slot("aid","audio");
+                        if(readAVSlots || selectedType=="video") event.videoTrack=slot("vid","video");
                     }
                     const auto after=identity();
                     if(before!=after) throw std::runtime_error("Media changed during track identity read");
@@ -259,14 +252,14 @@ struct MpvClient::State {
                     int error{};
                     if(pending->externalTrackState) {
                         MpvEvent result{MpvEvent::Kind::ExternalTrackStateReply};result.requestId=request;
-                        readTrackState(result,pending->externalTrackState->first,pending->externalTrackState->second,false,true);
+                        readTrackState(result,pending->externalTrackState->first,pending->externalTrackState->second,true);
                         Emit(std::move(result));continue;
                     } else if(pending->trackEdit) {
                         auto edit=std::move(*pending->trackEdit);auto const& target=edit.target;
                         MpvEvent result{MpvEvent::Kind::ExternalTrackEditReply};result.requestId=request;
                         auto cancelled=[&] {std::lock_guard lock(mutex);return closing || (target.cancelled && target.cancelled->load());};
                         if(cancelled()) {result.error=MPV_ERROR_COMMAND;result.text="Track edit cancelled before submission";}
-                        else if(readTrackState(result,target.entry,target.mediaPath,false,true)) {
+                        else if(readTrackState(result,target.entry,target.mediaPath,true)) {
                             const auto matches=std::count_if(result.tracks.begin(),result.tracks.end(),[&](auto const& track) {
                                 return track.type==target.type && track.external && track.externalPath==target.externalPath;
                             });
@@ -292,25 +285,26 @@ struct MpvClient::State {
                             }
                         }
                         Emit(std::move(result));continue;
-                    } else if(pending->externalVideoLoad) {
-                        auto target=std::move(*pending->externalVideoLoad);
-                        MpvEvent result{MpvEvent::Kind::ExternalVideoLoadReply};result.requestId=request;
+                    } else if(pending->externalAVLoad) {
+                        auto target=std::move(*pending->externalAVLoad);
+                        MpvEvent result{MpvEvent::Kind::ExternalAVLoadReply};result.requestId=request;
                         auto cancelled=[&] {
                             std::lock_guard lock(mutex);
                             return closing || (target.cancelled && target.cancelled->load());
                         };
                         if(cancelled()) {
-                            result.error=MPV_ERROR_COMMAND;result.text="External video load cancelled before submission";
+                            result.error=MPV_ERROR_COMMAND;result.text="External AV load cancelled before submission";
                         } else if(readTrackState(result,target.entry,target.mediaPath)) {
                             if(cancelled()) {
-                                result.error=MPV_ERROR_COMMAND;result.text="External video load cancelled before submission";
+                                result.error=MPV_ERROR_COMMAND;result.text="External AV load cancelled before submission";
                             } else {
-                                // IINA PlayerCore.loadExternalVideoFile / mpv
+                                // IINA PlayerCore.loadExternalAudioFile/loadExternalVideoFile / mpv
                                 // cmd_track_add: explicit select, never a guessed tid.
-                                const char* args[]{"video-add",target.path.c_str(),"select",nullptr};
+                                const auto command=target.type+"-add";
+                                const char* args[]{command.c_str(),target.path.c_str(),"select",nullptr};
                                 const auto code=api.command_async(handle,request,args);
                                 if(code>=0) {
-                                    inFlightVideoLoad=std::move(target);inFlight=request;
+                                    inFlightAVLoad=std::move(target);inFlight=request;
                                     continue;
                                 }
                                 result.error=code;result.text=api.error_string(code);
@@ -572,33 +566,35 @@ struct MpvClient::State {
                         // Drain and fresh-read even after cancellation/command failure.
                         // Complete state is independent of command success or presentation.
                         const auto& target=inFlightTrackEdit->target;
-                        if(readTrackState(e,target.entry,target.mediaPath,false,true)) {
+                        if(readTrackState(e,target.entry,target.mediaPath,true)) {
                             if(commandError<0) e.text="mpv reported a track edit error; fresh state is available and partial effects are possible";
                         } else e.text="Track edit was submitted, but fresh state could not be confirmed: "+e.text;
                         inFlightTrackEdit.reset();inFlight=0;break;
                     }
-                    if(e.requestId==inFlight && inFlightVideoLoad) {
-                        e.kind=MpvEvent::Kind::ExternalVideoLoadReply;
-                        e.externalVideoLoadSubmitted=true;
+                    if(e.requestId==inFlight && inFlightAVLoad) {
+                        e.kind=MpvEvent::Kind::ExternalAVLoadReply;
+                        e.externalAVLoadSubmitted=true;
                         const auto commandError=e.error;
+                        e.externalAVLoadCommandSucceeded=commandError>=0;
                         // Cancellation after submission cannot retract mpv work.
                         // Read back even a failed command; partial effects are real.
-                        if(readTrackState(e,inFlightVideoLoad->entry,inFlightVideoLoad->mediaPath,true)) {
-                            e.externalVideoSelectedConfirmed=e.integer && *e.integer>0 &&
+                        if(readTrackState(e,inFlightAVLoad->entry,inFlightAVLoad->mediaPath,false,inFlightAVLoad->type)) {
+                            const auto selected=inFlightAVLoad->type=="audio" ? e.audioTrack : e.videoTrack;
+                            e.externalAVSelectedConfirmed=selected && *selected>0 &&
                                 std::any_of(e.tracks.begin(),e.tracks.end(),[&](auto const& track) {
-                                    return track.type=="video" && track.id==*e.integer && track.external &&
-                                        track.externalPath==inFlightVideoLoad->path;
+                                    return track.type==inFlightAVLoad->type && track.id==*selected && track.external &&
+                                        track.externalPath==inFlightAVLoad->path;
                                 });
-                            if(!e.externalVideoSelectedConfirmed) {
+                            if(!e.externalAVSelectedConfirmed) {
                                 if(e.error>=0) e.error=MPV_ERROR_COMMAND;
-                                e.text="External video load was submitted, but the requested video is not confirmed selected";
+                                e.text="External AV load was submitted, but the requested AV track is not confirmed selected";
                             } else if(commandError<0) {
-                                e.text="mpv reported an error, but fresh state confirms the requested external video selected";
+                                e.text="mpv reported an error, but fresh state confirms the requested external AV track selected";
                             }
                         } else {
-                            e.text="External video load was submitted, but its selection could not be confirmed: "+e.text;
+                            e.text="External AV load was submitted, but its selection could not be confirmed: "+e.text;
                         }
-                        inFlightVideoLoad.reset();inFlight=0;
+                        inFlightAVLoad.reset();inFlight=0;
                         break;
                     }
                     if(e.requestId==inFlight && inFlightRemoval) {
@@ -829,18 +825,37 @@ std::uint64_t MpvClient::GetVideoGeometryAsync() {
     state_->commands.push_back(std::move(request));
     return id;
 }
-std::uint64_t MpvClient::LoadExternalVideoAsync(std::string path, std::int64_t expectedEntry,
+std::uint64_t MpvClient::LoadExternalAVAsync(std::string type, std::string path, std::int64_t expectedEntry,
     std::string mediaPath, std::shared_ptr<std::atomic_bool> cancelled) {
     // The Session/picker enforce ordinary local-file policy. Repeat bounded
     // lexical checks here, without reopening a path or introducing disk IO.
-    if(expectedEntry<0 || path.size()<3 || path.size()>131072 || path.find('\0')!=std::string::npos ||
+    if((type!="audio" && type!="video") || expectedEntry<0 || path.size()<4 || path.size()>131072 || path.find('\0')!=std::string::npos ||
         !((path[0]>='A' && path[0]<='Z') || (path[0]>='a' && path[0]<='z')) ||
         path[1]!=':' || (path[2]!='\\' && path[2]!='/') || path.find(':',2)!=std::string::npos ||
         mediaPath.empty() || mediaPath.size()>131072 || mediaPath.find('\0')!=std::string::npos) return 0;
+    if(std::any_of(path.begin(),path.end(),[](unsigned char ch) {
+        return ch<32 || ch==127 || ch=='|' || ch=='?' || ch=='*' || ch=='<' || ch=='>' || ch=='"';
+    })) return 0;
+    // Ordinary drive paths only: reject dot/trailing components and DOS devices,
+    // including reserved names with an extension or a space before the dot.
+    for(std::size_t begin=3;begin<path.size();) {
+        const auto end=path.find_first_of("/\\",begin);
+        const auto part=std::string_view(path).substr(begin,end==path.npos ? path.size()-begin : end-begin);
+        if(part.empty() || part=="." || part==".." || part.back()=='.' || part.back()==' ') return 0;
+        auto stem=std::string(part.substr(0,part.find('.')));
+        while(!stem.empty() && stem.back()==' ') stem.pop_back();
+        for(auto& ch:stem) if(ch>='a' && ch<='z') ch-='a'-'A';
+        if(stem=="CON" || stem=="PRN" || stem=="AUX" || stem=="NUL" || stem=="CONIN$" || stem=="CONOUT$" ||
+            ((stem.starts_with("COM") || stem.starts_with("LPT")) && ((stem.size()==4 && stem[3]>='1' && stem[3]<='9') ||
+                stem.substr(3)=="\xc2\xb9" || stem.substr(3)=="\xc2\xb2" || stem.substr(3)=="\xc2\xb3"))) return 0;
+        if(end==path.npos) break;
+        begin=end+1;
+        if(begin==path.size()) return 0;
+    }
     std::lock_guard lock(state_->mutex);
     if(state_->closing || !state_->started || state_->commands.size()>=256) return 0;
     State::Request request{state_->nextId++,{},false};
-    request.externalVideoLoad=State::ExternalVideoLoad{std::move(path),std::move(mediaPath),expectedEntry,std::move(cancelled)};
+    request.externalAVLoad=State::ExternalAVLoad{std::move(type),std::move(path),std::move(mediaPath),expectedEntry,std::move(cancelled)};
     const auto id=request.id;state_->commands.push_back(std::move(request));return id;
 }
 std::uint64_t MpvClient::RemoveExternalTrackAsync(std::string type, std::int64_t id,
