@@ -19,6 +19,7 @@ struct UserSettings {
     UserEQProfiles::Profiles userEqualizers;
     // Missing means platform defaults; an empty custom file intentionally unbinds all.
     std::optional<std::string> inputConf;
+    std::vector<std::string> watchProperties; // IINA default is an empty inspector watch list.
     double volume{100};
     double speed{1};
     bool recordHistory{true};
@@ -34,6 +35,11 @@ struct UserSettings {
     ScreenshotMode screenshotMode{ScreenshotMode::Subtitles};
 };
 inline bool ValidUserSettings(UserSettings const& s) {
+    if (s.watchProperties.size() > 32) return false;
+    for (auto const& name : s.watchProperties) {
+        if (name.empty() || name.size() > 128) return false;
+        for (unsigned char c : name) if (c <= 32 || c >= 127) return false;
+    }
     return (!s.inputConf || (s.inputConf->size() <= 256 * 1024 && s.inputConf->find('\0') == std::string::npos)) &&
         std::isfinite(s.maxVolume) && s.maxVolume>=100 && s.maxVolume<=1000 &&
         std::isfinite(s.volume) && s.volume>=0 && s.volume<=s.maxVolume &&

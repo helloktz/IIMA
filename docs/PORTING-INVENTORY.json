@@ -297,7 +297,8 @@
       "coverage": "partial-static-unverified",
       "reviewTargets": [
         "src/IIMA.Core/Media/MediaInformation.cpp",
-        "src/IIMA.App/MainWindow.Information.cpp"
+        "src/IIMA.App/MainWindow.Information.cpp",
+        "src/IIMA.App/MainWindow.InspectorWatch.cpp"
       ]
     },
     {

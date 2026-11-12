@@ -50,6 +50,12 @@ public:
     // Close cancellation is delivered only after mpv has released its file writes.
     using ScreenshotCompleted = std::function<void(bool, std::string)>;
     void ScreenshotToFile(std::string path, ScreenshotCompleted completion = {});
+    using WatchedPropertiesCompleted = std::function<void(std::vector<WatchedPropertyValue>, std::string)>;
+    // UI thread only. One request at a time; callback on the UI dispatcher.
+    // Immediate rejection also invokes completion. False means not enqueued.
+    bool ReadWatchedProperties(std::vector<std::string> names, WatchedPropertiesCompleted completion);
+    // Suppresses a stale UI request without cancelling unrelated mpv commands.
+    void CancelWatchedProperties();
     void Pause(bool paused);
     void TogglePause();
     // UI-thread notification; owned dialogs are filtered by the Windows adapter.
@@ -137,5 +143,7 @@ private:
     bool playlistShuffled_{};
     std::uint64_t screenshotRequest_{};
     ScreenshotCompleted screenshotCompleted_;
+    std::uint64_t watchedPropertiesRequest_{};
+    WatchedPropertiesCompleted watchedPropertiesCompleted_;
 };
 }

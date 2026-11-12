@@ -62,6 +62,7 @@ MainWindow::MainWindow()
     WireKeyboardControls();
     WirePlaybackControls();
     WireMediaInformation();
+    WireInspectorWatch();
     WireVideoControls();
     WireCropControls();
     WireFilterEditor();
@@ -247,6 +248,7 @@ void MainWindow::BeginClose()
     inputStop_.request_stop(); ++inputGeneration_;
     subtitleMatchStop_.request_stop(); ++subtitleMatchGeneration_;
     if (osdTimer_) osdTimer_.Stop();
+    InvalidateInspectorWatch();
     if (activationTimer_) activationTimer_.Stop();
     if (activationClosing_) activationClosing_();
     if (mediaIntegration_) mediaIntegration_->Close();

@@ -86,6 +86,14 @@ private:
     std::optional<Windows::Graphics::RectInt32> beforeMusicBounds_;
     void WirePlaybackControls();
     void WireMediaInformation();
+    void WireInspectorWatch();
+    void LoadInspectorWatch();
+    void ApplyInspectorWatch();
+    void RefreshInspectorWatch();
+    void InvalidateInspectorWatch();
+    Microsoft::UI::Dispatching::DispatcherQueueTimer inspectorTimer_{nullptr};
+    std::uint64_t inspectorGeneration_{};
+    bool inspectorBusy_{};
     void UpdateMediaInformation(iima::PlaybackSnapshot const& state);
     std::optional<std::uint64_t> informationRevision_, audioDevicesRevision_;
     void WireKeyboardControls();

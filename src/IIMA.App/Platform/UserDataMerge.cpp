@@ -68,6 +68,7 @@ UserData MergeUserData(UserData const& base, UserData const& edited, UserData la
         if (a.*member != b.*member) c.*member = b.*member;
     };
     field(&UserSettings::inputConf);
+    field(&UserSettings::watchProperties);
     field(&UserSettings::volume); field(&UserSettings::speed);
     field(&UserSettings::recordHistory); field(&UserSettings::resumePosition);
     field(&UserSettings::pauseWhenOpen); field(&UserSettings::autoPlayNext);

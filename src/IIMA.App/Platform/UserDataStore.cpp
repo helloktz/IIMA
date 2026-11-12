@@ -104,6 +104,11 @@ UserData LoadUnlocked(bool recover) {
             if (json->HasKey(L"savedAudioFilters")) data.settings.savedAudioFilters = ReadSavedFiltersJson(json->GetNamedArray(L"savedAudioFilters"));
             if (json->HasKey(L"userEqualizers")) data.settings.userEqualizers = ReadEqualizersJson(json->GetNamedObject(L"userEqualizers"));
             if (json->HasKey(L"inputConf")) data.settings.inputConf = to_string(json->GetNamedString(L"inputConf"));
+            if (json->HasKey(L"watchProperties")) {
+                auto names = json->GetNamedArray(L"watchProperties");
+                if (names.Size() > 32) throw std::runtime_error("Too many watched properties");
+                for (auto const& name : names) data.settings.watchProperties.push_back(to_string(name.GetString()));
+            }
             data.settings.volume=json->GetNamedNumber(L"volume",100);
             data.settings.speed=json->GetNamedNumber(L"speed",1);
             data.settings.recordHistory=json->GetNamedBoolean(L"recordHistory",true);
@@ -167,6 +172,9 @@ void SaveUnlocked(UserData const& data) {
     settings.Insert(L"userEqualizers", WriteEqualizersJson(data.settings.userEqualizers));
     settings.Insert(L"advancedPreferences", WritePreferenceJson(data.settings.advancedPreferences));
     if (data.settings.inputConf) settings.Insert(L"inputConf", JsonValue::CreateStringValue(to_hstring(*data.settings.inputConf)));
+    JsonArray watchNames;
+    for (auto const& name : data.settings.watchProperties) watchNames.Append(JsonValue::CreateStringValue(to_hstring(name)));
+    settings.Insert(L"watchProperties", watchNames);
     settings.Insert(L"volume",JsonValue::CreateNumberValue(data.settings.volume));
     settings.Insert(L"speed",JsonValue::CreateNumberValue(data.settings.speed));
     settings.Insert(L"recordHistory",JsonValue::CreateBooleanValue(data.settings.recordHistory));

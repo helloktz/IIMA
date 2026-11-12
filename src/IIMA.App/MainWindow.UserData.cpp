@@ -40,6 +40,7 @@ void MainWindow::LoadUserData()
                 self->RefreshUserEqualizers();
                 self->ApplyKeyboardConfiguration();
                 self->LoadSavedFilters();
+                self->LoadInspectorWatch();
                 self->preferences_.Restore(self->userData_.settings.advancedPreferences);
                 self->PopulateAdvancedSettings();
                 self->ApplyWindowPreferences();

@@ -25,7 +25,7 @@ struct Api {
 #define API(name) decltype(&mpv_##name) name{};
     API(client_api_version) API(create) API(initialize) API(terminate_destroy)
     API(set_option_string) API(command_async) API(observe_property) API(wait_event)
-    API(error_string) API(set_property_string) API(get_property_async) API(get_property) API(free_node_contents) API(set_property_async)
+    API(error_string) API(set_property_string) API(get_property_async) API(get_property) API(free_node_contents) API(set_property_async) API(free)
 #undef API
     ~Api() = default;
     void Load(std::wstring const& path) {
@@ -35,7 +35,7 @@ struct Api {
         moduleLease=std::shared_ptr<void>(module,[](void* p) { FreeLibrary(static_cast<HMODULE>(p)); });
 #define API(name) name = reinterpret_cast<decltype(name)>(GetProcAddress(module, "mpv_" #name)); if (!name) throw std::runtime_error("Missing libmpv export: mpv_" #name);
         API(client_api_version) API(create) API(initialize) API(terminate_destroy)
-        API(set_option_string) API(command_async) API(observe_property) API(wait_event) API(error_string) API(set_property_string) API(get_property_async) API(get_property) API(free_node_contents) API(set_property_async)
+        API(set_option_string) API(command_async) API(observe_property) API(wait_event) API(error_string) API(set_property_string) API(get_property_async) API(get_property) API(free_node_contents) API(set_property_async) API(free)
 #undef API
         acquireSwapChain = reinterpret_cast<AcquireSwapChain>(GetProcAddress(module,"mpv_iima_acquire_d3d11_swapchain_v1"));
         const auto version = client_api_version();
@@ -52,6 +52,7 @@ struct MpvClient::State {
         std::uint64_t id;
         std::vector<std::string> arguments;
         bool playlistQuery{};
+        bool watchedPropertiesQuery{};
         bool audioFilters{};
         std::optional<FilterEditPlan> filterEdit;
     };
@@ -101,7 +102,36 @@ struct MpvClient::State {
                 if(pending) {
                     const auto request=pending->id;
                     int error{};
-                    if (pending->filterEdit) {
+                    if (pending->watchedPropertiesQuery) {
+                        MpvEvent result{MpvEvent::Kind::WatchedPropertiesReply};
+                        result.requestId = request;
+                        for (auto const& name : pending->arguments) {
+                            { std::lock_guard lock(mutex); if (closing) break; }
+                            WatchedPropertyValue value;
+                            value.name = name;
+                            char* rawValue{};
+                            const int code = api.get_property(handle, name.c_str(), MPV_FORMAT_STRING, &rawValue);
+                            // mpv owns the allocation contract even when copying throws.
+                            std::unique_ptr<char, decltype(api.free)> owned(rawValue, api.free);
+                            if (code < 0) value.error = api.error_string(code);
+                            else if (!rawValue) value.error = "Property returned no string";
+                            else {
+                                std::size_t length{};
+                                while (length < MaxWatchedPropertyValueBytes && rawValue[length]) ++length;
+                                value.truncated = length == MaxWatchedPropertyValueBytes && rawValue[length] != '\0';
+                                // Do not cut a UTF-8 code point in the display copy.
+                                if (value.truncated)
+                                    while (length && (static_cast<unsigned char>(rawValue[length]) & 0xc0) == 0x80) --length;
+                                value.value.assign(rawValue, length);
+                            }
+                            result.watchedProperties.push_back(std::move(value));
+                        }
+                        // Close may cancel the batch midway; no partial success is published.
+                        bool cancelled{};
+                        { std::lock_guard lock(mutex); cancelled = closing; }
+                        if (!cancelled) Emit(std::move(result));
+                        continue;
+                    } else if (pending->filterEdit) {
                         auto name = pending->audioFilters ? "af" : "vf";
                         mpv_node fresh{};
                         error = api.get_property(handle, name, MPV_FORMAT_NODE, &fresh);
@@ -259,6 +289,17 @@ std::uint64_t MpvClient::GetPlaylistAsync() {
     if(state_->closing || !state_->started) return 0;
     const auto id=state_->nextId++;
     state_->commands.push_back({id,{},true});
+    return id;
+}
+std::uint64_t MpvClient::ReadWatchedPropertiesAsync(std::vector<std::string> names) {
+    if (names.empty() || names.size() > MaxWatchedProperties) return 0;
+    for (auto const& name : names) if (!ValidateWatchedPropertyName(name)) return 0;
+    std::lock_guard lock(state_->mutex);
+    if (state_->closing || !state_->started || state_->commands.size() >= 256) return 0;
+    State::Request request{state_->nextId++, std::move(names), false};
+    request.watchedPropertiesQuery = true;
+    const auto id = request.id;
+    state_->commands.push_back(std::move(request));
     return id;
 }
 std::uint64_t MpvClient::EditFilterChainAsync(bool audio, FilterEditPlan plan) {

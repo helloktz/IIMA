@@ -72,7 +72,7 @@ MAPPING = {
     'HistoryController.swift': ['src/IIMA.Core/Persistence/UserData.h', 'src/IIMA.Core/History/HistoryBrowser.cpp', 'src/IIMA.App/Platform/UserDataMerge.cpp'],
     'HistoryWindowController.swift': ['src/IIMA.Core/History/HistoryBrowser.cpp', 'src/IIMA.App/MainWindow.History.cpp'],
     'PlaybackHistory.swift': ['src/IIMA.Core/History/HistoryBrowser.cpp'],
-    'InspectorWindowController.swift': ['src/IIMA.Core/Media/MediaInformation.cpp', 'src/IIMA.App/MainWindow.Information.cpp'],
+    'InspectorWindowController.swift': ['src/IIMA.Core/Media/MediaInformation.cpp', 'src/IIMA.App/MainWindow.Information.cpp', 'src/IIMA.App/MainWindow.InspectorWatch.cpp'],
     'Preference.swift': ['src/IIMA.Core/Persistence/UserData.h', 'src/IIMA.Core/Subtitles/SubtitleStyle.h', 'src/IIMA.Core/Settings/PreferenceSchema.cpp', 'src/IIMA.App/MainWindow.Preferences.cpp'],
     'NowPlayingInfoManager.swift': ['src/IIMA.App/Platform/MediaIntegration.cpp'],
     'SleepPreventer.swift': ['src/IIMA.App/Platform/MediaIntegration.cpp'],

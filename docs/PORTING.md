@@ -345,3 +345,10 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 - 本批仅处理睡眠暂停，不实现HDR/显卡设备重建或关屏即睡眠假设。现代待机、传统S3、休眠、外接显示器、设备恢复仍须平台验证；软件防休眠请求与系统强制睡眠是不同机制。
 
 未编译、测试、运行Windows，未触发系统睡眠或电源设置变更。文件数可能达到阈值仍不证明功能完整或行数达标。
+
+### 第二十五批：Inspector 自定义只读属性监视
+
+- `InspectorWindowController.swift` 的 watchProperties、add/removeWatchAction、saveWatchList 和每秒 dynamicUpdate → `MainWindow.InspectorWatch.cpp`。Windows 使用每行一个属性名的整体编辑表单，空行为删除；保持上游空列表默认值，保存到现有设置 JSON，跨窗口以修改过的整个列表合并。不会把属性值保存到设置或诊断日志。面板展开才启动每秒刷新，折叠与关闭取消请求和定时器。
+- `MPVController.getString` → `MpvClient` 工作线程串行 `mpv_get_property(..., MPV_FORMAT_STRING)`；每项独立显示错误，字符串由 mpv_free 对应释放。最多32项、名称128字节非空白ASCII，每值显示4096字节并避免截断UTF-8字符。这些限制区别于上游无限列表，用于限制UI投影与队列负担；mpv内部分配不受显示截断上限约束。
+- `PlayerSession` 一次只接受一个监视批次，START_FILE（包含同条目重播）、END_FILE、失败、退出与关闭取消当前完成回调。UI使用编辑/折叠代次、路径与条目身份拒绝迟到结果。只读属性不是原子媒体快照：底层播放器仍可在批次中更新属性，单次同步属性读取也没有强制超时，后续需实际验证响应性。
+- 与上游的可点击HTTP链接不同，属性值只作为可选择纯文本显示，不自动打开或预取地址。暂未加入独立Inspector窗口、列宽持久化和完整动态性能统计布局。本批只静态编写与源码阅读，不编译、测试或运行。

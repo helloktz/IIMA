@@ -122,6 +122,7 @@
   <ItemGroup>
     <ClCompile Include="MainWindow.History.cpp" />
     <ClCompile Include="MainWindow.Information.cpp" />
+    <ClCompile Include="MainWindow.InspectorWatch.cpp" />
     <ClCompile Include="MainWindow.WindowPolicy.cpp" />
     <ClCompile Include="Platform\HistoryLocale.cpp" />
     <ClInclude Include="Platform\HistoryLocale.h" />

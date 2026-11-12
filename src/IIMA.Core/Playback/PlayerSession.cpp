@@ -62,6 +62,7 @@ void PlayerSession::OpenMultiple(std::vector<std::string> paths,bool append) {
     presentationReady_=false; resumePending_=!settings_.pauseWhenOpen; expectedEntry_=-1; loadRequest_=0;
     pendingCommands_.clear();
     transitionIssued_=false; waitingForStart_=true; loadReturnsEntry_=true;
+    CancelWatchedProperties();
     // Match IINA openMainWindow: create VO even for audio-only media, but only
     // once opening, not during app initialization. Composition still owns output.
     pendingCommands_.push_back({"set","force-window","yes"});
@@ -78,6 +79,7 @@ void PlayerSession::PausedCommand(std::vector<std::string> command) {
     CancelPlaylistEdits();
     presentationReady_=false; resumePending_=!settings_.pauseWhenOpen; loadRequest_=0;
     transitionIssued_=false; waitingForStart_=true; loadReturnsEntry_=false;
+    CancelWatchedProperties();
     pendingCommands_={std::move(command)};
     PrependNextMediaPreferences();
     pauseRequest_=client_->Command({"set","pause","yes"});
@@ -150,6 +152,7 @@ void PlayerSession::Seek(double seconds) {
     client_->Command({"seek",std::to_string(std::clamp(seconds,0.0,*snapshot_.duration)),"absolute+exact"});
 }
 void PlayerSession::Stop() {
+    CancelWatchedProperties();
     CancelWindowPausePolicy();
     CancelPlaylistEdits();
     pendingCommands_.clear(); pauseRequest_=0; resumePending_=false; loadRequest_=0;
@@ -238,8 +241,38 @@ void PlayerSession::SetScreenshotMode(ScreenshotMode mode) {
     if(mode==ScreenshotMode::Subtitles || mode==ScreenshotMode::Video || mode==ScreenshotMode::Window)
         settings_.screenshotMode=mode;
 }
+bool PlayerSession::ReadWatchedProperties(std::vector<std::string> names, WatchedPropertiesCompleted completion) {
+    auto reject = [&](std::string error) { if (completion) completion({}, std::move(error)); return false; };
+    if (watchedPropertiesRequest_) return reject("A property refresh is already pending");
+    if (snapshot_.session != SessionState::Ready || snapshot_.media != MediaState::Loaded || waitingForStart_)
+        return reject("No active loaded media");
+    if (names.empty() || names.size() > MaxWatchedProperties) return reject("Watch list must contain 1 to 32 properties");
+    for (auto const& name : names) if (!ValidateWatchedPropertyName(name)) return reject("Invalid property name");
+    const auto request = client_->ReadWatchedPropertiesAsync(std::move(names));
+    if (!request) return reject("Playback worker rejected the property refresh");
+    watchedPropertiesRequest_ = request;
+    watchedPropertiesCompleted_ = std::move(completion);
+    return true;
+}
+void PlayerSession::CancelWatchedProperties() {
+    watchedPropertiesRequest_ = 0;
+    auto completion = std::move(watchedPropertiesCompleted_);
+    watchedPropertiesCompleted_ = {};
+    if (completion) completion({}, "Property refresh cancelled");
+}
 void PlayerSession::OnEvent(MpvEvent e) {
     if(snapshot_.session==SessionState::Closing || snapshot_.session==SessionState::Closed) return;
+    if (e.kind == MpvEvent::Kind::WatchedPropertiesReply) {
+        if (watchedPropertiesRequest_ && e.requestId == watchedPropertiesRequest_) {
+            watchedPropertiesRequest_ = 0;
+            auto completion = std::move(watchedPropertiesCompleted_);
+            watchedPropertiesCompleted_ = {};
+            if (completion) completion(std::move(e.watchedProperties), std::move(e.text));
+        }
+        return;
+    }
+    if (e.kind == MpvEvent::Kind::Failure || e.kind == MpvEvent::Kind::Shutdown ||
+        e.kind == MpvEvent::Kind::StartFile || e.kind == MpvEvent::Kind::EndFile) CancelWatchedProperties();
     if(e.kind==MpvEvent::Kind::Failure || e.kind==MpvEvent::Kind::Shutdown || e.kind==MpvEvent::Kind::EndFile) CancelWindowPausePolicy();
     HandleWindowPauseReply(e);
     if(e.kind==MpvEvent::Kind::Failure || e.kind==MpvEvent::Kind::Shutdown) CancelPlaylistEdits();
@@ -317,6 +350,9 @@ void PlayerSession::OnEvent(MpvEvent e) {
     if(e.kind==MpvEvent::Kind::Shutdown) CloseAsync();
 }
 void PlayerSession::CloseAsync(std::function<void()> completion) {
+    // Mark closing before cancellation so reentrant UI callbacks cannot enqueue work.
+    if (snapshot_.session != SessionState::Closed) snapshot_.session = SessionState::Closing;
+    CancelWatchedProperties();
     CancelWindowPausePolicy();
     CancelPlaylistEdits();
     if(snapshot_.session!=SessionState::Closed) snapshot_.session=SessionState::Closing;

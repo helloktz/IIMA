@@ -233,7 +233,14 @@
                         <ComboBox x:Name="RepeatModeBox" Header="播放循环" HorizontalAlignment="Stretch"/>
                         <ComboBox x:Name="ScreenshotModeBox" Header="截图内容" HorizontalAlignment="Stretch"/>
                         <Expander x:Name="MediaInformationExpander" Header="媒体信息" HorizontalAlignment="Stretch">
-                            <TextBlock x:Name="MediaInformationText" TextWrapping="Wrap" IsTextSelectionEnabled="True"/>
+                            <StackPanel Spacing="8">
+                                <TextBlock x:Name="MediaInformationText" TextWrapping="Wrap" IsTextSelectionEnabled="True"/>
+                                <TextBlock Text="mpv 属性监视" FontWeight="SemiBold"/>
+                                <TextBox x:Name="InspectorNamesBox" Header="每行一个属性名（最多 32 项）" AcceptsReturn="True" MaxLength="4200" MaxHeight="160" TextWrapping="Wrap"/>
+                                <Button x:Name="InspectorApplyButton" Content="保存并监视"/>
+                                <TextBlock x:Name="InspectorStatusText" TextWrapping="Wrap"/>
+                                <TextBlock x:Name="InspectorValuesText" TextWrapping="Wrap" IsTextSelectionEnabled="True"/>
+                            </StackPanel>
                         </Expander>
                         <Expander Header="高级播放与窗口偏好" HorizontalAlignment="Stretch">
                             <StackPanel x:Name="AdvancedSettingsPanel" Spacing="8"/>
