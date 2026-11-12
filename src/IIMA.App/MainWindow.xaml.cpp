@@ -280,6 +280,7 @@ void MainWindow::BeginClose()
     if (subtitleFontDialog_) subtitleFontDialog_.Hide();
     if (subtitleColorDialog_) subtitleColorDialog_.Hide();
     if (openUrlDialog_) openUrlDialog_.Hide();
+    if (screenshotPickerOperation_) { try { screenshotPickerOperation_.Cancel(); } catch (...) {} }
     pluginInspectionStop_.request_stop();
     StopLocalPlugin();
     CancelThumbnailPreview();

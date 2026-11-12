@@ -181,7 +181,8 @@ void MainWindow::WirePlayerMenus() {
     add(picture, L"反交错", [this] { session_->SetDeinterlace(!session_->Snapshot().deinterlace.value_or(false)); },
         [this, video] { return video() && session_->Snapshot().deinterlace.has_value(); }, {}, false,
         [this] { return session_->Snapshot().deinterlace.value_or(false); });
-    add(picture, L"截图…", [this] { SaveScreenshot(); }, video, {"screenshot"});
+    add(picture, L"截图", [this] { SaveScreenshot(); }, video, {"screenshot"});
+    add(picture, L"截图另存为…", [this] { SaveScreenshot(false,true); }, video);
     savedVideoFilterMenu_ = sub(picture, L"保存的视频滤镜");
     app(picture, L"视频设置", iima::ApplicationCommand::VideoPanel);
 

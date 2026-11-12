@@ -957,6 +957,10 @@
       "physicalLines": 3248,
       "coverage": "partial-static-unverified",
       "reviewTargets": [
+        "src/IIMA.App/MainWindow.Screenshots.cpp",
+        "src/IIMA.App/MainWindow.Files.cpp",
+        "src/IIMA.App/Platform/ScreenshotStaging.cpp",
+        "src/IIMA.Core/Screenshots/ScreenshotOptions.cpp",
         "src/IIMA.Core/Playback/PlayerSession.AudioDevice.cpp",
         "src/IIMA.Core/Playback/PlayerSession.cpp",
         "src/IIMA.Core/Windows/PlayerWindowRegistry.cpp",

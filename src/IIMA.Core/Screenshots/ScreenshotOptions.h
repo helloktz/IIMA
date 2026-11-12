@@ -32,6 +32,13 @@ ScreenshotPreviewSize FitScreenshotPreview(double width, double height,
 std::string SuggestedScreenshotFilename(std::string_view mediaFilename,
     std::uint64_t sequence, ScreenshotFormat format);
 
+// Managed Windows filename subset, not mpv's arbitrary property expansion.
+// Supports %F (safe media stem), %n (caller sequence), %% (literal percent).
+// Network media uses a generic stem, never embeds private URL parameters.
+bool ValidateScreenshotFilenameTemplate(std::string_view value) noexcept;
+std::optional<std::string> PlanScreenshotFilename(std::string_view mediaPath,
+    std::uint64_t sequence, ScreenshotFormat format, std::string_view filenameTemplate);
+
 // Only complete the request identified by the actual command reply. Do not
 // discover "latest screenshot" by directory timestamp: another player or
 // another screenshot can write into that directory concurrently.

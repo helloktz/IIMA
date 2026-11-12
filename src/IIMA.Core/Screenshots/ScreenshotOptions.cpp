@@ -78,6 +78,62 @@ std::string SuggestedScreenshotFilename(std::string_view mediaFilename,
     if (device) name.insert(0, "_");
     return name + '-' + std::to_string(sequence) + '.' + std::string(extension);
 }
+namespace {
+bool ReservedScreenshotStem(std::string_view leaf) noexcept {
+    auto stem=leaf.substr(0,leaf.find('.'));
+    while (!stem.empty() && stem.back()==' ') stem.remove_suffix(1);
+    auto equal=[&](std::string_view expected) {
+        if (stem.size()!=expected.size()) return false;
+        for (std::size_t i=0;i<stem.size();++i) {
+            auto c=stem[i]; if (c>='a' && c<='z') c-=('a'-'A');
+            if (c!=expected[i]) return false;
+        }
+        return true;
+    };
+    for (auto device:{"CON","PRN","AUX","NUL","CONIN$","CONOUT$","COM¹","COM²","COM³","LPT¹","LPT²","LPT³"})
+        if (equal(device)) return true;
+    if (stem.size()==4 && stem[3]>='1' && stem[3]<='9') {
+        const auto digit=stem[3];
+        char com[]{'C','O','M',digit}; char lpt[]{'L','P','T',digit};
+        return equal(std::string_view(com,4)) || equal(std::string_view(lpt,4));
+    }
+    return false;
+}
+}
+bool ValidateScreenshotFilenameTemplate(std::string_view value) noexcept {
+    if (value.empty() || value.size()>128 || value=="." || value==".." || value.back()=='.' || value.back()==' ') return false;
+    for (std::size_t i=0;i<value.size();++i) {
+        const auto c=static_cast<unsigned char>(value[i]);
+        if (c<32 || c==127 || std::string_view("<>:\"/\\|?*").find(static_cast<char>(c))!=std::string_view::npos) return false;
+        if (c=='%') {
+            if (++i==value.size() || (value[i]!='F' && value[i]!='n' && value[i]!='%')) return false;
+        }
+    }
+    return !ReservedScreenshotStem(value);
+}
+std::optional<std::string> PlanScreenshotFilename(std::string_view mediaPath,
+    std::uint64_t sequence,ScreenshotFormat format,std::string_view filenameTemplate) {
+    if (!ValidateScreenshotFilenameTemplate(filenameTemplate) || ScreenshotExtension(format).empty()) return {};
+    if (mediaPath.find("://")!=mediaPath.npos) mediaPath="IIMA-screenshot";
+    auto stem=SuggestedScreenshotFilename(mediaPath,sequence,format);
+    const auto suffix="-"+std::to_string(sequence)+"."+std::string(ScreenshotExtension(format));
+    stem.resize(stem.size()-suffix.size());
+    std::string leaf;
+    for (std::size_t i=0;i<filenameTemplate.size();++i) {
+        if (filenameTemplate[i]!='%') leaf+=filenameTemplate[i];
+        else {
+            const auto token=filenameTemplate[++i];
+            leaf+=token=='F' ? stem : token=='n' ? std::to_string(sequence) : "%";
+        }
+        if (leaf.size()>230) return {};
+    }
+    if (leaf.empty() || leaf=="." || leaf==".." || leaf.back()=='.' || leaf.back()==' ') return {};
+    // Windows treats DOS device names as reserved even with extra extensions.
+    if (ReservedScreenshotStem(leaf)) return {};
+    leaf+='.'; leaf+=ScreenshotExtension(format);
+    if (leaf.size()>240) return {};
+    return leaf;
+}
 bool ScreenshotPending::Begin(ScreenshotCompletion completion) {
     if (pending_ || !completion.commandId || completion.stagingPath.empty()) return false;
     pending_ = std::move(completion);

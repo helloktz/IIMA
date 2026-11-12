@@ -43,6 +43,7 @@ void MainWindow::LoadUserData()
                 self->LoadSavedFilters();
                 self->LoadInspectorWatch();
                 self->preferences_.Restore(self->userData_.settings.advancedPreferences);
+                self->UpdateScreenshotSettings();
                 self->PopulateAdvancedSettings();
                 self->ApplyWindowPreferences();
                 self->placementWritable_ = placementWritable;

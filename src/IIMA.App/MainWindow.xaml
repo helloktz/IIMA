@@ -354,9 +354,18 @@
                         <NumberBox x:Name="SubtitlePositionBox" Header="字幕位置（0顶部，100底部）" Value="100" Minimum="0" Maximum="100"/>
                         <Button x:Name="ApplySubtitleLayoutButton" Content="应用字幕位置与缩放"/>
                         <TextBlock x:Name="SubtitleLayoutStatus" TextWrapping="Wrap"/>
-                        <Button x:Name="ScreenshotButton" Content="截图（按偏好输出）…"/>
+                        <Button x:Name="ScreenshotButton" Content="截图（按偏好输出）"/>
                         <TextBlock Text="高级设置可分别启用截图保存和复制；同时启用时使用同一张图。保存格式由 screenShotFormat 决定，仅复制时使用PNG。部分格式需要配套编码/解码器。" TextWrapping="Wrap"/>
                         <Button x:Name="CopyScreenshotButton" Content="复制视频截图"/>
+                        <Button x:Name="SaveScreenshotAsButton" Content="截图另存为…"/>
+                        <Expander Header="截图保存位置" HorizontalAlignment="Stretch">
+                            <StackPanel Spacing="6">
+                                <TextBlock x:Name="ScreenshotDirectoryText" TextWrapping="Wrap" IsTextSelectionEnabled="True"/>
+                                <Button x:Name="ChooseScreenshotDirectoryButton" Content="选择截图目录…"/>
+                                <Button x:Name="ClearScreenshotDirectoryButton" Content="清除目录，改为每次另存为"/>
+                                <TextBlock Text="先捕获再选择位置。设置目录后自动保存且不覆盖同名文件；目录不可用会报告失败，不另选位置。高级设置 screenShotTemplate 支持 %F（媒体名）、%n（序号）、%%（百分号），不支持任意mpv模板或路径。" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Expander>
                         <ComboBox x:Name="ChapterBox" Header="章节" HorizontalAlignment="Stretch" AutomationProperties.Name="章节"/>
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <Button x:Name="PreviousChapterButton" Content="上一章节"/>

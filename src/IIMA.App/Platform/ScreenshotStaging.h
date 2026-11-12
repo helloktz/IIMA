@@ -20,6 +20,12 @@ public:
     // Copy+flush+rename uses a temp file next to the destination so a cross-
     // volume source does not make the final replacement non-atomic.
     void Publish(const std::filesystem::path& destination) const;
+    // Worker only. Explicitly selected, existing absolute directory; no links.
+    static void ValidateDirectory(const std::filesystem::path& directory);
+    // Managed automatic output: atomically publishes without replacing an
+    // existing file, including across windows. Returns the actual unique path.
+    std::filesystem::path PublishUnique(const std::filesystem::path& directory,
+        std::wstring_view leaf) const;
 private:
     ScreenshotStaging(std::filesystem::path directory, std::filesystem::path path);
     void Cleanup() noexcept;

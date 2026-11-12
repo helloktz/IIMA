@@ -156,6 +156,8 @@ std::span<PreferenceDescriptor const> PreferenceSchema() {
         B("showRemainingTime",Area::Interface,false),
         B("scaleRemainingTime",Area::Interface,false),
         I("timeDisplayPrecision",Area::Interface,0,0,3),
+        S("screenShotFolder",Area::Interface,""), // No automatic destination before explicit selection.
+        S("screenShotTemplate",Area::Interface,"%F-%n"),
         B("screenshotSaveToFile",Area::Interface,true),
         B("screenshotCopyToClipboard",Area::Interface,false),
         E("screenShotFormat",Area::Interface,0,screenshotFormats),

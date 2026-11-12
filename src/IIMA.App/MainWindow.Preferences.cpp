@@ -31,7 +31,7 @@ bool HasApplicationAdapter(std::string_view key) {
         "singleClickAction", "doubleClickAction", "rightClickAction", "verticalScrollAction", "horizontalScrollAction",
         "relativeSeekAmount", "playbackSpeedScrollAmount", "wheelExactSeek", "enableControlBarAutoHide", "controlBarAutoHideTimeout",
         "showRemainingTime", "scaleRemainingTime", "timeDisplayPrecision", "disableOSDFileStartMsg", "disableOSDSeekMsg",
-        "disableAnimations", "showBufferingThrobber", "showSeekingThrobber", "useExactSeek", "screenShotFormat", "screenshotSaveToFile", "screenshotCopyToClipboard", "screenshotShowPreview", "enableOSD", "disableOSDPauseResumeMsgs", "disableOSDSpeedMsg", "osdAutoHideTimeout", "osdTextSize"
+        "disableAnimations", "showBufferingThrobber", "showSeekingThrobber", "useExactSeek", "screenShotTemplate", "screenShotFormat", "screenshotSaveToFile", "screenshotCopyToClipboard", "screenshotShowPreview", "enableOSD", "disableOSDPauseResumeMsgs", "disableOSDSpeedMsg", "osdAutoHideTimeout", "osdTextSize"
     };
     return keys.contains(key);
 }
@@ -190,6 +190,13 @@ void MainWindow::PopulateAdvancedSettings() {
     FilterAdvancedSettings();
 }
 void MainWindow::ApplyAdvancedSetting(std::string const& key, iima::settings::PreferenceValue value) {
+    if (key == "screenShotTemplate") {
+        auto text=std::get_if<std::string>(&value);
+        if (!text || !iima::ValidateScreenshotFilenameTemplate(*text) ||
+            !iima::PlanScreenshotFilename("IIMA",1,iima::ScreenshotFormat::Png,*text)) {
+            ShowError(L"截图模板无效：仅支持%F、%n、%%，不得含路径、保留名或超长结果。"); return;
+        }
+    }
     if (closing_ || !userDataLoaded_) return;
     if (key == "initialWindowSizePosition") {
         auto geometry = std::get_if<std::string>(&value);
@@ -219,6 +226,7 @@ void MainWindow::ApplyAdvancedSetting(std::string const& key, iima::settings::Pr
     CancelMouseClick();
     ApplyWindowPreferences();
     UpdateMediaIntegration();
+    if (key == "screenShotFolder") UpdateScreenshotSettings();
     if (key == "screenshotShowPreview" && !preferences_.Boolean(key)) HideScreenshotPreview();
     if (key == "enableThumbnailPreview" || key == "thumbnailWidth" || key == "maxThumbnailPreviewCacheSize") {
         CancelThumbnailPreview(); thumbnailMemory_.clear();

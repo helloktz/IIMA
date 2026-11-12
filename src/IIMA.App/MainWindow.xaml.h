@@ -21,6 +21,7 @@
 #include "Platform/WindowPlacement.h"
 #include "Platform/LocalInputResolver.h"
 #include "Platform/ScreenshotStaging.h"
+#include "../IIMA.Core/Screenshots/ScreenshotOptions.h"
 #include "Platform/ScreenshotImage.h"
 #include "Platform/ThumbnailExtractor.h"
 #include "Platform/AssrtClient.h"
@@ -502,9 +503,19 @@ private:
     std::uint64_t dropReadGeneration_{};
     std::stop_source dropResolveStop_;
     winrt::fire_and_forget DropFiles(Microsoft::UI::Xaml::DragEventArgs args, std::optional<std::size_t> playlistRow = {});
-    winrt::fire_and_forget SaveScreenshot(bool clipboardOnly = false);
-    winrt::fire_and_forget FinishScreenshot(std::shared_ptr<iima::ScreenshotStaging> staging,
-        std::optional<std::filesystem::path> destination, bool copyToClipboard);
+    struct ScreenshotOutputRequest {
+        bool save{}, copy{}, preview{}, forceSaveAs{};
+        iima::ScreenshotFormat format{iima::ScreenshotFormat::Png};
+        std::filesystem::path directory;
+        std::string filename;
+    };
+    winrt::fire_and_forget SaveScreenshot(bool clipboardOnly = false, bool forceSaveAs = false);
+    winrt::fire_and_forget FinishScreenshot(std::shared_ptr<iima::ScreenshotStaging> staging, ScreenshotOutputRequest request);
+    void WireScreenshotSettings();
+    void UpdateScreenshotSettings();
+    winrt::fire_and_forget ChooseScreenshotDirectory();
+    std::uint64_t screenshotSequence_{};
+    Windows::Foundation::IAsyncInfo screenshotPickerOperation_{nullptr};
     winrt::fire_and_forget SavePlaylist();
     void LoadUserData();
     void WireUserDataControls();

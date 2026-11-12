@@ -70,6 +70,7 @@ void MainWindow::WireSettingsControls()
 }
 void MainWindow::ApplySettingsSnapshot(iima::PlaybackSnapshot const& state)
 {
+    UpdateScreenshotSettings();
     // Called while updating_ is true. Confirmed mpv values do not generate commands.
     // Keep policy preferences separate from the current file's playback facts.
     if (userDataLoaded_) {

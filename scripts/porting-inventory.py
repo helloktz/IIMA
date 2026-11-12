@@ -34,7 +34,7 @@ MAPPING = {
     'SubChooseViewController.swift': ['src/IIMA.App/MainWindow.OnlineSubtitles.cpp'],
     'AppDelegate.swift': ['src/IIMA.App/App.xaml.cpp', 'src/IIMA.App/App.OpenPolicy.cpp', 'src/IIMA.App/MainWindow.Folders.cpp', 'src/IIMA.App/Platform/InstanceRouter.cpp'],
     'DraggingDetect.swift': ['src/IIMA.App/MainWindow.Drop.cpp', 'src/IIMA.Core/Input/LocalInputPolicy.cpp'],
-    'PlayerCore.swift': ['src/IIMA.Core/Playback/PlayerSession.AudioDevice.cpp', 'src/IIMA.Core/Playback/PlayerSession.cpp', 'src/IIMA.Core/Windows/PlayerWindowRegistry.cpp', 'src/IIMA.App/App.xaml.cpp', 'src/IIMA.App/App.OpenPolicy.cpp', 'src/IIMA.App/MainWindow.OpenPolicy.cpp', 'src/IIMA.App/MainWindow.ABLoop.cpp', 'src/IIMA.Core/Playback/PlayerSession.Actions.cpp'],
+    'PlayerCore.swift': ['src/IIMA.App/MainWindow.Screenshots.cpp', 'src/IIMA.App/MainWindow.Files.cpp', 'src/IIMA.App/Platform/ScreenshotStaging.cpp', 'src/IIMA.Core/Screenshots/ScreenshotOptions.cpp', 'src/IIMA.Core/Playback/PlayerSession.AudioDevice.cpp', 'src/IIMA.Core/Playback/PlayerSession.cpp', 'src/IIMA.Core/Windows/PlayerWindowRegistry.cpp', 'src/IIMA.App/App.xaml.cpp', 'src/IIMA.App/App.OpenPolicy.cpp', 'src/IIMA.App/MainWindow.OpenPolicy.cpp', 'src/IIMA.App/MainWindow.ABLoop.cpp', 'src/IIMA.Core/Playback/PlayerSession.Actions.cpp'],
     'PlaybackInfo.swift': ['src/IIMA.Core/Playback/PlaybackState.h'],
     'MPVCommand.swift': ['src/IIMA.Core/Mpv/Catalog/MPVCommand.h'],
     'MPVOption.swift': ['src/IIMA.Core/Mpv/Catalog/MPVOption.h'],
