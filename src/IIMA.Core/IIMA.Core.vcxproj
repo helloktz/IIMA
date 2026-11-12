@@ -87,5 +87,21 @@
     <ClCompile Include="Playlist\PlaylistPlan.cpp" />
     <ClInclude Include="Playlist\PlaylistPlan.h" />
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Mpv\Catalog\Catalog.cpp" />
+    <ClInclude Include="Mpv\Catalog\Catalog.h" />
+    <ClInclude Include="Mpv\Catalog\CatalogData.inc" />
+    <ClInclude Include="Mpv\Catalog\MPVCommand.h" />
+    <ClInclude Include="Mpv\Catalog\MPVOption.h" />
+    <ClInclude Include="Mpv\Catalog\MPVProperty.h" />
+    <ClCompile Include="Playback\PlaybackActions.cpp" />
+    <ClInclude Include="Playback\PlaybackActions.h" />
+    <ClCompile Include="Playback\PlayerSession.Actions.cpp" />
+    <ClCompile Include="Playback\PlayerSession.Playlist.cpp" />
+    <ClCompile Include="Thumbnails\ThumbnailCache.cpp" />
+    <ClInclude Include="Thumbnails\ThumbnailCache.h" />
+    <ClCompile Include="Thumbnails\ThumbnailCacheManager.cpp" />
+    <ClInclude Include="Thumbnails\ThumbnailCacheManager.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

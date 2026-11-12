@@ -32,7 +32,7 @@ struct Chapter {
 // Owns all payloads; never exports mpv's borrowed event memory.
 struct MpvEvent {
     enum class Kind { Ready, Failure, StartFile, Loaded, EndFile, Seek, Restart,
-                      Property, CommandReply, VideoReconfig, Shutdown } kind;
+                      Property, CommandReply, PlaylistReply, VideoReconfig, Shutdown } kind;
     std::string name, text;
     std::optional<double> number;
     std::optional<bool> flag;
@@ -57,6 +57,9 @@ public:
     void Start(std::wstring dllPath);
     void SetPauseWhenOpen(bool value);
     std::uint64_t Command(std::vector<std::string> arguments);
+    // Queued in the SAME serialized worker lane as commands. PlaylistReply
+    // owns a fresh node copy; ordinary observed properties are not substitutes.
+    std::uint64_t GetPlaylistAsync();
     // Nonblocking; completion runs on worker AFTER terminate_destroy and DLL release.
     void CloseAsync(std::function<void()> completion = {});
 private:

@@ -9,7 +9,8 @@ struct PlaybackSnapshot {
     SessionState session{SessionState::Initializing};
     MediaState media{MediaState::Empty};
     bool paused{true}, seeking{}, buffering{};
-    std::optional<double> position, duration;
+    std::optional<double> position, duration, abLoopA, abLoopB;
+    std::string abLoopCount{"inf"};
     double volume{100}, speed{1}, maxVolume{100}, audioDelay{}, subtitleDelay{};
     bool muted{}, subtitlesVisible{true};
     RepeatMode repeatMode{RepeatMode::Off};

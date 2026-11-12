@@ -22,6 +22,11 @@ void MpvClient::Start(std::wstring) { MpvEvent e{MpvEvent::Kind::Ready}; e.flag=
 std::uint64_t MpvClient::Command(std::vector<std::string> args) {
     if(rejectNextCommand) { rejectNextCommand=false; return 0; }
     auto id=nextId++; commands.emplace_back(id,std::move(args)); return id; }
+std::uint64_t MpvClient::GetPlaylistAsync() {
+    const auto id=nextId++;
+    commands.emplace_back(id,std::vector<std::string>{"test-get-playlist"});
+    return id;
+}
 void MpvClient::CloseAsync(std::function<void()> completion) { if(completion) completion(); }
 }
 namespace {
@@ -149,7 +154,15 @@ int main() {
     session->Seek(std::numeric_limits<double>::quiet_NaN()); assert(commands.back().second[1]=="60.000000");
     MpvEvent playlist{MpvEvent::Kind::Property}; playlist.name="playlist";
     playlist.playlist={{10,"a","",true},{11,"b","",false},{12,"c","",false}}; events(playlist);
-    session->PlaylistMove(0,2); assert(commands.back().second==std::vector<std::string>({"playlist-move","0","3"}));
+    session->PlaylistMove(0,2);
+    assert(commands.back().second==std::vector<std::string>({"test-get-playlist"}));
+    // Observations are not sufficient to advance a queued edit.
+    const auto beforeFresh=commands.size(); events(playlist); assert(commands.size()==beforeFresh);
+    MpvEvent fresh{MpvEvent::Kind::PlaylistReply}; fresh.name="playlist";
+    fresh.requestId=commands.back().first; fresh.playlist=playlist.playlist; events(fresh);
+    assert(commands.back().second==std::vector<std::string>({"playlist-move","1","0"}));
+    // Reorder now preserves IDs through moves rather than clearing/reloading.
+    session->CancelPlaylistEdits();
     session->PlaylistPrevious(); assert(commands.back().second[0]=="seek");
     session->PlaylistRemove(99); assert(commands.back().second[0]=="seek");
     MpvEvent tracks{MpvEvent::Kind::Property}; tracks.name="track-list";

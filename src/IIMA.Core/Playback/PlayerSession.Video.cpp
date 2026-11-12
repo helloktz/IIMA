@@ -2,13 +2,14 @@
 // toggleDeinterlace, setVideoEqualizer, addVideoFilter/removeVideoFilter.
 // Copyright © 2016 lhc. SPDX-License-Identifier: GPL-3.0-or-later
 #include "PlayerSession.h"
+#include "../Mpv/Catalog/MPVOption.h"
 #include "../Geometry/Aspect.h"
 #include "../Filters/MPVFilter.h"
 #include <algorithm>
 namespace iima {
 void PlayerSession::SetVideoAspect(std::string aspect) {
     if (snapshot_.session != SessionState::Ready) return;
-    client_->Command({"set", "video-aspect-override", Aspect::Parse(aspect) ? aspect : "-1"});
+    client_->Command({"set", std::string(mpv_catalog::MPVOption::Video::videoAspectOverride), Aspect::Parse(aspect) ? aspect : "-1"});
 }
 void PlayerSession::SetVideoRotation(int degrees) {
     if (snapshot_.session != SessionState::Ready) return;

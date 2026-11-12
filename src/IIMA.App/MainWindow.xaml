@@ -46,6 +46,11 @@
                           AutomationProperties.Name="播放列表" />
                 <StackPanel Grid.Row="2" Spacing="6">
                     <StackPanel Orientation="Horizontal" Spacing="4">
+                        <Button x:Name="SortPlaylistButton" Content="排序"/>
+                        <Button x:Name="ShufflePlaylistButton" Content="随机排序"/>
+                        <Button x:Name="ClearPlaylistButton" Content="清空"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="4">
                         <Button x:Name="PreviousButton" Content="上一项"/>
                         <Button x:Name="PlaySelectedButton" Content="播放"/>
                         <Button x:Name="NextButton" Content="下一项"/>
@@ -58,8 +63,18 @@
                 </StackPanel>
                 <ScrollViewer Grid.Row="3" MaxHeight="300" HorizontalScrollBarVisibility="Disabled">
                     <StackPanel Spacing="6">
+                        <Button x:Name="RevealFileButton" Content="在资源管理器中显示"/>
                         <Button x:Name="CompactOverlayButton" Content="切换悬浮小窗"/>
                         <Button x:Name="OpenUrlButton" Content="打开网络媒体…"/>
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <Button x:Name="StepBackButton" Content="上一帧"/>
+                            <Button x:Name="StepForwardButton" Content="下一帧"/>
+                        </StackPanel>
+                        <TextBlock x:Name="ABLoopLabel" Text="A: --:--  B: --:--"/>
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <Button x:Name="ABLoopButton" Content="A-B 循环"/>
+                            <Button x:Name="ClearABLoopButton" Content="清除 A-B"/>
+                        </StackPanel>
                         <ComboBox x:Name="AudioBox" Header="音轨" HorizontalAlignment="Stretch" AutomationProperties.Name="音轨"/>
                         <ComboBox x:Name="AudioEqualizerBox" Header="音频均衡预设" HorizontalAlignment="Stretch"/>
                         <Button x:Name="ApplyAudioEqualizerButton" Content="应用均衡预设"/>

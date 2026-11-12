@@ -2,6 +2,8 @@
 // Copyright © 2017 lhc. GPL v3; references/iina/LICENSE.
 #include "pch.h"
 #include "MainWindow.xaml.h"
+#include "Platform/ShellFileActions.h"
+#include "../IIMA.Core/Network/MediaUrl.h"
 #include <algorithm>
 using namespace winrt;
 using namespace Microsoft::UI::Xaml;
@@ -16,6 +18,15 @@ void MainWindow::WireApplicationCommands() {
         if (args.DidPresenterChange()) if (auto self = weak.get()) self->UpdatePresentationLayout();
     });
     auto available = [weak] { auto self = weak.get(); return self && !self->closing_; };
+    commandRouter_.Register(Command::RevealCurrentFile, [weak] {
+        if (auto self = weak.get()) iima::RevealFile(std::filesystem::path(to_hstring(self->session_->Snapshot().path).c_str()));
+    }, [weak] {
+        auto self = weak.get();
+        return self && !self->closing_ && iima::CanPersistMediaPath(self->session_->Snapshot().path);
+    });
+    RevealFileButton().Click([weak](auto const&, auto const&) {
+        if (auto self = weak.get()) self->ExecuteApplicationCommand(Command::RevealCurrentFile);
+    });
     commandRouter_.Register(Command::SavePlaylist, [weak] { if (auto self = weak.get()) self->SavePlaylist(); }, available);
     commandRouter_.Register(Command::OpenFile, [weak] { if (auto self = weak.get()) self->OpenFile(); }, available);
     commandRouter_.Register(Command::OpenUrl, [weak] { if (auto self = weak.get()) self->OpenNetworkUrl(); }, available);

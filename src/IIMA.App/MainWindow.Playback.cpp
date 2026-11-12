@@ -36,6 +36,15 @@ namespace winrt::IIMA::implementation {
 void MainWindow::WirePlaybackControls()
 {
     auto weak = get_weak();
+    SortPlaylistButton().Click([weak](auto const&, auto const&) {
+        if (auto self = weak.get(); self && !self->closing_) self->session_->SortPlaylist(iima::PlaylistSort::DisplayNameAscending);
+    });
+    ShufflePlaylistButton().Click([weak](auto const&, auto const&) {
+        if (auto self = weak.get(); self && !self->closing_) self->session_->ShufflePlaylist(self->session_->PlaylistShuffled());
+    });
+    ClearPlaylistButton().Click([weak](auto const&, auto const&) {
+        if (auto self = weak.get(); self && !self->closing_) self->session_->ClearPlaylist();
+    });
     SavePlaylistButton().Click([weak](auto const&, auto const&) {
         if (auto self = weak.get()) self->ExecuteApplicationCommand(iima::ApplicationCommand::SavePlaylist);
     });
@@ -103,6 +112,11 @@ void MainWindow::MoveSelected(int delta)
 }
 void MainWindow::ApplyCollections(iima::PlaybackSnapshot const& state)
 {
+    auto editing = session_->PlaylistEditBusy();
+    SortPlaylistButton().IsEnabled(!editing);
+    ShufflePlaylistButton().IsEnabled(!editing);
+    ClearPlaylistButton().IsEnabled(!editing);
+    ShufflePlaylistButton().Content(box_value(session_->PlaylistShuffled() ? L"恢复顺序" : L"随机排序"));
     // Called under updating_: property projections must never issue commands.
     if (playlistRevision_ != state.playlistRevision) {
         playlistRevision_ = state.playlistRevision;

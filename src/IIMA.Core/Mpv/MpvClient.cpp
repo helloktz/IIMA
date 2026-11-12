@@ -25,7 +25,7 @@ struct Api {
 #define API(name) decltype(&mpv_##name) name{};
     API(client_api_version) API(create) API(initialize) API(terminate_destroy)
     API(set_option_string) API(command_async) API(observe_property) API(wait_event)
-    API(error_string) API(set_property_string)
+    API(error_string) API(set_property_string) API(get_property_async)
 #undef API
     ~Api() = default;
     void Load(std::wstring const& path) {
@@ -35,7 +35,7 @@ struct Api {
         moduleLease=std::shared_ptr<void>(module,[](void* p) { FreeLibrary(static_cast<HMODULE>(p)); });
 #define API(name) name = reinterpret_cast<decltype(name)>(GetProcAddress(module, "mpv_" #name)); if (!name) throw std::runtime_error("Missing libmpv export: mpv_" #name);
         API(client_api_version) API(create) API(initialize) API(terminate_destroy)
-        API(set_option_string) API(command_async) API(observe_property) API(wait_event) API(error_string) API(set_property_string)
+        API(set_option_string) API(command_async) API(observe_property) API(wait_event) API(error_string) API(set_property_string) API(get_property_async)
 #undef API
         acquireSwapChain = reinterpret_cast<AcquireSwapChain>(GetProcAddress(module,"mpv_iima_acquire_d3d11_swapchain_v1"));
         const auto version = client_api_version();
@@ -48,7 +48,12 @@ struct MpvClient::State {
     explicit State(Sink s) : sink(std::move(s)) {}
     Sink sink;
     std::mutex mutex;
-    std::deque<std::pair<std::uint64_t, std::vector<std::string>>> commands;
+    struct Request {
+        std::uint64_t id;
+        std::vector<std::string> arguments;
+        bool playlistQuery{};
+    };
+    std::deque<Request> commands;
     std::vector<std::function<void()>> closedCallbacks;
     bool started{}, closing{}, closed{};
     std::atomic_bool pauseWhenOpen{};
@@ -74,11 +79,11 @@ struct MpvClient::State {
                 check(api.set_option_string(handle, name, value), name);
             check(api.initialize(handle), "mpv_initialize");
             std::uint64_t id = 1;
-            for (auto const* name : {"time-pos", "duration", "volume", "speed", "volume-max", "audio-delay", "sub-delay"})
+            for (auto const* name : {"time-pos", "duration", "volume", "speed", "volume-max", "audio-delay", "sub-delay", "ab-loop-a", "ab-loop-b"})
                 check(api.observe_property(handle, id++, name, MPV_FORMAT_DOUBLE), name);
             for (auto const* name : {"pause", "paused-for-cache", "vo-configured", "mute", "sub-visibility"})
                 check(api.observe_property(handle, id++, name, MPV_FORMAT_FLAG), name);
-            for(auto const* name : {"path", "mpv-version", "current-tracks/video/codec-desc", "hwdec-current", "current-vo", "loop-file", "loop-playlist", "keep-open"})
+            for(auto const* name : {"path", "mpv-version", "current-tracks/video/codec-desc", "hwdec-current", "current-vo", "loop-file", "loop-playlist", "keep-open", "ab-loop-count"})
                 check(api.observe_property(handle,id++,name,MPV_FORMAT_STRING),name);
             for(auto const* name : {"playlist", "track-list", "chapter-list"})
                 check(api.observe_property(handle,id++,name,MPV_FORMAT_NODE),name);
@@ -87,18 +92,27 @@ struct MpvClient::State {
             std::uint64_t inFlight{};
             bool done = false;
             while (!done) {
-                std::optional<std::pair<std::uint64_t,std::vector<std::string>>> pending;
+                std::optional<Request> pending;
                 { std::lock_guard lock(mutex); if (closing) break;
                   if(!inFlight && !commands.empty()) { pending=std::move(commands.front()); commands.pop_front(); } }
                 // client.h explicitly permits async command reordering. Serialize at replies.
                 if(pending) {
-                    auto const& [request,args]=*pending;
-                    std::vector<char const*> argv;
-                    for(auto const& arg:args) argv.push_back(arg.c_str());
-                    argv.push_back(nullptr);
-                    int error=api.command_async(handle,request,argv.data());
-                    if(error<0) { MpvEvent e{MpvEvent::Kind::CommandReply}; e.requestId=request; e.error=error; e.text=api.error_string(error); Emit(std::move(e)); }
-                    else inFlight=request;
+                    const auto request=pending->id;
+                    int error{};
+                    if(pending->playlistQuery) {
+                        error=api.get_property_async(handle,request,"playlist",MPV_FORMAT_NODE);
+                    } else {
+                        std::vector<char const*> argv;
+                        for(auto const& arg:pending->arguments) argv.push_back(arg.c_str());
+                        argv.push_back(nullptr);
+                        error=api.command_async(handle,request,argv.data());
+                    }
+                    if(error<0) {
+                        MpvEvent e{pending->playlistQuery ? MpvEvent::Kind::PlaylistReply : MpvEvent::Kind::CommandReply};
+                        e.requestId=request; e.error=error; e.text=api.error_string(error);
+                        if(pending->playlistQuery) e.name="playlist";
+                        Emit(std::move(e));
+                    } else inFlight=request;
                 }
                 // Bounded wait permits shutdown without calling the handle concurrently.
                 auto const* raw = api.wait_event(handle, 0.05);
@@ -127,6 +141,29 @@ struct MpvClient::State {
                                 if(std::string_view(result.u.list->keys[i])=="playlist_entry_id" && result.u.list->values[i].format==MPV_FORMAT_INT64)
                                     e.entryId=result.u.list->values[i].u.int64;
                         }
+                    }
+                    break;
+                }
+                case MPV_EVENT_GET_PROPERTY_REPLY: {
+                    e.kind=MpvEvent::Kind::PlaylistReply;
+                    e.name="playlist";
+                    if(e.requestId==inFlight) inFlight=0;
+                    bool valid=false;
+                    if(e.error>=0 && raw->data) {
+                        auto const& property=*static_cast<mpv_event_property*>(raw->data);
+                        if(property.name && std::string_view(property.name)=="playlist" &&
+                           property.format==MPV_FORMAT_NODE && property.data) {
+                            auto const& node=*static_cast<mpv_node*>(property.data);
+                            if(node.format==MPV_FORMAT_NODE_ARRAY && node.u.list && node.u.list->num>=0) {
+                                CopyCollectionProperty(e,node);
+                                valid=e.playlist.size()==static_cast<std::size_t>(node.u.list->num);
+                            }
+                        }
+                    }
+                    if(e.error>=0 && !valid) {
+                        e.error=MPV_ERROR_PROPERTY_FORMAT;
+                        e.text="Fresh playlist query returned an invalid node array";
+                        e.playlist.clear();
                     }
                     break;
                 }
@@ -184,7 +221,14 @@ void MpvClient::Start(std::wstring path) {
 std::uint64_t MpvClient::Command(std::vector<std::string> args) {
     std::lock_guard lock(state_->mutex);
     if(state_->closing || !state_->started || args.empty()) return 0;
-    auto id=state_->nextId++; state_->commands.emplace_back(id,std::move(args)); return id;
+    auto id=state_->nextId++; state_->commands.push_back({id,std::move(args),false}); return id;
+}
+std::uint64_t MpvClient::GetPlaylistAsync() {
+    std::lock_guard lock(state_->mutex);
+    if(state_->closing || !state_->started) return 0;
+    const auto id=state_->nextId++;
+    state_->commands.push_back({id,{},true});
+    return id;
 }
 void MpvClient::CloseAsync(std::function<void()> completion) {
     bool immediate{};

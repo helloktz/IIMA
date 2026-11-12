@@ -10,6 +10,23 @@
 namespace iima {
 namespace {
 using Queue = std::vector<PlaylistExpectation>;
+bool FitsSnapshotBudget(std::span<const PlaylistItem> items, std::size_t steps,
+                        std::span<const std::string> added = {}) {
+    // This eager representation stores two full expectations per step. Bound
+    // retained source data before allocation; a future lazy planner can remove
+    // this conservative limit without risking a multi-gigabyte UI allocation.
+    constexpr std::size_t budget = 32 * 1024 * 1024;
+    std::size_t bytes = 1;
+    auto account = [&](std::size_t length) {
+        if (length > budget || bytes > budget - length) return false;
+        bytes += length; return true;
+    };
+    for (auto const& item : items)
+        if (!account(sizeof(PlaylistExpectation)) || !account(item.path.size())) return false;
+    for (auto const& path : added)
+        if (!account(sizeof(PlaylistExpectation)) || !account(path.size())) return false;
+    return steps <= budget / bytes / 2;
+}
 Queue Capture(std::span<const PlaylistItem> items) {
     Queue queue;
     for (const auto& item : items) queue.push_back({item.id, item.path, std::nullopt});
@@ -66,6 +83,9 @@ PlaylistEditPlan PlanPlaylistReorder(std::span<const PlaylistItem> items,
         plan.error = "Reorder must contain every existing entry ID exactly once";
         return plan;
     }
+    if (!FitsSnapshotBudget(items, desired.size())) {
+        plan.error = "Playlist reorder exceeds the bounded edit-plan budget"; return plan;
+    }
     auto queue = Capture(items);
     for (std::size_t target = 0; target < desired.size(); ++target) {
         const auto found = std::find_if(queue.begin() + static_cast<std::ptrdiff_t>(target), queue.end(),
@@ -114,6 +134,10 @@ PlaylistEditPlan PlanPlaylistInsert(std::span<const PlaylistItem> items,
             return plan;
         }
     }
+    if (paths.size() > std::numeric_limits<std::size_t>::max() / 2 ||
+        !FitsSnapshotBudget(items, paths.size() * 2, paths)) {
+        plan.error = "Playlist insertion exceeds the bounded edit-plan budget"; return plan;
+    }
     auto queue = Capture(items);
     std::size_t nextToken = 0;
     for (const auto& path : paths) {
@@ -133,6 +157,9 @@ PlaylistEditPlan PlanPlaylistRemove(std::span<const PlaylistItem> items,
     if (!plan) return plan;
     const auto selected = Selection(indices, items.size());
     if (!selected) { plan.error = "Removal index is outside the current playlist"; return plan; }
+    if (!FitsSnapshotBudget(items, selected->size())) {
+        plan.error = "Playlist removal exceeds the bounded edit-plan budget"; return plan;
+    }
     auto queue = Capture(items);
     std::size_t removed = 0;
     for (const auto original : *selected) {

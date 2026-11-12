@@ -151,3 +151,14 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 - `OSDMessage.swift` / `OSDView.swift` → `OSD/OSDMessage.*`：56消息、5展示类型、禁用/强制/窗口状态门控、文本进度、模板变量及语义文本runs。WinUI已经接入已确认的暂停/继续、音量、速度、静音状态及1秒隐藏计时器；其余消息尚需各功能触发。当前默认英文fallback，完整中文资源/动画/语义runs视觉样式未接入。
 
 仍为静态源码批次，未编译、测试或运行。已写入不代表可运行；全量移植和用户数量指标尚未完成。
+
+### 第四批：队列执行器、高级播放与缓存基础
+
+- 队列计划已接入 `PlayerSession.Playlist.cpp`：`MpvClient::GetPlaylistAsync` 与普通命令使用同一单worker串行队列；首次编辑前和每条命令成功后主动读取playlist，独立GET_PROPERTY_REPLY推进cursor，普通property更新只刷新显示。迟到取消回复不复活事务，失败停止剩余操作、不伪称回滚；Open/Stop/Close/换片取消。WinUI排序、shuffle/unshuffle、清空和原移除/移动已接此路径。现有mpv不提供对外部脚本的原子事务保证，检测偏离后停止。快照型计划有32MiB保守估计预算，超大编辑拒绝而非无限分配，未来可改惰性计划。
+- `PlayerCore` / `PlaybackInfo` / `AppData` → `PlaybackActions.*`：AB三态、端点/有效区间、可选0秒、50ms自动seek精度策略、百分比/绝对/相对seek、帧进退、音量/速度常量、截图命令选择。`PlayerSession.Actions.cpp` 已接相对seek、逐帧、AB循环；AB端点和次数由mpv属性观察更新，命令不预测状态。UI按钮及左右5秒键接入，文本输入时不截获空格/方向键。自动seek延时测量和截图剪贴板后处理仍未接线。
+- `ThumbnailCache.swift` / `CacheManager.swift` → `Thumbnails/*`：v2格式、17字节头、小端整数/binary64、媒体size+mtime失效、逐条JPEG索引/编码/有界读取、访问时间与最旧优先驱逐。坏长度/非有限时间/超预算拒绝，损坏读取不自动删除，JPEG边界检查不是图像解码。没有缩略图生成/图形预览/缓存原子落盘，不能称缩略图功能完成。
+- `MainMenuActions.menuShowCurrentFileInFinder` → Windows Shell PIDL + `SHOpenFolderAndSelectItems`，不拼接shell命令行；原生Explorer定位接入应用命令路由。
+- `MPVCommand.swift` / `MPVOption.swift` / `MPVProperty.swift` → Catalog静态目录：82命令、773选项、444固定属性、81动态属性，保留全部1380真实声明及层级。提供分类/名称/字面值检索、搜索与参数化属性展开；帧步进、AB和比例命令已引用对应目录常量。生成器仅机械转写固定快照，不生成占位业务逻辑；目录不证明运行libmpv支持每个条目。真实查询表 `.inc` 不改扩展名凑 C++ 计数，数字统计不包含它。
+- 增加全部208个Swift文件的保守覆盖清单与生成脚本，映射不自动视为完整移植。
+
+本批未编译/测试/运行。旧portable测试stub和依赖列表仅随异步查询契约静态更新，不能据此报告通过。

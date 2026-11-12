@@ -44,6 +44,8 @@ void PlayerSession::OpenMultiple(std::vector<std::string> paths,bool append) {
     if(std::any_of(paths.begin(),paths.end(),[](auto const& p) { return p.empty() || p.find('\0')!=std::string::npos; })) {
         snapshot_.error="A media path is empty or contains a NUL character"; Notify(); return;
     }
+    CancelPlaylistEdits();
+    playlistShuffled_=false;
     // No shell or command string parsing: UTF-8 paths remain individual API arguments.
     if(append) {
         for(auto& path:paths) client_->Command({"loadfile",std::move(path),"append"});
@@ -62,6 +64,7 @@ void PlayerSession::OpenMultiple(std::vector<std::string> paths,bool append) {
 }
 void PlayerSession::PausedCommand(std::vector<std::string> command) {
     if(!CanOpen()) return;
+    CancelPlaylistEdits();
     presentationReady_=false; resumePending_=!settings_.pauseWhenOpen; loadRequest_=0;
     transitionIssued_=false; waitingForStart_=true; loadReturnsEntry_=false;
     pendingCommands_={std::move(command)};
@@ -82,15 +85,6 @@ void PlayerSession::PlaylistPrevious() {
 }
 void PlayerSession::PlaylistPlay(std::size_t index) {
     if(index<snapshot_.playlist.size()) { expectedEntry_=snapshot_.playlist[index].id; PausedCommand({"playlist-play-index",std::to_string(index)}); }
-}
-void PlayerSession::PlaylistRemove(std::size_t index) {
-    if(snapshot_.session==SessionState::Ready && index<snapshot_.playlist.size())
-        client_->Command({"playlist-remove",std::to_string(index)});
-}
-void PlayerSession::PlaylistMove(std::size_t from,std::size_t finalIndex) {
-    if(snapshot_.session!=SessionState::Ready || from>=snapshot_.playlist.size() || finalIndex>=snapshot_.playlist.size() || from==finalIndex) return;
-    // mpv takes an insertion-before target, not the post-removal final index.
-    client_->Command({"playlist-move",std::to_string(from),std::to_string(finalIndex+(from<finalIndex ? 1 : 0))});
 }
 void PlayerSession::SelectTrack(std::string type,std::int64_t id) {
     if(snapshot_.session!=SessionState::Ready || id<0) return;
@@ -130,6 +124,7 @@ void PlayerSession::Seek(double seconds) {
     client_->Command({"seek",std::to_string(std::clamp(seconds,0.0,*snapshot_.duration)),"absolute+exact"});
 }
 void PlayerSession::Stop() {
+    CancelPlaylistEdits();
     pendingCommands_.clear(); pauseRequest_=0; resumePending_=false; loadRequest_=0;
     transitionIssued_=false; waitingForStart_=false; expectedEntry_=-1;
     if(snapshot_.session==SessionState::Ready) client_->Command({"stop"});
@@ -218,6 +213,8 @@ void PlayerSession::SetScreenshotMode(ScreenshotMode mode) {
 }
 void PlayerSession::OnEvent(MpvEvent e) {
     if(snapshot_.session==SessionState::Closing || snapshot_.session==SessionState::Closed) return;
+    if(e.kind==MpvEvent::Kind::Failure || e.kind==MpvEvent::Kind::Shutdown) CancelPlaylistEdits();
+    if(HandlePlaylistEditEvent(e)) return;
     if(e.kind==MpvEvent::Kind::CommandReply && e.requestId==pauseRequest_) {
         pauseRequest_=0;
         if(e.error>=0) for(auto& command:pendingCommands_) {
@@ -260,6 +257,7 @@ void PlayerSession::OnEvent(MpvEvent e) {
     if(e.kind==MpvEvent::Kind::Shutdown) CloseAsync();
 }
 void PlayerSession::CloseAsync(std::function<void()> completion) {
+    CancelPlaylistEdits();
     if(snapshot_.session!=SessionState::Closed) snapshot_.session=SessionState::Closing;
     pendingCommands_.clear(); pauseRequest_=0; loadRequest_=0; transitionIssued_=false; waitingForStart_=false; presentationReady_=false; resumePending_=false; snapshot_.swapChain.reset(); Notify();
     auto weak=weak_from_this();

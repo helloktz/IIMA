@@ -28,6 +28,8 @@ private:
     void WireAudioControls();
     void WireApplicationCommands();
     void WireOSD();
+    void WireAdvancedPlayback();
+    bool KeyboardPlaybackAllowed() const;
     void UpdateOSD(iima::PlaybackSnapshot const& state);
     void UpdatePresentationLayout();
     void ExecuteApplicationCommand(iima::ApplicationCommand command);

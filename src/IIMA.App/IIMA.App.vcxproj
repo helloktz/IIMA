@@ -101,6 +101,11 @@
     <ClCompile Include="Platform\AtomicTextFile.cpp" />
     <ClInclude Include="Platform\AtomicTextFile.h" />
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="MainWindow.Actions.cpp" />
+    <ClCompile Include="Platform\ShellFileActions.cpp" />
+    <ClInclude Include="Platform\ShellFileActions.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Import Project="..\..\build\NuGet.targets" />
 </Project>

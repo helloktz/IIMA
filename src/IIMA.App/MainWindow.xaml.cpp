@@ -47,6 +47,7 @@ MainWindow::MainWindow()
     }, [weak](hstring const& error) { if (auto self = weak.get(); self && !self->closing_) self->ShowError(error); });
     WireApplicationCommands();
     WireOSD();
+    WireAdvancedPlayback();
     OpenButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->ExecuteApplicationCommand(iima::ApplicationCommand::OpenFile); });
     OpenUrlButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->ExecuteApplicationCommand(iima::ApplicationCommand::OpenUrl); });
     CompactOverlayButton().Click([weak](auto const&, auto const&) { if (auto self = weak.get()) self->ExecuteApplicationCommand(iima::ApplicationCommand::TogglePictureInPicture); });
@@ -64,8 +65,14 @@ MainWindow::MainWindow()
     };
     addKey(Windows::System::VirtualKey::O, Windows::System::VirtualKeyModifiers::Control,
            [weak] { if (auto self = weak.get()) self->OpenFile(); });
-    addKey(Windows::System::VirtualKey::Space, Windows::System::VirtualKeyModifiers::None,
-           [weak] { if (auto self = weak.get(); self && self->PauseButton().IsEnabled()) self->session_->TogglePause(); });
+    Input::KeyboardAccelerator pauseKey;
+    pauseKey.Key(Windows::System::VirtualKey::Space);
+    pauseKey.Invoked([weak](auto const&, auto const& args) {
+        if (auto self = weak.get(); self && self->PauseButton().IsEnabled() && self->KeyboardPlaybackAllowed()) {
+            self->session_->TogglePause(); args.Handled(true);
+        }
+    });
+    Root().KeyboardAccelerators().Append(pauseKey);
     addKey(Windows::System::VirtualKey::F11, Windows::System::VirtualKeyModifiers::None,
            [weak] { if (auto self = weak.get()) self->ToggleFullscreen(); });
     addKey(Windows::System::VirtualKey::Escape, Windows::System::VirtualKeyModifiers::None,
@@ -187,6 +194,7 @@ void MainWindow::Apply(iima::PlaybackSnapshot const& state)
     PositionSlider().Maximum(seekable ? *state.duration : 1.0);
     PositionSlider().Value(state.position.value_or(0));
     TimeLabel().Text(Clock(state.position) + L" / " + Clock(state.duration));
+    ABLoopLabel().Text(L"A: " + Clock(state.abLoopA) + L"  B: " + Clock(state.abLoopB));
     EmptyLabel().Visibility(loaded ? Visibility::Collapsed : Visibility::Visible);
     if (!presentationError.empty()) ShowError(presentationError);
     else if (!state.error.empty()) ShowError(to_hstring(state.error));

@@ -52,6 +52,9 @@ void ApplyPlaybackEvent(PlaybackSnapshot& s, MpvEvent const& e) {
         else if(e.name=="track-list") { s.tracks=e.tracks; ++s.tracksRevision; }
         else if(e.name=="chapter-list") { s.chapters=e.chapters; ++s.chaptersRevision; }
         else if(e.name=="chapter") s.chapterIndex=e.integer;
+        else if(e.name=="ab-loop-a") s.abLoopA=e.number && std::isfinite(*e.number) ? e.number : std::nullopt;
+        else if(e.name=="ab-loop-b") s.abLoopB=e.number && std::isfinite(*e.number) ? e.number : std::nullopt;
+        else if(e.name=="ab-loop-count") s.abLoopCount=e.text;
         else if(e.name=="time-pos") s.position=e.number && std::isfinite(*e.number) ? e.number : std::nullopt;
         else if(e.name=="duration") s.duration=e.number && std::isfinite(*e.number) && *e.number>=0 ? e.number : std::nullopt;
         else if(e.name=="pause" && e.flag) s.paused=*e.flag;
@@ -74,6 +77,10 @@ void ApplyPlaybackEvent(PlaybackSnapshot& s, MpvEvent const& e) {
         else if(e.name=="hwdec-current") s.hwdecCurrent=e.text;
         else if(e.name=="current-vo") s.currentVo=e.text;
         else if(e.name=="vo-configured") s.voConfigured=e.flag.value_or(false);
+        break;
+    case MpvEvent::Kind::PlaylistReply:
+        // Correlated GET replies are consumed by PlayerSession's edit cursor,
+        // never treated as ordinary property observations by this reducer.
         break;
     case MpvEvent::Kind::CommandReply:
         if(e.error<0) s.error=e.text;
