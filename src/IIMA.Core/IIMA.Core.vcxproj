@@ -77,6 +77,7 @@
     <ClCompile Include="Playback\PlayerSession.Audio.cpp" />
     <ClCompile Include="Playback\PlayerSession.Subtitles.cpp" />
     <ClCompile Include="Playback\PlayerSession.Tracks.cpp" />
+    <ClCompile Include="Playback\PlayerSession.ExternalVideo.cpp" />
     <ClCompile Include="Subtitles\SubtitleStyle.cpp" />
     <ClInclude Include="Subtitles\SubtitleStyle.h" />
     <ClInclude Include="Subtitles\CharacterEncoding.h" />

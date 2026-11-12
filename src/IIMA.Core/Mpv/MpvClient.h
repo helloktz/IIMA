@@ -51,7 +51,7 @@ struct Chapter {
 // Owns all payloads; never exports mpv's borrowed event memory.
 struct MpvEvent {
     enum class Kind { Ready, Failure, StartFile, Loaded, EndFile, Seek, Restart, SeekMeasurement,
-                      Property, CommandReply, PlaylistReply, ExternalTrackRemovalReply, SubtitleStateReply, PauseReply, VideoGeometryReply, WindowScaleReply, WatchedPropertiesReply, VideoReconfig, Shutdown } kind;
+                      Property, CommandReply, PlaylistReply, ExternalVideoLoadReply, ExternalTrackRemovalReply, SubtitleStateReply, PauseReply, VideoGeometryReply, WindowScaleReply, WatchedPropertiesReply, VideoReconfig, Shutdown } kind;
     std::string name, text;
     std::optional<double> number;
     std::optional<bool> flag;
@@ -65,6 +65,7 @@ struct MpvEvent {
     // Fresh bounded subtitle transaction read, not ordinary observations.
     bool subtitleStateComplete{};
     bool externalTrackRemovalSubmitted{}, externalTrackRemovedConfirmed{};
+    bool externalVideoLoadSubmitted{}, externalVideoSelectedConfirmed{};
     std::optional<std::int64_t> primarySubtitle, secondarySubtitle; // 0 means no selection.
     std::vector<Chapter> chapters;
     FilterChainSnapshot filters;
@@ -102,6 +103,10 @@ public:
     std::uint64_t RemoveExternalTrackAsync(std::string type, std::int64_t id,
         std::string externalPath, std::int64_t expectedEntry, std::string mediaPath,
         std::shared_ptr<std::atomic_bool> cancelled = {});
+    // video-add select with fresh media checks and selected external vid readback.
+    // Confirmation is track selection, not output binding or frame presentation.
+    std::uint64_t LoadExternalVideoAsync(std::string path, std::int64_t expectedEntry,
+        std::string mediaPath, std::shared_ptr<std::atomic_bool> cancelled = {});
     // Genuine async GET reply through mpv's event queue, not cached observation.
     std::uint64_t GetVideoGeometryAsync();
     std::uint64_t GetWindowScaleAsync();

@@ -9,6 +9,8 @@ void MainWindow::WireAudioControls() {
         AudioEqualizerBox().Items().Append(box_value(to_hstring(preset.key)));
     AudioEqualizerBox().SelectedIndex(0);
     auto weak = get_weak();
+    LoadExternalVideoButton().Click([weak](auto const&, auto const&) {if(auto self=weak.get()) self->LoadExternalVideo();});
+    CancelExternalVideoButton().Click([weak](auto const&, auto const&) {if(auto self=weak.get();self && !self->closing_) {self->session_->CancelExternalVideoLoad();self->UpdateExternalVideoLoad();}});
     LoadExternalAudioButton().Click([weak](auto const&, auto const&) {
         if (auto self = weak.get()) self->LoadExternalAudio();
     });

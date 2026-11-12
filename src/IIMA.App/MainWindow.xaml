@@ -307,6 +307,9 @@
                         </Expander>
                         <ComboBox x:Name="VideoTrackBox" Header="视频轨道" PlaceholderText="尚无已确认选择" HorizontalAlignment="Stretch" AutomationProperties.Name="视频轨道"/>
                         <Button x:Name="CycleVideoTrackButton" Content="切换下一视频轨道"/>
+                        <Button x:Name="LoadExternalVideoButton" Content="载入外部视频…" IsEnabled="False" ToolTipService.ToolTip="载入并选择当前媒体的外部视频，可能替换显示画面；不自动播放、不改变队列"/>
+                        <Button x:Name="CancelExternalVideoButton" Content="取消视频载入后续确认" IsEnabled="False"/>
+                        <TextBlock x:Name="ExternalVideoStatus" TextWrapping="Wrap" FontSize="12"/>
                         <Button x:Name="CycleAudioTrackButton" Content="切换下一音轨"/>
                         <ComboBox x:Name="AudioBox" Header="音轨" HorizontalAlignment="Stretch" AutomationProperties.Name="音轨"/>
                         <Button x:Name="LoadExternalAudioButton" Content="载入外置音频…" IsEnabled="False"/>

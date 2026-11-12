@@ -27,6 +27,7 @@ void PlayerSession::Notify() { if(changed_) changed_(snapshot_); }
 // distinction across queued old events. Pinned mpv cmd_loadfile creates a new,
 // monotonically allocated playlist entry and returns playlist_entry_id.
 void PlayerSession::BeginMediaOriginIntent(bool explicitOpen) {
+    CancelExternalVideoLoad();
     CancelExternalTrackRemoval();
     CancelSubtitleReload();
     CancelScrub();
@@ -685,16 +686,21 @@ void PlayerSession::OnEvent(MpvEvent e) {
     if(e.kind==MpvEvent::Kind::Failure || e.kind==MpvEvent::Kind::Shutdown || e.kind==MpvEvent::Kind::EndFile) CancelWindowPausePolicy();
     if (e.kind == MpvEvent::Kind::Failure || e.kind == MpvEvent::Kind::Shutdown ||
         e.kind == MpvEvent::Kind::StartFile || e.kind == MpvEvent::Kind::EndFile) {
+        CancelExternalVideoLoad();
         CancelExternalTrackRemoval();
         CancelSubtitleReload();
     }
     if (e.kind == MpvEvent::Kind::Failure || e.kind == MpvEvent::Kind::Shutdown) {
+        externalVideoLoadRequest_ = 0;
+        externalVideoLoadStatus_.inFlight = false;
+        externalVideoLoadCancelled_.reset();
         externalTrackRemovalRequest_ = 0;
         externalTrackRemovalStatus_.inFlight = false;
         externalTrackRemovalCancelled_.reset();
         subtitleReloadRequest_ = 0;
         subtitleReloadStatus_.inFlight = false;
     }
+    if (HandleExternalVideoLoadReply(e)) return;
     if (HandleExternalTrackRemovalReply(e)) return;
     if (HandleSubtitleReloadReply(e)) return;
     HandleWindowPauseReply(e);
@@ -836,6 +842,8 @@ void PlayerSession::CloseAsync(std::function<void()> completion) {
                          screenshotCompletion=std::move(screenshotCompletion)] {
         dispatch([weak,completion,screenshotCompletion] {
             if(auto self=weak.lock()) {
+                self->externalVideoLoadRequest_=0; self->externalVideoLoadStatus_.inFlight=false;
+                self->externalVideoLoadCancelled_.reset();
                 self->externalTrackRemovalRequest_=0; self->externalTrackRemovalStatus_.inFlight=false;
                 self->externalTrackRemovalCancelled_.reset();
                 self->subtitleReloadRequest_=0; self->subtitleReloadStatus_.inFlight=false;

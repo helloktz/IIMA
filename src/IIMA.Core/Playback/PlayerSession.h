@@ -37,6 +37,14 @@ struct ExternalTrackRemovalStatus {
     bool inFlight{}, submitted{}, removedConfirmed{};
     std::string error;
 };
+struct ExternalVideoLoadStatus {
+    enum class Phase { Idle, Loading, Completed, Cancelled, Failed };
+    Phase phase{Phase::Idle};
+    std::uint64_t revision{};
+    // Flags become known at reply; false while inFlight is not proof of no action.
+    bool inFlight{}, submitted{}, selectedConfirmed{};
+    std::string error;
+};
 class PlayerSession final : public std::enable_shared_from_this<PlayerSession> {
 public:
     using Dispatch = std::function<void(std::function<void()>)>;
@@ -85,6 +93,12 @@ public:
     std::uint64_t SubtitleEditIntentRevision() const noexcept { return subtitleEditIntentRevision_; }
     // True means queued, not decoded. Actual tracks/errors arrive asynchronously.
     bool LoadExternalAudio(std::string path);
+    // Adds/selects a video track in the current media, never a playlist open.
+    // Completed confirms fresh external path + vid, not rendered video output.
+    bool LoadExternalVideo(std::string path);
+    void CancelExternalVideoLoad();
+    bool ExternalVideoLoadBusy() const noexcept { return externalVideoLoadStatus_.inFlight; }
+    ExternalVideoLoadStatus const& ExternalVideoLoad() const noexcept { return externalVideoLoadStatus_; }
     // Removes a player track only, never its file. Completed requires a fresh
     // complete list confirming absence, not just a successful command reply.
     bool RemoveExternalTrack(std::string type, std::int64_t id, std::string externalPath);
@@ -195,6 +209,12 @@ private:
     PlayerSession(Dispatch dispatch, Changed changed);
     void OnEvent(MpvEvent event);
     void BeginTrackEditIntent();
+    bool HandleExternalVideoLoadReply(MpvEvent const& event);
+    ExternalVideoLoadStatus externalVideoLoadStatus_;
+    std::shared_ptr<std::atomic_bool> externalVideoLoadCancelled_;
+    std::uint64_t externalVideoLoadRequest_{}, externalVideoLoadGeneration_{}, externalVideoLoadOpenIntent_{}, externalVideoLoadEditIntent_{};
+    std::int64_t externalVideoLoadEntry_{-1};
+    std::string externalVideoLoadMediaPath_;
     bool HandleExternalTrackRemovalReply(MpvEvent const& event);
     ExternalTrackRemovalStatus externalTrackRemovalStatus_;
     std::shared_ptr<std::atomic_bool> externalTrackRemovalCancelled_;

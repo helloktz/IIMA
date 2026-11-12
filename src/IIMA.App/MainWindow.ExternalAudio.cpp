@@ -10,10 +10,15 @@ using namespace winrt;
 namespace winrt::IIMA::implementation {
 fire_and_forget MainWindow::LoadExternalAudio() {
     auto lifetime = get_strong();
-    if (closing_ || pickerOpen_ || session_->Snapshot().session != iima::SessionState::Ready ||
+    if (closing_ || !userDataLoaded_ || pickerOpen_ || inputResolving_ || !pendingFiles_.empty() || !activationInputs_.empty() ||
+        interactiveCrop_.Active() || cropOriginal_ || session_->PlaylistEditBusy() || session_->ExternalVideoLoadBusy() ||
+        session_->ExternalTrackRemovalBusy() || session_->SubtitleReloadBusy() || session_->Snapshot().mediaOriginPending ||
+        session_->Snapshot().session != iima::SessionState::Ready ||
         session_->Snapshot().media != iima::MediaState::Loaded) co_return;
     pickerOpen_ = true;
     const auto epoch = navigationEpoch_;
+    const auto generation=session_->Snapshot().mediaGeneration,intent=session_->Snapshot().mediaOpenIntentRevision,input=inputGeneration_;
+    const auto trackIntent=session_->TrackEditIntentRevision();
     const auto entry = session_->Snapshot().entryId;
     const auto path = session_->Snapshot().path;
     try {
@@ -28,9 +33,13 @@ fire_and_forget MainWindow::LoadExternalAudio() {
         auto file = co_await picker.PickSingleFileAsync();
         if (file && !closing_) {
             auto const& state = session_->Snapshot();
-            if (epoch != navigationEpoch_ || state.entryId != entry ||
+            if (epoch != navigationEpoch_ || input!=inputGeneration_ || generation!=state.mediaGeneration || intent!=state.mediaOpenIntentRevision ||
+                trackIntent!=session_->TrackEditIntentRevision() || inputResolving_ || !pendingFiles_.empty() || !activationInputs_.empty() ||
+                interactiveCrop_.Active() || cropOriginal_ || session_->PlaylistEditBusy() || session_->ExternalVideoLoadBusy() ||
+                session_->ExternalTrackRemovalBusy() || session_->SubtitleReloadBusy() || state.mediaOriginPending ||
+                state.session!=iima::SessionState::Ready || state.entryId != entry ||
                 state.path != path || state.media != iima::MediaState::Loaded) {
-                ShowError(L"媒体已变化，未载入外置音频。请重新选择。");
+                // Discard a stale picker without reporting into a newer media.
             } else if (file.Path().empty()) {
                 ShowError(L"所选文件没有可供播放器读取的路径。");
             } else if (!session_->LoadExternalAudio(to_string(file.Path()))) {

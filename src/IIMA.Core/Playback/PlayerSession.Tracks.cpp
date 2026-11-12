@@ -9,6 +9,7 @@
 namespace iima {
 void PlayerSession::BeginTrackEditIntent() {
     ++trackEditIntentRevision_;
+    CancelExternalVideoLoad();
     CancelExternalTrackRemoval();
 }
 void PlayerSession::CancelExternalTrackRemoval() {
@@ -24,7 +25,7 @@ bool PlayerSession::RemoveExternalTrack(std::string type, std::int64_t id, std::
     CancelScrub();
     CancelSubtitleReload();
     if (type == "sub") ++subtitleEditIntentRevision_;
-    if (ExternalTrackRemovalBusy() || SubtitleReloadBusy() || snapshot_.session != SessionState::Ready ||
+    if (ExternalVideoLoadBusy() || ExternalTrackRemovalBusy() || SubtitleReloadBusy() || snapshot_.session != SessionState::Ready ||
         snapshot_.media != MediaState::Loaded || waitingForStart_ || snapshot_.mediaOriginPending ||
         pauseRequest_ || loadRequest_ || !pendingCommands_.empty() || playlistEdit_ || snapshot_.entryId < 0 ||
         snapshot_.path.empty() || snapshot_.path.size() > 131072 ||

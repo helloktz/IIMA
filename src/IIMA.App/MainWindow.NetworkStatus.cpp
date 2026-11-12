@@ -40,6 +40,7 @@ void MainWindow::BindNetworkOpenAttempt(std::vector<std::string> const& paths,bo
 }
 void MainWindow::UpdateNetworkOpen(iima::PlaybackSnapshot const& state) {
     UpdatePlaylistProgress();
+    UpdateExternalVideoLoad();
     UpdateABLoopMarkers();
     UpdateExternalTrackRemoval();
     UpdateSubtitleReload();

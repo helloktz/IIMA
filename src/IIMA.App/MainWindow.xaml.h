@@ -462,6 +462,12 @@ private:
 
     void WireAudioControls();
     winrt::fire_and_forget LoadExternalAudio();
+    winrt::fire_and_forget LoadExternalVideo();
+    bool CanLoadExternalVideo();
+    void UpdateExternalVideoLoad();
+    void InvalidateExternalVideoLoad();
+    bool externalVideoStarting_{}, externalVideoUpdating_{};
+    std::uint64_t externalVideoRevision_{}, externalVideoGeneration_{}, externalVideoIntent_{}, externalVideoInput_{}, externalVideoObservedInput_{};
     void WireEqualizerEditor();
     std::optional<iima::EQProfile> ReadEqualizerDraft();
     void SetEqualizerDraft(iima::EQProfile const& profile);
