@@ -38,9 +38,6 @@
 #include "../IIMA.Core/Filters/SavedFilterLibrary.h"
 #include <deque>
 #include <set>
-#include "Plugins/PluginRuntime.h"
-#include "Plugins/PluginPointerState.h"
-#include "Plugins/PluginPlaybackProjection.h"
 #include "../IIMA.Core/History/HistoryBrowser.h"
 #include "../IIMA.Core/Diagnostics/DiagnosticLog.h"
 #include "../IIMA.Core/Diagnostics/MpvLogBuffer.h"
@@ -66,6 +63,7 @@ struct MainWindow : MainWindowT<MainWindow> {
     bool IsClosing() const noexcept { return closing_; }
     void SetActivationClosing(std::function<void()> callback) { activationClosing_ = std::move(callback); }
 private:
+    HRESULT GetNativeWindowHandle(HWND* handle);
     winrt::fire_and_forget OpenFile(bool append = false, bool invertWindowPolicy = false);
     winrt::fire_and_forget OpenFolder(bool append = false, bool invertWindowPolicy = false);
     winrt::fire_and_forget OpenSubtitle();
@@ -87,43 +85,6 @@ private:
     std::optional<iima::WindowPlacementSnapshot> windowPlacement_;
     std::optional<Windows::Graphics::RectInt32> placementProgrammaticBounds_;
     bool placementTouched_{}, restoringPlacement_{}, placementSavePending_{}, placementWritable_{true}, musicTransition_{};
-    void WirePluginInspection();
-    winrt::fire_and_forget StartLocalPlugin();
-    void StopLocalPlugin();
-    winrt::fire_and_forget RetirePlugin(std::unique_ptr<iima::plugins::PluginRuntime> runtime);
-    void ApplyPluginMenu(std::string const& json);
-    void ClearPluginMenu();
-    void WireNativePluginMenu(Microsoft::UI::Xaml::Controls::MenuBarItem const&);
-    bool PluginMenuVisible() const noexcept;
-    void QueuePluginMenuRefresh();
-    void FlushPluginMenuRefresh();
-    Microsoft::UI::Xaml::Controls::MenuFlyoutSubItem nativePluginMenu_{nullptr};
-    std::size_t pluginMenuVisibleCount_{};
-    bool pluginMenuRefreshQueued_{}, pluginMenuClearPending_{};
-    std::optional<std::string> pendingPluginMenuJson_;
-    std::uint64_t pendingPluginMenuGeneration_{};
-    bool InvokePluginMenuShortcut(std::string const& key, bool repeated);
-    std::map<std::string, std::pair<std::string, std::string>, std::less<>> pluginMenuShortcuts_;
-    std::string PluginKeyBindingsJson() const;
-    void UpdatePluginKeyBindings();
-    void PublishPluginKey(std::string const& key, bool down, bool repeat);
-    void WirePluginPointer();
-    void PluginPointerEvent(Microsoft::UI::Xaml::Input::PointerRoutedEventArgs const& args, unsigned event);
-    iima::plugins::PluginPointerState pluginPointer_;
-    void UpdatePlugin(iima::PlaybackSnapshot const& state);
-    void DispatchPluginCommand(iima::plugins::PluginCommand command);
-    void DispatchPluginPlaylistCommand(iima::plugins::PluginCommand const& command);
-    std::unique_ptr<iima::plugins::PluginRuntime> pluginRuntime_;
-    iima::plugins::PlaybackProjection pluginProjection_;
-    std::uint64_t pluginGeneration_{}, pluginMediaEpoch_{};
-    std::int64_t pluginMediaEntry_{-1};
-    iima::MediaState pluginMediaState_{iima::MediaState::Empty};
-    bool pluginStarting_{}, pluginStopPending_{}, pluginOsdAllowed_{};
-    std::wstring pluginLog_;
-
-    winrt::fire_and_forget InspectPlugin();
-    bool pluginInspectionBusy_{};
-    std::stop_source pluginInspectionStop_;
     void WireMusicMode();
     void WireMusicVolume();
     void UpdateMusicVolume();
@@ -161,13 +122,13 @@ private:
     void LoadBindingRows();
     void UpdateBindingRowFields();
     void RefreshBindingRows(std::optional<std::size_t> selected = {});
-    std::optional<std::size_t> SelectedBindingRow() const;
+    std::optional<std::size_t> SelectedBindingRow();
     void EditBindingRow(int action);
     void WriteBindingRows();
     bool projectingBindingRows_{};
     std::unique_ptr<iima::BindingConfiguration> bindingRowDraft_;
     std::string bindingRowSource_;
-    std::optional<std::string> SelectedBindingSnapshot() const;
+    std::optional<std::string> SelectedBindingSnapshot();
     void RefreshBindingLibrary(std::string selected = {});
     void SaveBindingSnapshot(bool replace);
     void RenameBindingSnapshot();
@@ -527,7 +488,7 @@ private:
     void UpdateBufferingIndicator(iima::PlaybackSnapshot const& state);
     void WireOSD();
     void WireAdvancedPlayback();
-    bool KeyboardPlaybackAllowed() const;
+    bool KeyboardPlaybackAllowed();
     void UpdateOSD(iima::PlaybackSnapshot const& state);
     void UpdatePresentationLayout();
     void WireCompactOverlayControls();
@@ -546,7 +507,7 @@ private:
     void ExecuteApplicationCommand(iima::ApplicationCommand command);
     void ApplyCollections(iima::PlaybackSnapshot const& state);
     void PlaySelected();
-    std::vector<std::int64_t> SelectedPlaylistIds() const;
+    std::vector<std::int64_t> SelectedPlaylistIds();
     std::vector<std::size_t> SelectedPlaylistRows();
     void UpdatePlaylistSelection();
     void UpdatePlaylistDurations(bool refresh = false);
@@ -567,7 +528,7 @@ private:
     void FinishInteractiveCrop(bool commit, bool restorePlayback = true);
     void UpdateInteractiveCrop(iima::PlaybackSnapshot const& state);
     void PaintInteractiveCrop();
-    std::optional<iima::CropMapping> InteractiveCropMapping() const;
+    std::optional<iima::CropMapping> InteractiveCropMapping();
     iima::CropSelection interactiveCrop_;
     std::optional<iima::CropMapping> cropMapping_;
     enum class CropTransactionPhase { None, Removing, Preparing, Editing, Writing };
@@ -634,11 +595,11 @@ private:
         std::uint64_t operation, std::uint64_t epoch, std::uint64_t revision,
         std::size_t destination);
     bool PlaylistDragReady() const;
-    bool PlaylistDropTargetCurrent(bool verifyVisual) const;
+    bool PlaylistDropTargetCurrent(bool verifyVisual);
     bool CopyPlaylistDrag(MainWindow& target, Microsoft::UI::Xaml::DragEventArgs const& args, std::size_t row);
     void ResetPlaylistDrag();
     bool PlaylistDragCurrent(Microsoft::UI::Xaml::DragEventArgs const& args, bool verifyVisual = false);
-    std::optional<std::size_t> PlaylistDropRow(Microsoft::UI::Xaml::DragEventArgs const& args) const;
+    std::optional<std::size_t> PlaylistDropRow(Microsoft::UI::Xaml::DragEventArgs const& args);
     std::optional<winrt::guid> playlistDragToken_;
     bool playlistDragCopyAllowed_{};
     std::vector<std::pair<std::int64_t,std::string>> playlistDragItems_;
@@ -711,7 +672,7 @@ private:
     void RecordLastMedia();
     void RefreshHistory();
     void WireHistoryControls();
-    std::vector<std::size_t> SelectedHistoryRows() const;
+    std::vector<std::size_t> SelectedHistoryRows();
     void UpdateHistorySelection();
     void OpenSelectedHistory(bool newWindow = false);
     std::uint64_t historySelectionRevision_{};

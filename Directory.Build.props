@@ -6,7 +6,7 @@
     <IimaRoot>$(MSBuildThisFileDirectory)</IimaRoot>
     <IimaVersion>0.1.0</IimaVersion>
     <PlatformToolset>v145</PlatformToolset>
-    <VCToolsVersion>14.51.36231</VCToolsVersion>
+    <VCToolsVersion>14.52.37025</VCToolsVersion>
     <WindowsTargetPlatformVersion>10.0.26100.0</WindowsTargetPlatformVersion>
     <WindowsTargetPlatformMinVersion>10.0.22000.0</WindowsTargetPlatformMinVersion>
     <NuGetVersion>8.0.0</NuGetVersion>

@@ -3,7 +3,6 @@
 #include "pch.h"
 #include "App.xaml.h"
 #include "MainWindow.xaml.h"
-#include "App.g.cpp"
 namespace winrt::IIMA::implementation
 {
 App::App(std::shared_ptr<iima::InstanceRouter> router, std::vector<std::wstring> paths)

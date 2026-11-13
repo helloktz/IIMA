@@ -48,7 +48,7 @@ void MainWindow::PublishWindowScale() {
     auto video = VideoDisplaySize(state.videoOutputParameters);
     if (!video) return;
     HWND hwnd{};
-    if (FAILED(this->as<::IWindowNative>()->get_WindowHandle(&hwnd))) return;
+    if (FAILED(GetNativeWindowHandle(&hwnd))) return;
     const double units = preferences_.Boolean("usePhysicalResolution") ? 1.0 : GetDpiForWindow(hwnd) / 96.0;
     const double width = VideoPanel().ActualWidth() * VideoPanel().CompositionScaleX();
     if (windowScaleExpectedPanelWidth_) {

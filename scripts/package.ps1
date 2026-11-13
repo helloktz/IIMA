@@ -31,11 +31,6 @@ foreach ($required in @('IIMA.exe','Microsoft.ui.xaml.dll','Microsoft.WindowsApp
 
 $licensesRoot = Join-Path $stage 'licenses'
 New-Item -ItemType Directory -Force $licensesRoot | Out-Null
-# QuickJS is linked statically; its license and exact source/build provenance
-# still travel with every package. build.ps1 checked staged hashes above.
-$quickjsRoot = Join-Path $RepoRoot '.deps/quickjs'
-Copy-Item -LiteralPath (Join-Path $quickjsRoot 'licenses') -Destination (Join-Path $licensesRoot 'QuickJS-ng') -Recurse
-Copy-Item -LiteralPath (Join-Path $quickjsRoot 'Release-manifest.json') -Destination (Join-Path $stage 'quickjs-manifest.json')
 Copy-Item -LiteralPath (Join-Path $mpvRoot 'licenses') -Destination (Join-Path $licensesRoot 'libmpv') -Recurse
 Copy-Item -LiteralPath (Join-Path $RepoRoot 'build/patches/mpv-iima-owned-swapchain-v1.patch') -Destination (Join-Path $licensesRoot 'libmpv')
 Copy-Item -LiteralPath (Join-Path $mpvRoot 'manifest.json') -Destination (Join-Path $stage 'libmpv-manifest.json')

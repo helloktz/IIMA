@@ -40,7 +40,7 @@ void MainWindow::BeginManagedCropTransaction() {
     interactiveCropEpoch_ = navigationEpoch_; interactiveCropEntry_ = state.entryId;
     interactiveCropWasPlaying_ = !state.paused;
     CancelMouseClick(); CancelThumbnailPreview(); session_->Pause(true);
-    PlayerSidebar().IsEnabled(false);
+    PlayerSidebarContent().IsEnabled(false);
     RefreshPlayerMenus();
     UpdateWindowAspectConstraint();
     InteractiveCropCanvas().Visibility(Visibility::Collapsed);
@@ -168,7 +168,7 @@ void MainWindow::FinishManagedCropTransaction(bool commit, bool removeDelogo) {
     const bool restoring = !commit;
     cropPointer_.reset(); interactiveCrop_.CancelDrag();
     InteractiveCropCanvas().ReleasePointerCaptures();
-    InteractiveCropCanvas().IsEnabled(false);
+    InteractiveCropCanvas().IsHitTestVisible(false);
     cropTransactionPhase_ = CropTransactionPhase::Writing;
     InteractiveCropConfirmButton().IsEnabled(false);
     InteractiveCropCancelButton().IsEnabled(false);

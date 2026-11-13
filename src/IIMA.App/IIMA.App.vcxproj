@@ -16,12 +16,15 @@
     <MinimalCoreWin>true</MinimalCoreWin>
     <DefaultLanguage>zh-CN</DefaultLanguage>
     <AppContainerApplication>false</AppContainerApplication>
+    <ApplicationType>Windows Store</ApplicationType>
+    <ApplicationTypeRevision>10.0</ApplicationTypeRevision>
     <UseWinUI>true</UseWinUI>
     <WinUISDKReferences>true</WinUISDKReferences>
     <WindowsPackageType>None</WindowsPackageType>
     <AppxPackage>false</AppxPackage>
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
     <WindowsAppSdkBootstrapInitialize>false</WindowsAppSdkBootstrapInitialize>
+    <GeneratedFilesDir>$(IntDir)Generated Files\</GeneratedFilesDir>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
@@ -34,10 +37,10 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <Import Project="..\..\build\NuGet.props" />
   <Import Project="..\..\build\Compiler.props" />
-  <Import Project="..\..\build\QuickJS.props" />
   <ItemDefinitionGroup>
     <Midl>
       <EnableWindowsRuntime>true</EnableWindowsRuntime>
+      <HeaderFileName>$(IntDir)%(Filename)_h.h</HeaderFileName>
     </Midl>
     <ClCompile>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -262,42 +265,11 @@
     <ClCompile Include="Platform\WindowPlacement.cpp" />
     <ClInclude Include="Platform\WindowPlacement.h" />
   </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="MainWindow.PluginRuntime.cpp" />
-    <ClCompile Include="MainWindow.PluginPlaylist.cpp" />
-    <ClCompile Include="MainWindow.PluginMenu.cpp" />
-    <ClCompile Include="MainWindow.PluginInput.cpp" />
-    <ClCompile Include="MainWindow.PluginPointer.cpp" />
-    <ClCompile Include="Plugins\PluginPointerState.cpp" />
-    <ClInclude Include="Plugins\PluginPointerState.h" />
-    <ClCompile Include="Plugins\PluginRuntime.cpp" />
-    <ClInclude Include="Plugins\PluginRuntime.h" />
-    <ClInclude Include="Plugins\PluginBootstrap.h" />
-    <ClCompile Include="Plugins\PluginPlaybackProjection.cpp" />
-    <ClInclude Include="Plugins\PluginPlaybackProjection.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Platform\PluginHttpClient.h" />
-    <ClCompile Include="Platform\PluginHttpClient.cpp" />
-    <ClInclude Include="Platform\PluginFileStore.h" />
-    <ClCompile Include="Platform\PluginFileStore.cpp" />
-    <ClInclude Include="Platform\PluginPreferenceStore.h" />
-    <ClCompile Include="Platform\PluginPreferenceStore.cpp" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Import Project="..\..\build\NuGet.targets" />
-  <ItemGroup>
-    <ClCompile Include="MainWindow.Plugins.cpp" />
-    <ClCompile Include="Platform\PluginInspection.cpp" />
-    <ClInclude Include="Platform\PluginInspection.h" />
-  </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MainWindow.ThumbnailCache.cpp" />
     <ClCompile Include="Platform\ThumbnailDiskCache.cpp" />
     <ClInclude Include="Platform\ThumbnailDiskCache.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Platform\PluginXmlRpc.h" />
-    <ClCompile Include="Platform\PluginXmlRpc.cpp" />
   </ItemGroup>
 </Project>

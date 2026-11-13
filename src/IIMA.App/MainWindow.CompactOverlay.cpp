@@ -47,8 +47,8 @@ void MainWindow::WireCompactOverlayControls() {
                 self->ExecuteApplicationCommand(iima::ApplicationCommand::TogglePictureInPicture);
         }
     });
-    CompactOverlayControls().AddHandler(UIElement::PointerPressedEvent(),Input::PointerEventHandler(
-        [weak](auto const&,auto const&) {if(auto self=weak.get()) self->CancelMouseClick();}),true);
+    CompactOverlayControls().AddHandler(UIElement::PointerPressedEvent(),box_value(Input::PointerEventHandler(
+        [weak](auto const&,auto const&) {if(auto self=weak.get()) self->CancelMouseClick();})),true);
     CompactOverlayControls().Tapped([](auto const&,Input::TappedRoutedEventArgs const& e){e.Handled(true);});
     CompactOverlayControls().DoubleTapped([](auto const&,Input::DoubleTappedRoutedEventArgs const& e){e.Handled(true);});
     CompactOverlayControls().RightTapped([](auto const&,Input::RightTappedRoutedEventArgs const& e){e.Handled(true);});

@@ -140,7 +140,7 @@ void MainWindow::UpdateExternalTrackRemoval() {
         L"轨道操作报告错误；未自动重试，已提交操作不能撤回。";break;
     }
     if(!text.empty()) text=externalRemovalLabel_+L"："+text;
-    if(!status.error.empty()) text+=L"\n"+SafeRemovalText(status.error,1024);
+    if(!status.error.empty()) text = text + L"\n"+SafeRemovalText(status.error,1024);
     if(ExternalRemovalStatus().Text()!=text) ExternalRemovalStatus().Text(text);
 }
 }

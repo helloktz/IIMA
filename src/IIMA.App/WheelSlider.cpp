@@ -24,18 +24,18 @@ namespace winrt::IIMA::implementation {
 WheelSlider::WheelSlider() {
     auto weak=get_weak();
     using namespace Microsoft::UI::Xaml;
-    AddHandler(UIElement::PointerPressedEvent(),Input::PointerEventHandler([weak](auto const&,auto const& args) {
+    AddHandler(UIElement::PointerPressedEvent(),box_value(Input::PointerEventHandler([weak](auto const&,auto const& args) {
         if(auto self=weak.get();self && self->tracking_ && !self->trackingPointerId_) self->trackingPointerId_=args.Pointer().PointerId();
-    }),true);
-    AddHandler(UIElement::PointerReleasedEvent(),Input::PointerEventHandler([weak](auto const&,auto const& args) {
+    })),true);
+    AddHandler(UIElement::PointerReleasedEvent(),box_value(Input::PointerEventHandler([weak](auto const&,auto const& args) {
         if(auto self=weak.get();self && self->trackingPointerId_==args.Pointer().PointerId()) self->QueueTrackingEnd(false);
-    }),true);
-    AddHandler(UIElement::PointerCanceledEvent(),Input::PointerEventHandler([weak](auto const&,auto const& args) {
+    })),true);
+    AddHandler(UIElement::PointerCanceledEvent(),box_value(Input::PointerEventHandler([weak](auto const&,auto const& args) {
         if(auto self=weak.get();self && (!self->trackingPointerId_ || self->trackingPointerId_==args.Pointer().PointerId())) self->CancelTracking();
-    }),true);
-    AddHandler(UIElement::PointerCaptureLostEvent(),Input::PointerEventHandler([weak](auto const&,auto const& args) {
+    })),true);
+    AddHandler(UIElement::PointerCaptureLostEvent(),box_value(Input::PointerEventHandler([weak](auto const&,auto const& args) {
         if(auto self=weak.get();self && self->trackingPointerId_==args.Pointer().PointerId()) self->QueueTrackingEnd(true);
-    }),true);
+    })),true);
     Unloaded([weak](auto const&,auto const&) {if(auto self=weak.get()) self->CancelTracking();});
 }
 void WheelSlider::OnApplyTemplate() {
@@ -68,7 +68,7 @@ void WheelSlider::OnPointerPressed(Microsoft::UI::Xaml::Input::PointerRoutedEven
     if(tracking_ && trackingPointerId_ && *trackingPointerId_!=args.Pointer().PointerId()) {args.Handled(true);return;}
     if(trackingEnabled_ && IsEnabled() && !args.Handled()) {
         auto point=args.GetCurrentPoint(*this);
-        const bool primary=point.PointerDevice().PointerDeviceType()!=Windows::Devices::Input::PointerDeviceType::Mouse || point.Properties().IsLeftButtonPressed();
+        const bool primary=point.PointerDeviceType()!=Microsoft::UI::Input::PointerDeviceType::Mouse || point.Properties().IsLeftButtonPressed();
         auto track=Orientation()==Microsoft::UI::Xaml::Controls::Orientation::Horizontal ? horizontalTrack_ : verticalTrack_;
         if(primary && point.IsInContact() && track) {
             auto local=args.GetCurrentPoint(track).Position();

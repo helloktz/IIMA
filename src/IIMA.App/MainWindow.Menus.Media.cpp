@@ -35,7 +35,7 @@ namespace winrt::IIMA::implementation {
 void MainWindow::FillAudioDeviceMenu(Controls::MenuFlyoutSubItem const& menu) {
     // Existing static menu rows track popup lifetime. Never replace an open
     // popup's identities under the pointer; the caller keeps its dirty revision.
-    if (!playerMenuVisibleItems_.empty() || PluginMenuVisible()) return;
+    if (!playerMenuVisibleItems_.empty()) return;
     menu.Items().Clear();
     auto const& state = session_->Snapshot();
     const bool enabled = !closing_ && userDataLoaded_ && !pickerOpen_ &&
@@ -90,7 +90,7 @@ void MainWindow::FillAudioDeviceMenu(Controls::MenuFlyoutSubItem const& menu) {
     menu.Items().Append(more);
 }
 void MainWindow::FillSavedFilterMenu(Controls::MenuFlyoutSubItem const& menu, bool audio) {
-    if (!playerMenuVisibleItems_.empty() || PluginMenuVisible()) return;
+    if (!playerMenuVisibleItems_.empty()) return;
     menu.Items().Clear();
     auto const& state = session_->Snapshot();
     auto const& chain = audio ? state.audioFilters : state.videoFilters;

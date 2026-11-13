@@ -6,7 +6,7 @@
 using namespace winrt;
 using namespace Microsoft::UI::Xaml;
 namespace winrt::IIMA::implementation {
-std::optional<std::string> MainWindow::SelectedBindingSnapshot() const {
+std::optional<std::string> MainWindow::SelectedBindingSnapshot() {
     if (auto item = BindingSnapshotBox().SelectedItem().try_as<Controls::ComboBoxItem>())
         return to_string(unbox_value<hstring>(item.Tag()));
     return {};

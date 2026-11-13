@@ -51,7 +51,7 @@ fire_and_forget MainWindow::LoadExternalAV(bool video) {
     pickerOpen_=true;
     try {
         Windows::Storage::Pickers::FileOpenPicker picker;
-        HWND hwnd{};check_hresult(as<::IWindowNative>()->get_WindowHandle(&hwnd));
+        HWND hwnd{};check_hresult(GetNativeWindowHandle(&hwnd));
         check_hresult(picker.as<::IInitializeWithWindow>()->Initialize(hwnd));
         picker.CommitButtonText(L"载入并选择"+kind);picker.FileTypeFilter().Append(L"*");
         auto file=co_await picker.PickSingleFileAsync();
@@ -143,13 +143,13 @@ void MainWindow::UpdateExternalAVLoad() {
         L"载入命令已确认，但后续轨道选择未确认；未自动重试，已提交操作不能撤回。" :
         L"外部轨道载入失败或结果未确认；未自动重试，已提交操作不能撤回。";break;
     }
-    if(status.phase==Phase::Cancelled && status.commandAcknowledged) text+=L" 载入命令已确认。";
+    if(status.phase==Phase::Cancelled && status.commandAcknowledged) text = text + L" 载入命令已确认。";
     if(!status.error.empty()) {
         try {
             auto wide=to_hstring(status.error);std::wstring safe;
             for(auto c:wide) {if(safe.size()>=1024) break;safe+=c<32 || (c>=0x7f && c<=0x9f) || c==0x061c || c==0x200e || c==0x200f || (c>=0x2028 && c<=0x202e) || (c>=0x2066 && c<=0x2069) ? L'?' : c;}
             if(!safe.empty() && safe.back()>=0xd800 && safe.back()<=0xdbff) safe.pop_back();
-            text+=L"\n"+hstring(safe);
+            text = text + L"\n"+hstring(safe);
         } catch(...) {}
     }
     project(text);

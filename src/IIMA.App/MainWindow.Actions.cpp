@@ -6,7 +6,7 @@
 using namespace winrt;
 using namespace Microsoft::UI::Xaml;
 namespace winrt::IIMA::implementation {
-bool MainWindow::KeyboardPlaybackAllowed() const {
+bool MainWindow::KeyboardPlaybackAllowed() {
     if (interactiveCrop_.Active() || cropOriginal_) return false;
     auto focused = Input::FocusManager::GetFocusedElement(Root().XamlRoot()).try_as<DependencyObject>();
     // NumberBox/AutoSuggestBox and editable ComboBox focus their internal text

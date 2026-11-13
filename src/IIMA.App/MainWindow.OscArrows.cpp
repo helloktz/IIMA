@@ -82,7 +82,7 @@ void MainWindow::WireOscArrows() {
     auto weak=get_weak();
     for(auto direction:{-1,1}) {
         auto button=direction<0?OscLeftButton():OscRightButton();
-        button.AddHandler(UIElement::PointerPressedEvent(),Input::PointerEventHandler([weak,direction](auto const& sender,Input::PointerRoutedEventArgs const& args) {
+        button.AddHandler(UIElement::PointerPressedEvent(),box_value(Input::PointerEventHandler([weak,direction](auto const& sender,Input::PointerRoutedEventArgs const& args) {
             auto self=weak.get();if(!self)return;
             auto b=sender.template as<Controls::Button>();
             auto point=args.GetCurrentPoint(b);
@@ -115,8 +115,8 @@ void MainWindow::WireOscArrows() {
                 }
                 self->UpdateOscArrows();self->ControlBarActivity();
             } catch(...) {self->CancelOscArrow();}
-        }),true);
-        button.AddHandler(UIElement::PointerReleasedEvent(),Input::PointerEventHandler([weak](auto const& sender,Input::PointerRoutedEventArgs const& args) {
+        })),true);
+        button.AddHandler(UIElement::PointerReleasedEvent(),box_value(Input::PointerEventHandler([weak](auto const& sender,Input::PointerRoutedEventArgs const& args) {
             auto self=weak.get();if(!self || !self->oscArrowPointer_ || args.Pointer().PointerId()!=self->oscArrowPointerId_)return;
             args.Handled(true);self->UpdateOscArrows();if(!self->oscArrowPointer_)return;
             auto b=sender.template as<Controls::Button>();auto p=args.GetCurrentPoint(b).Position();
@@ -127,7 +127,7 @@ void MainWindow::WireOscArrows() {
             if(token)self->session_->EndSpeedHold(token);else self->InvokeOscArrow(direction);
             self->UpdateOscArrows();
             self->DispatcherQueue().TryEnqueue([weak] {if(auto current=weak.get();current && !current->oscArrowPointer_)current->oscArrowSuppressClick_=false;});
-        }),true);
+        })),true);
         auto cancel=[weak](auto const&,Input::PointerRoutedEventArgs const& args) {
             if(auto self=weak.get();self && self->oscArrowPointer_ && args.Pointer().PointerId()==self->oscArrowPointerId_) self->CancelOscArrow();
         };

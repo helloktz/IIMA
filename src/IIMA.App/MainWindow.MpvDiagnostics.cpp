@@ -157,7 +157,7 @@ fire_and_forget MainWindow::ExportMpvDiagnosticSnapshot() {
     bool written{},failed{};
     try {
         Windows::Storage::Pickers::FileSavePicker picker;
-        HWND hwnd{};check_hresult(as<::IWindowNative>()->get_WindowHandle(&hwnd));
+        HWND hwnd{};check_hresult(GetNativeWindowHandle(&hwnd));
         check_hresult(picker.as<::IInitializeWithWindow>()->Initialize(hwnd));
         picker.SuggestedFileName(L"IIMA-private-mpv-log");
         picker.FileTypeChoices().Insert(L"原始UTF-8日志（可能含私密信息）",single_threaded_vector<hstring>({L".log"}));

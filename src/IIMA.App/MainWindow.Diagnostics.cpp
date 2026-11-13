@@ -151,7 +151,7 @@ fire_and_forget MainWindow::SaveDiagnosticSnapshot(bool all) {
     try {
         Windows::Storage::Pickers::FileSavePicker picker;
         HWND hwnd{};
-        check_hresult(as<::IWindowNative>()->get_WindowHandle(&hwnd));
+        check_hresult(GetNativeWindowHandle(&hwnd));
         check_hresult(picker.as<::IInitializeWithWindow>()->Initialize(hwnd));
         picker.SuggestedFileName(all ? L"IIMA-diagnostic-snapshot" : L"IIMA-diagnostic-filtered");
         picker.FileTypeChoices().Insert(L"UTF-8 日志", single_threaded_vector<hstring>({L".log"}));

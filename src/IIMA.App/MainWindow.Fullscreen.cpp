@@ -34,7 +34,7 @@ void MainWindow::ToggleFullscreen() {
             if (musicMode_.IsMusic()) {
                 auto display = Microsoft::UI::Windowing::DisplayArea::GetFromWindowId(window.Id(),
                     Microsoft::UI::Windowing::DisplayAreaFallback::Nearest);
-                HWND hwnd{}; winrt::check_hresult(this->as<::IWindowNative>()->get_WindowHandle(&hwnd));
+                HWND hwnd{}; winrt::check_hresult(GetNativeWindowHandle(&hwnd));
                 if (display) {
                     auto work = display.WorkArea(); auto point = window.Position(); auto extent = window.Size();
                     saved.geometry = iima::WindowPlacementSnapshot{
@@ -48,7 +48,7 @@ void MainWindow::ToggleFullscreen() {
             if (saved.videoSizingEligible && saved.geometry) {
                 auto display = Microsoft::UI::Windowing::DisplayArea::GetFromWindowId(window.Id(),
                     Microsoft::UI::Windowing::DisplayAreaFallback::Nearest);
-                HWND hwnd{}; winrt::check_hresult(this->as<::IWindowNative>()->get_WindowHandle(&hwnd));
+                HWND hwnd{}; winrt::check_hresult(GetNativeWindowHandle(&hwnd));
                 if (display) {
                     auto work = display.WorkArea(); const auto dpi = GetDpiForWindow(hwnd);
                     auto bounds = iima::RestoreWindowPlacement(*saved.geometry,
@@ -90,7 +90,7 @@ bool MainWindow::ExitFullscreen(bool restoreGeometry) {
         // presenter can itself move back to the pre-fullscreen monitor.
         auto display = Microsoft::UI::Windowing::DisplayArea::GetFromWindowId(window.Id(),
             Microsoft::UI::Windowing::DisplayAreaFallback::Nearest);
-        HWND hwnd{}; winrt::check_hresult(this->as<::IWindowNative>()->get_WindowHandle(&hwnd));
+        HWND hwnd{}; winrt::check_hresult(GetNativeWindowHandle(&hwnd));
         const auto restoreDpi = GetDpiForWindow(hwnd);
         fullscreenTransition_ = true;
         restoringPlacement_ = true;

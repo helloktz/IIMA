@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "FileAssociations.h"
-#include <shellapi.h>
+#include <ShlObj.h>
 #include <string>
 #include <vector>
 #pragma comment(lib, "advapi32.lib")

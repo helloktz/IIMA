@@ -7,7 +7,7 @@
 namespace winrt::IIMA::implementation {
 void MainWindow::WireWindowPlaybackPolicy() {
     HWND window{};
-    check_hresult(this->as<::IWindowNative>()->get_WindowHandle(&window));
+    check_hresult(GetNativeWindowHandle(&window));
     auto weak=get_weak();
     windowLifecycle_=std::make_unique<iima::WindowLifecycle>(window,DispatcherQueue(),
         [weak](iima::WindowLifecycleState state) {
@@ -41,7 +41,7 @@ void MainWindow::WireWindowPlaybackPolicy() {
     });
     if(!powerLifecycle_->ModernStandbyNotificationsRegistered())
         ShowError(L"无法注册现代待机通知，仅保留传统睡眠广播；睡眠暂停可能不可用。Windows错误：" +
-            winrt::to_hstring(powerLifecycle_->RegistrationError()));
+            winrt::to_hstring(static_cast<std::uint32_t>(powerLifecycle_->RegistrationError())));
     RefreshAccessibility();
     const auto state=windowLifecycle_->Current();
     session_->WindowLifecycleChanged(state.inactive,state.minimized);

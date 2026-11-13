@@ -198,7 +198,7 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 - `SidebarAudioPane.audioEqSliderAction/eqPopUpButtonAction`、`Equalizations/EQProfile` → 十段NumberBox编辑、显式应用、从观察af读取、用户预设另存/载入/重命名/删除，及JSON持久化。与上游即时滑块不同，本UI显式应用整组，防半编辑值被异步提交；载入编辑器不改变播放。存储保留有限增益，编辑器限制±12dB；载入超范围值会夹到编辑范围，已保存数据本身不改写。内建英文键用于重名检查，完整本地化尚未完成。
 - `InteractiveModeController/CropBoxView`、`PlayerCore.setCrop/removeCropFilter` → `CropSelection.*`：顶左坐标、黑边/缩放/平移/明确90度旋转与源轴flip/mirror的逆变换，八方向/移动/自由框选、四像素吸附、取消、确认及代次返回。未知变换/其他空间滤镜/未确认映射拒绝，不猜测GPU实际画面。**本批未接鼠标拖动裁剪覆盖层**；只将像素矩形校验和mpv crop命令接到 `MainWindow.Crop.cpp` 源像素表单，读取video-params/w,h、换片失效、拒绝其他vf，`@iina_crop`替换/移除走已有异步链。保持所有输入为源像素而不是窗口坐标，避免不可靠的显示映射。
 
-仅静态编写与人工审阅，未编译、测试或运行；交互裁剪UI、完整预设编辑本地化、多窗口、插件/在线字幕等仍未完成。新增JSON字段不迁移或删除既有文件，加载不合法字段沿原备份/default策略处理，不能称数据迁移已实测。
+仅静态编写与人工审阅，未编译、测试或运行；交互裁剪UI、完整预设编辑本地化、多窗口、在线字幕等仍未完成。新增JSON字段不迁移或删除既有文件，加载不合法字段沿原备份/default策略处理，不能称数据迁移已实测。
 
 ### 第九批：Assrt 在线字幕搜索与下载操作链
 
@@ -207,7 +207,7 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 - `Assrt.Subtitle.download` → `SubtitleStaging`：唯一临时目录、CREATE_NEW、完整写入flush、独占拥有路径清理，拒绝归档/执行文件特征和二进制字幕，只允许`.srt/.ass/.ssa/.vtt/.lrc/.smi/.sami/.sub`文本。允许UTF16 BOM及旧单字节编码交给mpv解析，不等于内容安全扫描。每批32MiB、每窗口64MiB/8个已成功批次；失败批次不部分载入。mpv会话完全结束后才清除文件，取消中尚未发布结果由worker释放；崩溃残留清理未实现。
 - 新搜索、停止/换片、关闭使ticket失效；同一路径重开经过Loading仍取消，迟到网络/下载结果不能载入另一媒体。取消后等待后台实际返回才允许新任务，避免重复点击产生无限工作线程。成功下载先保留临时文件，再通过PlayerSession的 `sub-add select/auto` 提交第一条选中、其余添加；界面只称“已提交”，不以HTTP成功宣称mpv加载成功。加载错误沿现有播放器状态反馈。
 
-仍未实现OpenSubtitles/Shooter、在线字幕插件提供商、帐号持久化/注销、多结果多选、保存下载字幕至媒体目录等上游操作。未调用任何在线服务、未传输用户凭据，未编译、测试或运行；这里只完成静态实现与来源/生命周期审阅。
+仍未实现OpenSubtitles/Shooter、帐号持久化/注销、多结果多选、保存下载字幕至媒体目录等上游操作。未调用任何在线服务、未传输用户凭据，未编译、测试或运行；这里只完成静态实现与来源/生命周期审阅。
 
 ### 第十批：OpenSubtitles、影片哈希与下载字幕另存
 
@@ -216,7 +216,7 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 - `OpenSubSubtitle.hash` / `ShooterSubtitle.hash` → `OnlineSubtitles/MediaHash.*`、`Platform/SubtitleMediaHash.*`：OpenSub严格>128KiB、首尾64KiB显式小端uint64模2^64和、16位hex；Shooter>=12KiB、4096/(size/3)*2/size/3/size-8192的4096字节块、Windows CNG MD5串联。MD5只作协议媒体识别，不作安全摘要。Windows读取仅本地普通盘文件，不访问URL/网络/离线/reparse/ADS；同一句柄完整读取、取消检查、前后size/mtime/changetime校验。显式勾选后OpenSub查询才发送hash，失败不默默退回或上传原文件。Shooter hash已实现但服务仍未接，不能称Shooter在线字幕完成。
 - `MainMenuActions.saveDownloadedSub` → `MainWindow.OnlineSubtitleSave.cpp`、`SubtitleStaging::Publish`：可选本窗口下载列表、原生SaveFilePicker、捕获文件身份和暂存所有权、后台复制到目标同目录新文件、flush后替换；失败保留原字幕，不像上游先删除目标再复制。播放器继续用暂存副本，另存不偷偷切换当前字幕；关闭或切换期间已开始的保存保持捕获的文件。当前提供下载列表选项，而不是仅按当前外部轨道猜测tmp目录。
 
-未编译、测试、运行或联网。全量移植仍未完成：多结果分页、完整登录/刷新/注销、自动搜索、插件提供商、字幕配额本地化等不在本批完成范围。源码静态可审阅不等于服务或Windows功能已通过验证。
+未编译、测试、运行或联网。全量移植仍未完成：多结果分页、完整登录/刷新/注销、自动搜索、字幕配额本地化等不在本批完成范围。源码静态可审阅不等于服务或Windows功能已通过验证。
 
 ### 第十一批：多窗口播放与并发持久化
 
@@ -225,25 +225,17 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 - 每个窗口使用独立日志子目录，避免多个旋转worker争用同一日志文件；单窗口1MiB轮换边界不变，但跨启动目录总量清理仍未实现。Windows SMTC保持每窗口原生session，未实现IINA只把lastActive投影到单个系统媒体栏的策略，不对系统面板选取行为作验证承诺。
 - 新出现的损坏文件阻止合并保存；仅与本次进程已安全备份的损坏原文完全一致时允许默认恢复。settings/history仍为两个独立原子文件，不声称跨文件事务或与外部编辑器跨进程互斥。失败保留既有错误/重试/不保存退出渠道。
 
-仅静态编写和人工源码审阅，未编译、测试或运行。窗口资源上限、关闭竞态、SMTC多实例、合并保存和图形并行需Windows独立验收；插件运行时、完整多窗口策略、音乐模式等仍未完成。
+仅静态编写和人工源码审阅，未编译、测试或运行。窗口资源上限、关闭竞态、SMTC多实例、合并保存和图形并行需Windows独立验收；完整多窗口策略、音乐模式等仍未完成。
 
 ### 第十二批：音乐布局、音频播放就绪与窗口位置
 
 - `PlaybackInfo.isAudio`、`PlayerCore.trackListChanged/switchToMiniPlayer/switchBackFromMiniPlayer`、`MiniPlayerWindowController` → `MusicModePolicy`与`MainWindow.Music.cpp`：依据全部轨道而不是当前选中视频判断（禁用视频不把电影当音乐），封面不是实视频，网络保持上游不自动当音乐。默认autoSwitchToMusicMode=true；全屏/Compact不自动进入，实视频自动退出；手动成功转换翻转播放器生命周期override，不随换片复位。代次和待提交ticket防过期布局建议。WinUI在同一个窗口内改变布局/尺寸而非创建第二Cocoa窗口并移动videoView，保留原PlayerSession/交换链，标题艺术家专辑、返回按钮、列表显示和封面显示偏好实际接线。
-- 音乐布局沿用既有控制/队列侧栏；并非IINA的逐像素mini-player复刻，未实现其专用触控动画/背景模糊/独立封面布局。手动切入可以显示视频；音频封面依赖mpv已有输出，隐藏封面仅设panel opacity，不宣称停止解码。普通窗口尺寸在音乐模式返回时恢复，未保存独立音乐布局大小。没有插件musicModeChanged事件运行时。
+- 音乐布局沿用既有控制/队列侧栏；并非IINA的逐像素mini-player复刻，未实现其专用触控动画/背景模糊/独立封面布局。手动切入可以显示视频；音频封面依赖mpv已有输出，隐藏封面仅设panel opacity，不宣称停止解码。普通窗口尺寸在音乐模式返回时恢复，未保存独立音乐布局大小。
 - 音频播放就绪与音乐布局分类分开：已加载、轨道已知且存在音轨而无实视频（包括网络音频），不再强制等待交换链才允许继续/暂停/进度与续播；封面输出可选。未知轨道和有实视频仍须安全交换链绑定；打开仍要求固定libmpv扩展构建，不借此声称普通DLL兼容。错误显示仅忽略已知音频的“Composition output”未准备提示，其余错误保留。原脚本链接源清单随新纯逻辑依赖更新，但没有执行测试。
 - `MainWindowLastPosition`、`determineScreenToUse/windowFrameFromGeometry` → `WindowPlacement`、`MainWindow.Placement.cpp`：普通还原态窗口物理坐标与工作区/DPI单独持久化，加载时映射当前显示器可移动区间与逻辑大小，夹限到工作区；后台加载期间用户已移动则不覆盖其动作。音乐/全屏/最大最小化/Compact不是普通尺寸采样；关闭等待后台原子位置保存，失败保留旧文件但不困住播放器退出。捕获顺序仅进程内比较，多个窗口旧任务不会覆盖新采样，重启不受旧序号阻挡。不是每个媒体或每个窗口身份独立的恢复档案；磁盘只保留最近接受的普通布局，无显示器名持久化。
 - 位置JSON上限16KiB，拒绝非法坐标、更新schema或目标重解析文件；损坏原文件不自动覆盖。此数据与设置/历史独立，不声称跨文件事务。普通位置恢复默认开启，暂未接IINA全部窗口resize/geometry偏好，首次显示后可能异步调整位置。
 
 本批未编译、测试或运行，尤其需后续验证纯音频FILE_LOADED/track-list顺序、同媒体重播、音乐/全屏/Compact交互、显示器断开/DPI、独立窗口关闭与位置持久化。全量移植及数量要求依然未完成。
-
-### 第十三批：本地插件清单与权限检查
-
-- `JavascriptPlugin.init(filename:externalURL:)`、`Permission`、`JavascriptPluginInstance.canAccess`、`PrefPluginPermissionListView` → `Plugins/PluginManifest.*`：必填字段、反向域名标识、入口、仓库更新元数据、权限、字幕提供商声明、危险权限排序和域名匹配。未知权限保留警告而不授予。声明域名不是用户授权或网络安全边界；此批没有执行网络请求。
-- `SettingsPagePlugin` / `PluginViewController` → `MainWindow.Plugins.cpp` / `Platform/PluginInspection.*`：用户选择目录→后台有界读取Info.json→解析并展示基础名称/作者/版本/权限/域名/错误→检查入口普通文件存在性。原生FolderPicker由当前窗口初始化，关闭时取消并丢弃结果；不解压、安装、复制、启用或运行第三方脚本。
-- Windows路径明确收紧：只读本地固定/可移动磁盘，祖先句柄阻止路径替换，不跟随重解析点/离线文件；相对路径拒绝穿越、设备名、ADS、尾点空格、百分号与控制字符。与上游开发目录符号链接、Unicode标识符等支持不同。Info.json上限1MiB/32层；字符串和列表分别设界限。仅检查一次快照，不代表以后读取安全，更不是插件安全审计。
-- `localized`尚未选择系统语言；显示基础文本，preferenceDefaults不应用。HTML偏好/帮助/侧栏、插件字幕注册、脚本运行时、插件安装更新和JavaScript API仍未实现。界面明确叫“检查”，不提供虚假的“启用”。静态校验成功不代表入口存在、脚本合法或可运行；入口错误单独列出。
-- 更新能力模型按`checkNewVersion`真实路径要求同时存在ghRepo与ghVersion，不照搬上游supportAutoUpdate的反向条件。无更新请求发生。此批未编译、测试、运行或加载任何插件。
 
 ### 第十四批：按需缩略图磁盘缓存与清空
 
@@ -251,91 +243,8 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 - SHA256文件名包含路径、卷/文件ID、大小、高精度修改/创建时间、请求时间、输出尺寸和实现修订；仅缓存元数据保存秒级原格式。读源持只读共享句柄，禁止修改/替换直至本次提取结束。命中WIC核对JPEG容器与尺寸<=1024和请求上限后再交BitmapImage；大小界限为单图8MiB，目录扫描2万项。内存层仍限当前媒体24张/16MiB，媒体正在播放期间原地修改不会主动刷新已在内存中的图像。
 - 缓存目录 `%LOCALAPPDATA%/IIMA/Cache/ThumbnailFrames-v1`；保存图像而不在文件名明文暴露源路径。拒绝网络/重解析/离线/硬链接文件，祖先目录持锁，命名mutex串行缓存访问，最多等待3秒；临时文件写完刷新后同卷原子替换。按访问时间驱逐，上游半额度策略同时满足新图可容纳，不故意超出配置额度。崩溃留下的未识别临时文件不自动清理，故真实目录占用可能包括这些残留。
 - `maxThumbnailPreviewCacheSize`接高级偏好与持久化，单位MiB，0禁用磁盘读写；不因设0隐式删除旧缓存。显式“清空缩略图缓存”确认后后台删除专用目录中符合自有文件名的普通文件，不递归删除、不触碰视频或其他文件。进程级epoch使其他窗口先前开始的提取不再写回；跨进程只有mutex而无共享epoch，其他进程仍可新写。清空当前窗口内存，其他窗口已有内存预览不强行广播清除。
-- 第十三批插件检查补充UI调度失败时直接结束，避免关闭后的后台继续修改界面状态。
 
 仅静态编写/人工审阅，未编译、测试、运行或实际写入缓存。全部功能和数量目标仍未达成。
-
-### 第十五批：固定 JavaScript 引擎与受限本地插件执行
-
-- `JavascriptPluginInstance.createJSContext/evaluateFile/deinit` → QuickJS-ng `v0.12.1` 固定官方提交（详见 QUICKJS.md）、`Plugins/PluginRuntime.*`、`MainWindow.PluginRuntime.cpp`。用户选择本地普通插件目录后，先在后台读取/验证清单与入口 UTF-8 文本，再确认运行这份已读取的代码；不重新读文件造成确认后内容替换。每窗口最多一个临时实例，不安装、不自动启用、不持久化授权。已声明但未实现的权限和 globalEntry 拒绝启动，避免静默授予能力。入口在独立 worker 执行，运行失败、停止、关闭取消所有定时器/监听器和排队动作；释放 QuickJS 在后台 join，最终窗口关闭等待释放而不让 worker 同步等 UI。
-- `JavascriptAPICore.pause/resume/stop/seek/seekTo/setSpeed/osd` → 受限宿主函数，通过 generation 守卫投递到原 typed PlayerSession。OSD 还需清单 show-osd 和运行确认；命令入队不冒称 mpv 已成功。`StatusAPI` → 复制的观察状态 JSON（暂停、空闲、位置、时长、速度、尺寸、是否网络资源）；不提供原生句柄。此首版 grant 不允许完整 URL/路径或标题访问，`url/title` 为 null，明确不同于上游。不实现 open/history/recentDocuments、audio/video/subtitle 子 API 或任意 mpv 命令。
-- `JavascriptAPIEvent.on/off` / `EventController` → 有界事件监听及投影，只接受实际接入的 `iina.file-started/file-loaded/music-mode.changed` 与 `mpv.pause/time-pos/duration/speed.changed`。事件载荷在 worker 消费前深拷贝；回调可注册/注销而不破坏迭代。文件事件来自既有 PlayerSession 的有序状态投影，不宣称完整 mpv 原始事件流；运行后才注册的插件不伪造过去的文件/窗口事件，关闭是强制取消而非执行不受控关闭钩子。
-- `JavascriptPolyfill` → 字符串 ID 定时器、取消和 Promise job drain。超时至少16ms、interval至少50ms，最大一天；每实例最多128定时器/256监听器，与上游未限定数目的行为有意不同。CommonJS require、模块加载、全局实例、DOM/HTML、文件、HTTP、WebSocket、菜单/输入/字幕提供商和偏好 API 尚未实现，不能称完整 IINA 插件兼容。未知 namespace/API 显式抛错，不返回假成功。
-- `JavascriptAPIConsole` → 控制台多参数/类型显示、可序列化对象和环回回退；日志只显示在当前窗口有界文本框，不落磁盘。循环对象用 `<unserializable>` 回退。计时/入站事件/出站日志命令均有限额；64MiB引擎内存、1MiB JS 栈，入口500ms、每事件/定时器100ms预算，Promise job共享预算。溢出或超时停止并反馈，不悄悄假设所有事件送达。
-
-这些限制不是 OS 安全沙箱，也不能保证面对引擎漏洞的不可信代码隔离；产品只允许用户明确选择受信任来源。没有链接 QuickJS std/os 模块，不代表全部 JS 特性或任何插件已实际可运行。QuickJS 源、MSVC CI及 API 契约只做静态阅读；本批未编译、测试、执行脚本或联网运行插件。MIT 依赖许可证及固定来源随打包保留，IINA 转写继续保留 GPL 来源。完整插件 API 和全量移植目标仍未完成。
-
-### 第十六批：本地插件模块、轨道/章节 API 与属性事件
-
-- `JavascriptPolyfill.register(require)` / `JavascriptPluginInstance.evaluateFile(asModule)` → `PluginModulePath`、`PluginInspection.ReadModules`、运行时模块缓存。选择目录时在后台对普通本地 `.js` 文件做 UTF-8 源快照，确认后 worker 只使用快照、不任意读盘；每文件1MiB、总量8MiB、128模块、16层/128目录，跳过重解析点、离线文件和`.git`。`require`按调用模块目录解析`./`和`../`，不得越根；不自动补扩展、index、node_modules搜索、JSON模块或ES Module，文件名/大小写按快照键精确匹配，缺模块明确抛错。
-- 保留上游`const module = {}`和`module.exports`返回，不伪造Node的`exports`别名。缓存采用规范相对键并缓存undefined/falsy，修正上游按原请求查缓存/按绝对路径存缓存的重复求值风险；32层限制和循环依赖显式报错。每个模块捕获词法require，使定时器/事件回调后仍按定义模块解析，不依赖上游临时currentFileStack在回调后已为空的状态；属于有意缺陷修复。嵌套求值、Promise及回调共享原预算，不因require重新计时。
-- `JavascriptAPICore.getChapters/playChapter`、`AudioAPI/SubtitleAPI/VideoAPI` → 状态投影新增轨道/章节以及已接入typed会话命令：音量、静音、音频/字幕延迟、音频/字幕/视频轨道ID、章节跳转。`tracks/currentTrack`只读；未知数据仍null，不声称全部代理属性已实现；`secondID`无可靠主次来源时null，设置暂不支持。`loadTrack/open/history/recentDocuments/任意mpv`等仍未接。轨道选择和章节命令携带worker观察到的媒体代次，UI消费时再次核对，换片后丢弃旧ID命令；不是同步内核完成承诺。
-- `MPVController`属性事件与上述API → 增加`mpv.volume.changed/mute.changed/audio-delay.changed/sub-delay.changed`；读取均来自有界已复制快照。轨道/章节元数据读取已加入运行确认，外部轨道路径、完整媒体URL和媒体title仍不投影。256轨、2048章、单文本4096字节、总JSON64KiB上限，超限明确停止插件，不静默截断为“完整列表”。同时选择多个同类型轨而无法判主次时`id/currentTrack`为null，不猜测。
-
-本批继续仅静态源码编写和人工阅读；没有编译、测试、执行任何JS或运行Windows。已写模块与API不表示插件整体兼容；偏好持久化、菜单、HTTP/文件/HTML、全局控制器、完整字幕提供商和任意mpv接口仍缺失。数量和全量功能目标仍未达到。
-
-### 第十七批：插件偏好默认值、显式保存与跨窗口合并
-
-- `JavascriptAPIPreferences.get/set/sync`、`JavascriptPlugin.defaultPreferences/preferences/syncPreferences` → `PluginRuntime` 的 `iina.preferences`、`PluginProgram` 默认值快照与 `Platform/PluginPreferenceStore`。先从当前插件清单读取 `preferenceDefaults`，运行前加载该标识已保存值；运行确认明确说明同标识共享偏好和不应用于秘密存储。`get` 先查已设置值，再查默认值；未定义返回 undefined 并警告。`set` 只更新当前实例内存，`sync` 才同步调用后台 worker 的原子保存，不在 UI 阻塞磁盘，不自动在停止时保存。
-- Windows 使用应用私有 JSON 而非 macOS plist；运行时最多256个顶层键、键1..256 UTF-8字节（比存储UTF-16上限更保守）、4096节点、16层容器、64KiB总JSON，sync至少间隔250ms。严格 JSON 值、深度和容量限制，拒绝不可表达对象而不是保存后悄悄改变值。读取返回深副本，避免未经 `set` 的对象修改偷偷改变持久状态。默认值不自动拷入用户文件；已有保存值（包括 null）覆盖默认。HTML 偏好界面仍未实现。
-- 通过应用专用独占锁文件串行、按插件标识差分合并，未改的字段保留其他窗口的新值，同字段最后成功提交胜出；成功后推进当前实例本次提交基线，不将其他窗口的值反向视为当前实例已编辑。损坏文件拒绝加载/覆盖；保存失败变成 JS 异常，与 IINA 只记录错误不同，不冒称成功。文件与目录路径由宿主决定，JS 不能指定任意目标。
-- 原生磁盘 I/O 不可被 QuickJS 中断；输入有界、锁等待有界，但系统存储阻塞仍可延迟 worker 关闭。偏好并非加密凭据存储，也不是不同同标识插件之间的安全隔离。锁保护使用同一存储实现的进程；外部编辑器未遵循锁协议时不承诺跨进程事务，也没有实时跨窗口偏好广播。
-
-本批只静态编写和人工阅读，未编译、自动测试、运行 Windows 或执行插件。插件菜单、输入、HTML、文件/网络等其余 API 仍未完成，数量与完整移植目标仍未达到。
-
-### 第十八批：插件菜单对象与原生点击回调
-
-- `JavascriptAPIMenu.item/separator/addItem/items/removeAt/removeAllItems/forceUpdate`、`JavascriptPluginMenuItem` → QuickJS 菜单对象及回调生命周期；`MenuController.updatePluginMenu/add(menuItemDef:)` → `MainWindow.PluginMenu.cpp` 原生 MenuFlyout。插件菜单位于当前窗口的“插件菜单”按钮，不注册系统级菜单或跨窗口命令。保留默认 enabled=true/selected=false、可变标题与状态、嵌套菜单和点击回调收到自身 item 的规则。
-- JS 对象与原生控件不共享裸指针：worker发布有界纯JSON快照，UI创建完整菜单后一次替换；点击携带实例generation、菜单revision和item ID，worker重新检查最新树中可达、启用及祖先状态，旧菜单点击不能作用于已移除或被停用的项。原生选中标记不自行改变插件值，只有脚本更新后的快照是权威。
-- 每个JS执行回合后合并发布变更，不逐个setter同步调用UI；forceUpdate同样经过线程隔离。不支持非空keyBinding时明确拒绝，不绘制虚假的可用快捷键。最大128可达节点、8层、64KiB JSON；环路、非法对象或过量数据拒绝。不复制IINA超过5个顶层项合并“更多”的布局，也没有全局插件与开发工具菜单；重复引用同一个菜单项会被拒绝，子菜单只展开、不调用自身action，更新快照会关闭旧flyout再替换。标题限制1024 UTF-16单位/4096 UTF-8字节。这些平台和当前单插件范围差异保留。
-- 停止、异常或关闭清空菜单并使旧callback代次失效；JS callback只在引擎worker调用，沿既有时间/内存/消息预算处理异常。无法投递或解析快照会停止插件并反馈，不继续展示可能失真的半更新菜单。
-
-仅静态源码编写和人工阅读，未编译、测试、运行WinUI或执行脚本。菜单快捷键、菜单多插件汇总、插件安装/更新、HTML及其他未覆盖API仍非已完成功能。
-
-### 第十九批：插件键盘观察与有效快捷键快照
-
-- `JavascriptAPIInput.normalizeKeyCode/getAllKeyBindings/onKeyDown/onKeyUp`、`PluginInputManager.addListener/handle` → `PluginRuntime` 的键监听和输入快照，`MainWindow.PluginInput.cpp`、`MainWindow.Keyboard.cpp` 的真实 WinUI routed event 接线。键名复用已转写 `NormalizeMpvKey`，当前有效 input.conf 采用默认section/最后定义胜出的 `KeyBindingSet`，返回 key/action/isIINACommand 字段的深副本。保存/重置配置时投影新快照，未应用编辑区不泄漏为当前配置。保存滤镜快捷键和插件菜单不是 input.conf 项，不假装出现在列表中。
-- 只提供异步低优先级观察，不在 UI 同步等待 JavaScript；应用绑定先提交，脚本回调随后在 worker 执行。高优先级/吞键返回值不能跨这种调度提供上游保证，故高优先级显式拒绝，回调返回值不阻断 Windows 默认处理。鼠标监听明确未实现，不伪造为可调用的空函数。输入只限当前播放器区域，文本、密码、数字输入、自动建议框、模态对话框、picker、系统键及原生控件拥有的导航/激活按键均不投递；不是全局键盘钩子。运行确认说明可读取完整绑定动作文本，用户不应将秘密置于动作中。
-- 参数保留 isRepeat；WinUI 键事件不提供上游 NSEvent 的鼠标位置，x/y 为 null 而不是伪造坐标。按键在事件发生时按当前布局/修饰键规范化，修饰键释放顺序可能导致 up 键名不同；没有合成失焦释放事件或完整物理键追踪。只有声明低优先级监听的键被调用，相同键/事件的新注册替换旧回调，沿有界队列、时间和内存预算；关闭、停止、重新运行仍由实例代次隔离。队列或快照不能完整交付时停止插件并反馈，不把丢失事件视为可靠投递。
-- 快照最多1024项、键256字节、动作16KiB、总JSON256KiB；超限保留实际播放器配置但停止插件投影，绝不截断后宣称完整。快照读取可能包含用户配置中的路径或自定义命令，明示于每次启动确认；插件仍不拥有任意命令执行能力。
-
-本批仅静态源码编写和人工阅读，没有编译、自动测试、Windows运行或插件执行。高优先级输入、鼠标、插件HTTP/文件/HTML及其他IINA功能仍未完整移植；文件数与行数指标也不等价于语义完成。
-
-### 第二十批：视频区域插件鼠标观察
-
-- `JavascriptAPIInput.onMouseDown/onMouseUp/onMouseDrag`、`PluginInputManager`、`PlayerWindowController.mouseEventArgs` → 插件 worker 的鼠标监听、`MainWindow.PluginPointer.cpp` 和 `PluginPointerState`。左/右/中键分别映射 `MOUSE/RIGHT_MOUSE/OTHER_MOUSE`；下按、释放、拖动回调带 x/y/clickCount/pressure，键鼠共享256监听上限，同按钮/事件注册替换。异步低优先级，不支持高优先级或通过回调返回值吞掉输入；本批不改变播放器原生单/双击动作政策。
-- 只订阅VideoPanel的原生鼠标事件，不捕获鼠标、不装全局钩子、不映射触摸/触笔/X按钮。对话框、picker、文本控件拥有焦点或事件已处理时不发布。x/y使用窗口XAML根的逻辑像素、左下原点，和上游窗口坐标方向一致，但不是物理像素或视频源像素；pressure直接使用Windows PointerPointProperties值，不承诺与macOS硬件压感等价。双击按Windows时间/矩形规则计算，第三击重新开始一对，而非无限NSEvent.clickCount。
-- 必须在视频区域观察到按下才发送其释放/拖动。拖动每按钮最多约30Hz，作为有界观察而非原始所有采样；离开视频区域、捕获丢失、系统取消、窗口失活或插件停止清空本地按下状态，不产生伪造的释放回调。因不捕获鼠标，区域外释放不会被送达，这是明确范围限制。运行确认加入视频区域鼠标观察说明。
-- worker只使用不可变事件数据和发生时的媒体状态快照；回调在队列消费时查当前注册监听，不声称UI发生瞬间的同步回调。有限坐标/压力、事件名称、按钮名称检查与既有队列/时间预算共同控制异常；不能完整入队时停止实例。未知事件不悄悄重映射。
-
-未编译、测试、运行Windows或执行插件脚本；原生输入坐标、DPI、双击与关闭需要后续验证。完整高优先级输入兼容、HTTP/文件/HTML和大量其他上游操作仍未完成。
-
-### 第二十一批：插件私有文本文件操作
-
-- `JavascriptAPIFile.exists/list/read/write/delete` 与 `JavascriptAPI.parsePath` 的 `@data/`、`@tmp/` 分支 → `Platform/PluginFileStore`、QuickJS `iina.file` 与启动回调。保留私有路径无需 `file-system` 权限、持久数据按插件标识共享、临时数据按实例区分、私有文件允许覆盖、写入失败抛错等规则。运行确认明确包含私有文件读取、覆盖、删除；没有默认授予任意用户文件权限，声明外部文件权限的插件仍拒绝启动。
-- Windows 适配为宿主选择的本地目录与普通 UTF-8 文本文件，拒绝路径穿越、设备/流名称、重解析点、离线及多硬链接文件；原子写入而非半文件更新。IINA 支持的外部绝对路径、媒体路径别名、其他文本编码、递归/子目录、文件句柄、回收站、Finder 等本批未接入。不能把此有界子集称为完整文件 API。
-- JS 和 WinRT/Win32 不共享句柄或裸文件指针，worker 同步调用 JSON 参数/结果桥接；错误转为 JS 异常，未完成写入不返回成功。输入、文件数、存储总额和调用频率有界；系统磁盘阻塞仍不能被 JS 时间预算中断，也不是操作系统沙箱。相同插件标识共享数据不是安全隔离，不能用作秘密凭据库。
-
-- 本批仅支持平铺文件名，1MiB单文件、128文件与16MiB单命名空间总额；每秒32调用、4次修改，超限抛错。正常worker退出时有界清理本实例临时普通文件，不递归、不追踪异常文件；空临时目录/锁、崩溃与清理失败残留不自动回收。永久数据无自动过期，配额不跨不同标识聚合。锁只串行遵守此实现的调用者，不承诺对外部编辑器的事务隔离。
-
-仅静态编写和人工阅读，未编译、测试、运行 Windows 或执行插件。插件 HTTP/HTML/任意文件及其他 API 仍缺失，全部功能与数量目标未完成。
-
-### 第二十二批：插件异步 HTTP 请求与域名许可
-
-- `JavascriptAPIHttp.request/get/post/put/patch/delete`、`HTTPResult.toDict` 与 `JavascriptPluginInstance.canAccess` → `PluginHttpClient`、QuickJS Promise 网络工作队列及启动权限确认。请求在独立网络 worker，不在 WinUI 或 JS 事件线程等待；JS 只在其所有者线程创建/结算 Promise 和继续 jobs，跨线程仅传递有界请求/结果字符串与请求标识。HTTP 2xx resolve，其他HTTP状态 reject响应对象；传输/取消错误独立失败，不把网络提交当服务器成功。
-- 必须在清单申请 network-request，运行确认展示完整 allowedDomains 及网络数据发送能力，拒绝未许可主机。仅HTTPS 443，无重定向、浏览器Cookie、默认凭据或登录UI。可显式传入有界头部/字符串参数/表单字段；不支持二进制、任意JSON请求体、XML-RPC和download。当前显式禁用系统代理，代理依赖网络环境可能不可用；IP地址与常见本地域名拒绝，但域名声明不是DNS或操作系统网络隔离，不能把本实现称为安全沙箱；受信任插件可发送其已能读到的数据，并可能执行有服务端副作用的请求。
-- 每实例最多4个待结请求，独立网络线程按队列顺序处理；30秒预算从该请求开始执行时计时，排队等待不计入，因此四个串行慢请求的总等待可超过30秒。最多1MiB响应体，停止触发取消并等待网络worker回收。响应只按UTF-8解码，不实现Just其他字符集策略；JSON超过32层或结构令牌预算时保留text、data为null。系统认证与取消的实际平台行为仍未验证。请求与停止边界和Promise状态属于当前实例，不会在新插件实例上结算旧请求。所有响应仍需后续真实服务验证，不假装兼容Just的每个编码/重试/重定向细节。
-
-本批无HTTP请求、编译、测试、Windows运行或插件执行。插件文件/HTTP仍只是受限子集，HTML、安装更新、多插件、全局实例及其他上游功能仍未完整移植。
-
-### 第二十三批：插件播放列表查询与编辑
-
-- `JavascriptAPIPlaylist.list/count/play/remove/move/playNext/playPrevious` → 插件播放状态快照、QuickJS playlist API 和 `MainWindow.PluginPlaylist`，最终调用既有 `PlayerSession` 操作。`list` 返回 filename/title/isPlaying/isCurrent；未知标题为 null。当前 mpv 载荷只有 current 标记，isPlaying 由 entryId 与 Loading/Loaded 关联推导，不冒充 mpv 原始独立 playing 标记。`count` 可读取保留队列，编辑仅在活动媒体下接受。add（涉及打开 URL 权限）与 registerMenuItemBuilder 仍明确拒绝。
-- 启动确认增加完整播放列表文件路径、网络地址和标题读取，以及移除/移动/播放能力；网络权限确认说明这些地址也可被插件发送。路径可能含秘密，因此没有在不提示的情况下扩大读取范围。列表最多1024项、每字段有界并计入64KiB状态总额，超额失败而不悄悄截断。
-- 脚本动作带发生时的媒体代次及全部按序 mpv 条目ID（十进制字符串保留64位精度）。UI消费前逐项核对，换片/重排/替换后拒绝旧索引；相同路径的不同条目仍保持ID身份。编辑繁忙不替换正在执行的事务。批量删除沿既有 `PlaylistPlanCursor` 新鲜快照和串行回复链；`move` 的目标是移除前条目位置，复用Drop计划而不是误用“最终下标”移动接口，保留上游mpv语义。
-- JS成功值只代表请求进入宿主队列，不是mpv完成证明。UI发现过期、繁忙或非法请求会显示反馈；不向已返回JS函数伪造同步失败。连续依赖编辑必须等待观察到的新列表，不能假定两次同步调用会按旧下标都成功。检查与mpv执行之间仍无CAS，外部脚本可能竞争；播放跳转沿既有异步切换保护，不宣称原子列表/播放事务。
-
-仅静态编写、源码阅读和Git发布核验，没有编译、测试、Windows运行或插件执行。完整插件API及数量目标仍未达到。
 
 ### 第二十四批：系统睡眠暂停与恢复权取消
 
@@ -364,11 +273,11 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 ### 第二十七批：双字幕轨道、显示与参数反馈
 
 - `SidebarSubtitlesPane.TrackSelector/VisibilitySwitch/SubPositionDelayView`、`PlayerCore.setTrack/toggleSecondSubVisibility/setSubDelay/setSubPos` → `MainWindow.SecondarySubtitles.cpp` 与既有会话 API。新增副字幕选择、显示开关、延迟/位置/缩放编辑与延迟复位，主副轨道分别使用实际 `sid/secondary-sid`，不再用 track-list 中可能同时为真的 selected 标记猜主字幕。`mp_property_switch_track` 的 -2/no 与 -1/auto 保留，未知值不伪装为关闭。
-- `MPVController` 的副字幕属性观察 → worker 的独立 INT64/DOUBLE/FLAG 观察及 optional 快照。START/END 清除媒体轨道身份；FILE_LOADED 后主动读取两个选择值，避免同一文件重播时没有变化通知而永久未知。读取不是原子事务，随后属性事件仍为权威。插件 currentTrack 与 secondID 同样使用明确身份，补齐对应变化事件；旧文档所述副字幕ID总是null不再适用。
+- `MPVController` 的副字幕属性观察 → worker 的独立 INT64/DOUBLE/FLAG 观察及 optional 快照。START/END 清除媒体轨道身份；FILE_LOADED 后主动读取两个选择值，避免同一文件重播时没有变化通知而永久未知。读取不是原子事务，随后属性事件仍为权威。
 - IINA 的主/副分段位置和延迟控件映射为原生独立副字幕表单。为防止高频进度通知覆盖输入，用户先读取当前参数，再显式应用；当前观察值另行显示。换片、结束、尺寸无关的媒体重载都会使草稿失效，不把旧草稿当作新媒体数据。字幕样式对纯图形轨道禁用并提示；ASS排版显示警告。
 - 固定 mpv 快照实际支持 secondary-sub-scale，范围0..100，及主副位置0..150；副表单支持完整范围并警告>100可能截断，IINA上游侧栏位置只提供0..100。主副通用setter接受mpv范围，原主字幕表单仍使用较窄范围。缩放0合法但可能不可见。多个选项分别异步提交，不是假装原子应用或成功播放；实际DLL若不支持属性，界面显示未知/不可用。
 
-仅静态源码、文档映射、数量统计和Git发布核验。没有编译、自动化测试、Windows/mpv运行或插件执行。双字幕位图重叠、ASS排版、快速选轨、命令失败恢复及完整字幕样式仍待实际验证或后续移植。
+仅静态源码、文档映射、数量统计和Git发布核验。没有编译、自动化测试、Windows/mpv运行。双字幕位图重叠、ASS排版、快速选轨、命令失败恢复及完整字幕样式仍待实际验证或后续移植。
 
 ### 第二十八批：精确时间跳转与自定义倍速
 
@@ -401,7 +310,7 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 
 - `PlayerCore.openURLs/activeOrNew/findIdlePlayerCore`、`Preference.alwaysOpenInNewWindow/groupSimultaneousOpensInPlaylist/allowDuplicatePlayers` → `App.OpenPolicy.cpp`、`MainWindow.OpenPolicy.cpp` 和实际偏好编辑。保留默认 true/false/false：选择文件和外部文件激活按偏好进入当前窗口、一个新窗口的队列或逐文件窗口；分组请求有意忽略重复媒体过滤，单文件重复则激活已打开窗口而不重播。追加、拖放、历史重开仍显式作用当前窗口；网络打开和替代菜单反转尚未接该策略。
 - 本地路径只在来源窗口工作线程解析一次，再将拥有型UTF-8路径交给目标窗口，等待其设置与mpv启动，不递归解析/路由。单个文件夹展开始终作为一组；多目录同时打开仍先按现有解析器合并排序再分配，并非上游逐目录建立窗口的完整等价。原解析器去重/排序规则保持不变。
-- 空白窗口复用只允许本实例从未提交过媒体的窗口，且无解析、待打开、选择器或插件任务；提交后立即保留不可再复用标记，防止START_FILE尚未来临时被另一次请求覆盖。这比上游回收idle核心更保守。关闭窗口不作为目标；16窗上限先按整个批次计算，超限整批拒绝，不静默只打开前16个。创建中途失败可能留下空窗口，但开始交付前不替换任何播放中的媒体；后续解码失败仍按每窗反馈，非跨窗原子事务。
+- 空白窗口复用只允许本实例从未提交过媒体的窗口，且无解析、待打开或选择器；提交后立即保留不可再复用标记，防止START_FILE尚未来临时被另一次请求覆盖。这比上游回收idle核心更保守。关闭窗口不作为目标；16窗上限先按整个批次计算，超限整批拒绝，不静默只打开前16个。创建中途失败可能留下空窗口，但开始交付前不替换任何播放中的媒体；后续解码失败仍按每窗反馈，非跨窗原子事务。
 - 去重只比较已解析的完整字符串与实际Loading/Loaded/Ended路径或待打开首项，不访问磁盘猜硬链接身份，不做有损大小写折叠。mpv尚未发START_FILE且待打开队列已提交的极短窗口内不承诺去重；同一批次内已有分配按路径去重。路径别名/重解析点、文件URL等不承诺识别为同一媒体。
 - 当前操作使用发起窗口已加载的偏好；未增加跨窗口实时偏好广播。OS请求仍先在活动窗口按既有200ms合并，随后应用策略；请求处理期间主动切换前台不改写已经选定的来源窗口。
 
@@ -434,27 +343,6 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 
 仅静态编写、人工审阅、统计与Git核验，未编译、测试、运行或验证字幕画面。
 
-
-### 第三十五批：插件私有文件下载
-
-- `JavascriptAPIHttp.download` → `PluginBootstrap.http.download`、既有HTTP Promise/network worker、`PluginHttpClient` 和 `PluginFileStore.WriteDownload`。保留GET默认、可选method/params/headers/form data、HTTP非2xx拒绝和保存后resolve无返回值。允许GET/POST/PUT/PATCH/DELETE，不补虚构HEAD等方法；支持上限1 MiB的原始二进制，不把JPEG/ZIP错误地当UTF-8解析。文件下载不自动执行、解压或打开。
-- 目标在网络请求前校验为单层`@data/文件`或`@tmp/文件`，拒绝缺失/空目标、其他目录、Windows设备名、非法UTF-8和路径绕过。继承网络声明域名与用户启动确认，不跟随重定向/代理/共享Cookie。本地存储实际可用性和磁盘额度在写入时再次检查；非法目标不发请求，但磁盘不足可能在服务器已完成请求后才失败。
-- HTTP失败不触碰目标；错误内容是有效UTF-8时保留响应字典，否则text/data为空并保留HTTP状态。成功下载按普通文件/链接校验、128文件/16 MiB命名空间额度和临时文件flush+rename原子覆盖保存。不同于上游捕获写入错误后仍可能resolve，IIMA写入失败拒绝Promise，不报告成功。
-- JS文件调用和网络下载可并发，实例mutex及既有跨进程目录锁串行存储事务；网络worker退出后才清理临时文件，cleanup标记closed拒绝迟到写入。写入分块检查取消，rename前是最后可撤销点；提交后取消或实例关闭可能丢弃完成通知，不回滚已保存文件。网络有原有30秒截止，但磁盘/锁及同步OS调用不能即时中断，不能保证总关闭时间30秒。
-- 仍不支持任意用户路径、嵌套目录、超1 MiB大文件/进度回调、重定向、其他编码、二进制file.handle、XML-RPC或完整插件兼容。相同插件identifier共享私有数据，域名许可与QuickJS均不是操作系统安全沙箱。启动说明新增下载与私有覆盖披露。
-
-仅静态编写、人工源码阅读、数量统计和Git核验，未编译、测试、运行、执行插件或发送HTTP请求。
-
-
-### 第三十六批：插件 XML-RPC 异步调用
-
-- `JavascriptAPIHttp.xmlrpc`、`JavascriptAPIXmlrpc.call`、`JustXMLRPC.call/toValueElement/value(fromValueElement:)` → `PluginBootstrap.xmlrpcClient`、`PluginXmlRpc`和既有HTTP worker。创建client不联网；call把方法与参数快照传到worker，按许可HTTPS地址POST UTF-8 text/xml，再在JS线程完成Promise。成功返回唯一value；标准fault按上游reject(undefined)；HTTP错误映射httpCode/reason/description，XML解析错误映射Bad response。取消/传输失败沿已有无敏感URL诊断的Error路径，不伪造HTTP状态码。
-- 保留布尔0/1、int/i4、有限double、string和无类型value、array/data以及struct/member的递归映射。整数采用XML-RPC int32；其他有限JSON数字用double，不冒充无损64位整型。JSON没有稳定Date/Data表达，本批明确拒绝null、日期、base64、nil和扩展类型，不用字符串猜测日期或二进制。对象键和值来自普通无getter/无环数据快照；重复响应struct键拒绝而非上游后者覆盖前者。
-- 参数JSON64 KiB、方法256字节ASCII XML-RPC名字、值递归16、DOM节点4096、XML元素深度64、响应1 MiB、结果8 MiB；包裹元素使XML深度与业务值深度不同。XML序列化前保守估算大小并在序列化后确认；输入预限字节和深度，DOM解析明确ProhibitDtd、禁止ResolveExternals和验证。额外拒绝命名空间、属性、非标准结构、额外参数和非有限数字，不解析或引用外部文件。
-- 标准fault严格检查faultCode(int32)/faultString，较IINA仅看到fault节点就失败更严格。HTTP权限/允许域名/启动披露/四个pending预算/网络取消和超时均沿已有实现，无新连接、登录或凭据持久化。启动说明补充XML-RPC服务器操作；代码仅建立能力，本次没有实际调用服务。
-- 未覆盖Date/base64、完整Foundation桥接、任意XML扩展、重定向/代理/自动认证和所有IINA插件API；上述严格子集是明确兼容性差异，不宣称XML-RPC或插件全兼容。
-
-本批只静态编写、人工源码阅读、统计和Git核验，未编译、测试、运行、执行插件或发起网络调用。
 
 ### 第三十七批：有界诊断日志查看、过滤与导出
 
@@ -598,7 +486,7 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 ### 第五十六批：焦点内快捷键录入
 
 - `KeyRecordView.keyDown` → `KeyRecordViewController.recordedKeyDownWith` → `KeyCodeHelper.mpvKeyCode`转为显式启动的WinUI只读录入框，使用与实际播放器分发相同的`WindowsMpvKey`转换。当前键盘布局、Shift可打印字符、小键盘Enter与修饰键语义一致，不另造与分发不匹配的键名。
-- 一个有效组合仅填入行编辑器按键字段，动作/模型/文本/生效配置均不自动提交；用户仍须追加或替换行、生成文本、保存应用。没有全局键盘hook、后台记录、持久保存按键流水或向插件发布所录键。纯修饰键、IME、死键、AltGr和Windows组合不录入；系统窗口管理快捷键不主动吞掉。
+- 一个有效组合仅填入行编辑器按键字段，动作/模型/文本/生效配置均不自动提交；用户仍须追加或替换行、生成文本、保存应用。没有全局键盘hook、后台记录、持久保存按键流水。纯修饰键、IME、死键、AltGr和Windows组合不录入；系统窗口管理快捷键不主动吞掉。
 - Esc取消并保留原字段，Tab取消并继续原生焦点导航；可手填Esc/Tab但现有播放器保留Tab导航。失焦、关闭取消捕获。成功后焦点留在只读框，避免同一键的重复/释放触发播放器动作；按住重复不产生多次录入。窗口外和系统先拦截的组合不能保证可获，手工字段仍保留。
 - 不是IINA完整规则树动作编辑器或所有布局的兼容证明。仅静态编写、源码阅读、数量和Git核验，未编译测试运行；真实焦点顺序、系统组合、IME和辅助功能读屏仍待Windows验证。
 
@@ -608,7 +496,7 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 - 只根据收到的播放事实生成消息，不在命令提交或按钮点击时伪造结果。首个Loaded快照、媒体条目变化建立基线；optional未知→已知不作为变化提示，离开Loaded/Ready清空。仅保存标量/短模式字符串，不复制播放列表或路径。字幕缩放显示沿IINA正值/负倒数的两位舍入语义，未知/零不倒数；双字幕轨通知明确区分槽。
 - 反交错保留auto原文，硬件消息明确标为“请求”并附当时实际解码器观察，不将auto误称硬件已生效；轨ID先到而track-list未到时显示ID，不制造标题。音频延迟旧状态仍来自现有非optional字段，因此首次Loaded之后的初始延迟反馈也可能触发提示，不承诺所有初始化通知都被抑制。
 - 单个快照多项变化按固定优先级显示最后一个符合偏好的消息，不排队播放过期通知；暂停/音量等常用操作优先。禁用某类OSD后可显示同快照另一合格变化，不漏更新基线；总开关关闭、CompactOverlay或退出播放清除已显示内容并停计时。沿既有自动隐藏时长和Core展示模型，未新增完整动画、持久OSD、错误优先队列或全量中文资源。
-- 尚未覆盖seek测量/seek OSD、截图及全部插件/网络通知等所有上游OSD入口。本批仅静态编写、源码追踪、数量与Git核验，未编译测试运行；并发属性顺序和真实UI展示仍需后续验证。
+- 尚未覆盖seek测量/seek OSD、截图及全部网络通知等所有上游OSD入口。本批仅静态编写、源码追踪、数量与Git核验，未编译测试运行；并发属性顺序和真实UI展示仍需后续验证。
 
 ### 第五十八批：IINA滤镜预设参数编辑器
 
@@ -656,7 +544,7 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 - Windows按120单位一格归一化，保留高分辨率小delta，限制单次32格；纵向系数2、横向系数1继承IINA普通鼠标规则。Windows直接使用已交付方向，不再次套Cocoa natural-scroll反转。seek量表0.5/1/2/4（默认档3），倍速比例0.001/0.002/0.005/0.01（默认档3）；不可seek媒体不处理seek。
 - 设置通过既有schema驱动的高级设置界面和JSON持久化：verticalScrollAction/horizontalScrollAction/relativeSeekAmount/playbackSpeedScrollAmount/wheelExactSeek。wheelExactSeek默认false保持上游relative默认；尚未接入自动seek延迟选择，不提供伪auto选项。
 - 音量使用 `PlayerSession.AdjustVolumeByWheel` → mpv `add volume`，避免连续滚动用旧观察值覆盖增量；固定mpv `mp_property_volume` 的constricted type按softvol_max限制。倍速保持上游观察值计算，快速连续事件在观察延迟下不保证逐格累计；OSD仍依赖确认属性事件，非乐观状态。
-- Windows未提供此路由的Cocoa手势phase/精确像素语义，因此不模拟触控板开始暂停/结束恢复，也不包含音量/进度滑块override、mini-player弹出层或插件可消费滚轮。未编译、测试、运行，方向和硬件输入需实际确认。
+- Windows未提供此路由的Cocoa手势phase/精确像素语义，因此不模拟触控板开始暂停/结束恢复，也不包含音量/进度滑块override、mini-player弹出层。未编译、测试、运行，方向和硬件输入需实际确认。
 
 ## 第六十四批：控制栏空闲隐藏与键鼠恢复
 
@@ -670,7 +558,7 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 
 - 沿 IINA `PlayerWindowController.mouseUp/rightMouseUp/performMouseActionLater`、`MainWindowController.performMouseAction` 和 `Preference.MouseClickAction` 追踪动作及默认值。新增视频表面单击隐藏控制栏、双击全屏、右击暂停的默认行为，三个偏好均可选无操作/全屏/暂停/隐藏控制栏/PIP/AB循环/重置倍速，复用现有会话及窗口命令，不另存播放器状态。
 - 配置双击动作时，单击等Windows `GetDoubleClickTime` 单次计时后执行；双击取消待处理单击。无双击动作时立即执行单击，并适配WinUI第二次点击进入DoubleTapped事件的行为。单击保存媒体导航代次，换片后不作用于新文件；修改偏好、关闭、失活、离开表面、捕获取消均取消待处理单击。
-- 只接收鼠标及视频表面，触摸/笔、修饰键、模态、关闭、未载入和不适合播放快捷操作的输入焦点不处理。插件鼠标仍是原有观察路径，不新增插件抢占或消费控制权。
+- 只接收鼠标及视频表面，触摸/笔、修饰键、模态、关闭、未载入和不适合播放快捷操作的输入焦点不处理。
 - hide-controls遵守自动隐藏关闭偏好、焦点及悬停保护；不隐藏系统光标。PIP使用Windows CompactOverlay既有命令。中键/X键未新增动作，也不暴露未接线的中键偏好；不是全部Cocoa鼠标语义等价移植。不同位置连续单击在单次延迟窗口内只保留最后一次待处理动作，需后续交互评估。
 - 未编译、测试或运行；静态源码接线，真实WinUI手势事件顺序和系统双击阈值仍待确认。
 
@@ -701,7 +589,7 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 ### Windows完整操作链
 
 - 从视频设置“在视频上交互裁剪”进入，真实视频上覆盖透明Canvas、选框和八个手柄，侧栏替换为可滚动编辑栏。支持指针捕获拖选/移动/缩放、数字坐标草稿、全画面与4:3/16:9/16:10/21:9/3:2/5:4居中比例、确认和取消。画布裁切于视频视口，选区越出可见范围不覆盖侧栏。
-- 进入时记录媒体导航/entry/滤镜revision，记录原暂停状态并请求暂停；屏蔽播放器键盘/鼠标插件观察及播放手势，不屏蔽本裁剪工具的Esc/Enter与数字编辑。Enter不越过未提交数字草稿直接提交旧选区；数字更改需先点击更新草稿。指针取消/捕获丢失/失活回滚当前拖动，不把半次拖动当已完成。
+- 进入时记录媒体导航/entry/滤镜revision，记录原暂停状态并请求暂停；屏蔽播放器快捷键及播放手势，不屏蔽本裁剪工具的Esc/Enter与数字编辑。Enter不越过未提交数字草稿直接提交旧选区；数字更改需先点击更新草稿。指针取消/捕获丢失/失活回滚当前拖动，不把半次拖动当已完成。
 - 调整窗口/DPI时拒绝旧OSD映射：暂停画布交互和确认，等待匹配的新几何，再保留源像素选区重映射。媒体/源尺寸/滤镜链变化取消编辑；关闭清理捕获和UI，不恢复播放。一次正常确认或取消可按勾选项恢复进入前播放状态，换片或自动失效不擅自恢复。
 - 确认再次验证当前媒体/空滤镜链及映射，将 `CropSelection.Confirm` 结果提交已有会话AddFilter链；全画面不添加filter。取消不提交vf编辑。提交仅为请求，实际效果与错误仍以mpv事件为准；不把Overlay隐藏当作滤镜生效。
 
@@ -779,7 +667,7 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 
 `PlayerCore.seek(relativeSecond:option:)`按Preference.SeekOption的relative=0/exact=1/auto=2选择命令；auto每文件首次请求记录耗时，`MPVController.handleEvent`在SEEK记录起点、PLAYBACK_RESTART计算间隔，低于0.05秒使用exact，否则relative。`PlayerCore.fileLoaded`重置试验标志，但保留上一文件决策。此前IIMA只有AutomaticSeekPolicy模型，实际SeekRelative创建临时对象且未测量，不能算已接通auto。
 
-现在会话持有策略，START_FILE启动新代次。新增`useExactSeek`枚举偏好（默认relative），两个±5秒按钮及滚轮seek读取它；已有wheelExactSeek=true仍强制exact，显式input.conf/插件seek参数不被偏好覆盖。相对seek拒绝不可seek、零/非有限参数。accepted仍仅表示入队，不表示已完成。
+现在会话持有策略，START_FILE启动新代次。新增`useExactSeek`枚举偏好（默认relative），两个±5秒按钮及滚轮seek读取它；已有wheelExactSeek=true仍强制exact，显式input.conf seek参数不被偏好覆盖。相对seek拒绝不可seek、零/非有限参数。accepted仍仅表示入队，不表示已完成。
 
 MpvClient为首次自动请求标记测量窗口，在worker用steady_clock记录SEEK→RESTART，排除UI调度延迟。成功command reply与完整事件对同时到齐后才上报请求ID/间隔，支持reply先于或晚于restart；失败、第二次SEEK、无SEEK的RESTART、超过10秒样本、其他写命令/滤镜修改、换片/结束/关闭都会放弃样本。只读查询不使样本失效。会话仅接收自己的待测request，放弃样本时保留原决策且本文件不反复试验。新文件可再次试验。
 
@@ -879,14 +767,6 @@ Windows新增只读`ReadFullscreenInformation`：GetTimeFormatEx按用户区域�
 - 保留弱窗口引用、关闭/用户数据未加载保护；原生 UI 更新失败不盲目回滚已改变的偏好或重发命令。按钮提供带键名的可访问名称与范围提示。无全部重置、无账号/历史/文件删除、无隐含服务调用。
 - 本批是静态实现；没有编译、测试或运行，不能宣称控件事件顺序、焦点变化、mpv 接受默认值或跨重启持久化已验证。
 
-## 第八十一批：插件私有文件移动
-
-- 追踪 `JavascriptAPIFile.swift::move` 的双路径解析、Foundation 无覆盖移动和错误传播，及 `JavascriptAPI.swift::parsePath` 对 @data/@tmp 的私有命名空间处理。转写至 JS bootstrap 的 `iina.file.move(source,destination)`、runtime 变更限流和 `PluginFileStore::Invoke`，返回 undefined，失败抛异常。
-- 接受两个原始字符串，用无插件对象回调的 JSON 封装；native 重复验证单层文件名、私有目录和关闭状态。支持相同目录改名及 @data/@tmp 互移，二进制内容不解码；不提供外部路径、子目录、链接、大小写专用改名或替换目标。
-- 沿用祖先目录持有、防 reparse/offline/hardlink、每文件1 MiB/每目录128项与16 MiB限制。跨目录统一先锁 data 后锁 tmp，避免合作进程反向锁顺序；在取得源 DELETE 句柄前完成目录扫描，再用已打开源身份的 `FileRenameInfo` 无覆盖重命名。跨卷失败无复制删除回退；失败无重试或猜测回滚。持锁/句柄机制不是抵御同权限恶意进程的完整安全沙箱。
-- 同步 worker 调用沿既有限流计为 mutation；与下载/退出清理由实例互斥锁串行。停止恰好发生在原生成功之后时可能看到停止错误但移动已发生，不声明事务撤销。启动说明明确移入 @tmp 将参与关闭清理，移入 @data 保留，不扩大到任意用户文件。
-- 未执行任何真实文件移动、插件或编译测试运行；Windows rename、并发、配额与取消时序仍需实际验证。
-
 ## 第八十二批：视频区域光标自动隐藏与恢复
 
 - 源码：`MainWindowController.swift::hideUIAndCursor` 先隐藏控制栏再调用 `NSCursor.setHiddenUntilMouseMoves`；`mouseMoved` 在非交互模式恢复UI/更新闲置计时；`workaroundCursorDefect` 处理macOS点击导致意外显示的系统差异。
@@ -911,14 +791,6 @@ Windows新增只读`ReadFullscreenInformation`：GetTimeFormatEx按用户区域�
 - 最多4096项、3秒合作式预算、stop_token；限额在原生调用之间检查，不声称可以中断慢驱动调用或严格三秒返回。窗口单worker，连续刷新/路径变化取消旧快照并合并为一次后续扫描；取消/关闭丢弃结果，无无限并发或自动失败重试。
 - 初次历史载入和路径集合变化检查；搜索/分类/播放进度变化复用快照，不反复I/O。手动刷新、停止、状态计数及“上次检查缺失”文本可见；缺失项仍可选择移除/定位，打开按钮和双击经核心PlayableHistoryPaths排除Missing。历史磁盘删除后独立重新扫描，不从系统删除成功永久推断Missing。
 - 非本地/不可访问项保持Unknown并允许原有打开路径尝试；无后台持续监控，外部文件恢复需手动刷新，缓存不持久化。保留选择与现有历史记录/撤销语义；没有执行真实文件探测、删除或编译测试运行。
-
-## 第八十五批：插件菜单快捷键
-
-- 源码：`JavascriptAPIMenu.swift::item` 读取options.keyBinding；`JavascriptPluginMenuItem.swift::keyBinding.didSet` 通过KeyCodeHelper映射原生菜单快捷键；`callAction` 调用JS动作并传入菜单项。Windows接入已有窗口按键路由，不安装系统级hook或独立原生accelerator。
-- bootstrap 接受有限长mpv键字符串/null，拒绝空白和控制字符，复用NormalizeMpvKey；菜单快照携带keyBinding，修改/清空通过原修订发布与回滚链生效。UI重复验证、显示快捷键提示与可访问说明，仅启用叶节点且所有祖先启用时参与索引。
-- 路由顺序明确为input.conf → 保存滤镜 → 插件菜单；不抢文本/密码/模态、控件自身导航/激活、Tab、Windows键、AltGr等既有保留输入。重复keydown只消费而不反复调用动作，低优先级插件观察仍独立接收允许事件。重复插件快捷键按可见树先序首个启用叶节点生效。
-- 动作复用InvokeMenu(id,revision)，worker重新校验修订、可达性、祖先启用及叶节点；停止/关闭清除映射，旧发布仍受pluginGeneration保护。菜单点击和快捷键均不乐观切换selected，继续由JS决定状态。
-- Windows差异：没有macOS Cmd映射或系统菜单抢占，快捷键提示不保证系统保留/未知键或多键序列可触发；用户配置冲突时插件项仍可鼠标点击。新增启动说明披露窗口局部快捷键。未编译测试运行或执行插件。
 
 ## 第八十六批：防休眠偏好与音频显示例外
 
@@ -1090,16 +962,15 @@ Windows新增只读`ReadFullscreenInformation`：GetTimeFormatEx按用户区域�
   参数，避免显示不可用的快捷键。修正原数字执行器不接受前导正号的问题，使匹配与执行一致。
 - 快捷键文字是现有播放器快捷键的提示，不额外注册另一套 accelerator。菜单获取焦点时
   原生键盘导航优先，播放器区域仍按用户 input.conf 分派。未实现上游可变步长菜单标题、
-  全部插件菜单重新嵌入和所有音频设备/滤镜的顶级菜单；已有侧栏功能没有被移除。
+  所有音频设备和保存滤镜的顶级菜单；已有侧栏功能没有被移除。
 - 已更新文件级库存与工程清单；只静态编写和审阅，未编译、测试或运行 WinUI 菜单。
 
-## 插件、输出设备与保存滤镜菜单（2026-11-12）
+## 输出设备与保存滤镜菜单（2026-11-12）
 
-- 对照 MenuController.updatePluginMenu/updateAudioDevice/updateSavedFiltersMenu，将现有受限插件运行时、音频设备偏好及保存滤镜库接入原生菜单。插件管理和运行继续使用现有目录选择及信任确认，不自动启动插件、不扩大权限。
-- 插件按钮和原生菜单各自构造独立 XAML 树，使用相同 generation/id/revision 回调。任一插件菜单展开时暂存一个最新有效 JSON，关闭后整组更新树和快捷键；停止立即清除快捷键、使旧回调失效，延后销毁展开树。原生插件前五项后放入“更多”，保留嵌套结构、禁用继承和脚本确认的勾选。
+- 对照 MenuController.updateAudioDevice/updateSavedFiltersMenu，将音频设备偏好及保存滤镜库接入原生菜单。
 - 设备菜单按后端设备名提交已有 audioDevice 偏好；新增 audioDeviceObserved 区分默认字符串与真实属性观察，只有观察值决定勾选。设备列表变更或换片后旧选择拒绝。保留系统默认项及明确的数量上限，完整列表仍在信息侧栏。
 - 保存滤镜菜单按解析后的真实滤镜链显示状态；点击同时核对媒体、库修订、定义身份及链修订，再走已有 PlanToggle/AddFilter/EditFilters。不会将菜单序号误当 mpv 滤镜索引，也不直接提交命令字符串。保存定义编辑不改变当前滤镜链。
-- 限制：仍是单窗口单个受信任本地插件运行时，不提供 IINA 多插件/global instance/开发者工具完整兼容；菜单焦点下不承诺播放器键路由。设备切换菜单限已加载媒体；保存滤镜菜单不展示可能与 input.conf 或系统冲突的快捷键。仅静态实现，没有 Windows 原生运行验证。
+- 限制：菜单焦点下不承诺播放器键路由。设备切换菜单限已加载媒体；保存滤镜菜单不展示可能与 input.conf 或系统冲突的快捷键。仅静态实现，没有 Windows 原生运行验证。
 
 ## 拖放输入分流与音频设备消失恢复（2026-11-12）
 
@@ -1209,10 +1080,10 @@ Windows新增只读`ReadFullscreenInformation`：GetTimeFormatEx按用户区域�
 
 ## 可配置OSC工具栏（2026-11-12）
 
-- IINA Preference.ToolBarButton、PrefOSCToolbarSettingsSheetController及MainWindowController工具栏投影 → 独立的工具栏配置模型、草稿编辑器和实际播放控制条。保留最多5个唯一动作、顺序、允许空配置及默认plugins/pip/playlist/settings；未实现的LiveText不作为可用项。
+- IINA Preference.ToolBarButton、PrefOSCToolbarSettingsSheetController及MainWindowController工具栏投影 → 独立的工具栏配置模型、草稿编辑器和实际播放控制条。保留最多5个唯一动作、顺序、允许空配置及默认 pip/playlist/settings；未实现的LiveText不作为可用项。
 - Windows通过添加、删除、上移、下移操作替代Cocoa专用拖放；编辑、恢复默认仅影响草稿，明确应用才进入现有偏好持久化，取消不修改当前工具栏。应用前核对基线，避免覆盖编辑期间的外部设置变化。
 - 持久键controlBarToolbarButtons采用最多128字节的逗号token字符串而非上游整数数组，未知/重复/超过5项整体拒绝，读取非法值沿偏好层退默认。基础打开、播放与进度控件不随空配置消失；全屏复用原生named按钮，避免固定按钮与可配置项重复。
-- 动作沿已有模式切换、截图和侧栏入口；设置导航到高级播放与窗口偏好，字幕到现有字幕控件，插件到本地插件管理区域，并不宣称实现上游所有Quick Settings/插件侧栏形态。音乐模式明确隐藏侧栏时禁用侧栏导航，不隐式改写该偏好。顶部/浮动OSC位置与拖动布局仍不在本批范围。
+- 动作沿已有模式切换、截图和侧栏入口；设置导航到高级播放与窗口偏好，字幕到现有字幕控件。音乐模式明确隐藏侧栏时禁用侧栏导航，不隐式改写该偏好。顶部/浮动OSC位置与拖动布局仍不在本批范围。
 - 本批仅静态实现/审阅、Git差异检查及数量统计，未编译、测试或运行。
 
 ## OSC位置与浮动拖动（2026-11-12）

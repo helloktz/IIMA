@@ -52,8 +52,8 @@ void MainWindow::PopulateAdvancedSettings() {
         if (!sessionAdapter && !HasApplicationAdapter(descriptor.key)) continue;
         auto key = std::string(descriptor.key);
         auto label = to_hstring(key);
-        if(key=="arrowBtnAction") label+=L"（OSC 左右箭头：0倍速 / 1队列 / 2跳转10秒）";
-        if(key=="showChapterPos") label+=L"（显示章节刻度；最多512章）";
+        if(key=="arrowBtnAction") label = label + L"（OSC 左右箭头：0倍速 / 1队列 / 2跳转10秒）";
+        if(key=="showChapterPos") label = label + L"（显示章节刻度；最多512章）";
         if (descriptor.timing == iima::settings::ApplyTiming::NextMedia)
             label = label + L"（下次打开）";
         else if (descriptor.timing == iima::settings::ApplyTiming::NextPlayer)

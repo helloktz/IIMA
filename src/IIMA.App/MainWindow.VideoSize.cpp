@@ -86,7 +86,7 @@ MainWindow::VideoResizeResult MainWindow::TryResizeToVideo(std::optional<double>
         auto display = Microsoft::UI::Windowing::DisplayArea::GetFromWindowId(window.Id(),
             Microsoft::UI::Windowing::DisplayAreaFallback::Nearest);
         if (!display) { report(L"无法取得当前屏幕工作区。"); return VideoResizeResult::Retry; }
-        HWND hwnd{}; check_hresult(this->as<::IWindowNative>()->get_WindowHandle(&hwnd));
+        HWND hwnd{}; check_hresult(GetNativeWindowHandle(&hwnd));
         const auto dpi = GetDpiForWindow(hwnd) / 96.0;
         const auto panelWidth = VideoPanel().ActualWidth() * VideoPanel().CompositionScaleX();
         const auto panelHeight = VideoPanel().ActualHeight() * VideoPanel().CompositionScaleY();

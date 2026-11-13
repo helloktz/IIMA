@@ -108,7 +108,7 @@ std::optional<ThumbnailSourceIdentity> ReadThumbnailSourceIdentity(
     auto modified = std::filesystem::last_write_time(mediaPath, code);
     if (code) { error = code.message(); return std::nullopt; }
     // duration_cast truncates toward zero, matching Swift Int64(Date seconds).
-    auto systemTime = std::chrono::file_clock::to_sys(modified);
+    auto systemTime = std::chrono::clock_cast<std::chrono::system_clock>(modified);
     auto seconds = std::chrono::duration_cast<std::chrono::seconds>(systemTime.time_since_epoch()).count();
     return ThumbnailSourceIdentity{size, seconds};
 }

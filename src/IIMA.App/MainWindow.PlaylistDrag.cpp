@@ -87,7 +87,7 @@ bool MainWindow::PlaylistDragCurrent(DragEventArgs const& args,bool verifyVisual
         return !playlistDragRows_.empty();
     } catch(...) {ResetPlaylistDrag();return false;}
 }
-bool MainWindow::PlaylistDropTargetCurrent(bool verifyVisual) const {
+bool MainWindow::PlaylistDropTargetCurrent(bool verifyVisual) {
     if(!PlaylistDragReady()) return false;
     auto const& items=session_->Snapshot().playlist;
     if(items.size()!=playlist_.size() || (verifyVisual && PlaylistView().Items().Size()!=items.size())) return false;
@@ -132,7 +132,7 @@ bool MainWindow::CopyPlaylistDrag(MainWindow& target,DragEventArgs const& args,s
     ResetPlaylistDrag(); // Consume the source capability before any synchronous Notify.
     return target.session_->InsertPlaylist(std::move(paths),row);
 }
-std::optional<std::size_t> MainWindow::PlaylistDropRow(DragEventArgs const& args) const {
+std::optional<std::size_t> MainWindow::PlaylistDropRow(DragEventArgs const& args) {
     try {
     // Ignore scrollbar surfaces rather than interpreting a scroll operation as
     // a drop onto the nearest row. No automatic ListView model reordering.

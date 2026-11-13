@@ -8,7 +8,7 @@ using namespace winrt;
 using namespace Windows::Data::Json;
 settings::PreferenceStore ReadPreferenceJson(JsonObject const& object,
     std::vector<settings::PreferenceIssue>& issues) {
-    settings::PreferenceStore result;
+    settings::PreferenceValues values;
     for (auto const& pair : object) {
         auto key = to_string(pair.Key());
         auto descriptor = settings::FindPreference(key);
@@ -28,10 +28,12 @@ settings::PreferenceStore ReadPreferenceJson(JsonObject const& object,
                     throw hresult_error(E_INVALIDARG);
                 value = static_cast<std::int64_t>(number);
             }
-            std::string error;
-            if (!result.Set(key, std::move(value), error)) issues.push_back({key, std::move(error)});
+            values.emplace(std::move(key), std::move(value));
         } catch (hresult_error const&) { issues.push_back({key, "Stored type is invalid; default retained"}); }
     }
+    settings::PreferenceStore result;
+    auto validationIssues = result.Restore(values);
+    issues.insert(issues.end(), validationIssues.begin(), validationIssues.end());
     return result;
 }
 JsonObject WritePreferenceJson(settings::PreferenceValues const& values) {

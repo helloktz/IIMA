@@ -23,7 +23,7 @@ bool SameRect(iima::CropRect const& a, iima::CropRect const& b) {
 }
 }
 namespace winrt::IIMA::implementation {
-std::optional<iima::CropMapping> MainWindow::InteractiveCropMapping() const {
+std::optional<iima::CropMapping> MainWindow::InteractiveCropMapping() {
     auto const& s = session_->Snapshot();
     if (s.session != iima::SessionState::Ready || s.media != iima::MediaState::Loaded ||
         !s.voConfigured || !s.compositionAvailable || !s.videoFilters.complete ||
@@ -224,9 +224,9 @@ void MainWindow::StartInteractiveCrop() {
     InteractiveCropConfirmButton().Content(box_value(interactiveDelogo_ ? L"确认去标志区域" : L"确认裁剪"));
     InteractiveCropAspect().Visibility(interactiveDelogo_ ? Visibility::Collapsed : Visibility::Visible);
     InteractiveCropAspectButton().Visibility(interactiveDelogo_ ? Visibility::Collapsed : Visibility::Visible);
-    InteractiveCropCanvas().IsEnabled(true);
+    InteractiveCropCanvas().IsHitTestVisible(true);
     InteractiveCropConfirmButton().IsEnabled(true);
-    PlayerSidebar().IsEnabled(false);
+    PlayerSidebarContent().IsEnabled(false);
     RefreshPlayerMenus();
     UpdateWindowAspectConstraint();
     InteractiveCropCanvas().Visibility(Visibility::Visible);
@@ -320,7 +320,7 @@ void MainWindow::FinishInteractiveCrop(bool commit, bool restorePlayback) {
     InteractiveCropCanvas().ReleasePointerCaptures();
     InteractiveCropCanvas().Visibility(Visibility::Collapsed);
     InteractiveCropToolbar().Visibility(Visibility::Collapsed);
-    PlayerSidebar().IsEnabled(true);
+    PlayerSidebarContent().IsEnabled(true);
     RefreshPlayerMenus();
     UpdateWindowAspectConstraint();
     if (commit && !closing_) ShowError(L"区域编辑事务已失效，未提交滤镜。");

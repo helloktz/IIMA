@@ -134,13 +134,13 @@ void MainWindow::UpdateExternalTrackReload() {
     case Phase::Failed:text=L"重载未完整完成；未自动重试。原轨道可能已不在，请检查当前轨道与选择。";break;
     }
     if(status.phase==Phase::Cancelled || status.phase==Phase::Failed) {
-        if(status.reloadAcknowledged) text+=L" 重载命令已确认。";
-        if(status.targetPresentConfirmed) text+=L" 重新读取已确认目标轨道存在。";
-        if(status.selectionRestoredConfirmed) text+=L" 重新读取已确认原选择已恢复。";
-        else if(status.reloadSubmitted && !busy) text+=L" 原选择恢复未确认。";
+        if(status.reloadAcknowledged) text = text + L" 重载命令已确认。";
+        if(status.targetPresentConfirmed) text = text + L" 重新读取已确认目标轨道存在。";
+        if(status.selectionRestoredConfirmed) text = text + L" 重新读取已确认原选择已恢复。";
+        else if(status.reloadSubmitted && !busy) text = text + L" 原选择恢复未确认。";
     }
     if(!text.empty()) text=externalReloadLabel_+L"："+text;
-    if(!status.error.empty()) text+=L"\n"+SafeReloadText(status.error,1024);
+    if(!status.error.empty()) text = text + L"\n"+SafeReloadText(status.error,1024);
     if(ExternalReloadStatus().Text()!=text) ExternalReloadStatus().Text(text);
 }
 }

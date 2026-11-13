@@ -1,6 +1,6 @@
 name: Windows native validation
 # Deliberately manual: a self-hosted Windows runner with the pinned toolchain
-# and staged, locally built libmpv SDK plus Git/CMake 4.2.0 must be provisioned by the repository owner.
+# and staged, locally built libmpv SDK must be provisioned by the repository owner.
 on:
   workflow_dispatch:
 permissions:
@@ -27,10 +27,6 @@ jobs:
         run: |
           if (-not $env:IIMA_LIBMPV_SDK) { throw 'Set repository variable IIMA_LIBMPV_SDK to the runner-local SDK directory.' }
           ./scripts/stage-libmpv.ps1 -SdkDirectory $env:IIMA_LIBMPV_SDK
-      - name: Build pinned QuickJS-ng static dependency
-        run: |
-          ./scripts/build-quickjs.ps1 -Configuration Debug
-          ./scripts/build-quickjs.ps1 -Configuration Release
       - name: Build Debug x64
         run: ./scripts/build.ps1 -Configuration Debug -Rebuild
       - name: Build and package Release x64

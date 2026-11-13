@@ -119,8 +119,8 @@ void MainWindow::UpdateSubtitleReload() {
     }
     hstring text=phase+L"；重载回复成功 "+to_hstring(status.completed)+L"，失败 "+to_hstring(status.failed)+
         L"，跳过 "+to_hstring(status.skipped)+L"，剩余 "+to_hstring(status.remaining)+L"（计划 "+to_hstring(status.total)+L"）。";
-    if(!status.error.empty()) text+=L"\n"+to_hstring(status.error.substr(0,512));
-    text+=L"\n计数仅表示命令回复，不保证画面已刷新。取消不撤回已提交的重载或编码变更；失败可能已移除原字幕。";
+    if(!status.error.empty()) text = text + L"\n"+to_hstring(status.error.substr(0,512));
+    text = text + L"\n计数仅表示命令回复，不保证画面已刷新。取消不撤回已提交的重载或编码变更；失败可能已移除原字幕。";
     if(SubtitleReloadStatusText().Text()!=text) SubtitleReloadStatusText().Text(text);
 }
 }

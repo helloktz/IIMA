@@ -118,7 +118,7 @@ fire_and_forget MainWindow::PickFilterLutFile() {
     try {
         Windows::Storage::Pickers::FileOpenPicker picker;
         HWND hwnd{};
-        check_hresult(this->as<::IWindowNative>()->get_WindowHandle(&hwnd));
+        check_hresult(GetNativeWindowHandle(&hwnd));
         check_hresult(picker.as<::IInitializeWithWindow>()->Initialize(hwnd));
         picker.CommitButtonText(L"选择 LUT 文件");
         // Extension is not a format validator; FFmpeg owns file decoding.

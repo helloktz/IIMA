@@ -20,7 +20,7 @@ winrt::fire_and_forget MainWindow::SavePlaylist() {
     try {
         Windows::Storage::Pickers::FileSavePicker picker;
         HWND window{};
-        check_hresult(this->as<::IWindowNative>()->get_WindowHandle(&window));
+        check_hresult(GetNativeWindowHandle(&window));
         check_hresult(picker.as<::IInitializeWithWindow>()->Initialize(window));
         picker.SuggestedFileName(L"IIMA-playlist");
         picker.FileTypeChoices().Insert(L"UTF-8 播放列表", single_threaded_vector<hstring>({L".m3u8"}));

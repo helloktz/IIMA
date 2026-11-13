@@ -57,11 +57,11 @@ void MainWindow::UpdateABLoopEditor(iima::PlaybackSnapshot const& state) {
     // Do not rewrite the editors on time-pos notifications. Feedback is separate
     // and comes only from mpv observations, never from a submitted command.
     auto text = L"当前 A=" + PointText(state.abLoopA) + L"；B=" + PointText(state.abLoopB);
-    if (!draft) text += L"。请建立端点并重新读取后编辑。";
-    else text += L"。每次应用后重新读取；0秒按 IINA 调整为0.000001秒。";
-    if (state.abLoopCount == "0") text += L" 循环次数为0，当前不会重复。";
+    if (!draft) text = text + L"。请建立端点并重新读取后编辑。";
+    else text = text + L"。每次应用后重新读取；0秒按 IINA 调整为0.000001秒。";
+    if (state.abLoopCount == "0") text = text + L" 循环次数为0，当前不会重复。";
     if (state.abLoopA && state.abLoopB && *state.abLoopA == *state.abLoopB)
-        text += L" 两个端点相同，当前不会形成有效区间。";
+        text = text + L" 两个端点相同，当前不会形成有效区间。";
     ABEditStatus().Text(text);
     UpdateABLoopMarkers();
 }

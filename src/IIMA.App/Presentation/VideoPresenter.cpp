@@ -22,7 +22,7 @@ void VideoPresenter::Bind(winrt::com_ptr<IDXGISwapChain> ownedSwapChain)
 {
     if (!ownedSwapChain) { Detach(); return; }
     // SetSwapChain retains its own reference; retain ours until after unbind.
-    auto native = panel_.as<ABI::Microsoft::UI::Xaml::Controls::ISwapChainPanelNative>();
+    auto native = panel_.as<ISwapChainPanelNative>();
     winrt::check_hresult(native->SetSwapChain(ownedSwapChain.get()));
     swapChain_ = std::move(ownedSwapChain);
     width_ = height_ = 0;
@@ -31,7 +31,7 @@ void VideoPresenter::Bind(winrt::com_ptr<IDXGISwapChain> ownedSwapChain)
 void VideoPresenter::Detach() noexcept
 {
     try {
-        auto native = panel_.as<ABI::Microsoft::UI::Xaml::Controls::ISwapChainPanelNative>();
+        auto native = panel_.as<ISwapChainPanelNative>();
         if (SUCCEEDED(native->SetSwapChain(nullptr))) swapChain_ = nullptr;
     } catch (...) { /* Panel keeps its own COM reference if unbind fails. */ }
 }

@@ -1,27 +1,24 @@
 # 构建与最小打包
 
-当前开发分支包含 WinUI XAML 播放页面、原生播放核心及 libmpv staging 入口。Windows 编译和真实播放尚未验证；视频呈现需要固定源码加 owned-swapchain 私有补丁的 libmpv，不能视为可用播放器。没有安装器、签名、自动更新或文件关联。
+主分支包含 WinUI XAML 播放页面、原生播放核心及 libmpv staging 入口。真实播放和打包需要固定源码加 owned-swapchain 私有补丁构建的 libmpv。当前验证结果见 [VALIDATION.md](VALIDATION.md)。
 
 ## Windows 构建环境
 
 - PowerShell 7 或更高版本。
-- 插件 JS 引擎静态依赖：Git、CMake 4.2.0；先按 [QUICKJS.md](QUICKJS.md) 获取固定 QuickJS-ng 源并分别 stage Debug/Release。
-- Visual Studio 2026 / Build Tools，安装 C++ 桌面开发工具；固定 MSVC v145 / 14.51.36231。
+- Visual Studio 2026 / Build Tools 18.12，安装 C++ 桌面及 C++ WinUI 构建工具；固定 MSVC v145 / 14.52.37025。
 - Windows SDK 10.0.26100.0，包括头文件、库、WinRT 元数据及构建工具。
 - MSVC 对应的 x64 Release CRT redist 目录，用于 app-local 打包。
 - 首次还原需要访问 NuGet 官方源及 dist.nuget.org；下载写入仓库的 `.deps/`。
 
 版本见 [Directory.Build.props](../Directory.Build.props) 和 [packages.config](../src/IIMA.App/packages.config)，依赖说明见 [DEPENDENCIES.md](../build/DEPENDENCIES.md)。脚本通过 vswhere 定位具备固定工具集的安装，不使用个人目录，也不自动以管理员身份安装或升级工具链。
 
-C++23 对应当前工具集的 MSBuild `stdcpp23`，实际编译开关为 `/std:c++23preview`，不是 `/std:c++latest`。这是编译器对其 C++23 实现的命名，不表示项目可以使用任意后续标准。Core 含编译期检查，避免静默退回 C++20 或更早模式。
+C++23 对应当前工具集的 MSBuild `stdcpp23`，实际编译开关为 `/std:c++23`。Core 含编译期检查。
 
 ## 构建
 
-从仓库根目录执行（先完成 libmpv staging；新增 QuickJS 依赖也必须分别 stage，以下步骤本批未执行）：
+从仓库根目录执行。libmpv SDK 可按 [LIBMPV.md](LIBMPV.md) 单独准备。
 
 ```powershell
-pwsh -NoProfile -File scripts/build-quickjs.ps1 -Configuration Debug
-pwsh -NoProfile -File scripts/build-quickjs.ps1 -Configuration Release
 pwsh -NoProfile -File scripts/build.ps1 -Configuration Debug
 pwsh -NoProfile -File scripts/build.ps1 -Configuration Release
 ```
@@ -57,16 +54,8 @@ pwsh -NoProfile -File scripts/smoke-test.ps1 -Executable '<解压目录>/IIMA-0.
 
 此检查启动应用，等待原生窗口出现，检查标题，验证关键 WinUI / Windows App SDK / CRT DLL 确实从应用目录加载，再发送正常关闭请求并确认退出码为 0。失败时只清理此次启动的进程。它不证明视觉布局、HDR、播放能力或全部 Windows 11 版本的兼容性。
 
-## 云端使用
-
-Windows 云端 worker 使用相同构建和打包命令，并预装上述固定工具链。没有桌面的 worker 可以编译和打包，但不能将 GUI 冒烟标为已验证；在独立交互式 Windows 11 测试环境运行该检查。
-
-Linux 云端研发环境可以编辑源码、检查脚本与项目文件；最终构建仍需 Windows MSVC worker。当前没有绑定特定 CI 提供商或自动创建云端机器，也没有执行远程 CI。
-
 ## XAML 与 libmpv 边界
 
-`App.xaml` / `MainWindow.xaml`、MIDL 与生成代码已加入原应用工程；保留显式 Main.cpp 入口，禁用 XAML 自动 main。云端只做了 XML 和输入路径检查，尚未执行 XAML 生成、MSVC 编译或 Windows 启动。
+`App.xaml` 和 `MainWindow.xaml` 由 WinUI XAML 编译链生成，MIDL 和 C++/WinRT 输出位于相应配置的 `artifacts/obj/`。程序入口为 `Main.cpp`。
 
 依赖准备与 probe 见 [LIBMPV.md](LIBMPV.md)。缺少 SDK 时可编译源码并显示依赖错误，但打包会拒绝缺失 libmpv 的目录。依赖 probe 不证明真实视频输出；当前公开交换链属性的所有权问题见 [PORTING.md](PORTING.md)。
-
-现有初始化版本的成功构建记录只适用于该历史版本，不延伸为本批 XAML/播放实现已经构建成功。

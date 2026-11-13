@@ -79,7 +79,7 @@ void MainWindow::WireHistoryControls() {
         }
     });
 }
-std::vector<std::size_t> MainWindow::SelectedHistoryRows() const {
+std::vector<std::size_t> MainWindow::SelectedHistoryRows() {
     std::vector<std::size_t> rows;
     if (projectingHistory_) return rows;
     for (auto const& selected : HistoryView().SelectedItems()) {

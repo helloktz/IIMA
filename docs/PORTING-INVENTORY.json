@@ -1,11 +1,23 @@
 {
   "sourceRevision": "685a40ee1d4165107182f7236751ad9d5873f267",
-  "note": "not-mapped does not prove absent behavior; mapped does not prove full coverage. No file is asserted fully ported by this inventory.",
+  "note": "IINA plugin infrastructure is out of scope. not-mapped does not prove absent behavior; mapped does not prove full coverage. No file is asserted fully ported by this inventory.",
   "files": [
     {
       "source": "references/iina/OpenInIINA/SafariExtensionHandler.swift",
       "physicalLines": 61,
+      "coverage": "out-of-scope",
+      "reviewTargets": []
+    },
+    {
+      "source": "references/iina/iina-cli/main.swift",
+      "physicalLines": 171,
       "coverage": "not-mapped",
+      "reviewTargets": []
+    },
+    {
+      "source": "references/iina/iina-plugin/main.swift",
+      "physicalLines": 451,
+      "coverage": "out-of-scope",
       "reviewTargets": []
     },
     {
@@ -326,209 +338,158 @@
     {
       "source": "references/iina/iina/JavascriptAPI.swift",
       "physicalLines": 181,
-      "coverage": "not-mapped",
+      "coverage": "out-of-scope",
       "reviewTargets": []
     },
     {
       "source": "references/iina/iina/JavascriptAPIConsole.swift",
       "physicalLines": 58,
-      "coverage": "partial-static-unverified",
-      "reviewTargets": [
-        "src/IIMA.App/Plugins/PluginBootstrap.h",
-        "src/IIMA.App/Plugins/PluginRuntime.cpp"
-      ]
+      "coverage": "out-of-scope",
+      "reviewTargets": []
     },
     {
       "source": "references/iina/iina/JavascriptAPICore.swift",
       "physicalLines": 473,
-      "coverage": "partial-static-unverified",
-      "reviewTargets": [
-        "src/IIMA.App/Plugins/PluginBootstrap.h",
-        "src/IIMA.App/Plugins/PluginPlaybackProjection.cpp",
-        "src/IIMA.App/MainWindow.PluginRuntime.cpp"
-      ]
+      "coverage": "out-of-scope",
+      "reviewTargets": []
     },
     {
       "source": "references/iina/iina/JavascriptAPIEvent.swift",
       "physicalLines": 76,
-      "coverage": "partial-static-unverified",
-      "reviewTargets": [
-        "src/IIMA.App/Plugins/PluginRuntime.cpp",
-        "src/IIMA.App/Plugins/PluginPlaybackProjection.cpp"
-      ]
+      "coverage": "out-of-scope",
+      "reviewTargets": []
     },
     {
       "source": "references/iina/iina/JavascriptAPIFile.swift",
       "physicalLines": 243,
-      "coverage": "partial-static-unverified",
-      "reviewTargets": [
-        "src/IIMA.App/Platform/PluginFileStore.cpp",
-        "src/IIMA.App/Plugins/PluginBootstrap.h",
-        "src/IIMA.App/Plugins/PluginRuntime.cpp"
-      ]
+      "coverage": "out-of-scope",
+      "reviewTargets": []
     },
     {
       "source": "references/iina/iina/JavascriptAPIGlobal.swift",
       "physicalLines": 137,
-      "coverage": "not-mapped",
+      "coverage": "out-of-scope",
       "reviewTargets": []
     },
     {
       "source": "references/iina/iina/JavascriptAPIHttp.swift",
       "physicalLines": 172,
-      "coverage": "partial-static-unverified",
-      "reviewTargets": [
-        "src/IIMA.App/Platform/PluginHttpClient.cpp",
-        "src/IIMA.App/Plugins/PluginRuntime.cpp",
-        "src/IIMA.App/Plugins/PluginBootstrap.h",
-        "src/IIMA.App/Platform/PluginFileStore.cpp",
-        "src/IIMA.App/MainWindow.PluginRuntime.cpp",
-        "src/IIMA.App/Platform/PluginXmlRpc.cpp"
-      ]
+      "coverage": "out-of-scope",
+      "reviewTargets": []
     },
     {
       "source": "references/iina/iina/JavascriptAPIInput.swift",
       "physicalLines": 87,
-      "coverage": "partial-static-unverified",
-      "reviewTargets": [
-        "src/IIMA.App/Plugins/PluginRuntime.cpp",
-        "src/IIMA.App/MainWindow.PluginInput.cpp",
-        "src/IIMA.App/MainWindow.PluginPointer.cpp"
-      ]
+      "coverage": "out-of-scope",
+      "reviewTargets": []
     },
     {
       "source": "references/iina/iina/JavascriptAPIMenu.swift",
       "physicalLines": 86,
-      "coverage": "partial-static-unverified",
-      "reviewTargets": [
-        "src/IIMA.App/Plugins/PluginRuntime.cpp",
-        "src/IIMA.App/Plugins/PluginBootstrap.h",
-        "src/IIMA.App/MainWindow.PluginMenu.cpp"
-      ]
+      "coverage": "out-of-scope",
+      "reviewTargets": []
     },
     {
       "source": "references/iina/iina/JavascriptAPIMpv.swift",
       "physicalLines": 82,
-      "coverage": "not-mapped",
+      "coverage": "out-of-scope",
       "reviewTargets": []
     },
     {
       "source": "references/iina/iina/JavascriptAPIOverlay.swift",
       "physicalLines": 160,
-      "coverage": "not-mapped",
+      "coverage": "out-of-scope",
       "reviewTargets": []
     },
     {
       "source": "references/iina/iina/JavascriptAPIPlaylist.swift",
       "physicalLines": 143,
-      "coverage": "partial-static-unverified",
-      "reviewTargets": [
-        "src/IIMA.App/Plugins/PluginRuntime.cpp",
-        "src/IIMA.App/Plugins/PluginBootstrap.h",
-        "src/IIMA.App/MainWindow.PluginPlaylist.cpp"
-      ]
+      "coverage": "out-of-scope",
+      "reviewTargets": []
     },
     {
       "source": "references/iina/iina/JavascriptAPIPreferences.swift",
       "physicalLines": 38,
-      "coverage": "partial-static-unverified",
-      "reviewTargets": [
-        "src/IIMA.App/Plugins/PluginRuntime.cpp",
-        "src/IIMA.App/Plugins/PluginBootstrap.h",
-        "src/IIMA.App/Platform/PluginPreferenceStore.cpp",
-        "src/IIMA.App/MainWindow.PluginRuntime.cpp"
-      ]
+      "coverage": "out-of-scope",
+      "reviewTargets": []
     },
     {
       "source": "references/iina/iina/JavascriptAPISidebarView.swift",
       "physicalLines": 73,
-      "coverage": "not-mapped",
+      "coverage": "out-of-scope",
       "reviewTargets": []
     },
     {
       "source": "references/iina/iina/JavascriptAPIStandaloneWindow.swift",
       "physicalLines": 197,
-      "coverage": "not-mapped",
+      "coverage": "out-of-scope",
       "reviewTargets": []
     },
     {
       "source": "references/iina/iina/JavascriptAPISubtitle.swift",
       "physicalLines": 99,
-      "coverage": "not-mapped",
+      "coverage": "out-of-scope",
       "reviewTargets": []
     },
     {
       "source": "references/iina/iina/JavascriptAPIUtils.swift",
       "physicalLines": 288,
-      "coverage": "not-mapped",
+      "coverage": "out-of-scope",
       "reviewTargets": []
     },
     {
       "source": "references/iina/iina/JavascriptAPIWebSocket.swift",
       "physicalLines": 217,
-      "coverage": "not-mapped",
+      "coverage": "out-of-scope",
       "reviewTargets": []
     },
     {
       "source": "references/iina/iina/JavascriptDevTool.swift",
       "physicalLines": 550,
-      "coverage": "not-mapped",
+      "coverage": "out-of-scope",
       "reviewTargets": []
     },
     {
       "source": "references/iina/iina/JavascriptMessageHub.swift",
       "physicalLines": 130,
-      "coverage": "not-mapped",
+      "coverage": "out-of-scope",
       "reviewTargets": []
     },
     {
       "source": "references/iina/iina/JavascriptPlugin.swift",
       "physicalLines": 623,
-      "coverage": "partial-static-unverified",
-      "reviewTargets": [
-        "src/IIMA.Core/Plugins/PluginManifest.cpp",
-        "src/IIMA.App/Platform/PluginInspection.cpp"
-      ]
+      "coverage": "out-of-scope",
+      "reviewTargets": []
     },
     {
       "source": "references/iina/iina/JavascriptPluginInstance.swift",
       "physicalLines": 193,
-      "coverage": "partial-static-unverified",
-      "reviewTargets": [
-        "src/IIMA.App/Plugins/PluginRuntime.cpp",
-        "src/IIMA.App/MainWindow.PluginRuntime.cpp"
-      ]
+      "coverage": "out-of-scope",
+      "reviewTargets": []
     },
     {
       "source": "references/iina/iina/JavascriptPluginMenuItem.swift",
       "physicalLines": 94,
-      "coverage": "partial-static-unverified",
-      "reviewTargets": [
-        "src/IIMA.App/Plugins/PluginBootstrap.h",
-        "src/IIMA.App/MainWindow.PluginMenu.cpp"
-      ]
+      "coverage": "out-of-scope",
+      "reviewTargets": []
     },
     {
       "source": "references/iina/iina/JavascriptPluginSubtitle.swift",
       "physicalLines": 119,
-      "coverage": "not-mapped",
+      "coverage": "out-of-scope",
       "reviewTargets": []
     },
     {
       "source": "references/iina/iina/JavascriptPluginSubtitleItem.swift",
       "physicalLines": 53,
-      "coverage": "not-mapped",
+      "coverage": "out-of-scope",
       "reviewTargets": []
     },
     {
       "source": "references/iina/iina/JavascriptPolyfill.swift",
       "physicalLines": 112,
-      "coverage": "partial-static-unverified",
-      "reviewTargets": [
-        "src/IIMA.App/Plugins/PluginRuntime.cpp",
-        "src/IIMA.App/Plugins/PluginBootstrap.h",
-        "src/IIMA.Core/Plugins/PluginModulePath.cpp"
-      ]
+      "coverage": "out-of-scope",
+      "reviewTargets": []
     },
     {
       "source": "references/iina/iina/JustExtension.swift",
@@ -539,12 +500,8 @@
     {
       "source": "references/iina/iina/JustXMLRPC.swift",
       "physicalLines": 190,
-      "coverage": "partial-static-unverified",
-      "reviewTargets": [
-        "src/IIMA.App/Platform/PluginXmlRpc.cpp",
-        "src/IIMA.App/Platform/PluginHttpClient.cpp",
-        "src/IIMA.App/Plugins/PluginBootstrap.h"
-      ]
+      "coverage": "out-of-scope",
+      "reviewTargets": []
     },
     {
       "source": "references/iina/iina/KeyBindingCriterion.swift",
@@ -799,7 +756,6 @@
         "src/IIMA.App/MainWindow.Menus.cpp",
         "src/IIMA.App/MainWindow.Menus.Dynamic.cpp",
         "src/IIMA.App/MainWindow.Menus.Media.cpp",
-        "src/IIMA.App/MainWindow.PluginMenu.cpp",
         "src/IIMA.Core/Input/MenuKeyBinding.cpp"
       ]
     },
@@ -1001,46 +957,43 @@
     {
       "source": "references/iina/iina/PluginInputManager.swift",
       "physicalLines": 116,
-      "coverage": "partial-static-unverified",
-      "reviewTargets": [
-        "src/IIMA.App/Plugins/PluginRuntime.cpp",
-        "src/IIMA.App/MainWindow.Keyboard.cpp"
-      ]
+      "coverage": "out-of-scope",
+      "reviewTargets": []
     },
     {
       "source": "references/iina/iina/PluginManager.swift",
       "physicalLines": 183,
-      "coverage": "not-mapped",
+      "coverage": "out-of-scope",
       "reviewTargets": []
     },
     {
       "source": "references/iina/iina/PluginOverlayView.swift",
       "physicalLines": 149,
-      "coverage": "not-mapped",
+      "coverage": "out-of-scope",
       "reviewTargets": []
     },
     {
       "source": "references/iina/iina/PluginSidebarView.swift",
       "physicalLines": 52,
-      "coverage": "not-mapped",
+      "coverage": "out-of-scope",
       "reviewTargets": []
     },
     {
       "source": "references/iina/iina/PluginStandaloneWindow.swift",
       "physicalLines": 172,
-      "coverage": "not-mapped",
+      "coverage": "out-of-scope",
       "reviewTargets": []
     },
     {
       "source": "references/iina/iina/PluginStorePanel.swift",
       "physicalLines": 538,
-      "coverage": "not-mapped",
+      "coverage": "out-of-scope",
       "reviewTargets": []
     },
     {
       "source": "references/iina/iina/PluginViewController.swift",
       "physicalLines": 194,
-      "coverage": "not-mapped",
+      "coverage": "out-of-scope",
       "reviewTargets": []
     },
     {
@@ -1064,13 +1017,13 @@
     {
       "source": "references/iina/iina/PrefPluginPermissionListView.swift",
       "physicalLines": 42,
-      "coverage": "not-mapped",
+      "coverage": "out-of-scope",
       "reviewTargets": []
     },
     {
       "source": "references/iina/iina/PrefPluginPermissionView.swift",
       "physicalLines": 45,
-      "coverage": "not-mapped",
+      "coverage": "out-of-scope",
       "reviewTargets": []
     },
     {
@@ -1206,7 +1159,7 @@
     {
       "source": "references/iina/iina/SettingsPagePlugin.swift",
       "physicalLines": 995,
-      "coverage": "not-mapped",
+      "coverage": "out-of-scope",
       "reviewTargets": []
     },
     {
@@ -1489,18 +1442,6 @@
     {
       "source": "references/iina/iina/WebSocketServer.swift",
       "physicalLines": 131,
-      "coverage": "not-mapped",
-      "reviewTargets": []
-    },
-    {
-      "source": "references/iina/iina-cli/main.swift",
-      "physicalLines": 171,
-      "coverage": "not-mapped",
-      "reviewTargets": []
-    },
-    {
-      "source": "references/iina/iina-plugin/main.swift",
-      "physicalLines": 451,
       "coverage": "not-mapped",
       "reviewTargets": []
     }

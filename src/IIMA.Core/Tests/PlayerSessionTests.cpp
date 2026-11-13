@@ -19,7 +19,7 @@ MpvClient::MpvClient(Sink sink) { events=std::move(sink); }
 MpvClient::~MpvClient() = default;
 void MpvClient::SetPauseWhenOpen(bool value) { pauseWhenOpen=value; }
 void MpvClient::Start(std::wstring) { MpvEvent e{MpvEvent::Kind::Ready}; e.flag=true; events(e); }
-std::uint64_t MpvClient::Command(std::vector<std::string> args) {
+std::uint64_t MpvClient::Command(std::vector<std::string> args, bool) {
     if(rejectNextCommand) { rejectNextCommand=false; return 0; }
     auto id=nextId++; commands.emplace_back(id,std::move(args)); return id; }
 std::uint64_t MpvClient::GetPlaylistAsync() {
@@ -27,6 +27,26 @@ std::uint64_t MpvClient::GetPlaylistAsync() {
     commands.emplace_back(id,std::vector<std::string>{"test-get-playlist"});
     return id;
 }
+std::uint64_t MpvClient::LoadSubtitleAsync(std::string path, bool select, std::int64_t,
+    std::string, std::shared_ptr<std::atomic_bool>) {
+    return Command({"test-load-subtitle", std::move(path), select ? "select" : "auto"});
+}
+std::uint64_t MpvClient::GetVideoGeometryAsync() { return 0; }
+std::uint64_t MpvClient::GetWindowScaleAsync() { return 0; }
+std::uint64_t MpvClient::GetPauseAsync() { return 0; }
+std::uint64_t MpvClient::ReadSubtitleStateAsync() { return 0; }
+std::uint64_t MpvClient::ReadExternalTrackStateAsync(std::int64_t, std::string) { return 0; }
+std::uint64_t MpvClient::EditExternalTrackAsync(std::string, std::int64_t, std::string,
+    std::int64_t, std::string, bool, std::optional<std::int64_t>, std::shared_ptr<std::atomic_bool>) { return 0; }
+std::uint64_t MpvClient::RemoveExternalTrackAsync(std::string, std::int64_t, std::string,
+    std::int64_t, std::string, std::shared_ptr<std::atomic_bool>) { return 0; }
+std::uint64_t MpvClient::CompareSetSpeedAsync(double, double, std::int64_t, std::string,
+    std::shared_ptr<std::atomic_bool>) { return 0; }
+std::uint64_t MpvClient::LoadExternalAVAsync(std::string, std::string, std::int64_t, std::string,
+    std::shared_ptr<std::atomic_bool>) { return 0; }
+std::uint64_t MpvClient::RecoverAudioDeviceAsync(std::string) { return 0; }
+std::uint64_t MpvClient::ReadWatchedPropertiesAsync(std::vector<std::string>) { return 0; }
+std::uint64_t MpvClient::EditFilterChainAsync(bool, FilterEditPlan, std::optional<std::int64_t>, std::string) { return 0; }
 void MpvClient::CloseAsync(std::function<void()> completion) { if(completion) completion(); }
 }
 namespace {
@@ -129,6 +149,13 @@ void TransitionRegressions() {
 }
 }
 int main() {
+    iima::settings::PreferenceStore preferences;
+    assert(preferences.Restore({{"controlBarToolbarButtons", std::string{"screenshot,plugins,pip"}}}).empty());
+    assert(preferences.String("controlBarToolbarButtons") == "screenshot,pip");
+    assert(preferences.Restore({{"controlBarToolbarButtons", std::string{"plugins"}}}).empty());
+    assert(preferences.String("controlBarToolbarButtons").empty());
+    std::string error;
+    assert(!preferences.Set("controlBarToolbarButtons", std::string{"plugins,pip"}, error));
     TransitionRegressions();
     commands.clear();
     auto session=PlayerSession::Create([](auto work){work();},[](auto const&){});
@@ -167,7 +194,12 @@ int main() {
     session->PlaylistRemove(99); assert(commands.back().second[0]=="seek");
     MpvEvent tracks{MpvEvent::Kind::Property}; tracks.name="track-list";
     tracks.tracks={{2,"sub","","","C:/字幕.srt",true,true}}; events(tracks);
-    session->AddSubtitle("C:/字幕.srt"); assert(commands.back().second==std::vector<std::string>({"sub-reload","2"}));
+    MpvEvent path{MpvEvent::Kind::Property}; path.name="path"; path.text="C:/中文 空格/a.mp4"; events(path);
+    assert(session->AddSubtitle("C:/字幕.srt"));
+    assert(commands.back().second==std::vector<std::string>({"test-load-subtitle","C:/字幕.srt","select"}));
+    MpvEvent subtitle{MpvEvent::Kind::SubtitleLoadReply}; subtitle.requestId=commands.back().first;
+    subtitle.subtitleLoadSubmitted=true; subtitle.subtitleLoadCommandSucceeded=true; subtitle.subtitleLoadConfirmed=true;
+    events(subtitle);
     session->SelectTrack("sub",0); assert(commands.back().second==std::vector<std::string>({"set","sid","no"}));
     session->TogglePause(); session->TogglePause(); assert(commands.back().second[0]=="cycle");
     session->SetMaxVolume(200); session->SetVolume(250);
@@ -183,9 +215,14 @@ int main() {
     assert(commands.back().second==std::vector<std::string>({"set","loop-file","no"}));
     tracks.tracks.push_back({1,"video","","","",true,false}); events(tracks);
     session->SetScreenshotMode(ScreenshotMode::Subtitles); session->ScreenshotToFile("C:/shot.png");
+    assert(commands.back().second==std::vector<std::string>({"set","screenshot-sw","no"}));
+    Reply(commands.back().first);
     assert(commands.back().second.back()=="subtitles");
+    Reply(commands.back().first);
     session->SetScreenshotMode(ScreenshotMode::Window); session->ScreenshotToFile("C:/shot.png");
+    Reply(commands.back().first);
     assert(commands.back().second.back()=="window");
+    Reply(commands.back().first);
     session->SetPauseWhenOpen(true); assert(pauseWhenOpen);
     session->Open("C:/paused.mp4"); auto newPause=commands.back().first; Reply(newPause);
     auto newLoad=commands.back().first;

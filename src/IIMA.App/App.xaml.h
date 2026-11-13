@@ -1,5 +1,5 @@
 #pragma once
-#include "App.g.h"
+#include "App.xaml.g.h"
 #include "Platform/InstanceRouter.h"
 #include "../IIMA.Core/Windows/PlayerWindowRegistry.h"
 #include <map>

@@ -18,7 +18,7 @@ void MainWindow::UpdateWindowAspectConstraint(bool layoutChanged) {
             clear(); return;
         }
         HWND hwnd{};
-        check_hresult(this->as<::IWindowNative>()->get_WindowHandle(&hwnd));
+        check_hresult(GetNativeWindowHandle(&hwnd));
         const auto dpi = GetDpiForWindow(hwnd);
         const auto outer = AppWindow().Size();
         const bool sizing = windowLifecycle_->Current().sizing;

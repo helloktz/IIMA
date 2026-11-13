@@ -16,7 +16,7 @@ winrt::fire_and_forget MainWindow::OpenFolder(bool append, bool invertWindowPoli
     try {
         Windows::Storage::Pickers::FolderPicker picker;
         HWND hwnd{};
-        check_hresult(this->as<::IWindowNative>()->get_WindowHandle(&hwnd));
+        check_hresult(GetNativeWindowHandle(&hwnd));
         check_hresult(picker.as<::IInitializeWithWindow>()->Initialize(hwnd));
         picker.FileTypeFilter().Append(L"*");
         auto folder = co_await picker.PickSingleFolderAsync();

@@ -7,7 +7,7 @@ namespace winrt::IIMA::implementation {
 bool MainWindow::CanReuseForInput() const
 {
     if (closing_ || inputAssigned_ || pickerOpen_ || inputResolving_ || !pendingFiles_.empty() ||
-        !activationInputs_.empty() || (pluginRuntime_ || pluginStarting_ || pluginStopPending_ || pluginInspectionBusy_) || onlineSubtitleWorkerActive_) return false;
+        !activationInputs_.empty() || onlineSubtitleWorkerActive_) return false;
     auto const& state = session_->Snapshot();
     // Reuse pristine windows only. Keep a reservation after submitting an open,
     // even before START_FILE arrives; an empty snapshot is not an idle proof.

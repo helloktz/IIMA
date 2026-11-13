@@ -8,23 +8,9 @@ import json
 from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 MAPPING = {
-    'MenuController.swift': ['src/IIMA.App/MainWindow.Menus.cpp', 'src/IIMA.App/MainWindow.Menus.Dynamic.cpp', 'src/IIMA.App/MainWindow.Menus.Media.cpp', 'src/IIMA.App/MainWindow.PluginMenu.cpp', 'src/IIMA.Core/Input/MenuKeyBinding.cpp'],
+    'MenuController.swift': ['src/IIMA.App/MainWindow.Menus.cpp', 'src/IIMA.App/MainWindow.Menus.Dynamic.cpp', 'src/IIMA.App/MainWindow.Menus.Media.cpp', 'src/IIMA.Core/Input/MenuKeyBinding.cpp'],
     'FontPickerWindowController.swift': ['src/IIMA.App/Platform/FontCatalog.cpp', 'src/IIMA.App/MainWindow.SubtitleFontPicker.cpp'],
     'PlaySliderLoopKnob.swift': ['src/IIMA.App/MainWindow.ABLoop.cpp', 'src/IIMA.Core/Playback/PlayerSession.Actions.cpp'],
-    'JavascriptAPIPlaylist.swift': ['src/IIMA.App/Plugins/PluginRuntime.cpp', 'src/IIMA.App/Plugins/PluginBootstrap.h', 'src/IIMA.App/MainWindow.PluginPlaylist.cpp'],
-    'JavascriptAPIInput.swift': ['src/IIMA.App/Plugins/PluginRuntime.cpp', 'src/IIMA.App/MainWindow.PluginInput.cpp', 'src/IIMA.App/MainWindow.PluginPointer.cpp'],
-    'PluginInputManager.swift': ['src/IIMA.App/Plugins/PluginRuntime.cpp', 'src/IIMA.App/MainWindow.Keyboard.cpp'],
-    'JavascriptPluginInstance.swift': ['src/IIMA.App/Plugins/PluginRuntime.cpp', 'src/IIMA.App/MainWindow.PluginRuntime.cpp'],
-    'JavascriptPolyfill.swift': ['src/IIMA.App/Plugins/PluginRuntime.cpp', 'src/IIMA.App/Plugins/PluginBootstrap.h', 'src/IIMA.Core/Plugins/PluginModulePath.cpp'],
-    'JavascriptAPICore.swift': ['src/IIMA.App/Plugins/PluginBootstrap.h', 'src/IIMA.App/Plugins/PluginPlaybackProjection.cpp', 'src/IIMA.App/MainWindow.PluginRuntime.cpp'],
-    'JavascriptAPIConsole.swift': ['src/IIMA.App/Plugins/PluginBootstrap.h', 'src/IIMA.App/Plugins/PluginRuntime.cpp'],
-    'JavascriptAPIMenu.swift': ['src/IIMA.App/Plugins/PluginRuntime.cpp', 'src/IIMA.App/Plugins/PluginBootstrap.h', 'src/IIMA.App/MainWindow.PluginMenu.cpp'],
-    'JavascriptPluginMenuItem.swift': ['src/IIMA.App/Plugins/PluginBootstrap.h', 'src/IIMA.App/MainWindow.PluginMenu.cpp'],
-    'JavascriptAPIHttp.swift': ['src/IIMA.App/Platform/PluginHttpClient.cpp', 'src/IIMA.App/Plugins/PluginRuntime.cpp', 'src/IIMA.App/Plugins/PluginBootstrap.h', 'src/IIMA.App/Platform/PluginFileStore.cpp', 'src/IIMA.App/MainWindow.PluginRuntime.cpp', 'src/IIMA.App/Platform/PluginXmlRpc.cpp'],
-    'JavascriptAPIFile.swift': ['src/IIMA.App/Platform/PluginFileStore.cpp', 'src/IIMA.App/Plugins/PluginBootstrap.h', 'src/IIMA.App/Plugins/PluginRuntime.cpp'],
-    'JavascriptAPIPreferences.swift': ['src/IIMA.App/Plugins/PluginRuntime.cpp', 'src/IIMA.App/Plugins/PluginBootstrap.h', 'src/IIMA.App/Platform/PluginPreferenceStore.cpp', 'src/IIMA.App/MainWindow.PluginRuntime.cpp'],
-    'JavascriptAPIEvent.swift': ['src/IIMA.App/Plugins/PluginRuntime.cpp', 'src/IIMA.App/Plugins/PluginPlaybackProjection.cpp'],
-    'JavascriptPlugin.swift': ['src/IIMA.Core/Plugins/PluginManifest.cpp', 'src/IIMA.App/Platform/PluginInspection.cpp'],
     'MiniPlayerWindowController.swift': ['src/IIMA.Core/Windows/MusicModePolicy.cpp', 'src/IIMA.App/MainWindow.Music.cpp'],
     'OpenSubClient.swift': ['src/IIMA.App/Platform/OpenSubClient.cpp'],
     'OpenSubSubtitle.swift': ['src/IIMA.Core/OnlineSubtitles/MediaHash.cpp', 'src/IIMA.App/Platform/SubtitleMediaHash.cpp', 'src/IIMA.App/MainWindow.OnlineSubtitles.cpp'],
@@ -80,17 +66,29 @@ MAPPING = {
     'Preference.swift': ['src/IIMA.Core/Persistence/UserData.h', 'src/IIMA.Core/Subtitles/SubtitleStyle.h', 'src/IIMA.Core/Settings/PreferenceSchema.cpp', 'src/IIMA.App/MainWindow.Preferences.cpp'],
     'NowPlayingInfoManager.swift': ['src/IIMA.App/Platform/MediaIntegration.cpp'],
     'LogWindowController.swift': ['src/IIMA.App/MainWindow.Diagnostics.cpp', 'src/IIMA.Core/Diagnostics/DiagnosticLog.cpp'],
-    'JustXMLRPC.swift': ['src/IIMA.App/Platform/PluginXmlRpc.cpp', 'src/IIMA.App/Platform/PluginHttpClient.cpp', 'src/IIMA.App/Plugins/PluginBootstrap.h'],
     'Logger.swift': ['src/IIMA.Core/Diagnostics/DiagnosticLog.cpp'],
     'SleepPreventer.swift': ['src/IIMA.App/Platform/MediaIntegration.cpp'],
 }
+
+
+def excluded(path):
+    return (
+        path.name.startswith(('Javascript', 'Plugin'))
+        or path.name.startswith('PrefPlugin')
+        or 'iina-plugin' in path.parts
+        or 'OpenInIINA' in path.parts
+        or path.name in {'JustXMLRPC.swift', 'SettingsPagePlugin.swift'}
+    )
+
+
 records = []
-for path in sorted((ROOT / 'references/iina').rglob('*.swift')):
+for path in sorted((ROOT / 'references/iina').rglob('*.swift'), key=lambda path: path.as_posix()):
     targets = MAPPING.get(path.name, [])
+    coverage = 'out-of-scope' if excluded(path) else ('partial-static-unverified' if targets else 'not-mapped')
     records.append({'source': path.relative_to(ROOT).as_posix(),
                     'physicalLines': len(path.read_text().splitlines()),
-                    'coverage': 'partial-static-unverified' if targets else 'not-mapped',
+                    'coverage': coverage,
                     'reviewTargets': targets})
 print(json.dumps({'sourceRevision': '685a40ee1d4165107182f7236751ad9d5873f267',
-                  'note': 'not-mapped does not prove absent behavior; mapped does not prove full coverage. No file is asserted fully ported by this inventory.',
+                  'note': 'IINA plugin infrastructure is out of scope. not-mapped does not prove absent behavior; mapped does not prove full coverage. No file is asserted fully ported by this inventory.',
                   'files': records}, ensure_ascii=False, indent=2))

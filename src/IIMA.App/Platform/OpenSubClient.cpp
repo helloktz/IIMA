@@ -118,9 +118,9 @@ std::timed_mutex ApiMutex;
 std::int64_t ApiRemaining{-1};
 Clock::time_point ApiReset{};
 std::optional<std::int64_t> UnsignedHeader(HttpResponseMessage const& response, wchar_t const* name) {
-    winrt::hstring value;
-    if (!response.Headers().TryGetValue(name, value)) return {};
-    auto text = winrt::to_string(value);
+    auto headers = response.Headers();
+    if (!headers.HasKey(name)) return {};
+    auto text = winrt::to_string(headers.Lookup(name));
     std::int64_t number{};
     auto parsed = std::from_chars(text.data(), text.data() + text.size(), number);
     if (parsed.ec != std::errc{} || parsed.ptr != text.data() + text.size() || number < 0) return {};

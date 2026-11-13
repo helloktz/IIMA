@@ -13,7 +13,7 @@ hstring ActionLabel(Action action) {
     case Action::Settings:return L"设置";case Action::Playlist:return L"播放列表";
     case Action::Pip:return L"画中画";case Action::Fullscreen:return L"全屏";
     case Action::MusicMode:return L"音乐模式";case Action::SubtitleTrack:return L"字幕轨道";
-    case Action::Screenshot:return L"截图";case Action::Plugins:return L"插件管理";
+    case Action::Screenshot:return L"截图";
     }
     return L"未知动作";
 }
@@ -80,7 +80,7 @@ void MainWindow::UpdateToolbarDraftControls() {
     ToolbarCancelButton().IsEnabled(enabled && toolbarDraftDirty_);
     if(enabled && toolbarDraftDirty_ && preferences_.String("controlBarToolbarButtons")!=toolbarBaseline_)
         ToolbarDraftStatus().Text(L"工具栏偏好已在别处改变。请取消草稿，重新编辑，避免覆盖新配置。");
-    else ToolbarDraftStatus().Text(toolbarDraftDirty_ ? L"草稿尚未应用。恢复默认也需点击应用。" : L"当前工具栏配置；最多5项。设置按钮打开高级偏好，插件按钮打开本地插件管理。");
+    else ToolbarDraftStatus().Text(toolbarDraftDirty_ ? L"草稿尚未应用。恢复默认也需点击应用。" : L"当前工具栏配置；最多5项。设置按钮打开高级偏好。");
 }
 void MainWindow::EditToolbarDraft(int operation) {
     if(closing_ || !userDataLoaded_ || !toolbarDraftReady_ || toolbarProjecting_) return;
@@ -117,7 +117,7 @@ bool MainWindow::ToolbarActionAvailable(Action action) {
     auto const& state=session_->Snapshot();
     using Command=iima::ApplicationCommand;
     switch(action) {
-    case Action::Settings:case Action::Playlist:case Action::SubtitleTrack:case Action::Plugins:
+    case Action::Settings:case Action::Playlist:case Action::SubtitleTrack:
         // Keep music-mode visibility preferences intact, rather than toggling
         // them merely to make a toolbar navigation button appear to succeed.
         return PlayerSidebar().Visibility()==Visibility::Visible;
@@ -138,7 +138,6 @@ void MainWindow::ExecuteToolbarAction(Action action) {
     case Action::Settings:ShowToolbarTarget(AdvancedSettingsSearchBox());break;
     case Action::Playlist:ShowToolbarTarget(PlaylistView());break;
     case Action::SubtitleTrack:ShowToolbarTarget(SubtitleBox());break;
-    case Action::Plugins:ShowToolbarTarget(InspectPluginButton());break;
     case Action::Pip:ExecuteApplicationCommand(iima::ApplicationCommand::TogglePictureInPicture);break;
     case Action::MusicMode:ExecuteApplicationCommand(iima::ApplicationCommand::ToggleMusicMode);break;
     case Action::Fullscreen:ToggleFullscreen();break;

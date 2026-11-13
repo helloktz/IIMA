@@ -202,12 +202,20 @@ void ApplyPlaybackEvent(PlaybackSnapshot& s, MpvEvent const& e) {
         else if(e.name=="current-vo") s.currentVo=e.text;
         else if(e.name=="vo-configured") s.voConfigured=e.flag.value_or(false);
         break;
+    case MpvEvent::Kind::SeekMeasurement:
+    case MpvEvent::Kind::SpeedEditReply:
+    case MpvEvent::Kind::ExternalTrackStateReply:
+    case MpvEvent::Kind::ExternalTrackEditReply:
+    case MpvEvent::Kind::SubtitleLoadReply:
+    case MpvEvent::Kind::ExternalAVLoadReply:
+    case MpvEvent::Kind::ExternalTrackRemovalReply:
+    case MpvEvent::Kind::SubtitleStateReply:
+    case MpvEvent::Kind::PauseReply:
     case MpvEvent::Kind::WindowScaleReply:
     case MpvEvent::Kind::VideoGeometryReply:
     case MpvEvent::Kind::WatchedPropertiesReply:
     case MpvEvent::Kind::PlaylistReply:
-        // Correlated GET replies are consumed by PlayerSession's edit cursor,
-        // never treated as ordinary property observations by this reducer.
+        // PlayerSession handles these measurements and correlated replies separately.
         break;
     case MpvEvent::Kind::CommandReply:
         if(e.error<0) s.error=e.text;

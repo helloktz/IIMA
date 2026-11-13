@@ -62,7 +62,7 @@ void MainWindow::WireMouseClicks() {
     VideoPanel().Tapped([weak](auto const&, Input::TappedRoutedEventArgs const& args) {
         auto self = weak.get();
         if (!self || args.Handled() || !self->MouseClickAllowed() ||
-            args.PointerDeviceType() != Windows::Devices::Input::PointerDeviceType::Mouse) return;
+            args.PointerDeviceType() != Microsoft::UI::Input::PointerDeviceType::Mouse) return;
         auto single = self->preferences_.Integer("singleClickAction");
         auto twice = self->preferences_.Integer("doubleClickAction");
         if (!single) return;
@@ -78,7 +78,7 @@ void MainWindow::WireMouseClicks() {
     });
     VideoPanel().DoubleTapped([weak](auto const&, Input::DoubleTappedRoutedEventArgs const& args) {
         auto self = weak.get();
-        if (!self || args.PointerDeviceType() != Windows::Devices::Input::PointerDeviceType::Mouse) return;
+        if (!self || args.PointerDeviceType() != Microsoft::UI::Input::PointerDeviceType::Mouse) return;
         self->CancelMouseClick();
         if (args.Handled() || !self->MouseClickAllowed()) return;
         auto action = self->preferences_.Integer("doubleClickAction");
@@ -92,7 +92,7 @@ void MainWindow::WireMouseClicks() {
     VideoPanel().RightTapped([weak](auto const&, Input::RightTappedRoutedEventArgs const& args) {
         auto self = weak.get();
         if (!self || args.Handled() || !self->MouseClickAllowed() ||
-            args.PointerDeviceType() != Windows::Devices::Input::PointerDeviceType::Mouse) return;
+            args.PointerDeviceType() != Microsoft::UI::Input::PointerDeviceType::Mouse) return;
         self->CancelMouseClick();
         auto action = self->preferences_.Integer("rightClickAction");
         if (action) { self->PerformMouseClick(action); args.Handled(true); }

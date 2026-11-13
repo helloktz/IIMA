@@ -50,7 +50,7 @@ fire_and_forget MainWindow::OpenSubtitle() {
     pickerOpen_=true;
     try {
         Windows::Storage::Pickers::FileOpenPicker picker;
-        HWND hwnd{};check_hresult(as<::IWindowNative>()->get_WindowHandle(&hwnd));
+        HWND hwnd{};check_hresult(GetNativeWindowHandle(&hwnd));
         check_hresult(picker.as<::IInitializeWithWindow>()->Initialize(hwnd));
         picker.CommitButtonText(L"载入并选择字幕");picker.FileTypeFilter().Append(L"*");
         auto file=co_await picker.PickSingleFileAsync();
@@ -104,12 +104,12 @@ void MainWindow::UpdateSubtitleLoad() {
     case Phase::Cancelled:text=L"已取消后续字幕载入；已提交项不能撤回。";break;
     case Phase::Failed:text=L"字幕载入未完整完成；未自动重试，已加载项不回滚。";break;
     }
-    if(!text.empty()) text+=L" 已处理 "+to_hstring(status.processed)+L"/"+to_hstring(status.total)+
+    if(!text.empty()) text = text + L" 已处理 "+to_hstring(status.processed)+L"/"+to_hstring(status.total)+
         L"，提交 "+to_hstring(status.submitted)+L"，确认 "+to_hstring(status.confirmed)+L"（含已有跳过），已有而跳过 "+to_hstring(status.skipped)+L"，失败 "+to_hstring(status.failed)+L"，未结项 "+to_hstring(status.total>status.processed ? status.total-status.processed : 0)+L"。";
     if(!status.error.empty()) try {
         auto wide=to_hstring(status.error);std::wstring safe;
         for(auto c:wide) {if(safe.size()>=1024) break;safe+=c<32 || (c>=0x7f && c<=0x9f) || c==0x061c || c==0x200e || c==0x200f || (c>=0x2028 && c<=0x202e) || (c>=0x2066 && c<=0x2069) ? L'?' : c;}
-        if(!safe.empty() && safe.back()>=0xd800 && safe.back()<=0xdbff) safe.pop_back();text+=L"\n"+hstring(safe);
+        if(!safe.empty() && safe.back()>=0xd800 && safe.back()<=0xdbff) safe.pop_back();text = text + L"\n"+hstring(safe);
     } catch(...) {}
     if(SubtitleLoadStatusText().Text()!=text) SubtitleLoadStatusText().Text(text);
 }

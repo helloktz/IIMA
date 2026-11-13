@@ -38,7 +38,7 @@ void MainWindow::CapturePlacement()
         auto display = Microsoft::UI::Windowing::DisplayArea::GetFromWindowId(window.Id(),
             Microsoft::UI::Windowing::DisplayAreaFallback::Nearest);
         if (!display) return;
-        HWND hwnd{}; check_hresult(this->as<::IWindowNative>()->get_WindowHandle(&hwnd));
+        HWND hwnd{}; check_hresult(GetNativeWindowHandle(&hwnd));
         auto p = window.Position(); auto size = window.Size(); auto work = display.WorkArea();
         auto capture = iima::CaptureWindowPlacement(
             {double(p.X),double(p.Y),double(size.Width),double(size.Height)},
@@ -57,7 +57,7 @@ void MainWindow::RestorePlacement(std::optional<iima::WindowPlacementSnapshot> s
         auto display = Microsoft::UI::Windowing::DisplayArea::GetFromWindowId(window.Id(),
             Microsoft::UI::Windowing::DisplayAreaFallback::Nearest);
         if (!display) return;
-        HWND hwnd{}; check_hresult(this->as<::IWindowNative>()->get_WindowHandle(&hwnd));
+        HWND hwnd{}; check_hresult(GetNativeWindowHandle(&hwnd));
         auto work = display.WorkArea();
         auto rect = iima::RestoreWindowPlacement(*saved,
             {double(work.X),double(work.Y),double(work.Width),double(work.Height)},
@@ -92,7 +92,7 @@ void MainWindow::ApplyInitialWindowGeometry()
         auto display = Microsoft::UI::Windowing::DisplayArea::GetFromWindowId(window.Id(),
             Microsoft::UI::Windowing::DisplayAreaFallback::Nearest);
         if (!display) return;
-        HWND hwnd{}; check_hresult(this->as<::IWindowNative>()->get_WindowHandle(&hwnd));
+        HWND hwnd{}; check_hresult(GetNativeWindowHandle(&hwnd));
         const auto dpi = GetDpiForWindow(hwnd) / 96.0;
         if (!std::isfinite(dpi) || dpi < 0.5 || dpi > 8) return;
         const auto work = display.WorkArea(); const auto point = window.Position(); const auto size = window.Size();

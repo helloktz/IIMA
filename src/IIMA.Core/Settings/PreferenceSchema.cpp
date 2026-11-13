@@ -167,7 +167,7 @@ std::span<PreferenceDescriptor const> PreferenceSchema() {
         B("disableVolumeSliderScrolling",Area::Interface,false),
         B("enableControlBarAutoHide",Area::Interface,true),
         D("controlBarAutoHideTimeout",Area::Interface,2.5,0,60),
-        S("controlBarToolbarButtons",Area::Interface,"plugins,pip,playlist,settings"),
+        S("controlBarToolbarButtons",Area::Interface,"pip,playlist,settings"),
         B("showRemainingTime",Area::Interface,false),
         B("scaleRemainingTime",Area::Interface,false),
         I("timeDisplayPrecision",Area::Interface,0,0,3),
@@ -255,7 +255,13 @@ std::vector<PreferenceIssue> PreferenceStore::Restore(PreferenceValues const& pe
     std::vector<PreferenceIssue> issues;
     for(auto const& [key,value]:persisted) {
         std::string error;
-        if(!replacement.Set(key,value,error)) issues.push_back({key,std::move(error)});
+        auto restored = value;
+        if (key == "controlBarToolbarButtons") {
+            if (auto text = std::get_if<std::string>(&value)) {
+                if (auto actions = ParseSavedToolbarActions(*text)) restored = SerializeToolbarActions(*actions);
+            }
+        }
+        if(!replacement.Set(key,std::move(restored),error)) issues.push_back({key,std::move(error)});
     }
     overrides_=std::move(replacement.overrides_);
     return issues;

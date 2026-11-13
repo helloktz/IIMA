@@ -10,7 +10,7 @@ namespace winrt::IIMA::implementation {
 void MainWindow::WireVideoCursor() {
     auto weak = get_weak();
     VideoPanel().PointerEntered([weak](auto const&, Input::PointerRoutedEventArgs const& args) {
-        if (args.Pointer().PointerDeviceType() != Windows::Devices::Input::PointerDeviceType::Mouse) return;
+        if (args.Pointer().PointerDeviceType() != Microsoft::UI::Input::PointerDeviceType::Mouse) return;
         if (auto self = weak.get(); self && !self->closing_) {
             self->videoMouseInside_ = true;
             // Entering a hidden-controls surface must first reveal it, rather
@@ -19,7 +19,7 @@ void MainWindow::WireVideoCursor() {
         }
     });
     VideoPanel().PointerExited([weak](auto const&, Input::PointerRoutedEventArgs const& args) {
-        if (args.Pointer().PointerDeviceType() != Windows::Devices::Input::PointerDeviceType::Mouse) return;
+        if (args.Pointer().PointerDeviceType() != Microsoft::UI::Input::PointerDeviceType::Mouse) return;
         if (auto self = weak.get()) {
             self->videoMouseInside_ = false;
             self->VideoPanel().SetCursorHidden(false);

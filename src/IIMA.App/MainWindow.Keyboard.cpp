@@ -73,7 +73,6 @@ void MainWindow::ApplyKeyboardConfiguration() {
     auto const text = userData_.settings.inputConf.value_or(std::string(DefaultBindings));
     auto parsed = iima::ParseInputConf(text);
     keyBindings_ = std::make_unique<iima::KeyBindingSet>(parsed.mappings);
-    UpdatePluginKeyBindings();
     RefreshBindingLibrary();
     RefreshPlayerMenus(true);
     KeyBindingsEditor().Text(to_hstring(text));
@@ -116,16 +115,11 @@ void MainWindow::WireKeyboardControls() {
             if (auto saved = self->savedFilterLibrary_.FindShortcut(*key)) {
                 args.Handled(true);
                 if (!status.WasKeyDown) self->ApplySavedFilter(saved->first, saved->second);
-            } else if (self->InvokePluginMenuShortcut(*key, status.WasKeyDown)) {
-                args.Handled(true);
             }
         } else if (status.WasKeyDown && (binding->IsIinaCommand() || binding->RawAction() == "quit" ||
             binding->RawAction().starts_with("screenshot"))) {
-            args.Handled(true); // Repeat may be observed but does not reopen dialogs.
+            args.Handled(true); // Key repeat must not reopen dialogs.
         } else if (self->DispatchKeyBinding(*binding)) args.Handled(true);
-        // Low-priority observation follows the application's native action. It
-        // cannot consume a routed event or suppress native/default behaviour.
-        self->PublishPluginKey(*key, true, status.WasKeyDown);
     });
     Root().PreviewKeyUp([weak](auto const&, Input::KeyRoutedEventArgs const& args) {
         auto self = weak.get();
@@ -139,10 +133,6 @@ void MainWindow::WireKeyboardControls() {
                 key==Key::Up || key==Key::Down || key==Key::PageUp || key==Key::PageDown ||
                 key==Key::Space || key==Key::Enter || key==Key::Escape) {args.Handled(true);return;}
         }
-        if (NativeControlOwnsKey(focused, args.Key())) return;
-        auto status = args.KeyStatus();
-        if (auto key = iima::WindowsMpvKey(static_cast<std::uint32_t>(args.Key()), status.ScanCode, status.IsExtendedKey))
-            self->PublishPluginKey(*key, false, false);
     });
     SaveKeyBindingsButton().Click([weak](auto const&, auto const&) {
         auto self = weak.get();
@@ -158,7 +148,6 @@ void MainWindow::WireKeyboardControls() {
         }
         self->userData_.settings.inputConf = text;
         self->keyBindings_ = std::make_unique<iima::KeyBindingSet>(parsed.mappings);
-        self->UpdatePluginKeyBindings();
         self->MarkUserDataDirty();
         self->KeyBindingsStatus().Text(L"已应用，正在保存设置。未移植的动作会在触发时明确提示。");
     });
@@ -176,7 +165,7 @@ winrt::fire_and_forget MainWindow::ImportKeyBindings() {
     pickerOpen_ = true;
     try {
         Windows::Storage::Pickers::FileOpenPicker picker;
-        HWND hwnd{}; check_hresult(this->as<::IWindowNative>()->get_WindowHandle(&hwnd));
+        HWND hwnd{}; check_hresult(GetNativeWindowHandle(&hwnd));
         check_hresult(picker.as<::IInitializeWithWindow>()->Initialize(hwnd));
         picker.FileTypeFilter().Append(L".conf"); picker.FileTypeFilter().Append(L".txt");
         auto file = co_await picker.PickSingleFileAsync();
@@ -204,7 +193,7 @@ winrt::fire_and_forget MainWindow::ExportKeyBindings() {
     auto text = to_string(KeyBindingsEditor().Text());
     try {
         Windows::Storage::Pickers::FileSavePicker picker;
-        HWND hwnd{}; check_hresult(this->as<::IWindowNative>()->get_WindowHandle(&hwnd));
+        HWND hwnd{}; check_hresult(GetNativeWindowHandle(&hwnd));
         check_hresult(picker.as<::IInitializeWithWindow>()->Initialize(hwnd));
         picker.SuggestedFileName(L"input");
         picker.FileTypeChoices().Insert(L"mpv 快捷键配置", single_threaded_vector<hstring>({L".conf"}));

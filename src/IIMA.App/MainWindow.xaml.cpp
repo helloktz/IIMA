@@ -26,10 +26,16 @@ hstring Clock(std::optional<double> seconds)
 }
 }
 namespace winrt::IIMA::implementation {
+HRESULT MainWindow::GetNativeWindowHandle(HWND* handle)
+{
+    auto native = static_cast<Windows::Foundation::IInspectable>(*this).try_as<::IWindowNative>();
+    return native ? native->get_WindowHandle(handle) : E_NOINTERFACE;
+}
+
 MainWindow::MainWindow()
 {
     InitializeComponent();
-    Root().IsEnabled(false);
+    PlayerContent().IsEnabled(false);
     Title(L"IIMA " + to_hstring(iima::version()));
     auto weak = get_weak();
     auto dispatcher = DispatcherQueue();
@@ -48,8 +54,6 @@ MainWindow::MainWindow()
     WireApplicationCommands();
     WireMusicMode();
     WireMusicVolume();
-    WirePluginInspection();
-    WirePluginPointer();
     WireMouseWheel();
     WireControlBarVisibility();
     WireVideoCursor();
@@ -103,7 +107,7 @@ MainWindow::MainWindow()
     WirePlayerMenus();
     try {
         HWND hwnd{};
-        check_hresult(this->as<::IWindowNative>()->get_WindowHandle(&hwnd));
+        check_hresult(GetNativeWindowHandle(&hwnd));
         mediaIntegration_ = std::make_unique<iima::MediaIntegration>(hwnd, dispatcher, [weak](iima::SystemMediaCommand command) {
             if (auto self = weak.get(); self && !self->closing_) {
                 switch (command) {
@@ -149,7 +153,7 @@ winrt::fire_and_forget MainWindow::OpenFile(bool append, bool invertWindowPolicy
     try {
         Windows::Storage::Pickers::FileOpenPicker picker;
         HWND hwnd{};
-        check_hresult(this->as<::IWindowNative>()->get_WindowHandle(&hwnd));
+        check_hresult(GetNativeWindowHandle(&hwnd));
         check_hresult(picker.as<::IInitializeWithWindow>()->Initialize(hwnd));
         picker.FileTypeFilter().Append(L"*");
         auto files = co_await picker.PickMultipleFilesAsync();
@@ -216,7 +220,6 @@ void MainWindow::Apply(iima::PlaybackSnapshot const& state)
     UpdateBufferingIndicator(state);
     UpdateControlBarPolicy();
     UpdateInteractiveCrop(state);
-    UpdatePlugin(state);
     ApplyUserData(state);
     OpenPendingFiles();
     FlushActivation();
@@ -295,8 +298,6 @@ void MainWindow::BeginClose()
     if (subtitleColorDialog_) subtitleColorDialog_.Hide();
     if (openUrlDialog_) openUrlDialog_.Hide();
     if (screenshotPickerOperation_) { try { screenshotPickerOperation_.Cancel(); } catch (...) {} }
-    pluginInspectionStop_.request_stop();
-    StopLocalPlugin();
     CancelThumbnailPreview();
     CancelOnlineSubtitles();
     openSubSessionKey_.clear(); openSubSessionToken_.clear();
@@ -320,7 +321,7 @@ void MainWindow::BeginClose()
     if (activationClosing_) activationClosing_();
     if (mediaIntegration_) mediaIntegration_->Close();
     RecordLastMedia();
-    Root().IsEnabled(false);
+    PlayerContent().IsEnabled(false);
     if (userDataLoaded_) { saveDirty_ = true; saveFailed_ = false; PumpSave(); }
     presenter_.reset(); // UI detach before event consumer stop / mpv destruction.
     swapChain_.reset();

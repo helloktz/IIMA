@@ -32,7 +32,7 @@ void MainWindow::WireBindingEditor() {
     wire(RemoveBindingRowButton(), 2); wire(MoveBindingRowUpButton(), 3);
     wire(MoveBindingRowDownButton(), 4);
 }
-std::optional<std::size_t> MainWindow::SelectedBindingRow() const {
+std::optional<std::size_t> MainWindow::SelectedBindingRow() {
     if (!bindingRowDraft_) return {};
     auto item = BindingRowsList().SelectedItem().try_as<Controls::ListViewItem>();
     if (!item) return {};

@@ -24,7 +24,7 @@ bool MainWindow::EnterCompactOverlay() {
     compactTransition_=true;
     CancelMouseClick(); CancelThumbnailPreview(); CancelControlBarDrag(); CancelScrubbing(); CancelAutomaticVideoSize();
     try {
-        HWND hwnd{}; check_hresult(as<::IWindowNative>()->get_WindowHandle(&hwnd));
+        HWND hwnd{}; check_hresult(GetNativeWindowHandle(&hwnd));
         MONITORINFO monitor{sizeof(MONITORINFO)};
         check_bool(GetMonitorInfoW(MonitorFromWindow(hwnd,MONITOR_DEFAULTTONEAREST),&monitor));
         const auto dpi=GetDpiForWindow(hwnd);
@@ -90,7 +90,7 @@ bool MainWindow::ExitCompactOverlay(bool restoreGeometry) {
         // Choose monitor/DPI BEFORE reattaching a presenter which may move the
         // native window back to its old monitor. User moved the PIP: follow it.
         auto display=DisplayArea::GetFromWindowId(window.Id(),DisplayAreaFallback::Nearest);
-        HWND hwnd{}; check_hresult(as<::IWindowNative>()->get_WindowHandle(&hwnd));
+        HWND hwnd{}; check_hresult(GetNativeWindowHandle(&hwnd));
         const auto dpi=GetDpiForWindow(hwnd);
         std::optional<iima::GeometryRect> bounds;
         if(restoreGeometry && compactRestore_ && compactRestore_->geometry && display) {
@@ -147,7 +147,7 @@ void MainWindow::UpdateCompactLayout() {
         if(AppWindow().Presenter().Kind()!=AppWindowPresenterKind::Overlapped) {
             compactLayoutPending_=false; return;
         }
-        HWND hwnd{}; check_hresult(as<::IWindowNative>()->get_WindowHandle(&hwnd));
+        HWND hwnd{}; check_hresult(GetNativeWindowHandle(&hwnd));
         RECT client{}; if(!GetClientRect(hwnd,&client)) return;
         auto content=Content().try_as<Microsoft::UI::Xaml::FrameworkElement>();
         const auto sx=VideoPanel().CompositionScaleX(),sy=VideoPanel().CompositionScaleY();

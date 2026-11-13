@@ -75,7 +75,7 @@ fire_and_forget MainWindow::ImportQuickLut(std::wstring path) {
     try {
         if (ownsPicker) {
             Windows::Storage::Pickers::FileOpenPicker picker;
-            HWND hwnd{}; check_hresult(this->as<::IWindowNative>()->get_WindowHandle(&hwnd));
+            HWND hwnd{}; check_hresult(GetNativeWindowHandle(&hwnd));
             check_hresult(picker.as<::IInitializeWithWindow>()->Initialize(hwnd));
             for(auto ext:{L".cube",L".3dl",L".dat",L".m3d"}) picker.FileTypeFilter().Append(ext);
             auto file=co_await picker.PickSingleFileAsync();

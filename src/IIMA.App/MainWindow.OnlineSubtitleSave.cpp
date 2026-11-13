@@ -23,7 +23,7 @@ winrt::fire_and_forget MainWindow::SaveOnlineSubtitle() {
     try {
         Windows::Storage::Pickers::FileSavePicker picker;
         HWND window{};
-        check_hresult(this->as<::IWindowNative>()->get_WindowHandle(&window));
+        check_hresult(GetNativeWindowHandle(&window));
         check_hresult(picker.as<::IInitializeWithWindow>()->Initialize(window));
         picker.SuggestedFileName(hstring(selected.path.stem().wstring()));
         picker.FileTypeChoices().Insert(L"字幕文件", single_threaded_vector<hstring>(

@@ -9,7 +9,7 @@
 using namespace winrt;
 using namespace Microsoft::UI::Xaml;
 namespace winrt::IIMA::implementation {
-std::vector<std::int64_t> MainWindow::SelectedPlaylistIds() const {
+std::vector<std::int64_t> MainWindow::SelectedPlaylistIds() {
     std::vector<std::int64_t> result;
     for (auto const& selected : PlaylistView().SelectedItems()) {
         if (auto item = selected.try_as<Controls::ListViewItem>())

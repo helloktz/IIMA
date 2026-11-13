@@ -1,14 +1,14 @@
 # 研发交接
 
-## 当前开发分支状态（2026-11-11）
+## 当前主分支状态
 
-`dev/native-playback` 已加入 XAML、异步 libmpv 核心、拥有型交换链桥接、播放列表/轨道/字幕/章节/截图、设置历史、文件/目录打开、单实例路由、候选关联注册与 SMTC/防休眠代码。Linux 纯逻辑与静态检查通过，Windows/MSVC/XAML/真实播放均未验证。必须使用固定源加私有补丁构建的 libmpv，不能下载普通 DLL 即声称完整可用。详见 PORTING.md 与 VALIDATION.md。以下初始化状态是历史基线，阶段完成条件仍须实际验收。
+`main` 已合入 XAML、异步 libmpv 核心、拥有型交换链桥接、播放列表、轨道和字幕、设置与历史，以及原生窗口集成。真实播放依赖固定源码和私有补丁构建的 libmpv。当前验证见 [VALIDATION.md](VALIDATION.md)。IINA 插件及扩展机制不纳入移植范围。
 
 ## 接手入口
 
 先读根目录 [AGENTS.md](../AGENTS.md)，再读 [ARCHITECTURE.md](ARCHITECTURE.md)。以当前检出目录为仓库根目录，远程为 `https://github.com/helloktz/IIMA`。
 
-当前已有 WinUI 3 空白窗口、IIMA.Core 静态库和构建、打包、启动关闭检查脚本，详见 [BUILD.md](BUILD.md)。依赖版本已固定；尚无 XAML 业务页面、libmpv 运行依赖、播放业务或已通过的播放测试。参考源码不是子模块，已移除嵌套 `.git` 和 `.github`。后续开发无需重新克隆这些参考源码。
+本地 Windows 构建、打包和启动关闭检查入口见 [BUILD.md](BUILD.md)。参考源码已随仓库检出。
 
 IIMA 是基于 IINA 开源源码的 Windows 移植。`references/iina/` 是设计与实现的直接依据，适用的上游逻辑可以直接复用或转写。首次接入 libmpv 时就按这个方式工作，沿用 IINA 的播放协调、状态和事件语义，并用 Windows 原生接口替换平台部分。
 

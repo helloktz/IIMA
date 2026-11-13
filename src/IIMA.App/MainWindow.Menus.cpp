@@ -82,7 +82,7 @@ void MainWindow::WirePlayerMenus() {
             auto self = weak.get();
             if (!self) return;
             self->playerMenuVisibleItems_.erase(index);
-            if (self->closing_ || !(self->playerMenuVisibleItems_.empty() && !self->PluginMenuVisible()) || self->playerMenuRefreshQueued_) return;
+            if (self->closing_ || !self->playerMenuVisibleItems_.empty() || self->playerMenuRefreshQueued_) return;
             self->playerMenuRefreshQueued_ = true;
             if (!self->DispatcherQueue().TryEnqueue([weak] {
                 if (auto current = weak.get()) {
@@ -210,23 +210,6 @@ void MainWindow::WirePlayerMenus() {
     app(subtitles, L"字幕设置", iima::ApplicationCommand::SubtitlePanel);
 
     buildingMediaMenu = false;
-    auto plugins = top(L"插件");
-    add(plugins, L"本地插件管理", [this] {
-        auto target = InspectPluginButton();
-        for (DependencyObject parent = target; parent; parent = Media::VisualTreeHelper::GetParent(parent))
-            if (auto expander = parent.try_as<Controls::Expander>()) expander.IsExpanded(true);
-        auto weakTarget = make_weak(target);
-        DispatcherQueue().TryEnqueue([weakTarget] {
-            if (auto current = weakTarget.get(); current && current.IsLoaded()) {
-                current.StartBringIntoView(); current.Focus(FocusState::Programmatic);
-            }
-        });
-    });
-    add(plugins, L"运行受信任的本地插件…", [this] { StartLocalPlugin(); },
-        [this] { return !pluginRuntime_ && !pluginStarting_ && !pluginStopPending_; });
-    add(plugins, L"停止此窗口插件", [this] { StopLocalPlugin(); },
-        [this] { return pluginRuntime_ && !pluginStopPending_; });
-    WireNativePluginMenu(plugins);
     auto window = top(L"窗口");
     add(window, L"全屏", [this] { ToggleFullscreen(); }, {}, {"cycle","fullscreen"}, false, {},
         [this] { return hstring{fullscreen_ ? L"退出全屏" : L"全屏"}; });
@@ -246,7 +229,7 @@ void MainWindow::RefreshPlayerMenus(bool shortcuts) {
     if (!playerMenusReady_) return;
     ApplicationMenuBar().IsEnabled(userDataLoaded_ && !closing_ && !interactiveCrop_.Active() && !cropOriginal_);
     playerMenuShortcutsDirty_ = playerMenuShortcutsDirty_ || shortcuts;
-    shortcuts = playerMenuShortcutsDirty_ && (playerMenuVisibleItems_.empty() && !PluginMenuVisible());
+    shortcuts = playerMenuShortcutsDirty_ && playerMenuVisibleItems_.empty();
     if (shortcuts) playerMenuShortcutsDirty_ = false;
     for (auto& row : playerMenuActions_) {
         row.item.Text(row.title());
@@ -273,7 +256,7 @@ void MainWindow::RefreshPlayerMenus(bool shortcuts) {
         << ':' << savedFilterLibrary_.Revision() << ':' << interactiveCrop_.Active() << ':' << cropOriginal_.has_value();
     // Never replace an open menu's targets under the pointer. Its captured
     // identities remain valid for rejection; rebuild only after all popups close.
-    if ((playerMenuVisibleItems_.empty() && !PluginMenuVisible()) && (shortcuts || key.str() != playerMenuDynamicKey_)) {
+    if (playerMenuVisibleItems_.empty() && (shortcuts || key.str() != playerMenuDynamicKey_)) {
         playerMenuDynamicKey_ = key.str();
         FillTrackMenu(videoTrackMenu_, "video"); FillTrackMenu(audioTrackMenu_, "audio");
         FillTrackMenu(subtitleTrackMenu_, "sub"); FillTrackMenu(secondaryTrackMenu_, "sub", true);
@@ -285,7 +268,7 @@ void MainWindow::RefreshPlayerMenus(bool shortcuts) {
     const auto recentKey = std::to_string(userDataLoaded_) + std::to_string(closing_) +
         std::to_string(pickerOpen_) + std::to_string(historyDeletionBusy_) + std::to_string(playlistDeletionBusy_);
     if (recentKey != playerRecentMenuStateKey_) playerRecentMenuDirty_ = true;
-    if ((playerMenuVisibleItems_.empty() && !PluginMenuVisible()) && (shortcuts || playerRecentMenuDirty_)) {
+    if (playerMenuVisibleItems_.empty() && (shortcuts || playerRecentMenuDirty_)) {
         FillRecentMenu(recentMenu_); playerRecentMenuDirty_ = false; playerRecentMenuStateKey_ = recentKey;
     }
 }

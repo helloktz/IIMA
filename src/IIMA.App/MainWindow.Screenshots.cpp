@@ -68,7 +68,7 @@ fire_and_forget MainWindow::FinishScreenshot(std::shared_ptr<iima::ScreenshotSta
     if(request.save && (request.forceSaveAs || request.directory.empty()) && !closing_) {
         try {
             Windows::Storage::Pickers::FileSavePicker picker;
-            HWND hwnd{}; check_hresult(this->as<::IWindowNative>()->get_WindowHandle(&hwnd));
+            HWND hwnd{}; check_hresult(GetNativeWindowHandle(&hwnd));
             check_hresult(picker.as<::IInitializeWithWindow>()->Initialize(hwnd));
             auto extension=iima::ScreenshotExtension(request.format);
             picker.SuggestedFileName(to_hstring(request.filename));
@@ -116,7 +116,7 @@ fire_and_forget MainWindow::FinishScreenshot(std::shared_ptr<iima::ScreenshotSta
     if(closing_) { screenshotPostProcessing_=false; pickerOpen_=false; FinishClose(); co_return; } // A completed publication is not rolled back.
     if(pixels) {
         try {
-            HWND hwnd{}; check_hresult(this->as<::IWindowNative>()->get_WindowHandle(&hwnd));
+            HWND hwnd{}; check_hresult(GetNativeWindowHandle(&hwnd));
             iima::CopyScreenshotToClipboard(hwnd,*pixels); copied=true;
         } catch(...) { copyFailure=std::current_exception(); }
     }
@@ -167,7 +167,7 @@ fire_and_forget MainWindow::ChooseScreenshotDirectory() {
     pickerOpen_=true; UpdateScreenshotSettings();
     try {
         Windows::Storage::Pickers::FolderPicker picker;
-        HWND hwnd{}; check_hresult(this->as<::IWindowNative>()->get_WindowHandle(&hwnd));
+        HWND hwnd{}; check_hresult(GetNativeWindowHandle(&hwnd));
         check_hresult(picker.as<::IInitializeWithWindow>()->Initialize(hwnd));
         picker.FileTypeFilter().Append(L"*");
         auto folder=co_await picker.PickSingleFolderAsync();

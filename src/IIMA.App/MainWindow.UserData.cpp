@@ -32,7 +32,7 @@ void MainWindow::LoadUserData()
                 self->userData_ = std::move(data);
                 self->savedUserData_ = self->userData_;
                 self->userDataLoaded_ = true;
-                if (!self->closing_) self->Root().IsEnabled(true);
+                if (!self->closing_) self->PlayerContent().IsEnabled(true);
                 self->updating_ = true;
                 self->RecordHistoryCheck().IsChecked(self->userData_.settings.recordHistory);
                 self->ResumeCheck().IsChecked(self->userData_.settings.resumePosition);
@@ -188,7 +188,7 @@ winrt::fire_and_forget MainWindow::ConfirmUnsavedClose()
 }
 void MainWindow::FinishClose()
 {
-    if (closing_ && !pluginStopPending_ && !pluginStarting_ && !placementSavePending_ && !screenshotPostProcessing_ && !mpvLogExportBusy_ && coreClosed_ && diagnosticsClosed_ && userDataLoaded_ && !saving_ && (discardUserData_ || (!saveDirty_ && !saveFailed_ && userData_.writable))) {
+    if (closing_ && !placementSavePending_ && !screenshotPostProcessing_ && !mpvLogExportBusy_ && coreClosed_ && diagnosticsClosed_ && userDataLoaded_ && !saving_ && (discardUserData_ || (!saveDirty_ && !saveFailed_ && userData_.writable))) {
         closeComplete_ = true; Close();
     }
 }

@@ -24,7 +24,7 @@ void MainWindow::ReceiveActivation(std::vector<std::wstring> paths)
     if (closing_) return;
     Activate();
     HWND hwnd{};
-    if (SUCCEEDED(this->as<::IWindowNative>()->get_WindowHandle(&hwnd))) {
+    if (SUCCEEDED(GetNativeWindowHandle(&hwnd))) {
         if (IsIconic(hwnd)) ShowWindow(hwnd, SW_RESTORE);
         SetForegroundWindow(hwnd); // Best effort: Windows foreground policy still applies.
     }
@@ -86,7 +86,7 @@ void MainWindow::WireAssociationControls()
     });
     DefaultAppsButton().Click([weak](auto const&, auto const&) {
         if (auto self = weak.get(); self && !self->closing_) try {
-            HWND hwnd{}; check_hresult(self->as<::IWindowNative>()->get_WindowHandle(&hwnd));
+            HWND hwnd{}; check_hresult(self->GetNativeWindowHandle(&hwnd));
             iima::FileAssociations::OpenDefaultApps(hwnd);
         } catch (hresult_error const& error) { self->ShowError(error.message()); }
     });

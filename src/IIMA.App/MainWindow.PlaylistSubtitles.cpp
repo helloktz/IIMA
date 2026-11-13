@@ -123,7 +123,7 @@ fire_and_forget MainWindow::AddPlaylistSubtitleAssociation() {
     UpdatePlaylistSubtitleControls();
     try {
         Windows::Storage::Pickers::FileOpenPicker picker;
-        HWND hwnd{}; check_hresult(this->as<::IWindowNative>()->get_WindowHandle(&hwnd));
+        HWND hwnd{}; check_hresult(GetNativeWindowHandle(&hwnd));
         check_hresult(picker.as<::IInitializeWithWindow>()->Initialize(hwnd));
         for(auto extension:{L".utf",L".utf8",L".utf-8",L".idx",L".sub",L".srt",L".smi",L".rt",L".ssa",
             L".aqt",L".jss",L".js",L".ass",L".mks",L".vtt",L".sup",L".scc",L".lrc"}) picker.FileTypeFilter().Append(extension);
