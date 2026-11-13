@@ -4,6 +4,8 @@
 
 `main` 已合入 XAML、异步 libmpv 核心、拥有型交换链桥接、播放列表、轨道和字幕、设置与历史，以及原生窗口集成。真实播放依赖固定源码和私有补丁构建的 libmpv。当前验证见 [VALIDATION.md](VALIDATION.md)。IINA 插件及扩展机制不纳入移植范围。
 
+本地 Debug 和 Release x64 构建、Release 启动关闭均已通过。下一步按 [LIBMPV.md](LIBMPV.md) 准备 SDK，执行阶段 B 的真实播放和视频合成验收。
+
 ## 接手入口
 
 先读根目录 [AGENTS.md](../AGENTS.md)，再读 [ARCHITECTURE.md](ARCHITECTURE.md)。以当前检出目录为仓库根目录，远程为 `https://github.com/helloktz/IIMA`。
@@ -14,20 +16,15 @@ IIMA 是基于 IINA 开源源码的 Windows 移植。`references/iina/` 是设�
 
 ## 开发环境与分批交付
 
-- 缺少 Windows 研发环境、MSVC/XAML 工具链、可用的 libmpv 产物或交互式桌面时，继续对照上游源码和接口契约，尽可能完成代码与工程配置，并执行当前环境支持的检查。某项工作依赖 Windows 运行证据时，记录待验证的步骤，继续推进其他可独立完成的功能。
+- 在 Windows 研发环境按 [BUILD.md](BUILD.md) 执行构建和适用的检查。涉及播放、窗口或硬件行为时，在具备相应依赖和设备的环境验证，缺失的运行证据写入 [VALIDATION.md](VALIDATION.md)。
 - 下文的阶段完成条件用于验收。区分已实现、已验证和待验证的内容，列出需要在 Windows 上执行的构建和运行检查。
 - 按功能将完整、可审阅的改动分批 commit，并适时 push 到本仓库的独立开发分支。暂时无法在 Windows 上构建或运行时，仍可提交和推送，在汇报中标明验证限制。如果推送受阻，保留本地提交并报告具体原因。开发分支的提交和推送已获授权，合并到 `main` 和发布版本需另行授权。
 
 ## 实施顺序与完成条件
 
-### 阶段 A：复用初始化工程并补齐页面编译链
+### 阶段 A：Windows 构建基线
 
-- 在 Windows 构建 worker 上核对固定的 MSVC、MSBuild 和 Windows SDK，按 BUILD.md 复现构建；不重新选择一套工具链。
-- 复用现有 IIMA.App、IIMA.Core、解决方案和 x64 构建设置。
-- 复用 .gitignore、packages.config 与 PowerShell 构建入口；参考源码不得被默认编译。为后续 XAML 页面补齐 C++ WinUI/XAML 构建组件并实际验证生成链。
-- 启动一个真实 WinUI 窗口，正常关闭；记录依赖初始化与部署方式。
-
-完成条件：MSBuild 可构建 Debug/Release x64，Release 应用实际启动并退出；README 中写出已经执行成功的构建命令。不要仅凭模板生成成功宣布完成。
+固定工具链下的 Debug/Release x64、MIDL/XAML 生成和 Release 启动关闭已验证。构建命令和结果见 [BUILD.md](BUILD.md) 与 [VALIDATION.md](VALIDATION.md)。
 
 ### 阶段 B：打通 libmpv 与视频合成
 
@@ -78,7 +75,3 @@ IIMA 是基于 IINA 开源源码的 Windows 移植。`references/iina/` 是设�
 - 记录执行过的命令、结果、运行环境与尚未验证事项。避免重复测试已确认且未受变更影响的功能。
 - 交付时列出真实代码变更、完成的功能、检查结果和阻断点；不以文档、接口或编译成功替代产品完成度。
 - 每个里程碑汇报开发分支、最新提交、已推送的改动和待验证事项。
-
-## 可直接给接手研发者的任务
-
-> 在本仓库执行后续研发。先阅读 AGENTS.md、docs/ARCHITECTURE.md 和 docs/HANDOFF.md，按阶段推进。这是以 IINA 源码为直接依据的跨平台移植。从第一条播放链路开始，每项功能都先追踪 references/iina 中的对应调用链、状态与边界行为，优先复用或转写适用的 Swift 实现。用 WinUI 3 和 Windows 原生接口适配平台部分，以 references/mpv 核对播放接口。记录上游符号、移植结果、有意差异和实际验证。IIMA 自有代码采用 C++23，主程序使用 MSVC + MSBuild，libmpv 按上游支持方式构建，交付目标为 Windows 11 x64。优先打通真实播放合成链路，随后按功能推进移植。缺少 Windows 研发环境时，继续完成源码和工程配置，记录待验证的步骤。将可审阅的改动按功能分批 commit，并适时 push 到本仓库的独立开发分支。每个里程碑汇报分支、提交和验证结果。保持参考快照不变，合并到 main 和发布版本需另行授权。

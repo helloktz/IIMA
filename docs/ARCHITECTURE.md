@@ -22,13 +22,12 @@ IIMA.sln                         # MSBuild 解决方案
 Directory.Build.props            # 共享编译设置与输出路径
 src/
   IIMA.App/                      # WinUI C++/WinRT 应用工程
-    Views/                       # 窗口、控制栏、播放列表与设置页面
-    ViewModels/                  # XAML 绑定及 UI 状态投影
+    App.xaml                     # 应用与共享资源
+    MainWindow.xaml              # 播放器窗口和控件
+    MainWindow.*.cpp             # 窗口各功能与状态投影
     Presentation/                # SwapChainPanel 与视频呈现适配
     Platform/                    # Windows 文件、窗口、激活、媒体键接口
-    Resources/                   # 图标、样式和本地化资源
-    App.xaml
-    MainWindow.xaml
+    Settings/                    # 偏好的 Windows JSON 读写
   IIMA.Core/                     # 原生 C++ 静态库，无 XAML 依赖
     Playback/                    # 播放会话、命令与状态模型
     Mpv/                         # libmpv C API 封装、事件读取
@@ -38,7 +37,8 @@ src/
     Diagnostics/                 # 必要日志与错误上下文
 build/
   DEPENDENCIES.md                 # 当前依赖与来源说明（精确包版本见 packages.config）
-  props/                         # 依赖路径和链接配置
+  *.props, *.targets              # 公共编译设置与依赖导入
+  patches/                        # libmpv 补丁与说明
 scripts/                         # 获取依赖、构建、打包入口
 tests/                          # 实际需要的原生逻辑与集成测试
 docs/                           # 架构、交接和验证记录

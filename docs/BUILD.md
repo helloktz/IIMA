@@ -59,3 +59,14 @@ pwsh -NoProfile -File scripts/smoke-test.ps1 -Executable '<解压目录>/IIMA-0.
 `App.xaml` 和 `MainWindow.xaml` 由 WinUI XAML 编译链生成，MIDL 和 C++/WinRT 输出位于相应配置的 `artifacts/obj/`。程序入口为 `Main.cpp`。
 
 依赖准备与 probe 见 [LIBMPV.md](LIBMPV.md)。缺少 SDK 时可编译源码并显示依赖错误，但打包会拒绝缺失 libmpv 的目录。依赖 probe 不证明真实视频输出；当前公开交换链属性的所有权问题见 [PORTING.md](PORTING.md)。
+
+## 脚本用途
+
+| 场景 | 入口 |
+|---|---|
+| 日常编译、打包 | `build.ps1`、`package.ps1`。`Common.ps1` 提供共用的工具链定位和输出目录操作。 |
+| 准备 libmpv | `prepare-mpv-source.ps1` 检出固定源码并应用补丁，`stage-libmpv.ps1` 暂存已构建的 SDK。`test-libmpv.ps1` 供暂存和构建流程调用，检查 DLL 的架构、ABI 和初始化。 |
+| 开发验证 | `smoke-test.ps1` 检查原生窗口启动关闭和本地运行库。`check-source.py` 检查项目输入和参考快照，`test-portable.py` 运行 C++ 逻辑测试。Python 脚本按需单独运行。 |
+| 更新 IINA 参考快照 | `generate-mpv-catalog.py` 重生成源码中的 mpv 命令、选项及属性目录。 |
+
+远程构建入口见 [Windows runner](WINDOWS-RUNNER.md)。

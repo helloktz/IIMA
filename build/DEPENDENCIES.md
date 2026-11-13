@@ -26,4 +26,4 @@ NuGet 包来自 https://api.nuget.org/v3/index.json，NuGet CLI 来自微软的 
 - [Windows App SDK 部署](https://learn.microsoft.com/en-us/windows/apps/package-and-deploy/deploy-overview)
 - [VC++ 本地部署](https://learn.microsoft.com/en-us/cpp/windows/walkthrough-deploying-a-visual-cpp-application-to-an-application-local-folder)
 
-libmpv SDK 未随源码提供，当前云端没有可运行的 Windows DLL。scripts/stage-libmpv.ps1 对人工准备的上游构建产物执行 PE、导出、API 与选项探针，并保存 DLL 哈希防止打包前被替换。build.ps1 在 SDK 可用时复制运行 DLL；package.ps1 缺 SDK 时明确失败。动态调用只跨 C ABI，主程序无 MinGW 导入库依赖。探针不证明 D3D11 呈现成功。
+libmpv SDK 单独构建和暂存，步骤见 [LIBMPV.md](../docs/LIBMPV.md)。`stage-libmpv.ps1` 检查 PE、导出、API 和选项并记录 DLL 哈希。`build.ps1` 将通过复核的 DLL 复制到输出目录，`package.ps1` 要求提供 SDK。主程序通过动态加载调用 libmpv C ABI。

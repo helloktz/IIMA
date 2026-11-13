@@ -41,7 +41,7 @@ pwsh -NoProfile -File scripts/package.ps1
 
 staging 在 x64 Windows PowerShell 中检查所有 DLL 的 AMD64 PE 标记、所需导出、实际 C ABI 主版本 2/次版本至少 6、`mpv_create`/`mpv_initialize`，以及 gpu-next、D3D11 composition 与尺寸选项是否接受。另要求 `mpv_iima_acquire_d3d11_swapchain_v1` 导出存在并检查空闲状态的返回契约。DLL 搜索只允许其自身目录和 System32，不依赖 PATH。通过后写入 `.deps/libmpv/` 并保存二进制哈希，构建前复核。已有 SDK 不自动覆盖，先将其移走再重新 staging，避免残留旧 DLL。
 
-探针没有加载视频，不能证明 GPU 创建、`display-swapchain`、声音、HDR、硬件解码或 ABI 所有路径正确。必须继续执行 docs/VALIDATION.md 的原生运行检查。尚未在本次 Linux 云环境执行上述 PowerShell 脚本；当前只完成源码审阅及静态检查。
+探针覆盖 DLL 加载、初始化和选项接受。视频呈现、声音、HDR 和硬件解码按 [VALIDATION.md](VALIDATION.md) 在 Windows 上分别验证。
 
 ## 私有交换链扩展
 

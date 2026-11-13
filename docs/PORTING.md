@@ -1,11 +1,12 @@
 # IINA 移植记录
 
-## 本批状态
+## 参考版本
 
-本批是可审阅的 Windows 原生播放基础实现，不是已通过验收的播放器。
 IINA 基准为 `references/iina-source.txt` 的 `685a40ee1d4165107182f7236751ad9d5873f267`；
 mpv 接口基准为 `references/mpv-source.txt` 的 `bcde6b93cca4d128d84e1a60d1a6db2cd81c889e`。
 参考快照保持不变。下列源码转写适用 IINA 的 GPL-3.0 及原作者版权，见原文件头及 `references/iina/LICENSE`。
+
+下文按功能批次记录源码映射和当时的实现边界。当前验证结果见 [VALIDATION.md](VALIDATION.md)。
 
 ## 第一条播放链路
 
@@ -128,7 +129,7 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 - `VideoTime.swift`、`Extensions.roundedHalfDown`、`MPVChapter.swift` 与 `SidebarChaptersPane` → `Media/VideoTime.*`、`MediaChapter.*`：宽松冒号解析、毫秒截断比较、半舍下与小数进位、End、区间；已接入时间栏及章节标签。非有限/超范围值显示未知，而非整数溢出。
 - `Aspect.swift`、`GeometryDef.swift`、`MainWindowController.windowFrameFromGeometry` → `Geometry/*`：保留 width 优先、百分比、边缘偏移、尺寸居中；Windows 使用顶左坐标并保留未指定轴的绝对位置，防重复叠加显示器原点。拒绝零分母/非有限比例。Geometry 尚未连接窗口初始布局。
 
-来源均为固定 IINA 快照 `685a40ee1d4165107182f7236751ad9d5873f267`，GPL 与作者信息保留。完整移植范围和数量口径见 STATIC_PORT.md；达到数量也不能独立证明行为完整。
+来源均为固定 IINA 快照 `685a40ee1d4165107182f7236751ad9d5873f267`，GPL 与作者信息保留。
 
 ### 第二批：音频均衡、字幕操作、匹配与轨道呈现
 
@@ -138,7 +139,7 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 - `MainWindow.SubtitleMatching.cpp` 提供显式同目录字幕匹配操作：后台枚举（10000项上限、不递归）、取消、entry/path/generation 门控后只选择首候选。没有声称实现用户配置搜索路径、自动 playlist 扩展或自动后台加载；手动操作的 Windows 差异已明确。
 - `MPVTrack.swift` / `ISO639Helper.swift` → `Media/TrackPresentation.*`：元数据复制、标题/格式/分辨率/fps/声道/采样率、字幕类型与 None/Auto/ID；已扩展 MpvClient 事件载荷并接 UI 标签。语言暂显示原代码而不是伪造译名，完整 ISO639 资源未接入。
 
-本批仅静态实现与人工源码审阅，未编译、测试或运行；数量仍远未达到完整移植指标。
+本批仅静态实现与人工源码审阅，未编译、测试或运行。
 
 轨道解析的明确兼容性差异：IINA 构造器要求全部布尔字段存在；IIMA 对可识别 id/type 的轨道保留缺失可选标志为 false，避免部分 mpv 属性快照令可用轨道消失。滤镜单项解析额外拒绝非法名称/标签字符，防止单项 UI 意外成为多项滤镜列表表达式。
 
@@ -150,7 +151,7 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 - `OpenURLWindowController.getURL` → `Network/MediaUrl.*` 与 `MainWindow.Network.cpp`：trim、缺省http、Windows Uri解析、显式网络打开。当前支持HTTP(S)/RTSP(S)/RTMP(S)/FTP/SFTP输入；无凭据持久化、独立用户名密码字段或未知协议兼容承诺。网络地址不写历史以避免保存签名查询和凭据，和IINA历史行为有意不同。libmpv是否支持协议仍未经运行确认。
 - `OSDMessage.swift` / `OSDView.swift` → `OSD/OSDMessage.*`：56消息、5展示类型、禁用/强制/窗口状态门控、文本进度、模板变量及语义文本runs。WinUI已经接入已确认的暂停/继续、音量、速度、静音状态及1秒隐藏计时器；其余消息尚需各功能触发。当前默认英文fallback，完整中文资源/动画/语义runs视觉样式未接入。
 
-仍为静态源码批次，未编译、测试或运行。已写入不代表可运行；全量移植和用户数量指标尚未完成。
+本批未编译、测试或运行。
 
 ### 第四批：队列执行器、高级播放与缓存基础
 
@@ -235,7 +236,7 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 - `MainWindowLastPosition`、`determineScreenToUse/windowFrameFromGeometry` → `WindowPlacement`、`MainWindow.Placement.cpp`：普通还原态窗口物理坐标与工作区/DPI单独持久化，加载时映射当前显示器可移动区间与逻辑大小，夹限到工作区；后台加载期间用户已移动则不覆盖其动作。音乐/全屏/最大最小化/Compact不是普通尺寸采样；关闭等待后台原子位置保存，失败保留旧文件但不困住播放器退出。捕获顺序仅进程内比较，多个窗口旧任务不会覆盖新采样，重启不受旧序号阻挡。不是每个媒体或每个窗口身份独立的恢复档案；磁盘只保留最近接受的普通布局，无显示器名持久化。
 - 位置JSON上限16KiB，拒绝非法坐标、更新schema或目标重解析文件；损坏原文件不自动覆盖。此数据与设置/历史独立，不声称跨文件事务。普通位置恢复默认开启，暂未接IINA全部窗口resize/geometry偏好，首次显示后可能异步调整位置。
 
-本批未编译、测试或运行，尤其需后续验证纯音频FILE_LOADED/track-list顺序、同媒体重播、音乐/全屏/Compact交互、显示器断开/DPI、独立窗口关闭与位置持久化。全量移植及数量要求依然未完成。
+本批未编译、测试或运行，尤其需后续验证纯音频FILE_LOADED/track-list顺序、同媒体重播、音乐/全屏/Compact交互、显示器断开/DPI、独立窗口关闭与位置持久化。
 
 ### 第十四批：按需缩略图磁盘缓存与清空
 
@@ -244,7 +245,7 @@ IINA `AppDelegate` 打开文件事件由平台适配替换为 Win32 启动参数
 - 缓存目录 `%LOCALAPPDATA%/IIMA/Cache/ThumbnailFrames-v1`；保存图像而不在文件名明文暴露源路径。拒绝网络/重解析/离线/硬链接文件，祖先目录持锁，命名mutex串行缓存访问，最多等待3秒；临时文件写完刷新后同卷原子替换。按访问时间驱逐，上游半额度策略同时满足新图可容纳，不故意超出配置额度。崩溃留下的未识别临时文件不自动清理，故真实目录占用可能包括这些残留。
 - `maxThumbnailPreviewCacheSize`接高级偏好与持久化，单位MiB，0禁用磁盘读写；不因设0隐式删除旧缓存。显式“清空缩略图缓存”确认后后台删除专用目录中符合自有文件名的普通文件，不递归删除、不触碰视频或其他文件。进程级epoch使其他窗口先前开始的提取不再写回；跨进程只有mutex而无共享epoch，其他进程仍可新写。清空当前窗口内存，其他窗口已有内存预览不强行广播清除。
 
-仅静态编写/人工审阅，未编译、测试、运行或实际写入缓存。全部功能和数量目标仍未达成。
+仅静态编写和人工审阅，未编译、测试、运行或实际写入缓存。
 
 ### 第二十四批：系统睡眠暂停与恢复权取消
 

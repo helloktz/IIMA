@@ -10,11 +10,11 @@ IIMA 是面向 Windows 的原生桌面播放器项目，以 IINA 源码为移植
 
 IINA 的插件与第三方扩展机制不纳入移植范围。新增功能直接在 IIMA 中采用 Windows 原生方式实现。
 
-## 架构与研发交接
+## 研发文档
 
-- [基础架构](docs/ARCHITECTURE.md)：工程布局、模块边界、线程与状态、视频合成、配置及构建交付。
-- [研发交接](docs/HANDOFF.md)：当前状态、阶段任务、完成条件及接手入口。
-- [开发约定](AGENTS.md)：源码移植、工具链和验证要求。
+- 本地编译、打包和检查命令见 [构建说明](docs/BUILD.md)，补丁版 SDK 的准备步骤见 [libmpv 运行依赖](docs/LIBMPV.md)。
+- 下一阶段工作和验收条件见 [研发交接](docs/HANDOFF.md)，实际结果和待验收功能见 [验证记录](docs/VALIDATION.md)及 [覆盖表](docs/COVERAGE.md)。
+- 模块边界、上游源码映射和研发要求分别见 [基础架构](docs/ARCHITECTURE.md)、[移植记录](docs/PORTING.md)及 [开发约定](AGENTS.md)。
 
 ## 交付平台
 
@@ -55,6 +55,7 @@ IIMA/
 ├─ build/                   # 原生依赖导入与打包说明
 ├─ scripts/                 # 构建、打包、冒烟检查
 ├─ src/                     # IIMA 实现
+├─ tests/                   # 独立逻辑与协议测试
 ├─ docs/                    # 架构、移植与验证文档
 └─ references/              # 源码参考，不直接参与应用编译
    ├─ iina/
