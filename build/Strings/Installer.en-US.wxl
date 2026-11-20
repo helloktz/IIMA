@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<WixLocalization xmlns="http://wixtoolset.org/schemas/v4/wxl">
+  <String Id="EnglishName" Value="English" />
+  <String Id="LanguageEn" Value="Setup language" />
+  <String Id="SetupEn" Value="IIMA Setup" />
+  <String Id="ReadyEn" Value="Ready to install IIMA" />
+  <String Id="DestinationEn" Value="IIMA will be installed in" />
+  <String Id="ProgressEn" Value="Installing IIMA…" />
+  <String Id="DoneEn" Value="IIMA is ready to use" />
+  <String Id="NextEn" Value="Next" />
+  <String Id="BackEn" Value="Back" />
+  <String Id="InstallEn" Value="Install" />
+  <String Id="CancelEn" Value="Cancel" />
+  <String Id="CloseEn" Value="Close" />
+  <String Id="FailedEn" Value="IIMA setup could not finish." />
+  <String Id="CanceledEn" Value="IIMA setup was canceled." />
+  <String Id="FilesInUseEn" Value="Close the listed applications, then select Retry." />
+  <String Id="YesEn" Value="Yes" />
+  <String Id="NoEn" Value="No" />
+  <String Id="OkEn" Value="OK" />
+  <String Id="AbortEn" Value="Abort" />
+  <String Id="RetryEn" Value="Retry" />
+  <String Id="IgnoreEn" Value="Ignore" />
+</WixLocalization>

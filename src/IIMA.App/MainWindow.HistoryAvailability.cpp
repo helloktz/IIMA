@@ -15,7 +15,7 @@ void MainWindow::WireHistoryAvailability() {
         if (auto self = weak.get(); self && self->historyAvailabilityBusy_) {
             self->historyAvailabilityPending_ = false;
             self->historyAvailabilityStop_.request_stop();
-            self->HistoryAvailabilityStatus().Text(L"已请求停止检查；正在进行的Windows文件查询可能仍需返回。");
+            self->HistoryAvailabilityStatus().Text(iima::loc::Text(L"TheInspectionHasBeenRequestedToStop"));
         }
     });
 }
@@ -43,7 +43,7 @@ fire_and_forget MainWindow::ScanHistoryAvailabilityAsync(std::vector<std::string
     historyAvailabilityStop_ = std::stop_source{};
     auto stop = historyAvailabilityStop_.get_token();
     CancelHistoryAvailabilityButton().IsEnabled(true);
-    HistoryAvailabilityStatus().Text(L"后台检查本地历史文件…网络、不可访问及不支持路径保持未知。");
+    HistoryAvailabilityStatus().Text(iima::loc::Text(L"BackstageCheckLocalHistoryFilesWebUnaccessible"));
     apartment_context ui;
     iima::HistoryAvailabilityScan result;
     bool failed{};
@@ -61,13 +61,13 @@ fire_and_forget MainWindow::ScanHistoryAvailabilityAsync(std::vector<std::string
             if (value == iima::HistoryAvailability::Available) ++available;
             else if (value == iima::HistoryAvailability::Missing) ++missing;
         }
-        HistoryAvailabilityStatus().Text(L"上次检查：存在 " + to_hstring(available) + L"，缺失 " +
-            to_hstring(missing) + L"，未知 " + to_hstring(paths.size() - available - missing) +
-            L"。外部文件变化后请刷新。" + (result.limited ? L"达到数量/时间预算，未检查部分保持未知。" : L""));
+        HistoryAvailabilityStatus().Text(iima::loc::Text(L"PreviousCheckExistence") + to_hstring(available) + iima::loc::Text(L"Missing") +
+            to_hstring(missing) + iima::loc::Text(L"Unknown") + to_hstring(paths.size() - available - missing) +
+            iima::loc::Text(L"PleaseRefreshAsExternalDocumentsChange") + (result.limited ? iima::loc::Text(L"QuantityTimeBudgetIsAchievedAndThe") : L""));
         RefreshHistory(); // Same path snapshot does not schedule another scan.
     } else if (!historyAvailabilityPending_) {
-        HistoryAvailabilityStatus().Text(failed ? L"检查失败，保留上次状态；未知不代表文件缺失。" :
-            L"检查已停止，保留上次状态。可手动刷新。");
+        HistoryAvailabilityStatus().Text(failed ? iima::loc::Text(L"CheckFailedLastStatusRetainedUnknownDoes") :
+            iima::loc::Text(L"CheckingStoppedAndLastStateMaintainedYou"));
     }
     if (historyAvailabilityPending_) {
         historyAvailabilityPending_ = false;

@@ -57,6 +57,35 @@ function Invoke-IimaBuildTool([scriptblock]$Action) {
     }
 }
 
+function Assert-IimaLibMpvManifest([string]$SdkDirectory) {
+    $manifest = Get-Content -LiteralPath (Join-Path $SdkDirectory 'manifest.json') -Raw | ConvertFrom-Json
+    $pinnedCommit = 'bcde6b93cca4d128d84e1a60d1a6db2cd81c889e'
+    if ($manifest.sourceCommit -ne $pinnedCommit) { throw "Expected mpv source commit $pinnedCommit." }
+    $patch = Join-Path $RepoRoot 'build/patches/mpv-iima-owned-swapchain-v1.patch'
+    $patchHash = (Get-FileHash -LiteralPath $patch -Algorithm SHA256).Hash
+    if ($manifest.sourcePatch -ne 'mpv-iima-owned-swapchain-v1' -or $manifest.patchSha256 -ne $patchHash) {
+        throw 'The libmpv SDK must match the SHA-256 of the current owned-swapchain patch. Stage a matching SDK.'
+    }
+    foreach ($field in @('sourceUrl','buildCommand','toolchain','dependencies')) {
+        if (-not $manifest.$field) { throw "manifest.json must record $field." }
+    }
+}
+
+function Assert-IimaLibMpvBinaries([string]$SdkDirectory, [string]$BinDirectory) {
+    $hashes = @(Get-Content -LiteralPath (Join-Path $SdkDirectory 'verified-binaries.json') -Raw | ConvertFrom-Json)
+    $actualNames = @(Get-ChildItem -LiteralPath (Join-Path $SdkDirectory 'bin') -File -Filter '*.dll' | ForEach-Object Name)
+    if (-not $hashes.Count -or (Compare-Object $actualNames @($hashes | ForEach-Object file))) {
+        throw 'Staged DLL inventory changed. Re-stage the libmpv SDK.'
+    }
+    foreach ($entry in $hashes) {
+        if ([IO.Path]::GetFileName($entry.file) -ne $entry.file) { throw 'Invalid staged binary filename.' }
+        $binary = Join-Path $BinDirectory $entry.file
+        if ((Get-FileHash -LiteralPath $binary -Algorithm SHA256).Hash -ne $entry.sha256) {
+            throw "libmpv DLL does not match the recorded SHA-256: $binary"
+        }
+    }
+}
+
 function Remove-IimaBuildDirectory([string]$Path) {
     $fullPath = [IO.Path]::GetFullPath($Path)
     $buildPrefix = $BuildRoot + [IO.Path]::DirectorySeparatorChar

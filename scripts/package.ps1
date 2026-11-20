@@ -1,6 +1,6 @@
 #Requires -Version 7.0
 [CmdletBinding()]
-param()
+param([switch]$Rebuild)
 . (Join-Path $PSScriptRoot 'Common.ps1')
 
 function Set-IimaMsiRuntimeLanguage([string]$PackagePath) {
@@ -40,9 +40,10 @@ if ($version -notmatch '^(0|[1-35-9][0-35-9]*)\.(0|[1-35-9][0-35-9]*)\.(0|[1-35-
     throw 'The version in build/config.json must be an MSI-compatible three-part version using the project-approved digits.'
 }
 $mpvRoot = Join-Path $BuildRoot 'libmpv'
-if (-not (Test-Path -LiteralPath (Join-Path $mpvRoot 'verified-binaries.json'))) {
+if (-not $env:IIMA_LIBMPV_SDK -and -not (Test-Path -LiteralPath (Join-Path $mpvRoot 'verified-binaries.json'))) {
     throw 'Stage the libmpv SDK with scripts/stage-libmpv.ps1 before packaging.'
 }
+& (Join-Path $PSScriptRoot 'build.ps1') -Configuration Release -Rebuild:$Rebuild
 
 $wixVersion = [string]$BuildConfig.wix
 $wix = Get-Command wix -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
@@ -58,7 +59,6 @@ if (-not $wix -or ((& $wix.Source --version) -split '\+')[0] -ne $wixVersion) {
     $wix = Get-Command $localWix -CommandType Application
 }
 
-& (Join-Path $PSScriptRoot 'build.ps1') -Configuration Release -Rebuild
 $toolchain = Get-IimaToolchain
 $packageName = "IIMA-$version-win-x64"
 $work = Join-Path $BuildRoot 'package'
@@ -78,6 +78,7 @@ foreach ($required in @('IIMA.exe','Microsoft.ui.xaml.dll','Microsoft.WindowsApp
         throw "Incomplete package: missing $required"
     }
 }
+Assert-IimaLibMpvBinaries $mpvRoot $payload
 
 $licenses = Join-Path $payload 'licenses'
 New-Item -ItemType Directory -Path $licenses | Out-Null
@@ -103,7 +104,9 @@ Copy-Item -LiteralPath $packageManifest -Destination (Join-Path $payload 'build-
 
 $msiPath = Join-Path $pending "$packageName.msi"
 Invoke-IimaBuildTool {
-    & $wix.Source build (Join-Path $RepoRoot 'build/IIMA.wxs') -arch x64 `
+    & $wix.Source build (Join-Path $RepoRoot 'build/IIMA.wxs') (Join-Path $RepoRoot 'build/InstallerUI.wxs') -arch x64 `
+        -loc (Join-Path $RepoRoot 'build/Strings/Installer.en-US.wxl') `
+        -loc (Join-Path $RepoRoot 'build/Strings/Installer.zh-CN.wxl') `
         -bindpath "payload=$payload" -define "IimaVersion=$version" `
         -intermediatefolder (Join-Path $work 'wix') -pdbtype none -out $msiPath
     if ($LASTEXITCODE -ne 0) { throw "WiX build failed ($LASTEXITCODE)." }

@@ -76,7 +76,7 @@ void MainWindow::ApplyKeyboardConfiguration() {
     RefreshBindingLibrary();
     RefreshPlayerMenus(true);
     KeyBindingsEditor().Text(to_hstring(text));
-    KeyBindingsStatus().Text(parsed.issues.empty() ? L"快捷键配置已载入。" : L"配置包含无法解析的行；有效条目已载入，请检查后重新保存。");
+    KeyBindingsStatus().Text(parsed.issues.empty() ? iima::loc::Text(L"ShortcutConfigurationIsLoaded") : iima::loc::Text(L"ConfigureContainsLinesThatCannotBeParsed"));
 }
 void MainWindow::WireKeyboardControls() {
     WireBindingLibrary();
@@ -139,17 +139,17 @@ void MainWindow::WireKeyboardControls() {
         if (!self || self->closing_ || !self->userDataLoaded_) return;
         auto text = to_string(self->KeyBindingsEditor().Text());
         if (text.size() > 256 * 1024 || text.find('\0') != std::string::npos) {
-            self->KeyBindingsStatus().Text(L"配置超过 256 KiB 或包含无效字符。"); return;
+            self->KeyBindingsStatus().Text(iima::loc::Text(L"ConfiguresMoreThan256KiBOrContains")); return;
         }
         auto parsed = iima::ParseInputConf(text);
         if (!parsed.issues.empty()) {
             auto const& issue = parsed.issues.front();
-            self->KeyBindingsStatus().Text(L"第 " + to_hstring(issue.line) + L" 行：" + to_hstring(issue.message)); return;
+            self->KeyBindingsStatus().Text(iima::loc::Text(L"IDonTThinkSo") + to_hstring(issue.line) + iima::loc::Text(L"Lines") + to_hstring(issue.message)); return;
         }
         self->userData_.settings.inputConf = text;
         self->keyBindings_ = std::make_unique<iima::KeyBindingSet>(parsed.mappings);
         self->MarkUserDataDirty();
-        self->KeyBindingsStatus().Text(L"已应用，正在保存设置。未移植的动作会在触发时明确提示。");
+        self->KeyBindingsStatus().Text(iima::loc::Text(L"ApplydSavingSettingsUnportedActionsAreClearly"));
     });
     ResetKeyBindingsButton().Click([weak](auto const&, auto const&) {
         if (auto self = weak.get(); self && !self->closing_ && self->userDataLoaded_) {
@@ -171,16 +171,16 @@ winrt::fire_and_forget MainWindow::ImportKeyBindings() {
         auto file = co_await picker.PickSingleFileAsync();
         if (file && !closing_) {
             auto stream = co_await file.OpenReadAsync();
-            if (stream.Size() > 256 * 1024) throw hresult_error(E_INVALIDARG, L"配置超过 256 KiB。");
+            if (stream.Size() > 256 * 1024) throw hresult_error(E_INVALIDARG, iima::loc::Text(L"ConfigureMoreThan256KiB"));
             Windows::Storage::Streams::DataReader reader(stream.GetInputStreamAt(0));
             auto expected = static_cast<std::uint32_t>(stream.Size());
             auto count = co_await reader.LoadAsync(expected);
-            if (count != expected) throw hresult_error(E_FAIL, L"配置文件读取不完整。");
+            if (count != expected) throw hresult_error(E_FAIL, iima::loc::Text(L"ProfileReadingIncompletely"));
             reader.UnicodeEncoding(Windows::Storage::Streams::UnicodeEncoding::Utf8);
             auto text = reader.ReadString(count);
             if (!closing_) {
                 KeyBindingsEditor().Text(text);
-                KeyBindingsStatus().Text(L"已导入编辑区，检查后点击“保存并应用”。");
+                KeyBindingsStatus().Text(iima::loc::Text(L"ImportedEditingAreaCheckAndClickSave"));
             }
         }
     } catch (hresult_error const& error) { if (!closing_) KeyBindingsStatus().Text(error.message()); }
@@ -196,7 +196,7 @@ winrt::fire_and_forget MainWindow::ExportKeyBindings() {
         HWND hwnd{}; check_hresult(GetNativeWindowHandle(&hwnd));
         check_hresult(picker.as<::IInitializeWithWindow>()->Initialize(hwnd));
         picker.SuggestedFileName(L"input");
-        picker.FileTypeChoices().Insert(L"mpv 快捷键配置", single_threaded_vector<hstring>({L".conf"}));
+        picker.FileTypeChoices().Insert(iima::loc::Text(L"MpvShortcutConfiguration"), single_threaded_vector<hstring>({L".conf"}));
         auto file = co_await picker.PickSaveFileAsync();
         if (file && !closing_) {
             auto path = std::filesystem::path(file.Path().c_str());
@@ -206,7 +206,7 @@ winrt::fire_and_forget MainWindow::ExportKeyBindings() {
             try { iima::WriteUtf8Atomically(path, text); } catch (...) { failure = std::current_exception(); }
             co_await ui;
             if (failure) std::rethrow_exception(failure);
-            if (!closing_) KeyBindingsStatus().Text(L"配置已导出。");
+            if (!closing_) KeyBindingsStatus().Text(iima::loc::Text(L"ConfigureIsExported"));
         }
     } catch (hresult_error const& error) { if (!closing_) KeyBindingsStatus().Text(error.message()); }
       catch (std::exception const& error) { if (!closing_) KeyBindingsStatus().Text(to_hstring(error.what())); }
@@ -228,7 +228,7 @@ bool MainWindow::DispatchKeyBinding(iima::KeyMapping const& binding) {
     auto const& t = action.tokens;
     if (t.empty()) return false;
     auto const& command = t[0];
-    auto unsupported = [this] { ShowError(L"该快捷键的命令或参数尚未移植，未执行。"); return true; };
+    auto unsupported = [this] { ShowError(iima::loc::Text(L"CommandsOrParametersForThisShortcutHave")); return true; };
     if (t.size() == 1) {
         if (command == "frame-step") session_->StepFrame();
         else if (command == "frame-back-step") session_->StepFrame(true);

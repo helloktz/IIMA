@@ -81,7 +81,7 @@ fire_and_forget MainWindow::DropFiles(DragEventArgs args, std::optional<std::siz
                 constexpr std::size_t budget=32*1024*1024;
                 constexpr auto overhead=sizeof(DropIdentities::value_type);
                 if(identityBytes>budget-overhead || items[i].path.size()>budget-overhead-identityBytes) {
-                    ShowError(L"播放列表过大，无法保留插入上下文；请分批操作。");co_return;
+                    ShowError(iima::loc::Text(L"ThePlaylistIsTooLargeToKeep"));co_return;
                 }
                 identityBytes+=items[i].path.size()+overhead;
                 captured->emplace_back(items[i].id, items[i].path);
@@ -115,13 +115,13 @@ fire_and_forget MainWindow::DropFiles(DragEventArgs args, std::optional<std::siz
             auto items = co_await data.GetStorageItemsAsync();
             if (!current()) co_return;
             if (items.Size() == 0 || items.Size() > 1000)
-                throw hresult_invalid_argument(L"每次拖放1到1000个文件或文件夹。");
+                throw hresult_invalid_argument(iima::loc::Text(L"CanNotDeleteFolderSNoSuch"));
             std::size_t bytes{};
             for (auto const& item : items) {
                 std::wstring path{item.Path()};
                 bytes += path.size() * sizeof(wchar_t);
                 if (!ValidDropPath(path) || bytes > 1024 * 1024)
-                    throw hresult_invalid_argument(L"拖放包含虚拟对象、无效/设备路径或超过1MiB的路径数据，未打开。");
+                    throw hresult_invalid_argument(iima::loc::Text(L"DragAndDropContainingVirtualObjectsInvalid"));
                 inputs.push_back(std::move(path));
             }
         } else {
@@ -133,13 +133,13 @@ fire_and_forget MainWindow::DropFiles(DragEventArgs args, std::optional<std::siz
             else co_return;
             if (!current()) co_return;
             if (raw.empty() || raw.size() > 32767)
-                throw hresult_invalid_argument(L"请拖放一个绝对文件路径或支持的网络URL（最多32767字符）。");
+                throw hresult_invalid_argument(iima::loc::Text(L"PleaseDragAndDropAnAbsoluteFile"));
             auto text = to_string(raw);
             if (iima::IsNetworkMediaPath(text)) {
                 auto prepared = iima::PrepareMediaUrl(text);
-                if (!prepared) throw hresult_invalid_argument(L"拖放的网络URL无效。");
+                if (!prepared) throw hresult_invalid_argument(iima::loc::Text(L"TheDragAndDropNetworkURLIs"));
                 Windows::Foundation::Uri uri(to_hstring(prepared->value));
-                if (uri.Host().empty()) throw hresult_invalid_argument(L"拖放的网络URL缺少主机名。");
+                if (uri.Host().empty()) throw hresult_invalid_argument(iima::loc::Text(L"TheDragAndDropNetworkURLLacks"));
                 if (playlistRow) {
                     CancelAutomaticFiles();
                     session_->InsertPlaylist({to_string(uri.AbsoluteUri())},playlistRow);
@@ -148,7 +148,7 @@ fire_and_forget MainWindow::DropFiles(DragEventArgs args, std::optional<std::siz
                 co_return;
             }
             std::wstring path{raw};
-            if (!ValidDropPath(path)) throw hresult_invalid_argument(L"仅支持绝对本地路径或支持的网络URL，不执行拖放文本。");
+            if (!ValidDropPath(path)) throw hresult_invalid_argument(iima::loc::Text(L"OnlyAbsoluteLocalPathsOrSupportedNetwork"));
             inputs.push_back(std::move(path));
         }
         std::vector<std::wstring> media;
@@ -175,13 +175,13 @@ fire_and_forget MainWindow::DropFiles(DragEventArgs args, std::optional<std::siz
         if (classificationFailure) std::rethrow_exception(classificationFailure);
         if (!current()) co_return;
         if (inputs.size() == 1 && skippedLut) {
-            if (playlistRow) ShowError(L"LUT不是播放列表媒体，请拖到播放区域。");
-            else if (!QuickLutAvailable()) ShowError(L"请等待当前视频及其他操作完成后再导入LUT。");
+            if (playlistRow) ShowError(iima::loc::Text(L"LutIsNotAPlaylistMediumPlease"));
+            else if (!QuickLutAvailable()) ShowError(iima::loc::Text(L"PleaseWaitForTheCurrentVideoAnd"));
             else { ImportQuickLut(std::move(inputs.front())); args.AcceptedOperation(DataPackageOperation::Copy); }
             co_return;
         }
         if (rejectedPlaylist) {
-            ShowError(L"行插入不支持播放列表文件的异步展开，请先打开该列表；本次未插入任何项。");
+            ShowError(iima::loc::Text(L"RowInsertionDoesNotSupportThePlaylist"));
             co_return;
         }
         auto weak = get_weak();
@@ -198,12 +198,12 @@ fire_and_forget MainWindow::DropFiles(DragEventArgs args, std::optional<std::siz
             if (!result.paths.empty()) {
                 if (playlistRow) {
                     if (result.paths.size()>1000) {
-                        self->ShowError(L"展开文件夹后超过1000项，未插入；请减少选择。"); return;
+                        self->ShowError(iima::loc::Text(L"MoreThan1000FoldersHaveBeen")); return;
                     }
                     std::size_t bytes{};
                     for (auto const& path:result.paths) {
                         if (path.size()>1024*1024-bytes) {
-                            self->ShowError(L"展开后的UTF-8路径超过1MiB，未插入。"); return;
+                            self->ShowError(iima::loc::Text(L"TheExpandedUTF8PathExceeds1")); return;
                         }
                         bytes+=path.size();
                     }
@@ -211,30 +211,30 @@ fire_and_forget MainWindow::DropFiles(DragEventArgs args, std::optional<std::siz
                     self->session_->InsertPlaylist(std::move(result.paths),playlistRow);
                 } else self->ReceiveResolvedInput(std::move(result.paths), singleSource && result.singleExplicitMedia);
             } else if (!subtitles.empty() && playlistRow) {
-                self->ShowError(L"播放列表行只接收媒体；字幕请拖到播放区域或使用添加字幕。");
+                self->ShowError(iima::loc::Text(L"PlaylistRowsReceiveMediaOnlySubtitlesAre"));
                 return;
             } else if (!subtitles.empty()) {
                 if(self->session_->TrackEditIntentRevision()!=trackIntent) return;
                 if (self->inputResolving_ || !self->pendingFiles_.empty() || !self->activationInputs_.empty()) {
-                    self->ShowError(L"另一次媒体打开尚未完成，请等待后重新拖放字幕。"); return;
+                    self->ShowError(iima::loc::Text(L"TheOtherMediaHasNotYetBeen")); return;
                 }
                 if (subtitles.size() > 64) {
-                    self->ShowError(L"每次最多附加64个字幕文件，未附加任何字幕。"); return;
+                    self->ShowError(iima::loc::Text(L"EachTimeAMaximumOf64Subtitles")); return;
                 }
                 if (state.session != iima::SessionState::Ready || state.media != iima::MediaState::Loaded) {
-                    self->ShowError(L"请先打开媒体，再拖放字幕。"); return;
+                    self->ShowError(iima::loc::Text(L"PleaseOpenTheMediaAndDragThe")); return;
                 }
                 // Sub-add remains asynchronous: observed tracks own selection
                 // and errors. Never mark a subtitle selected optimistically.
                 std::vector<iima::SubtitleLoadItem> batch;
                 for(auto const& path:subtitles) batch.push_back({path,true});
-                if(!self->StartSubtitleLoad(std::move(batch))) self->ShowError(L"字幕批次未确认提交；请等待当前轨道操作后重试。");
-            } else self->ShowError(L"拖放内容中没有可打开的媒体或字幕。");
+                if(!self->StartSubtitleLoad(std::move(batch))) self->ShowError(iima::loc::Text(L"SubtitleBatchesAreNotConfirmedForSubmission"));
+            } else self->ShowError(iima::loc::Text(L"ThereAreNoOpenMediaOrSubtitles"));
             std::wstring warning;
             for (auto const& line : result.warnings) { if (!warning.empty()) warning += L"\n"; warning += line; }
-            if (playlistRow && !subtitles.empty()) warning += L"\n已跳过字幕；播放列表插入不会给当前媒体附加字幕。";
-            if (skippedLut) warning += L"\n混合拖放中的3D LUT已跳过；请将单个LUT单独拖到播放区域。";
-            if (invalidSubtitle) warning += L"\n无法读取字幕或字幕为链接文件，已跳过。";
+            if (playlistRow && !subtitles.empty()) warning += iima::loc::Text(L"SkippedSubtitlesPlaylistInsertionDoesNotAdd");
+            if (skippedLut) warning += iima::loc::Text(L"Text3DLUTInMixedDragAnd");
+            if (invalidSubtitle) warning += iima::loc::Text(L"CouldNotCloseTemporaryFolderS");
             if (!warning.empty()) self->ShowError(hstring{warning});
         };
         // A new drop supersedes old drops, not an unrelated validated input.
@@ -244,6 +244,6 @@ fire_and_forget MainWindow::DropFiles(DragEventArgs args, std::optional<std::siz
         args.AcceptedOperation(DataPackageOperation::Copy);
     } catch (hresult_error const& error) { if (current()) ShowError(error.message()); }
       catch (std::exception const& error) { if (current()) ShowError(to_hstring(error.what())); }
-      catch (...) { if (current()) ShowError(L"无法读取拖放内容，未打开。"); }
+      catch (...) { if (current()) ShowError(iima::loc::Text(L"CouldNotOpenTheDroppedItems")); }
 }
 }

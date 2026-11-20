@@ -2,10 +2,30 @@
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
   <Package Name="IIMA" Manufacturer="IIMA" Version="$(IimaVersion)"
            UpgradeCode="C8F9F568-A4C6-4FBA-8FB5-BBE8E12F9C31" Scope="perMachine"
-           InstallerVersion="500">
+           InstallerVersion="500" Language="1033" Codepage="936">
     <MajorUpgrade AllowSameVersionUpgrades="yes" Schedule="afterInstallInitialize"
                   DowngradeErrorMessage="A newer version of IIMA is already installed." />
     <MediaTemplate EmbedCab="yes" />
+    <UIRef Id="IimaSetupUI" />
+
+    <Property Id="IIMAUILANGUAGE" Value="auto" Secure="yes" />
+    <Property Id="IIMALANGUAGECHOICE" Value="en-US" />
+    <Property Id="IIMAPREVIOUSLANGUAGE">
+      <RegistrySearch Id="FindInstalledLanguage" Root="HKLM" Key="Software\IIMA"
+                      Name="Language" Type="raw" Bitness="always64" />
+    </Property>
+    <SetProperty Id="IIMAUILANGUAGE" Action="UseInstalledLanguage" Value="[IIMAPREVIOUSLANGUAGE]"
+                 After="AppSearch" Sequence="both"
+                 Condition="IIMAUILANGUAGE = &quot;auto&quot; AND (IIMAPREVIOUSLANGUAGE = &quot;en-US&quot; OR IIMAPREVIOUSLANGUAGE = &quot;zh-CN&quot;)" />
+    <SetProperty Id="IIMAUILANGUAGE" Action="DefaultToChinese" Value="zh-CN"
+                 After="UseInstalledLanguage" Sequence="both"
+                 Condition="IIMAUILANGUAGE = &quot;auto&quot; AND (UserLanguageID = 2052 OR UserLanguageID = 4100)" />
+    <SetProperty Id="IIMAUILANGUAGE" Action="DefaultToEnglish" Value="en-US"
+                 After="DefaultToChinese" Sequence="both" Condition="IIMAUILANGUAGE = &quot;auto&quot;" />
+    <SetProperty Id="IIMALANGUAGECHOICE" Action="InitializeLanguageChoice" Value="[IIMAUILANGUAGE]"
+                 After="DefaultToEnglish" Sequence="ui" />
+    <Launch Condition="IIMAUILANGUAGE = &quot;en-US&quot; OR IIMAUILANGUAGE = &quot;zh-CN&quot;"
+            Message="IIMAUILANGUAGE must be en-US or zh-CN." />
 
     <StandardDirectory Id="ProgramFiles64Folder">
       <Directory Id="INSTALLFOLDER" Name="IIMA">
@@ -14,6 +34,12 @@
             <Shortcut Id="StartMenuShortcut" Directory="ProgramMenuFolder"
                       Name="IIMA" WorkingDirectory="INSTALLFOLDER" Advertise="yes" />
           </File>
+        </Component>
+        <Component Id="ApplicationLanguage" Bitness="always64">
+          <RegistryValue Root="HKLM" Key="Software\IIMA" Name="Language"
+                         Type="string" Value="[IIMAUILANGUAGE]" KeyPath="yes" />
+          <RegistryValue Root="HKLM" Key="Software\IIMA" Name="InstallFolder"
+                         Type="string" Value="[INSTALLFOLDER]" />
         </Component>
       </Directory>
     </StandardDirectory>
@@ -26,6 +52,7 @@
     </ComponentGroup>
     <Feature Id="IIMA" Title="IIMA" Level="1">
       <ComponentRef Id="Player" />
+      <ComponentRef Id="ApplicationLanguage" />
       <ComponentGroupRef Id="Payload" />
     </Feature>
   </Package>

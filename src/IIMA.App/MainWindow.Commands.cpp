@@ -82,7 +82,7 @@ void MainWindow::WireApplicationCommands() {
                 window.SetPresenter(Microsoft::UI::Windowing::AppWindowPresenterKind::Default);
                 if (auto normal = window.Presenter().try_as<Microsoft::UI::Windowing::OverlappedPresenter>()) normal.Restore();
                 self->fullscreen_ = false;
-                self->FullscreenButton().Content(box_value(L"全屏"));
+                self->FullscreenButton().Content(box_value(iima::loc::Text(L"Fullscreen")));
                 window.MoveAndResize(display.WorkArea());
             }
         }
@@ -98,7 +98,7 @@ void MainWindow::UpdatePresentationLayout() {
     TopStatusBorder().Visibility(compact ? Visibility::Collapsed : Visibility::Visible);
     BottomControlsBorder().Visibility(compact ? Visibility::Collapsed : Visibility::Visible);
     ExitCompactOverlayButton().Visibility(compact || compactRestore_ ? Visibility::Visible : Visibility::Collapsed);
-    ExitCompactOverlayButton().Content(box_value(!compact && compactRestore_ ? L"重试返回播放器" : L"返回播放器"));
+    ExitCompactOverlayButton().Content(box_value(!compact && compactRestore_ ? iima::loc::Text(L"TryAgainToReturnPlayer") : iima::loc::Text(L"BackToPlayer")));
     Root().ColumnDefinitions().GetAt(1).Width(GridLength{compact ? 0.0 : 300.0, GridUnitType::Pixel});
     ApplyMusicLayout(compact);
     UpdatePlaylistMetadata();
@@ -108,8 +108,8 @@ void MainWindow::UpdatePresentationLayout() {
 void MainWindow::ExecuteApplicationCommand(iima::ApplicationCommand command) {
     try {
         if (commandRouter_.Execute(command) != iima::ApplicationCommandRouter::Result::Executed)
-            ShowError(L"此操作当前不可用。");
+            ShowError(iima::loc::Text(L"ThisOperationIsNotCurrentlyAvailable"));
     } catch (hresult_error const& error) { ShowError(error.message()); }
-    catch (...) { ShowError(L"执行操作失败。"); }
+    catch (...) { ShowError(iima::loc::Text(L"ExecuteOperationFailed")); }
 }
 }

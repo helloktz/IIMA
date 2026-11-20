@@ -50,16 +50,16 @@ void MainWindow::ApplyInspectorWatch() {
         name = name.substr(begin, name.find_last_not_of(" \t\r") - begin + 1);
         bool valid = !name.empty() && name.size() <= 128;
         for (unsigned char c : name) if (c <= 32 || c >= 127) valid = false;
-        if (!valid) { InspectorStatusText().Text(L"属性名必须是 1–128 个非空白 ASCII 字符。"); return; }
+        if (!valid) { InspectorStatusText().Text(iima::loc::Text(L"AttributeNameMustBe1To128")); return; }
         if (seen.insert(name).second) names.push_back(name);
-        if (names.size() > 32) { InspectorStatusText().Text(L"最多监视 32 个属性。"); return; }
+        if (names.size() > 32) { InspectorStatusText().Text(iima::loc::Text(L"MaximumOf32PropertiesMonitored")); return; }
     }
     InvalidateInspectorWatch();
     userData_.settings.watchProperties = std::move(names);
     MarkUserDataDirty();
     LoadInspectorWatch();
     InspectorValuesText().Text(L"");
-    InspectorStatusText().Text(L"属性列表已应用；保存结果由设置保存状态显示。");
+    InspectorStatusText().Text(iima::loc::Text(L"AttributeListHasBeenAppliedSavingResults"));
     if (MediaInformationExpander().IsExpanded()) {
         inspectorTimer_.Start();
         RefreshInspectorWatch();
@@ -69,11 +69,11 @@ void MainWindow::RefreshInspectorWatch() {
     if (closing_ || !userDataLoaded_ || !MediaInformationExpander().IsExpanded() || inspectorBusy_) return;
     auto const& state = session_->Snapshot();
     if (userData_.settings.watchProperties.empty()) {
-        InspectorStatusText().Text(L"输入属性名后点击“保存并监视”。");
+        InspectorStatusText().Text(iima::loc::Text(L"EnterTheAttributeNameAndClickSave"));
         InspectorValuesText().Text(L""); return;
     }
     if (state.media != iima::MediaState::Loaded) {
-        InspectorStatusText().Text(L"等待媒体加载。"); InspectorValuesText().Text(L""); return;
+        InspectorStatusText().Text(iima::loc::Text(L"WaitForTheMediaToLoad")); InspectorValuesText().Text(L""); return;
     }
     auto weak = get_weak();
     auto generation = inspectorGeneration_;
@@ -96,11 +96,11 @@ void MainWindow::RefreshInspectorWatch() {
                 text += "\n";
             }
             self->InspectorValuesText().Text(to_hstring(text));
-            self->InspectorStatusText().Text(L"每秒刷新；只读，不将属性值保存到日志或设置。");
+            self->InspectorStatusText().Text(iima::loc::Text(L"RefreshingEverySecondReadOnlyNotSaving"));
         });
     if (!accepted) {
         inspectorBusy_ = false;
-        InspectorStatusText().Text(L"暂时无法读取，稍后重试。");
+        InspectorStatusText().Text(iima::loc::Text(L"NotReadForTheTimeBeingTry"));
     }
 }
 }

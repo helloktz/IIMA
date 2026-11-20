@@ -2,6 +2,7 @@
 param(
     [Parameter(Mandatory)][string]$ApplicationManifest,
     [Parameter(Mandatory)][string]$Generated,
+    [Parameter(Mandatory)][string]$Strings,
     [Parameter(Mandatory)][string]$MakePri,
     [Parameter(Mandatory)][string]$Interactive,
     [Parameter(Mandatory)][string]$Foundation,
@@ -64,12 +65,13 @@ $xbfList = Join-Path $Generated 'xbf.resfiles'
 @('App.xbf','MainWindow.xbf') | Set-Content -LiteralPath $xbfList -Encoding utf8
 
 $escapedRoot = [Security.SecurityElement]::Escape($Generated)
+$escapedStrings = [Security.SecurityElement]::Escape($Strings)
 $escapedPriList = [Security.SecurityElement]::Escape($priList)
 $escapedXbfList = [Security.SecurityElement]::Escape($xbfList)
 $configuration = Join-Path $Generated 'priconfig.xml'
 $qualifiers = @'
     <default>
-      <qualifier name="Language" value="zh-CN" />
+      <qualifier name="Language" value="en-US" />
       <qualifier name="Contrast" value="standard" />
       <qualifier name="Scale" value="200" />
       <qualifier name="HomeRegion" value="001" />
@@ -92,6 +94,11 @@ $qualifiers
 $qualifiers
     <indexer-config type="RESFILES" qualifierDelimiter="." />
     <indexer-config type="EMBEDFILES" />
+  </index>
+  <index root="$escapedStrings" startIndexAt="">
+$qualifiers
+    <indexer-config type="FOLDER" foldernameAsQualifier="true" filenameAsQualifier="false" qualifierDelimiter="." />
+    <indexer-config type="RESW" convertDotsToSlashes="true" initialPath="" />
   </index>
 </resources>
 "@ | Set-Content -LiteralPath $configuration -Encoding utf8

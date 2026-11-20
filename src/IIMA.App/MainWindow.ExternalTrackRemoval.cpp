@@ -17,7 +17,7 @@ hstring SafeRemovalText(std::string const& value,std::size_t limit) {
     }
     if(!result.empty() && result.back()>=0xd800 && result.back()<=0xdbff) result.pop_back();
     return hstring(result);
-    } catch(...) {return L"无法显示该文本";}
+    } catch(...) {return iima::loc::Text(L"CouldNotShowText");}
 }
 }
 namespace winrt::IIMA::implementation {
@@ -69,11 +69,11 @@ winrt::fire_and_forget MainWindow::RemoveInspectedTrack() {
     try {
         Controls::ContentDialog dialog;
         externalRemovalDialog_=dialog;
-        dialog.XamlRoot(Root().XamlRoot());dialog.Title(box_value(L"从播放器移除外部轨道？"));
+        dialog.XamlRoot(Root().XamlRoot());dialog.Title(box_value(iima::loc::Text(L"RemoveExternalTracksFromThePlayer")));
         Controls::TextBlock text;text.TextWrapping(TextWrapping::Wrap);
-        text.Text(L"轨道 "+externalRemovalLabel_+
-            L"\n仅从当前播放器移除，不删除源文件。移除正在使用的音频、视频或字幕可能导致无声音、无画面或字幕消失；不会自动选择替代轨道。\n提交后无法撤回；需要时可重新添加外部文件。");
-        dialog.Content(text);dialog.PrimaryButtonText(L"移除轨道");dialog.CloseButtonText(L"取消");
+        text.Text(iima::loc::Text(L"Orbital2")+externalRemovalLabel_+
+            iima::loc::Text(L"RemovesOnlyFromTheCurrentPlayerAnd"));
+        dialog.Content(text);dialog.PrimaryButtonText(iima::loc::Text(L"RemoveTrack"));dialog.CloseButtonText(iima::loc::Text(L"Cancel"));
         dialog.DefaultButton(Controls::ContentDialogButton::Close);
         dialog.PrimaryButtonClick([&](auto const&,Controls::ContentDialogButtonClickEventArgs const& args) {
             if(!current() || session_->ExternalTrackRemovalBusy() || session_->SubtitleReloadBusy() || session_->SubtitleLoadBusy()) args.Cancel(true);
@@ -86,15 +86,15 @@ winrt::fire_and_forget MainWindow::RemoveInspectedTrack() {
             externalRemovalRevision_=session_->ExternalTrackRemoval().revision+1;
             externalRemovalStarting_=true;
             try {session_->RemoveExternalTrack(track.type,track.id,track.externalPath);}
-            catch(...) {ShowError(L"轨道移除提交发生错误；已提交操作不能撤回，请检查当前轨道。");}
+            catch(...) {ShowError(iima::loc::Text(L"AnErrorOccurredInTheOrbitalRemoval"));}
             externalRemovalStarting_=false;
             if(session_->ExternalTrackRemoval().revision!=externalRemovalRevision_) {
-                externalRemovalRevision_=0;ShowError(L"轨道或播放器状态已变化，未开始移除；请重新选择并确认。");
+                externalRemovalRevision_=0;ShowError(iima::loc::Text(L"OrbitalOrPlayerStatusHasChangedAnd"));
             }
         }
     } catch(...) {
         externalRemovalDialog_=nullptr;pickerOpen_=false;externalRemovalStarting_=false;
-        if(!closing_) ShowError(L"无法显示或完成轨道移除确认，未自动重试。");
+        if(!closing_) ShowError(iima::loc::Text(L"UnableToShowOrCompleteTrackRemoval"));
     }
     if(!closing_) {UpdateExternalTrackRemoval();OpenPendingFiles();FlushActivation();}
 }
@@ -125,19 +125,19 @@ void MainWindow::UpdateExternalTrackRemoval() {
     RemoveInspectedTrackButton().IsEnabled(CanRemoveInspectedTrack());
     CancelExternalRemovalButton().IsEnabled(!closing_ && busy && status.phase!=iima::ExternalTrackRemovalStatus::Phase::Cancelled);
     if(closing_ || !externalRemovalRevision_ || externalRemovalRevision_!=status.revision || wrongMedia) {
-        ExternalRemovalStatus().Text(!closing_ && busy ? L"正在等待已提交的轨道操作结束；不能开始另一笔移除。" : L"");return;
+        ExternalRemovalStatus().Text(!closing_ && busy ? iima::loc::Text(L"WaitingForTheCompletionOfTheSubmitted2") : L"");return;
     }
     using Phase=iima::ExternalTrackRemovalStatus::Phase;
     hstring text;
     switch(status.phase) {
     case Phase::Idle: break;
-    case Phase::Removing:text=L"正在移除并重新读取轨道列表…";break;
-    case Phase::Completed:text=L"已重新读取轨道列表，确认目标外部轨道不再存在。没有删除源文件，也未自动选择替代轨道。";break;
-    case Phase::Cancelled:text=busy ? L"已取消后续确认，等待在途请求结束；移除可能已提交。" : status.removedConfirmed ?
-        L"取消前的移除已提交；重新读取确认原轨道不再存在。没有删除源文件。" : status.submitted ?
-        L"已取消后续确认；移除已提交但结果未确认，不能撤回，请检查当前轨道列表。" : L"已取消，未向播放器提交移除命令。";break;
-    case Phase::Failed:text=status.removedConfirmed ? L"命令报告错误，但重新读取已确认原轨道身份不再存在；不能据此声称命令成功。未自动重试。" :
-        L"轨道操作报告错误；未自动重试，已提交操作不能撤回。";break;
+    case Phase::Removing:text=iima::loc::Text(L"RemovingAndRereadingTrackLists");break;
+    case Phase::Completed:text=iima::loc::Text(L"TheOrbitalListHasBeenRereadTo");break;
+    case Phase::Cancelled:text=busy ? iima::loc::Text(L"FollowUpConfirmationHasBeenCancelledPending2") : status.removedConfirmed ?
+        iima::loc::Text(L"TheRemovalBeforeTheCancellationHasBeen") : status.submitted ?
+        iima::loc::Text(L"FollowUpConfirmationsHaveBeenCancelledRemoval") : iima::loc::Text(L"CanceledNoRemovalOrderSubmittedToPlayer");break;
+    case Phase::Failed:text=status.removedConfirmed ? iima::loc::Text(L"TheCommandReportIsWrongButRereading") :
+        iima::loc::Text(L"OrbitalOperationReportErrorNoAutomaticRe");break;
     }
     if(!text.empty()) text=externalRemovalLabel_+L"："+text;
     if(!status.error.empty()) text = text + L"\n"+SafeRemovalText(status.error,1024);

@@ -1,0 +1,1407 @@
+<?xml version='1.0' encoding='utf-8'?>
+<root>
+  <data name="ABLoopButton.Content" xml:space="preserve">
+    <value>A-B Loop</value>
+  </data>
+  <data name="ABLoopThumbA.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Drag cycle starting point A;does not jump to play location</value>
+  </data>
+  <data name="ABLoopThumbA.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Loop endpoint A. Press Left or Right to adjust by one second.</value>
+  </data>
+  <data name="ABLoopThumbB.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Drag Loop Endpoint B;does not jump to play location</value>
+  </data>
+  <data name="ABLoopThumbB.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Loop endpoint B. Press Left or Right to adjust by one second.</value>
+  </data>
+  <data name="ABPeerAdjustment.Header" xml:space="preserve">
+    <value>A-B peer adjustment</value>
+  </data>
+  <data name="ABPointABox.Header" xml:space="preserve">
+    <value>A points (sec)</value>
+  </data>
+  <data name="ABPointBBox.Header" xml:space="preserve">
+    <value>B points (seconds)</value>
+  </data>
+  <data name="AddBindingRowButton.Content" xml:space="preserve">
+    <value>Append binding</value>
+  </data>
+  <data name="AddChainFilterButton.Content" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="AddPlaylistSubtitleAssociationButton.Content" xml:space="preserve">
+    <value>Linked subtitles…</value>
+  </data>
+  <data name="AdvancedPlayWindowPreferences.Header" xml:space="preserve">
+    <value>Advanced Play &amp; Window Preferences</value>
+  </data>
+  <data name="AdvancedSettingsCategory.Header" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="AdvancedSettingsEnableTheSeparateRetentionAnd.Text" xml:space="preserve">
+    <value>Advanced settings enable the separate retention and copying of screenshots; and use the same chart when enabled. The save format is determined by the screenShotFormat, and PNG is used only for copying. Part of the format requires a codec.</value>
+  </data>
+  <data name="AdvancedSettingsModifiedOnly.Content" xml:space="preserve">
+    <value>Show modified preferences only</value>
+  </data>
+  <data name="AdvancedSettingsSearchBox.Header" xml:space="preserve">
+    <value>Search advanced preferences</value>
+  </data>
+  <data name="AdvancedSettingsSearchBox.PlaceholderText" xml:space="preserve">
+    <value>Preference, mpv option, or category</value>
+  </data>
+  <data name="AligningThePreviousOrTheNextSubtitles.Text" xml:space="preserve">
+    <value>Aligning the previous or the next subtitles to the current video time; embedded subtitles are restricted by pre-read range.</value>
+  </data>
+  <data name="All.Content" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="All2.Content" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="AppendButton.Content" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="AppendFolderItem.Text" xml:space="preserve">
+    <value>Add Folder to Current Queue…</value>
+  </data>
+  <data name="ApplicationMenuBar.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Player Menu</value>
+  </data>
+  <data name="ApplyABPointAButton.Content" xml:space="preserve">
+    <value>Apply a point</value>
+  </data>
+  <data name="ApplyABPointBButton.Content" xml:space="preserve">
+    <value>Apply point B</value>
+  </data>
+  <data name="ApplyAspectButton.Content" xml:space="preserve">
+    <value>Application %1</value>
+  </data>
+  <data name="ApplyAudioEqualizerButton.Content" xml:space="preserve">
+    <value>Apply balanced presets</value>
+  </data>
+  <data name="ApplyCropButton.Content" xml:space="preserve">
+    <value>Apply Crop</value>
+  </data>
+  <data name="ApplyCustomEqualizerButton.Content" xml:space="preserve">
+    <value>Apply Edit Values</value>
+  </data>
+  <data name="ApplyCustomSpeedButton.Content" xml:space="preserve">
+    <value>Apply Speed</value>
+  </data>
+  <data name="ApplyFilterButton.Content" xml:space="preserve">
+    <value>Add or Replace Filters</value>
+  </data>
+  <data name="ApplyRotationButton.Content" xml:space="preserve">
+    <value>Apply rotation</value>
+  </data>
+  <data name="ApplySecondarySubtitleButton.Content" xml:space="preserve">
+    <value>Apply editing parameters</value>
+  </data>
+  <data name="ApplySubtitleBackgroundButton.Content" xml:space="preserve">
+    <value>Apply background colour only</value>
+  </data>
+  <data name="ApplySubtitleColorButton.Content" xml:space="preserve">
+    <value>Apply text colour only</value>
+  </data>
+  <data name="ApplySubtitleEncodingButton.Content" xml:space="preserve">
+    <value>Apply code and reload external subtitles</value>
+  </data>
+  <data name="ApplySubtitleLayoutButton.Content" xml:space="preserve">
+    <value>Apply subtitle position and scaling</value>
+  </data>
+  <data name="ApplySubtitleOutlineButton.Content" xml:space="preserve">
+    <value>Apply border colour and width</value>
+  </data>
+  <data name="ApplySubtitleStyleButton.Content" xml:space="preserve">
+    <value>Apply fonts, fonts and fonts</value>
+  </data>
+  <data name="AspectText.Header" xml:space="preserve">
+    <value>Video ratio (e.g. 16:9)</value>
+  </data>
+  <data name="Audio.Content" xml:space="preserve">
+    <value>Audio</value>
+  </data>
+  <data name="AudioAudio.Content" xml:space="preserve">
+    <value>Audio Audio</value>
+  </data>
+  <data name="AudioBox.Header" xml:space="preserve">
+    <value>Track</value>
+  </data>
+  <data name="AudioBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Track</value>
+  </data>
+  <data name="AudioDelayBox.Header" xml:space="preserve">
+    <value>Audio delay (sec, positive delay)</value>
+  </data>
+  <data name="AudioDeviceBox.Header" xml:space="preserve">
+    <value>Audio Output Device</value>
+  </data>
+  <data name="AudioEqualizerBox.Header" xml:space="preserve">
+    <value>Audio Balance Preset</value>
+  </data>
+  <data name="AutoPlayNextCheck.Content" xml:space="preserve">
+    <value>Automatically play next item</value>
+  </data>
+  <data name="BindingRowAction.Header" xml:space="preserve">
+    <value>Actions (IINA action plus @iina prefix)</value>
+  </data>
+  <data name="BindingRowComment.Header" xml:space="preserve">
+    <value>Inline Comment</value>
+  </data>
+  <data name="BindingRowKey.Header" xml:space="preserve">
+    <value>mpv key name (e.g. Ctrl+o)</value>
+  </data>
+  <data name="BindingRowSearch.Header" xml:space="preserve">
+    <value>Search key, action or comment</value>
+  </data>
+  <data name="BindingRowsList.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Shortcut Bind Row</value>
+  </data>
+  <data name="BindingSnapshotBox.Header" xml:space="preserve">
+    <value>Saved Snapshot</value>
+  </data>
+  <data name="BindingSnapshotName.Header" xml:space="preserve">
+    <value>New or Rename Name</value>
+  </data>
+  <data name="BrightnessSlider.Header" xml:space="preserve">
+    <value>Brightness</value>
+  </data>
+  <data name="BrightnessSlider.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Brightness</value>
+  </data>
+  <data name="BufferingProgress.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Cache Fill %</value>
+  </data>
+  <data name="CancelExternalAudioButton.Content" xml:space="preserve">
+    <value>Unload audio for subsequent confirmation</value>
+  </data>
+  <data name="CancelExternalReloadButton.Content" xml:space="preserve">
+    <value>Cancel track reloading follow-up</value>
+  </data>
+  <data name="CancelExternalRemovalButton.Content" xml:space="preserve">
+    <value>Cancel Follow-up Confirmation</value>
+  </data>
+  <data name="CancelExternalVideoButton.Content" xml:space="preserve">
+    <value>Unload video for subsequent confirmation</value>
+  </data>
+  <data name="CancelHistoryAvailabilityButton.Content" xml:space="preserve">
+    <value>Cancel status check</value>
+  </data>
+  <data name="CancelHistoryDeletionButton.Content" xml:space="preserve">
+    <value>Cancel remaining deletions</value>
+  </data>
+  <data name="CancelKeyRecordingButton.Content" xml:space="preserve">
+    <value>Unclick Entry</value>
+  </data>
+  <data name="CancelNetworkOpenButton.Content" xml:space="preserve">
+    <value>Unload</value>
+  </data>
+  <data name="CancelPlaylistDeletionButton.Content" xml:space="preserve">
+    <value>Cancel remaining deletions</value>
+  </data>
+  <data name="CancelPlaylistPasteButton.Content" xml:space="preserve">
+    <value>Cancel pending paste</value>
+  </data>
+  <data name="CancelSubtitleLoadButton.Content" xml:space="preserve">
+    <value>Unload Follow-Up Subtitles</value>
+  </data>
+  <data name="CancelSubtitleReloadButton.Content" xml:space="preserve">
+    <value>Unload Subsequent Subtitles</value>
+  </data>
+  <data name="CaptureFirstAndSelectPositionTheDirectory.Text" xml:space="preserve">
+    <value>Capture first and select position. The directory is set to save automatically and does not overwrite the file by the same name; the directory is not available to report failure or to select a location. Advanced Settings ScreenShotTemplate supports %F (media name), %n (serial number), %1 (percentage) and does not support any mpv template or path.</value>
+  </data>
+  <data name="ChainFilterExpression.Header" xml:space="preserve">
+    <value>Filter Expression</value>
+  </data>
+  <data name="ChapterBox.Header" xml:space="preserve">
+    <value>Chapter</value>
+  </data>
+  <data name="ChapterBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Chapter</value>
+  </data>
+  <data name="ChooseQuickLutButton.Content" xml:space="preserve">
+    <value>Select and apply Lut…</value>
+  </data>
+  <data name="ChooseScreenshotDirectoryButton.Content" xml:space="preserve">
+    <value>Select a screenshot directory…</value>
+  </data>
+  <data name="ChooseSubtitleBackgroundButton.Content" xml:space="preserve">
+    <value>Select background color…</value>
+  </data>
+  <data name="ChooseSubtitleColorButton.Content" xml:space="preserve">
+    <value>Select Text Colour…</value>
+  </data>
+  <data name="ChooseSubtitleFontButton.Content" xml:space="preserve">
+    <value>Select Local Font…</value>
+  </data>
+  <data name="ChooseSubtitleOutlineColorButton.Content" xml:space="preserve">
+    <value>Select border color…</value>
+  </data>
+  <data name="ClearABLoopButton.Content" xml:space="preserve">
+    <value>Clear A-B</value>
+  </data>
+  <data name="ClearAdvancedSettingsSearchButton.Content" xml:space="preserve">
+    <value>Clear filters</value>
+  </data>
+  <data name="ClearHistoryButton.Content" xml:space="preserve">
+    <value>Clear History</value>
+  </data>
+  <data name="ClearPlaylistButton.Content" xml:space="preserve">
+    <value>Clear</value>
+  </data>
+  <data name="ClearPlaylistSubtitleAssociationButton.Content" xml:space="preserve">
+    <value>Clear link (keep track loaded)</value>
+  </data>
+  <data name="ClearScreenshotDirectoryButton.Content" xml:space="preserve">
+    <value>Clear Directory to Save As</value>
+  </data>
+  <data name="ClearThumbnailCacheButton.Content" xml:space="preserve">
+    <value>Empty Thumbnail Cache…</value>
+  </data>
+  <data name="ClickToLoginToSendAUser.Text" xml:space="preserve">
+    <value>Click to login to send a user name, password and personal API Key to api.opensubtitles.com. Only in this window keep the token back and Key and do not write to disk; leave the manual Key/JWT box empty after login to use the session. Close local sessions and do not automatically send exit requests.</value>
+  </data>
+  <data name="CompactBackButton.Content" xml:space="preserve">
+    <value>−10 seconds</value>
+  </data>
+  <data name="CompactBackButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Ten seconds back.</value>
+  </data>
+  <data name="CompactForwardButton.Content" xml:space="preserve">
+    <value>+10 seconds</value>
+  </data>
+  <data name="CompactForwardButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Ten seconds forward.</value>
+  </data>
+  <data name="CompactOverlayButton.Content" xml:space="preserve">
+    <value>Toggle suspended windows</value>
+  </data>
+  <data name="CompactPauseReturnButton.Content" xml:space="preserve">
+    <value>Pause and return</value>
+  </data>
+  <data name="CompactPlayPauseButton.Content" xml:space="preserve">
+    <value>Play</value>
+  </data>
+  <data name="ConfirmsThatEachCompletedTrackFactSheet.Text" xml:space="preserve">
+    <value>Confirms that each completed track fact sheet contains skippings and does not mean that all subtitles are selected at the same time; failure overlaps with confirmation. Outstanding items include requests in transit and do not mean that they have not yet been submitted.</value>
+  </data>
+  <data name="ContrastSlider.Header" xml:space="preserve">
+    <value>Contrast</value>
+  </data>
+  <data name="ContrastSlider.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Contrast</value>
+  </data>
+  <data name="CopyPlaylistPathsButton.Content" xml:space="preserve">
+    <value>Copy selected paths</value>
+  </data>
+  <data name="CopyPlaylistPathsButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Includes the full URL, which may contain private parameters.</value>
+  </data>
+  <data name="CopyPlaylistUrlsButton.Content" xml:space="preserve">
+    <value>Copy selected URLs</value>
+  </data>
+  <data name="CopySavedFilterButton.Content" xml:space="preserve">
+    <value>Copy the selected preset by name (no shortcuts)</value>
+  </data>
+  <data name="CopyScreenshotButton.Content" xml:space="preserve">
+    <value>Copy video screenshots</value>
+  </data>
+  <data name="CopyTrackInspectionButton.Content" xml:space="preserve">
+    <value>Copy the selected track report</value>
+  </data>
+  <data name="CropAspectText.Header" xml:space="preserve">
+    <value>Moderate (source pixels)</value>
+  </data>
+  <data name="CropHeight.Header" xml:space="preserve">
+    <value>Height</value>
+  </data>
+  <data name="CropWidth.Header" xml:space="preserve">
+    <value>Width</value>
+  </data>
+  <data name="CustomSpeedBox.Header" xml:space="preserve">
+    <value>Exact Speed</value>
+  </data>
+  <data name="CustomSpeedJump.Header" xml:space="preserve">
+    <value>Custom Speed &amp; Jump</value>
+  </data>
+  <data name="CustomSpeedSlider.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>A logarithmic slider.</value>
+  </data>
+  <data name="Customize10ParagraphBalance.Header" xml:space="preserve">
+    <value>Customize 10-paragraph Balance</value>
+  </data>
+  <data name="CutPlaylistPathsButton.Content" xml:space="preserve">
+    <value>Cut selected items</value>
+  </data>
+  <data name="CutPlaylistPathsButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>After copying, removes the items from the playlist. Removing the current item may advance playback.</value>
+  </data>
+  <data name="CycleAudioTrackButton.Content" xml:space="preserve">
+    <value>Switch Next Track</value>
+  </data>
+  <data name="CycleSubtitleTrackButton.Content" xml:space="preserve">
+    <value>Switch to next main subtitle track.</value>
+  </data>
+  <data name="CycleVideoTrackButton.Content" xml:space="preserve">
+    <value>Switch Next Video Track</value>
+  </data>
+  <data name="DefaultAppsButton.Content" xml:space="preserve">
+    <value>Select Windows Default Application…</value>
+  </data>
+  <data name="DeinterlaceCheck.Content" xml:space="preserve">
+    <value>Inverted</value>
+  </data>
+  <data name="DeleteBindingSnapshotButton.Content" xml:space="preserve">
+    <value>Remove Selected Snapshot</value>
+  </data>
+  <data name="DeleteHistoryFilesButton.Content" xml:space="preserve">
+    <value>Delete files…</value>
+  </data>
+  <data name="DeletePlaylistFilesButton.Content" xml:space="preserve">
+    <value>Delete selected files…</value>
+  </data>
+  <data name="DeletePlaylistFilesButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Moves files to the Recycle Bin when possible. Permanent deletion requires confirmation.</value>
+  </data>
+  <data name="DeleteSavedFilterButton.Content" xml:space="preserve">
+    <value>Delete Selected Presets</value>
+  </data>
+  <data name="DeleteUserEqualizerButton.Content" xml:space="preserve">
+    <value>Delete Selected Presets</value>
+  </data>
+  <data name="DiagnosticCategoryBox.Header" xml:space="preserve">
+    <value>Classes (app or playback; blanks are all)</value>
+  </data>
+  <data name="DiagnosticCopyButton.Content" xml:space="preserve">
+    <value>Copy Selected Log</value>
+  </data>
+  <data name="DiagnosticExpander.Header" xml:space="preserve">
+    <value>Diagnostic Log for This Window</value>
+  </data>
+  <data name="DiagnosticFollowBox.Content" xml:space="preserve">
+    <value>Follow the latest line.</value>
+  </data>
+  <data name="DiagnosticList.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Diagnostic Log (Ctrl or Shift to select multiple entries)</value>
+  </data>
+  <data name="DiagnosticLiveBox.Content" xml:space="preserve">
+    <value>Refresh in Real Time</value>
+  </data>
+  <data name="DiagnosticRefreshButton.Content" xml:space="preserve">
+    <value>Read the latest snapshot.</value>
+  </data>
+  <data name="DiagnosticSaveAllButton.Content" xml:space="preserve">
+    <value>Save all snapshots…</value>
+  </data>
+  <data name="DiagnosticSaveFilteredButton.Content" xml:space="preserve">
+    <value>Save Filter Results…</value>
+  </data>
+  <data name="DiagnosticSearchBox.Header" xml:space="preserve">
+    <value>Search message (no case sensitive)</value>
+  </data>
+  <data name="DisableHardwareDecodeButton.Content" xml:space="preserve">
+    <value>Temporary use of software decoding</value>
+  </data>
+  <data name="DismissNetworkOpenButton.Content" xml:space="preserve">
+    <value>Close Hint</value>
+  </data>
+  <data name="DismissScreenshotPreviewButton.Content" xml:space="preserve">
+    <value>Close Preview</value>
+  </data>
+  <data name="DoNotUseTheINAServiceCertificate.Text" xml:space="preserve">
+    <value>Do not use the INA service certificate; OpenSubtitles provide API Key on its own. You can select the following window memory login (without saving passwords). Clicking on the download consumes the service amount, even if it is subsequently cancelled or the file download failed.</value>
+  </data>
+  <data name="DoubleVideoSizeButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Video double size</value>
+  </data>
+  <data name="DownloadedSubtitleBox.Header" xml:space="preserve">
+    <value>Subtitles downloaded from this window</value>
+  </data>
+  <data name="DragControlBar.Text" xml:space="preserve">
+    <value>⋮⋮  Drag Controls</value>
+  </data>
+  <data name="DragsTheEdgeOrCornerPointAdjustment.Text" xml:space="preserve">
+    <value>Drags the edge or corner point adjustment; drags internally; drags externally to create a new one. Enter confirms that Esc cancels.</value>
+  </data>
+  <data name="EditNetworkOpenButton.Content" xml:space="preserve">
+    <value>Edit Address</value>
+  </data>
+  <data name="EditShortcutsLineByLine.Header" xml:space="preserve">
+    <value>Edit Shortcuts Line by Line</value>
+  </data>
+  <data name="EmptyLabel.Text" xml:space="preserve">
+    <value>Open a video to start playback</value>
+  </data>
+  <data name="ExitCompactOverlayButton.Content" xml:space="preserve">
+    <value>Back to Player</value>
+  </data>
+  <data name="ExportKeyBindingsButton.Content" xml:space="preserve">
+    <value>Export input.conf</value>
+  </data>
+  <data name="Fast3DLut.Header" xml:space="preserve">
+    <value>Fast 3D Lut</value>
+  </data>
+  <data name="Filename.Content" xml:space="preserve">
+    <value>Filename</value>
+  </data>
+  <data name="FilterChainView.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Current Filter</value>
+  </data>
+  <data name="FilterPresetBox.Header" xml:space="preserve">
+    <value>Current Chain Available Presets</value>
+  </data>
+  <data name="FilterTypeBox.Header" xml:space="preserve">
+    <value>Filter Chain</value>
+  </data>
+  <data name="FitVideoSizeButton.Content" xml:space="preserve">
+    <value>The image fits the workspace.</value>
+  </data>
+  <data name="FlipVideoButton.Content" xml:space="preserve">
+    <value>Flip-up/down: state unknown</value>
+  </data>
+  <data name="FullPath.Content" xml:space="preserve">
+    <value>Full Path</value>
+  </data>
+  <data name="FullView.Content" xml:space="preserve">
+    <value>Full view.</value>
+  </data>
+  <data name="FullscreenButton.Content" xml:space="preserve">
+    <value>Fullscreen</value>
+  </data>
+  <data name="FullscreenClockText.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Current local time</value>
+  </data>
+  <data name="GenerateFilterPresetButton.Content" xml:space="preserve">
+    <value>Generate and replace the bottom expression</value>
+  </data>
+  <data name="GenerateFiltersByPresetIINA.Header" xml:space="preserve">
+    <value>Generate filters by preset IINA</value>
+  </data>
+  <data name="HalfVideoSizeButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Video Half Size</value>
+  </data>
+  <data name="History.Text" xml:space="preserve">
+    <value>History</value>
+  </data>
+  <data name="HistoryGroupingBox.Header" xml:space="preserve">
+    <value>Group history by</value>
+  </data>
+  <data name="HistorySearchScopeBox.Header" xml:space="preserve">
+    <value>Search scope</value>
+  </data>
+  <data name="HistorySearchText.PlaceholderText" xml:space="preserve">
+    <value>Search history</value>
+  </data>
+  <data name="HistoryView.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Playback history</value>
+  </data>
+  <data name="HueSlider.Header" xml:space="preserve">
+    <value>Colour</value>
+  </data>
+  <data name="HueSlider.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Colour</value>
+  </data>
+  <data name="ImageAdjustment.Header" xml:space="preserve">
+    <value>Image Adjustment</value>
+  </data>
+  <data name="ImportKeyBindingsButton.Content" xml:space="preserve">
+    <value>Import input.conf</value>
+  </data>
+  <data name="InitialOpenFileButton.Content" xml:space="preserve">
+    <value>Open File…</value>
+  </data>
+  <data name="InitialOpenUrlButton.Content" xml:space="preserve">
+    <value>Open URL…</value>
+  </data>
+  <data name="InputConfFormatEffectiveImmediatelyAfterSaving.Text" xml:space="preserve">
+    <value>Input.conf format. Effective immediately after saving; leave empty to cancel all shortcuts.</value>
+  </data>
+  <data name="InspectorApplyButton.Content" xml:space="preserve">
+    <value>Save and monitor</value>
+  </data>
+  <data name="InspectorNamesBox.Header" xml:space="preserve">
+    <value>One attribute name per line (maximum 32 items)</value>
+  </data>
+  <data name="InteractiveCropAspect.Header" xml:space="preserve">
+    <value>Centred</value>
+  </data>
+  <data name="InteractiveCropAspectButton.Content" xml:space="preserve">
+    <value>Apply ratio to draft</value>
+  </data>
+  <data name="InteractiveCropCancelButton.Content" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="InteractiveCropConfirmButton.Content" xml:space="preserve">
+    <value>Confirm Crop</value>
+  </data>
+  <data name="InteractiveCropHeight.Header" xml:space="preserve">
+    <value>High (source pixels)</value>
+  </data>
+  <data name="InteractiveCropNumbersButton.Content" xml:space="preserve">
+    <value>Update the draft coordinates</value>
+  </data>
+  <data name="InteractiveCropResume.Content" xml:space="preserve">
+    <value>Restore pre-play state on exit</value>
+  </data>
+  <data name="InteractiveCropTitle.Text" xml:space="preserve">
+    <value>Interactive Crop</value>
+  </data>
+  <data name="InteractiveCropWidth.Header" xml:space="preserve">
+    <value>Width (source pixels)</value>
+  </data>
+  <data name="InteractiveCropX.Header" xml:space="preserve">
+    <value>X (source pixels)</value>
+  </data>
+  <data name="InteractiveCropY.Header" xml:space="preserve">
+    <value>Y (source pixels)</value>
+  </data>
+  <data name="InteractiveDelogoRemoveButton.Content" xml:space="preserve">
+    <value>Remove original sign filter</value>
+  </data>
+  <data name="InterfaceInterface.Content" xml:space="preserve">
+    <value>Interface Interface</value>
+  </data>
+  <data name="JumpToBeginningButton.Content" xml:space="preserve">
+    <value>Jump to the beginning</value>
+  </data>
+  <data name="JumpToTimeButton.Content" xml:space="preserve">
+    <value>Jump to Time…</value>
+  </data>
+  <data name="KeyRecordingSurface.Header" xml:space="preserve">
+    <value>Area recorded by key</value>
+  </data>
+  <data name="KeyRecordingSurface.PlaceholderText" xml:space="preserve">
+    <value>First click the recorded button, then press the key.</value>
+  </data>
+  <data name="KeyRecordingSurface.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Shortcut Entry, only current focus valid</value>
+  </data>
+  <data name="LargerSubtitleButton.Content" xml:space="preserve">
+    <value>Subtitle Zoom in.</value>
+  </data>
+  <data name="LineEditingIsAStandAloneDraft.Text" xml:space="preserve">
+    <value>Line editing is a stand-alone draft. Generates a standardized text, leaving only the comments in the line; please first export the original language that you want to retain.</value>
+  </data>
+  <data name="LoadABDraftButton.Content" xml:space="preserve">
+    <value>Read the current peer</value>
+  </data>
+  <data name="LoadBindingRowsButton.Content" xml:space="preserve">
+    <value>Read and replace line drafts from text</value>
+  </data>
+  <data name="LoadBindingSnapshotButton.Content" xml:space="preserve">
+    <value>Load selected and replace edit area</value>
+  </data>
+  <data name="LoadCropSizeButton.Content" xml:space="preserve">
+    <value>Read the current video size</value>
+  </data>
+  <data name="LoadExternalAudioButton.Content" xml:space="preserve">
+    <value>Loading external audio…</value>
+  </data>
+  <data name="LoadExternalAudioButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Load and select external tracks for the current media, possibly replacing sound; do not play proactively and do not change queues</value>
+  </data>
+  <data name="LoadExternalVideoButton.Content" xml:space="preserve">
+    <value>Load External Video…</value>
+  </data>
+  <data name="LoadExternalVideoButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Load and select external video of the current media, possibly replacing the display; no automatic play and no change of queue</value>
+  </data>
+  <data name="LoadObservedEqualizerButton.Content" xml:space="preserve">
+    <value>Read the current balance</value>
+  </data>
+  <data name="LoadSecondarySubtitleButton.Content" xml:space="preserve">
+    <value>Read the current parameter</value>
+  </data>
+  <data name="LoadUserEqualizerButton.Content" xml:space="preserve">
+    <value>Load Editor</value>
+  </data>
+  <data name="LocalPreviewsAreSavedInTheCurrent.Text" xml:space="preserve">
+    <value>Local previews are saved in the current user cache directory. Advanced option maxThumbnailPreviewCacheSize is miB,0 to disable disk caches.</value>
+  </data>
+  <data name="LocationOfTheFile.Content" xml:space="preserve">
+    <value>Location of the file</value>
+  </data>
+  <data name="MatchSubtitleButton.Content" xml:space="preserve">
+    <value>Matching Directory Subtitles</value>
+  </data>
+  <data name="MaxVolumeBox.Header" xml:space="preserve">
+    <value>Volume Maximum</value>
+  </data>
+  <data name="MediaInformationExpander.Header" xml:space="preserve">
+    <value>Media information</value>
+  </data>
+  <data name="MirrorVideoButton.Content" xml:space="preserve">
+    <value>Left and right mirror: state unknown</value>
+  </data>
+  <data name="MoreOpens.Content" xml:space="preserve">
+    <value>More Opens</value>
+  </data>
+  <data name="MoreOpens.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>More Opens</value>
+  </data>
+  <data name="MoveBindingRowDownButton.Content" xml:space="preserve">
+    <value>Move Down</value>
+  </data>
+  <data name="MoveBindingRowUpButton.Content" xml:space="preserve">
+    <value>Move Up</value>
+  </data>
+  <data name="MoveChainFilterDownButton.Content" xml:space="preserve">
+    <value>Move Down</value>
+  </data>
+  <data name="MoveChainFilterUpButton.Content" xml:space="preserve">
+    <value>Move Up</value>
+  </data>
+  <data name="MoveDownButton.Content" xml:space="preserve">
+    <value>Move Down</value>
+  </data>
+  <data name="MoveSavedFilterDownButton.Content" xml:space="preserve">
+    <value>Preset Move Down</value>
+  </data>
+  <data name="MoveSavedFilterUpButton.Content" xml:space="preserve">
+    <value>Preset Move Up</value>
+  </data>
+  <data name="MoveUpButton.Content" xml:space="preserve">
+    <value>Move Up</value>
+  </data>
+  <data name="MpvLogCaptureLevel.Header" xml:space="preserve">
+    <value>Level of detail in collection (effective at inception)</value>
+  </data>
+  <data name="MpvLogClearButton.Content" xml:space="preserve">
+    <value>Empty the original log of this window</value>
+  </data>
+  <data name="MpvLogCopyButton.Content" xml:space="preserve">
+    <value>Copy selected original log (possibly containing private information)</value>
+  </data>
+  <data name="MpvLogDisplayLevel.Header" xml:space="preserve">
+    <value>Show level (includes more serious messages)</value>
+  </data>
+  <data name="MpvLogExpander.Header" xml:space="preserve">
+    <value>Original mpv log (manually enabled)</value>
+  </data>
+  <data name="MpvLogExportButton.Content" xml:space="preserve">
+    <value>Export Filter Snapshot (possibly containing private information)…</value>
+  </data>
+  <data name="MpvLogList.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Original mpv log</value>
+  </data>
+  <data name="MpvLogLive.Content" xml:space="preserve">
+    <value>Refresh in real time while expanding</value>
+  </data>
+  <data name="MpvLogPrefix.Header" xml:space="preserve">
+    <value>Source prefix (exact match; empty as all)</value>
+  </data>
+  <data name="MpvLogRefreshButton.Content" xml:space="preserve">
+    <value>Read the latest snapshot.</value>
+  </data>
+  <data name="MpvLogSearch.Header" xml:space="preserve">
+    <value>Search message (no case sensitive)</value>
+  </data>
+  <data name="MpvLogStartButton.Content" xml:space="preserve">
+    <value>Start collecting original logs</value>
+  </data>
+  <data name="MpvLogStopButton.Content" xml:space="preserve">
+    <value>Stop collecting and keep a snapshot.</value>
+  </data>
+  <data name="MpvPropertiesWatch.Text" xml:space="preserve">
+    <value>mpv Properties Watch</value>
+  </data>
+  <data name="MusicModeButton.Content" xml:space="preserve">
+    <value>Music Mode</value>
+  </data>
+  <data name="MusicMuteButton.Content" xml:space="preserve">
+    <value>Mute</value>
+  </data>
+  <data name="MusicPlaylistButton.Content" xml:space="preserve">
+    <value>Show Playlist</value>
+  </data>
+  <data name="MusicReturnButton.Content" xml:space="preserve">
+    <value>Back to Player</value>
+  </data>
+  <data name="MusicVolumeButton.Content" xml:space="preserve">
+    <value>Volume</value>
+  </data>
+  <data name="MusicVolumeSlider.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Music Mode Volume</value>
+  </data>
+  <data name="MusicVolumeValue.Text" xml:space="preserve">
+    <value>Not Available</value>
+  </data>
+  <data name="MusicVolumeValue.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Watch Volume</value>
+  </data>
+  <data name="MuteCheck.Content" xml:space="preserve">
+    <value>Mute</value>
+  </data>
+  <data name="NameProfileSaveTheEditingAreaAs.Text" xml:space="preserve">
+    <value>Name Profile: Save the editing area as a snapshot; load only the replacement editing area and need to save and apply it separately. The empty editing area can be saved as an empty configuration.</value>
+  </data>
+  <data name="Network.Content" xml:space="preserve">
+    <value>Network</value>
+  </data>
+  <data name="NewWindowButton.Content" xml:space="preserve">
+    <value>New Window</value>
+  </data>
+  <data name="NextButton.Content" xml:space="preserve">
+    <value>Next</value>
+  </data>
+  <data name="NextChapterButton.Content" xml:space="preserve">
+    <value>Next Chapter</value>
+  </data>
+  <data name="NextSecondaryTimingButton.Content" xml:space="preserve">
+    <value>Align Next Secondary Subtitle</value>
+  </data>
+  <data name="NextSubtitleButton.Content" xml:space="preserve">
+    <value>Next Subtitle</value>
+  </data>
+  <data name="NextSubtitleTimingButton.Content" xml:space="preserve">
+    <value>Align Next Subtitle</value>
+  </data>
+  <data name="NextWindowButton.Content" xml:space="preserve">
+    <value>Next Window</value>
+  </data>
+  <data name="NormalWindowModeDownsizesProportionallyWhenYou.Text" xml:space="preserve">
+    <value>Normal window mode; downsizes proportionally when you go beyond the screen, taking into account the border and the sidebar.</value>
+  </data>
+  <data name="OneHalfVideoSizeButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>The video is 1.5 times the size.</value>
+  </data>
+  <data name="OnlineSubtitleApiKeyBox.Header" xml:space="preserve">
+    <value>OpenSubtitles Personal API Key</value>
+  </data>
+  <data name="OnlineSubtitleCancelButton.Content" xml:space="preserve">
+    <value>Cancel and clear tokens</value>
+  </data>
+  <data name="OnlineSubtitleDownloadButton.Content" xml:space="preserve">
+    <value>Download and load selected results</value>
+  </data>
+  <data name="OnlineSubtitleExpander.Header" xml:space="preserve">
+    <value>Subtitles online</value>
+  </data>
+  <data name="OnlineSubtitleHashCheck.Content" xml:space="preserve">
+    <value>OpenSubtitles: Send the current local video Hash to improve matchability</value>
+  </data>
+  <data name="OnlineSubtitleLanguageBox.Header" xml:space="preserve">
+    <value>OpenSubtitles language code (e. g. en, zh-cn, leave empty)</value>
+  </data>
+  <data name="OnlineSubtitleProviderBox.Header" xml:space="preserve">
+    <value>Services</value>
+  </data>
+  <data name="OnlineSubtitleQueryBox.Header" xml:space="preserve">
+    <value>Search Words (modifiable)</value>
+  </data>
+  <data name="OnlineSubtitleResultsView.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Online subtitle search results</value>
+  </data>
+  <data name="OnlineSubtitleSearchButton.Content" xml:space="preserve">
+    <value>Send queries</value>
+  </data>
+  <data name="OnlineSubtitleTokenBox.Header" xml:space="preserve">
+    <value>Assrt token / OpenSubtitles JWT (optional)</value>
+  </data>
+  <data name="OnlineSubtitleUseTitleButton.Content" xml:space="preserve">
+    <value>Fill in current filename</value>
+  </data>
+  <data name="OnlyExternalTextSubtitlesAreAffectedEmbedded.Text" xml:space="preserve">
+    <value>Only external text subtitles are affected; embedded or graphic subtitles are not applicable. Automatic detection and available coding depend on the player's build.</value>
+  </data>
+  <data name="OnlyIndividualLocalMediaEntriesAreSupported.Text" xml:space="preserve">
+    <value>Only individual local media entries are supported; changes are effective when the entry is next played, and are not saved to disk. Clearing links does not unmount the current subtitles or disable mpv loading; the current track is adjusted in the subtitle menu.</value>
+  </data>
+  <data name="OnlyTheLatest1024DiagnosesAreRetained.Text" xml:space="preserve">
+    <value>Only the latest 1024 diagnoses are retained, excluding the complete mpv log; this window does not add media path collections.</value>
+  </data>
+  <data name="OpenButton.Content" xml:space="preserve">
+    <value>Open File</value>
+  </data>
+  <data name="OpenButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Open File</value>
+  </data>
+  <data name="OpenFileAlternativeItem.Text" xml:space="preserve">
+    <value>Invert Window Prefer Open File…</value>
+  </data>
+  <data name="OpenFolderAlternativeItem.Text" xml:space="preserve">
+    <value>Invert Window Prefer to Open Folder…</value>
+  </data>
+  <data name="OpenFolderItem.Text" xml:space="preserve">
+    <value>Open Folder…</value>
+  </data>
+  <data name="OpenHistoryButton.Content" xml:space="preserve">
+    <value>Play in Current Window</value>
+  </data>
+  <data name="OpenHistoryNewWindowButton.Content" xml:space="preserve">
+    <value>Play in New Window</value>
+  </data>
+  <data name="OpenPlaylistBrowserButton.Content" xml:space="preserve">
+    <value>Open URL in Browser</value>
+  </data>
+  <data name="OpenPlaylistBrowserButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Opens one selected HTTP or HTTPS URL in the default browser.</value>
+  </data>
+  <data name="OpenScreenshotPreviewButton.Content" xml:space="preserve">
+    <value>Open Picture</value>
+  </data>
+  <data name="OpenSubAccountStatus.Text" xml:space="preserve">
+    <value>No login; manual API Key/JWT search is still available.</value>
+  </data>
+  <data name="OpenSubCancelLoginButton.Content" xml:space="preserve">
+    <value>Cancel waiting account request</value>
+  </data>
+  <data name="OpenSubLoginButton.Content" xml:space="preserve">
+    <value>Send certificates and login OpenSubtitles</value>
+  </data>
+  <data name="OpenSubLogoutButton.Content" xml:space="preserve">
+    <value>Clear local session and request the server to exit</value>
+  </data>
+  <data name="OpenSubPasswordBox.Header" xml:space="preserve">
+    <value>OpenSubtitles password (for this login only)</value>
+  </data>
+  <data name="OpenSubUsernameBox.Header" xml:space="preserve">
+    <value>OpenSubtitles username (optional login)</value>
+  </data>
+  <data name="OpenUrlAlternativeItem.Text" xml:space="preserve">
+    <value>Invert Window Prefers to Open Web Media…</value>
+  </data>
+  <data name="OpenUrlButton.Content" xml:space="preserve">
+    <value>Open Web Media…</value>
+  </data>
+  <data name="OrbitalOperations.Text" xml:space="preserve">
+    <value>Track Operations</value>
+  </data>
+  <data name="OriginalVideoSizeButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Original size of video</value>
+  </data>
+  <data name="OscDragHandle.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Drag floating playback controls</value>
+  </data>
+  <data name="OscLeftButton.Content" xml:space="preserve">
+    <value>Slow Down</value>
+  </data>
+  <data name="OscRightButton.Content" xml:space="preserve">
+    <value>Speed Up</value>
+  </data>
+  <data name="ParametersWillNotBeAutomaticallyOverwritedIn.Text" xml:space="preserve">
+    <value>Parameters will not be automatically overwritten in the editing. Read the current value first. Positions above 100 may cut the subtitles.</value>
+  </data>
+  <data name="PastePlaylistPathsButton.Content" xml:space="preserve">
+    <value>Paste Files or URLs</value>
+  </data>
+  <data name="PastePlaylistPathsButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Paste files or folders from File Explorer, or one absolute path or URL per line.</value>
+  </data>
+  <data name="PauseButton.Content" xml:space="preserve">
+    <value>Play</value>
+  </data>
+  <data name="PauseWhenOpenCheck.Content" xml:space="preserve">
+    <value>Pause after Open</value>
+  </data>
+  <data name="PlayControlBarToolButton.Header" xml:space="preserve">
+    <value>Playback toolbar buttons</value>
+  </data>
+  <data name="PlaySelectedButton.Content" xml:space="preserve">
+    <value>Play</value>
+  </data>
+  <data name="PlaySelectedNewWindowButton.Content" xml:space="preserve">
+    <value>Play selected in a new window</value>
+  </data>
+  <data name="Playlist.Text" xml:space="preserve">
+    <value>Playlist</value>
+  </data>
+  <data name="PlaylistDurationHint.Text" xml:space="preserve">
+    <value>Reads the first 128 items and up to 32 selected items. Local media files only.</value>
+  </data>
+  <data name="PlaylistDurationSummary.Text" xml:space="preserve">
+    <value>Duration unknown</value>
+  </data>
+  <data name="PlaylistSelectionText.Text" xml:space="preserve">
+    <value>No items selected. Use Ctrl or Shift to select multiple items.</value>
+  </data>
+  <data name="PlaylistSubtitleAssociationList.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Subtitle paths linked to selected items</value>
+  </data>
+  <data name="PlaylistSubtitleAssociationStatus.Text" xml:space="preserve">
+    <value>Select a playlist item.</value>
+  </data>
+  <data name="PlaylistView.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Playlist. Use Ctrl or Shift to select multiple items. Drag to reorder.</value>
+  </data>
+  <data name="PositionSlider.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Playback Position</value>
+  </data>
+  <data name="PrepareCropAspectButton.Content" xml:space="preserve">
+    <value>Generate proportional drafts</value>
+  </data>
+  <data name="PresetEditsDoNotChangeTheCurrent.Text" xml:space="preserve">
+    <value>Preset edits do not change the current filter chain. Undo only the latest editing of this window.</value>
+  </data>
+  <data name="PreviousButton.Content" xml:space="preserve">
+    <value>Previous</value>
+  </data>
+  <data name="PreviousChapterButton.Content" xml:space="preserve">
+    <value>Previous Chapter</value>
+  </data>
+  <data name="PreviousSecondaryTimingButton.Content" xml:space="preserve">
+    <value>Align Previous Secondary Subtitle</value>
+  </data>
+  <data name="PreviousSubtitleButton.Content" xml:space="preserve">
+    <value>Previous Subtitle</value>
+  </data>
+  <data name="PreviousSubtitleTimingButton.Content" xml:space="preserve">
+    <value>Align Previous Subtitle</value>
+  </data>
+  <data name="QueueSelectedNextButton.Content" xml:space="preserve">
+    <value>Play Selected Next</value>
+  </data>
+  <data name="RecentPlayDate.Content" xml:space="preserve">
+    <value>Recent Play Date</value>
+  </data>
+  <data name="RecentlyPlayed.Text" xml:space="preserve">
+    <value>Recently Played</value>
+  </data>
+  <data name="RecordHistoryCheck.Content" xml:space="preserve">
+    <value>Record playback history</value>
+  </data>
+  <data name="RefreshHistoryAvailabilityButton.Content" xml:space="preserve">
+    <value>Refresh File Status</value>
+  </data>
+  <data name="RefreshPlaylistDurationsButton.Content" xml:space="preserve">
+    <value>Refresh Durations and Tags</value>
+  </data>
+  <data name="RefreshPlaylistDurationsButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>Refreshes cached durations, titles, and artists.</value>
+  </data>
+  <data name="RegisterAssociationsButton.Content" xml:space="preserve">
+    <value>Register as optional player</value>
+  </data>
+  <data name="RegistrationDoesNotChangeTheDefaultApplication.Text" xml:space="preserve">
+    <value>Registration does not change the default application; the mobile player directory needs to be re-registered.</value>
+  </data>
+  <data name="RelativeSeekBackButton.Content" xml:space="preserve">
+    <value>Five seconds back.</value>
+  </data>
+  <data name="RelativeSeekBackButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>FollowuseExactSeek:relative/exact/auto</value>
+  </data>
+  <data name="RelativeSeekForwardButton.Content" xml:space="preserve">
+    <value>Five seconds forward.</value>
+  </data>
+  <data name="RelativeSeekForwardButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>FollowuseExactSeek:relative/exact/auto</value>
+  </data>
+  <data name="ReloadInspectedTrackButton.Content" xml:space="preserve">
+    <value>Reload selected external audio and video tracks…</value>
+  </data>
+  <data name="ReloadSubtitlesButton.Content" xml:space="preserve">
+    <value>Reload external subtitles</value>
+  </data>
+  <data name="RemoveAudioEqualizerButton.Content" xml:space="preserve">
+    <value>Remove Audio Balance</value>
+  </data>
+  <data name="RemoveBindingRowButton.Content" xml:space="preserve">
+    <value>Remove selected binding</value>
+  </data>
+  <data name="RemoveButton.Content" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+  <data name="RemoveChainFilterButton.Content" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+  <data name="RemoveFilterButton.Content" xml:space="preserve">
+    <value>Remove Filter</value>
+  </data>
+  <data name="RemoveHistoryButton.Content" xml:space="preserve">
+    <value>Remove Selected</value>
+  </data>
+  <data name="RemoveInspectedTrackButton.Content" xml:space="preserve">
+    <value>Remove the selected external track…</value>
+  </data>
+  <data name="RemoveQuickLutButton.Content" xml:space="preserve">
+    <value>Remove Shortcuts</value>
+  </data>
+  <data name="RenameBindingSnapshotButton.Content" xml:space="preserve">
+    <value>Rename Selected Snapshot</value>
+  </data>
+  <data name="RenameUserEqualizerButton.Content" xml:space="preserve">
+    <value>Rename Selection Preset</value>
+  </data>
+  <data name="RepeatModeBox.Header" xml:space="preserve">
+    <value>Play Loop</value>
+  </data>
+  <data name="ReplaceBindingRowButton.Content" xml:space="preserve">
+    <value>Replace selected binding</value>
+  </data>
+  <data name="ReplaceChainFilterButton.Content" xml:space="preserve">
+    <value>Replace Selection</value>
+  </data>
+  <data name="ResetAspectButton.Content" xml:space="preserve">
+    <value>Original %1</value>
+  </data>
+  <data name="ResetBrightnessButton.Content" xml:space="preserve">
+    <value>Reset Brightness</value>
+  </data>
+  <data name="ResetContrastButton.Content" xml:space="preserve">
+    <value>Reset Contrast</value>
+  </data>
+  <data name="ResetCropButton.Content" xml:space="preserve">
+    <value>Remove Crop</value>
+  </data>
+  <data name="ResetCustomSpeedButton.Content" xml:space="preserve">
+    <value>Get back to normal speed.</value>
+  </data>
+  <data name="ResetFilterPresetButton.Content" xml:space="preserve">
+    <value>Restore the default parameter for this preset</value>
+  </data>
+  <data name="ResetGammaButton.Content" xml:space="preserve">
+    <value>Reset Gamma</value>
+  </data>
+  <data name="ResetHueButton.Content" xml:space="preserve">
+    <value>Reset Color</value>
+  </data>
+  <data name="ResetKeyBindingsButton.Content" xml:space="preserve">
+    <value>Restore Windows Default Shortcuts</value>
+  </data>
+  <data name="ResetSaturationButton.Content" xml:space="preserve">
+    <value>Reset saturation</value>
+  </data>
+  <data name="ResetSecondaryDelayButton.Content" xml:space="preserve">
+    <value>Reset Subtitle Delay</value>
+  </data>
+  <data name="ResetSubtitleScaleButton.Content" xml:space="preserve">
+    <value>Original %1</value>
+  </data>
+  <data name="RestoreHardwareDecodeButton.Content" xml:space="preserve">
+    <value>Restore saved decoding preferences</value>
+  </data>
+  <data name="ResumeCheck.Content" xml:space="preserve">
+    <value>Continue from Last Location</value>
+  </data>
+  <data name="RetryNetworkOpenButton.Content" xml:space="preserve">
+    <value>Retry</value>
+  </data>
+  <data name="RevealFileButton.Content" xml:space="preserve">
+    <value>Show in Resource Manager</value>
+  </data>
+  <data name="RevealHistoryButton.Content" xml:space="preserve">
+    <value>Show in File Explorer</value>
+  </data>
+  <data name="RevealPlaylistButton.Content" xml:space="preserve">
+    <value>Show Selected Files</value>
+  </data>
+  <data name="RevealScreenshotPreviewButton.Content" xml:space="preserve">
+    <value>Position File</value>
+  </data>
+  <data name="RotationBox.Header" xml:space="preserve">
+    <value>Rotation angle</value>
+  </data>
+  <data name="SaturationSlider.Header" xml:space="preserve">
+    <value>Saturation</value>
+  </data>
+  <data name="SaturationSlider.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Saturation</value>
+  </data>
+  <data name="SaveBindingSnapshotButton.Content" xml:space="preserve">
+    <value>Save Edit Area as New Snapshot</value>
+  </data>
+  <data name="SaveCurrentChainFilterButton.Content" xml:space="preserve">
+    <value>Save the currently selected filter</value>
+  </data>
+  <data name="SaveKeyBindingsButton.Content" xml:space="preserve">
+    <value>Save and apply</value>
+  </data>
+  <data name="SaveNewFilterButton.Content" xml:space="preserve">
+    <value>Save expression presets</value>
+  </data>
+  <data name="SaveOnlineSubtitleButton.Content" xml:space="preserve">
+    <value>Save selected subtitles as…</value>
+  </data>
+  <data name="SavePlaylistButton.Content" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="SaveScreenshotAsButton.Content" xml:space="preserve">
+    <value>Save screenshot as…</value>
+  </data>
+  <data name="SaveUserEqualizerButton.Content" xml:space="preserve">
+    <value>Save Preset</value>
+  </data>
+  <data name="SavedFilterKey.Header" xml:space="preserve">
+    <value>Shortcut keys (e.g. F6, leave empty)</value>
+  </data>
+  <data name="SavedFilterName.Header" xml:space="preserve">
+    <value>Preset Name</value>
+  </data>
+  <data name="SavedFilters.Header" xml:space="preserve">
+    <value>Saved Filters</value>
+  </data>
+  <data name="ScreenshotButton.Content" xml:space="preserve">
+    <value>Screenshot (output by preference)</value>
+  </data>
+  <data name="ScreenshotModeBox.Header" xml:space="preserve">
+    <value>Caption content</value>
+  </data>
+  <data name="ScreenshotPreview.Text" xml:space="preserve">
+    <value>Screenshot Preview</value>
+  </data>
+  <data name="ScreenshotPreviewImage.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Just completed screenshot preview</value>
+  </data>
+  <data name="ScreenshotSaveLocation.Header" xml:space="preserve">
+    <value>Screenshot Save Location</value>
+  </data>
+  <data name="SearchToSendQueryWordsLanguageAnd.Text" xml:space="preserve">
+    <value>Search to send query words, language, and documents to the selected service. OpenSubtitles select video Hashi; Shooter must send four MD5 fingerprints and query words from the current local video, without sending the full path. No media files are available; downloads only HTTPS links under service domain names if they are not saved.</value>
+  </data>
+  <data name="SecondarySubtitleBox.Header" xml:space="preserve">
+    <value>Subtitle Track</value>
+  </data>
+  <data name="SecondarySubtitleDelayBox.Header" xml:space="preserve">
+    <value>Delay (s)</value>
+  </data>
+  <data name="SecondarySubtitlePositionBox.Header" xml:space="preserve">
+    <value>Position (top 0, bottom 100)</value>
+  </data>
+  <data name="SecondarySubtitleScaleBox.Header" xml:space="preserve">
+    <value>Scale</value>
+  </data>
+  <data name="SecondarySubtitles.Header" xml:space="preserve">
+    <value>Secondary Subtitles</value>
+  </data>
+  <data name="SecondarySubtitlesVisibleCheck.Content" xml:space="preserve">
+    <value>Show Subtitles</value>
+  </data>
+  <data name="SelectToUseOnlyViewWithoutSwitching.Text" xml:space="preserve">
+    <value>Select to use only view, without switching the play track. The report may contain private information, such as the path of the external file; only the track observed by this window player is shown.</value>
+  </data>
+  <data name="SetTheEndpointsWithABLoop.Text" xml:space="preserve">
+    <value>Set the endpoints with A–B Loop, then read and adjust each time in seconds. A can follow B.</value>
+  </data>
+  <data name="ShortcutConfiguration.Header" xml:space="preserve">
+    <value>Shortcut Configuration</value>
+  </data>
+  <data name="ShufflePlaylistButton.Content" xml:space="preserve">
+    <value>Shuffle</value>
+  </data>
+  <data name="SmallerSubtitleButton.Content" xml:space="preserve">
+    <value>Subtitle Zoom Out</value>
+  </data>
+  <data name="SortPlaylistButton.Content" xml:space="preserve">
+    <value>Sort</value>
+  </data>
+  <data name="SourcePixelCropping.Header" xml:space="preserve">
+    <value>Source pixel cropping</value>
+  </data>
+  <data name="SpeedBox.Header" xml:space="preserve">
+    <value>Play speed</value>
+  </data>
+  <data name="SpeedBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Play speed</value>
+  </data>
+  <data name="StartInteractiveCropButton.Content" xml:space="preserve">
+    <value>Interact cropping on video…</value>
+  </data>
+  <data name="StartInteractiveDelogoButton.Content" xml:space="preserve">
+    <value>Select on video to mark the area…</value>
+  </data>
+  <data name="StartKeyRecordingButton.Content" xml:space="preserve">
+    <value>Enter a combination of keys</value>
+  </data>
+  <data name="StartPlayback.Text" xml:space="preserve">
+    <value>Start Playback</value>
+  </data>
+  <data name="StatusText.Text" xml:space="preserve">
+    <value>Starting the player…</value>
+  </data>
+  <data name="StepBackButton.Content" xml:space="preserve">
+    <value>Previous Frame</value>
+  </data>
+  <data name="StepForwardButton.Content" xml:space="preserve">
+    <value>Next frame</value>
+  </data>
+  <data name="SubtitleAssociationsForTheSelectedItem.Header" xml:space="preserve">
+    <value>Subtitle associations for the selected item</value>
+  </data>
+  <data name="SubtitleBackgroundText.Header" xml:space="preserve">
+    <value>Background/shade colour</value>
+  </data>
+  <data name="SubtitleBoldCheck.Content" xml:space="preserve">
+    <value>Bold subtitles</value>
+  </data>
+  <data name="SubtitleBox.Header" xml:space="preserve">
+    <value>Subtitles</value>
+  </data>
+  <data name="SubtitleBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Subtitles</value>
+  </data>
+  <data name="SubtitleButton.Content" xml:space="preserve">
+    <value>Load Subtitles…</value>
+  </data>
+  <data name="SubtitleColorText.Header" xml:space="preserve">
+    <value>Text Colours</value>
+  </data>
+  <data name="SubtitleDelayBox.Header" xml:space="preserve">
+    <value>Subtitle delay (seconds, positive delay)</value>
+  </data>
+  <data name="SubtitleEncodingBox.Header" xml:space="preserve">
+    <value>Select Encoding</value>
+  </data>
+  <data name="SubtitleEncodingObservedText.Text" xml:space="preserve">
+    <value>Current encoding: unknown</value>
+  </data>
+  <data name="SubtitleFontSizeBox.Header" xml:space="preserve">
+    <value>Subtitle Font Size</value>
+  </data>
+  <data name="SubtitleFontText.Header" xml:space="preserve">
+    <value>Subtitle Font</value>
+  </data>
+  <data name="SubtitleItalicCheck.Content" xml:space="preserve">
+    <value>Italic subtitles</value>
+  </data>
+  <data name="SubtitleOutlineColorText.Header" xml:space="preserve">
+    <value>Paint Edge Color</value>
+  </data>
+  <data name="SubtitleOutlineSizeBox.Header" xml:space="preserve">
+    <value>Marginal width</value>
+  </data>
+  <data name="SubtitlePositionBox.Header" xml:space="preserve">
+    <value>Subtitle position (0 top, 100 bottom)</value>
+  </data>
+  <data name="SubtitleScaleBox.Header" xml:space="preserve">
+    <value>Subtitle scaling</value>
+  </data>
+  <data name="SubtitleTextEncoding.Header" xml:space="preserve">
+    <value>Subtitle text encoding</value>
+  </data>
+  <data name="SubtitleTimeAlignment.Header" xml:space="preserve">
+    <value>Subtitle Time Alignment</value>
+  </data>
+  <data name="Subtitles.Content" xml:space="preserve">
+    <value>Subtitles</value>
+  </data>
+  <data name="SubtitlesShareTextStylesTheFollowingAre.Text" xml:space="preserve">
+    <value>Subtitles share text styles. The following are edit drafts that do not represent current values. Colours are #RRRGGBB or #AARRGGBB, AA=00 fully transparent, and FF is not transparent.</value>
+  </data>
+  <data name="SubtitlesVisibleCheck.Content" xml:space="preserve">
+    <value>Show subtitles</value>
+  </data>
+  <data name="ThumbnailCache.Text" xml:space="preserve">
+    <value>Thumbnail Cache</value>
+  </data>
+  <data name="TimeModeButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Toggle the total length and the remaining time</value>
+  </data>
+  <data name="ToggleChainFilterButton.Content" xml:space="preserve">
+    <value>Enable/ Disable</value>
+  </data>
+  <data name="ToggleSavedFilterButton.Content" xml:space="preserve">
+    <value>Apply/ Remove Selected Presets</value>
+  </data>
+  <data name="ToolbarAddButton.Content" xml:space="preserve">
+    <value>Add to End</value>
+  </data>
+  <data name="ToolbarApplyButton.Content" xml:space="preserve">
+    <value>Apply</value>
+  </data>
+  <data name="ToolbarAvailableBox.Header" xml:space="preserve">
+    <value>Add action</value>
+  </data>
+  <data name="ToolbarCancelButton.Content" xml:space="preserve">
+    <value>Cancel Draft</value>
+  </data>
+  <data name="ToolbarCurrentList.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Toolbar Current Draft Order</value>
+  </data>
+  <data name="ToolbarDefaultButton.Content" xml:space="preserve">
+    <value>Restore Draft to Default</value>
+  </data>
+  <data name="ToolbarDownButton.Content" xml:space="preserve">
+    <value>Move Down</value>
+  </data>
+  <data name="ToolbarRemoveButton.Content" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+  <data name="ToolbarUpButton.Content" xml:space="preserve">
+    <value>Move Up</value>
+  </data>
+  <data name="TrackInspectorBox.Header" xml:space="preserve">
+    <value>View Tracks</value>
+  </data>
+  <data name="TrackInspectorExpander.Header" xml:space="preserve">
+    <value>Track Details and Operations</value>
+  </data>
+  <data name="UndoBindingSnapshotButton.Content" xml:space="preserve">
+    <value>Undo Last Overwrite or Remove</value>
+  </data>
+  <data name="UndoHistoryButton.Content" xml:space="preserve">
+    <value>Undo Removal</value>
+  </data>
+  <data name="UndoSavedFilterButton.Content" xml:space="preserve">
+    <value>Undo Last Preset Edit</value>
+  </data>
+  <data name="UnregisterAssociationsButton.Content" xml:space="preserve">
+    <value>Remove the file association registration of this copy</value>
+  </data>
+  <data name="UpToFiveButtonsToLeaveBlank.Text" xml:space="preserve">
+    <value>Choose up to five buttons. Select Apply to update the toolbar. Play, Open File, and the seek bar stay in place.</value>
+  </data>
+  <data name="UpdateBindingSnapshotButton.Content" xml:space="preserve">
+    <value>Overwrite the selected snapshot with the edit area</value>
+  </data>
+  <data name="UpdateSavedFilterButton.Content" xml:space="preserve">
+    <value>Update Selected Presets</value>
+  </data>
+  <data name="UserEqualizerBox.Header" xml:space="preserve">
+    <value>My preset.</value>
+  </data>
+  <data name="UserEqualizerName.Header" xml:space="preserve">
+    <value>Preset Name</value>
+  </data>
+  <data name="Video.Content" xml:space="preserve">
+    <value>Video</value>
+  </data>
+  <data name="VideoFilterLabelText.Header" xml:space="preserve">
+    <value>Filter Label to Remove</value>
+  </data>
+  <data name="VideoFilterText.Header" xml:space="preserve">
+    <value>Video Filter</value>
+  </data>
+  <data name="VideoTrackBox.Header" xml:space="preserve">
+    <value>Video Track</value>
+  </data>
+  <data name="VideoTrackBox.PlaceholderText" xml:space="preserve">
+    <value>No selection has been confirmed</value>
+  </data>
+  <data name="VideoTrackBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Video Track</value>
+  </data>
+  <data name="VideoVideo.Content" xml:space="preserve">
+    <value>Video Video</value>
+  </data>
+  <data name="VolumeSlider.Header" xml:space="preserve">
+    <value>Volume</value>
+  </data>
+  <data name="VolumeSlider.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Volume</value>
+  </data>
+  <data name="WarningTheOriginalLogMayContainComplete.Text" xml:space="preserve">
+    <value>Warning: The original log may contain complete file paths, web URLs and supporting documents. The default does not capture, but only maintains a boundary memory; check the contents before copying or exporting. Trace logs are large and they will be discarded; the copied or written content cannot be emptied.</value>
+  </data>
+  <data name="Window.Content" xml:space="preserve">
+    <value>Window</value>
+  </data>
+  <data name="WindowCountText.Text" xml:space="preserve">
+    <value>Player Window 1</value>
+  </data>
+  <data name="WindowsFileAssociation.Text" xml:space="preserve">
+    <value>Windows File Association</value>
+  </data>
+  <data name="WriteBindingRowsButton.Content" xml:space="preserve">
+    <value>Generate standardized text and replace text areas</value>
+  </data>
+  <data name="YouCanAlsoDragASingleLUT.Text" xml:space="preserve">
+    <value>You can also drag a single LUT to the play area. Replace only fast LUTs, with other filters; the file content is validated by FFmpeg.</value>
+  </data>
+  <data name="ZoomWindowByVideoSize.Header" xml:space="preserve">
+    <value>Zoom Window by Video Size</value>
+  </data>
+</root>

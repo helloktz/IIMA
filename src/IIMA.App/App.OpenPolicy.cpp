@@ -61,7 +61,7 @@ void App::RouteResolvedInput(WindowId source, std::vector<std::string> paths,
         [](auto const& d) { return !d.window; }));
     if (windows_.size() + needed > iima::PlayerWindowRegistry::WindowLimit)
         throw winrt::hresult_error(E_OUTOFMEMORY,
-            L"此批打开请求需要超过 16 个窗口。请启用 groupSimultaneousOpensInPlaylist 或减少选择；本批未打开。");
+            iima::loc::Text(L"ThisBatchOpensRequestsNeedMoreThan"));
     // Allocate all windows before replacing any media. Failure may leave newly
     // created empty windows, but does not silently open only the first N files.
     for (auto& delivery : deliveries)

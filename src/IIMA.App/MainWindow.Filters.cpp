@@ -44,9 +44,9 @@ void MainWindow::UpdateFilterEditor(iima::PlaybackSnapshot const& state) {
         auto status=iima::FindOrientationFilter(state.videoFilters,mirror).state;
         using S=iima::OrientationFilterState;
         button.IsEnabled(active && status!=S::Unknown && status!=S::Conflict);
-        std::wstring text=mirror ? L"左右镜像：" : L"上下翻转：";
-        text+=status==S::Enabled ? L"已启用，点击移除" : status==S::Disabled ? L"已停用，点击启用" :
-            status==S::Absent ? L"未添加，点击启用" : status==S::Conflict ? L"标签冲突" : L"状态未知";
+        std::wstring text=mirror ? iima::loc::Text(L"LeftAndRightMirrors2") : iima::loc::Text(L"UpAndDown");
+        text+=status==S::Enabled ? iima::loc::Text(L"EnabledClickToRemove") : status==S::Disabled ? iima::loc::Text(L"DisabledClickToEnable") :
+            status==S::Absent ? iima::loc::Text(L"NotAddedClickEnabled") : status==S::Conflict ? iima::loc::Text(L"TabConflict") : iima::loc::Text(L"StatusUnknown");
         button.Content(box_value(text));
     };
     project(FlipVideoButton(),false); project(MirrorVideoButton(),true);
@@ -83,7 +83,7 @@ void MainWindow::EditSelectedFilter(int operation) {
         plan = iima::FilterChainEditor::Move(displayedFilters_, revision, index, index + 1); break;
     case 4: {
         auto parsed = iima::MPVFilter::Parse(to_string(ChainFilterExpression().Text()));
-        if (!parsed) { ShowError(L"滤镜表达式无效。"); return; }
+        if (!parsed) { ShowError(iima::loc::Text(L"FilterExpressionIsInvalid")); return; }
         plan = iima::FilterChainEditor::Replace(displayedFilters_, revision, index, *parsed);
         break;
     }

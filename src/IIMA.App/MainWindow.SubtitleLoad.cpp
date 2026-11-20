@@ -52,7 +52,7 @@ fire_and_forget MainWindow::OpenSubtitle() {
         Windows::Storage::Pickers::FileOpenPicker picker;
         HWND hwnd{};check_hresult(GetNativeWindowHandle(&hwnd));
         check_hresult(picker.as<::IInitializeWithWindow>()->Initialize(hwnd));
-        picker.CommitButtonText(L"载入并选择字幕");picker.FileTypeFilter().Append(L"*");
+        picker.CommitButtonText(iima::loc::Text(L"LoadAndSelectSubtitles"));picker.FileTypeFilter().Append(L"*");
         auto file=co_await picker.PickSingleFileAsync();
         pickerOpen_=false;
         if(file && same() && CanStartSubtitleLoad()) {
@@ -60,7 +60,7 @@ fire_and_forget MainWindow::OpenSubtitle() {
             if(local.size()<4 || local.size()>32767 || local[1]!=L':' || local[2]!=L'\\' ||
                 !((local[0]>=L'A' && local[0]<=L'Z') || (local[0]>=L'a' && local[0]<=L'z')) ||
                 std::any_of(local.begin(),local.end(),[](wchar_t c){return c<32 || c==127;})) {
-                ShowError(L"请选择具有普通本地盘符路径的字幕文件。");
+                ShowError(iima::loc::Text(L"SelectTheSubtitleFileWithTheNormal"));
             } else {
                 pickerOpen_=true;auto ui=apartment_context();
                 co_await resume_background();
@@ -68,12 +68,12 @@ fire_and_forget MainWindow::OpenSubtitle() {
                 try {co_await ui;} catch(...) {co_return;}
                 pickerOpen_=false;
                 if(same() && CanStartSubtitleLoad()) {
-                    if(!regular) ShowError(L"请选择本地普通字幕文件；不支持目录、链接或脱机文件。");
-                    else if(!StartSubtitleLoad({{to_string(value),true}})) ShowError(L"字幕加载未确认提交；请检查载入状态，已提交操作不能撤回，未自动重试。");
+                    if(!regular) ShowError(iima::loc::Text(L"PleaseSelectALocalCommonSubtitleFile"));
+                    else if(!StartSubtitleLoad({{to_string(value),true}})) ShowError(iima::loc::Text(L"SubtitleLoadingIsNotConfirmedPleaseCheck"));
                 }
             }
         }
-    } catch(...) {if(same()) ShowError(L"无法完成字幕选择或提交；已提交操作不能撤回。");}
+    } catch(...) {if(same()) ShowError(iima::loc::Text(L"CouldNotFinishSelectingOrLoadingSubtitles"));}
     pickerOpen_=false;
     if(!closing_) {UpdateSubtitleLoad();OpenPendingFiles();FlushActivation();}
 }
@@ -94,18 +94,18 @@ void MainWindow::UpdateSubtitleLoad() {
     SubtitleButton().IsEnabled(CanStartSubtitleLoad());
     CancelSubtitleLoadButton().IsEnabled(!closing_ && busy && status.phase!=iima::SubtitleLoadStatus::Phase::Cancelled);
     if(closing_ || wrong || !subtitleLoadRevision_ || subtitleLoadRevision_!=status.revision) {
-        SubtitleLoadStatusText().Text(!closing_ && busy ? L"等待在途字幕载入结束…" : L"");return;
+        SubtitleLoadStatusText().Text(!closing_ && busy ? iima::loc::Text(L"WaitingForTheEndOfTheTrailing") : L"");return;
     }
     using Phase=iima::SubtitleLoadStatus::Phase;hstring text;
     switch(status.phase) {
     case Phase::Idle:break;
-    case Phase::Loading:text=L"正在逐项载入并确认字幕…";break;
-    case Phase::Completed:text=L"字幕批次处理完成；确认仅指轨道事实，不代表字幕已绘制。";break;
-    case Phase::Cancelled:text=L"已取消后续字幕载入；已提交项不能撤回。";break;
-    case Phase::Failed:text=L"字幕载入未完整完成；未自动重试，已加载项不回滚。";break;
+    case Phase::Loading:text=iima::loc::Text(L"LoadingAndConfirmingSubtitlesItemByItem");break;
+    case Phase::Completed:text=iima::loc::Text(L"SubtitleProcessingCompletedConfirmationRefersOnlyTo");break;
+    case Phase::Cancelled:text=iima::loc::Text(L"FollowUpSubtitlesHaveBeenCancelledSubmissions");break;
+    case Phase::Failed:text=iima::loc::Text(L"SubtitlesAreNotFullyCompletedEntriesAre");break;
     }
-    if(!text.empty()) text = text + L" 已处理 "+to_hstring(status.processed)+L"/"+to_hstring(status.total)+
-        L"，提交 "+to_hstring(status.submitted)+L"，确认 "+to_hstring(status.confirmed)+L"（含已有跳过），已有而跳过 "+to_hstring(status.skipped)+L"，失败 "+to_hstring(status.failed)+L"，未结项 "+to_hstring(status.total>status.processed ? status.total-status.processed : 0)+L"。";
+    if(!text.empty()) text = text + iima::loc::Text(L"Processed")+to_hstring(status.processed)+L"/"+to_hstring(status.total)+
+        iima::loc::Text(L"Submit")+to_hstring(status.submitted)+iima::loc::Text(L"Confirm")+to_hstring(status.confirmed)+iima::loc::Text(L"IncludesAlreadySkipped")+to_hstring(status.skipped)+iima::loc::Text(L"Failure")+to_hstring(status.failed)+iima::loc::Text(L"UnsolvedItem")+to_hstring(status.total>status.processed ? status.total-status.processed : 0)+L"。";
     if(!status.error.empty()) try {
         auto wide=to_hstring(status.error);std::wstring safe;
         for(auto c:wide) {if(safe.size()>=1024) break;safe+=c<32 || (c>=0x7f && c<=0x9f) || c==0x061c || c==0x200e || c==0x200f || (c>=0x2028 && c<=0x202e) || (c>=0x2066 && c<=0x2069) ? L'?' : c;}

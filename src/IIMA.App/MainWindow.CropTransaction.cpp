@@ -21,14 +21,14 @@ void MainWindow::BeginManagedCropTransaction() {
         !chain.entries[0].filter || chain.entries[0].filter->Name() != (interactiveDelogo_ ? "lavfi" : "crop") ||
         chain.entries[0].filter->Label() != std::optional<std::string>{interactiveDelogo_ ? "iina_delogo" : "iina_crop"} ||
         AppWindow().Presenter().Kind() == Microsoft::UI::Windowing::AppWindowPresenterKind::CompactOverlay) {
-        ShowError(L"只能编辑当前模式唯一的受管滤镜（iina_crop或iina_delogo）；请先移除其他滤镜、解决标签冲突并退出悬浮小窗。"); return;
+        ShowError(iima::loc::Text(L"OnlyTheOnlyManagedFilterInThe")); return;
     }
     if (interactiveDelogo_) {
         auto const& params = chain.entries[0].filter->Params();
         if (!params || params->size() != 1 || !params->contains("graph") ||
             !params->at("graph").starts_with("delogo=") ||
             params->at("graph").find_first_of("[],;\\'") != std::string::npos) {
-            ShowError(L"已有去标志图形不是单一可识别的delogo表达式；请在滤镜列表中检查，不自动替换。"); return;
+            ShowError(iima::loc::Text(L"ExistingDemarkingGraphicsAreNotASingle")); return;
         }
     }
     auto plan = iima::FilterChainEditor::Remove(chain,chain.revision,0);
@@ -45,12 +45,12 @@ void MainWindow::BeginManagedCropTransaction() {
     UpdateWindowAspectConstraint();
     InteractiveCropCanvas().Visibility(Visibility::Collapsed);
     InteractiveCropToolbar().Visibility(Visibility::Visible);
-    InteractiveCropTitle().Text(interactiveDelogo_ ? L"交互去标志" : L"交互裁剪");
+    InteractiveCropTitle().Text(interactiveDelogo_ ? iima::loc::Text(L"InteractToMark") : iima::loc::Text(L"InteractiveCrop"));
     InteractiveDelogoRemoveButton().Visibility(Visibility::Collapsed);
     InteractiveCropConfirmButton().IsEnabled(false);
     InteractiveCropCancelButton().IsEnabled(true);
     InteractiveCropResume().IsChecked(true);
-    InteractiveCropStatus().Text(L"正在临时移除原区域滤镜并读取结果；取消将在结果确认后恢复。");
+    InteractiveCropStatus().Text(iima::loc::Text(L"TheOriginalAreaFilterIsBeingTemporarily"));
     InteractiveCropCancelButton().Focus(FocusState::Programmatic);
     UpdateControlBarPolicy();
     auto weak = get_weak();
@@ -61,13 +61,13 @@ void MainWindow::BeginManagedCropTransaction() {
             auto const& state = self->session_->Snapshot();
             if (self->navigationEpoch_ != self->interactiveCropEpoch_ || state.entryId != self->interactiveCropEntry_ ||
                 state.media != iima::MediaState::Loaded || state.session != iima::SessionState::Ready) {
-                self->AbandonManagedCropTransaction(L"临时移除期间媒体已变化，未向新媒体写回裁剪；原表达式已保留。"); return;
+                self->AbandonManagedCropTransaction(iima::loc::Text(L"MediaChangedDuringTemporaryRemovalAndNo")); return;
             }
             if (!success || !Matches(self->cropExpectedEmpty_,observed)) {
                 if (Matches(self->cropOriginal_->root,observed)) {
                     self->CompleteManagedCropTransaction(true);
-                    self->ShowError(L"未能临时移除裁剪；读取结果确认原滤镜仍保留。");
-                } else self->AbandonManagedCropTransaction(L"临时移除结果未能确认或出现外部修改；未覆盖滤镜，原表达式已保留。");
+                    self->ShowError(iima::loc::Text(L"CouldNotTemporarilyRemoveTheCroppingThe"));
+                } else self->AbandonManagedCropTransaction(iima::loc::Text(L"TheTemporaryRemovalResultWasNotConfirmed"));
                 return;
             }
             self->cropTransactionPhase_ = CropTransactionPhase::Preparing;
@@ -76,7 +76,7 @@ void MainWindow::BeginManagedCropTransaction() {
         });
     if (!queued) {
         CompleteManagedCropTransaction(true);
-        ShowError(L"临时移除请求未排入队列，原区域滤镜未由本操作修改。");
+        ShowError(iima::loc::Text(L"TheTemporaryRemovalRequestIsNotQueued"));
     }
 }
 void MainWindow::FinishManagedCropTransaction(bool commit, bool removeDelogo) {
@@ -84,18 +84,18 @@ void MainWindow::FinishManagedCropTransaction(bool commit, bool removeDelogo) {
     if (cropTransactionPhase_ == CropTransactionPhase::Removing) {
         if (!commit) {
             cropCancelRequested_ = true;
-            InteractiveCropStatus().Text(L"取消已请求，等待移除结果后恢复原区域滤镜。关闭播放器将直接释放本会话。");
+            InteractiveCropStatus().Text(iima::loc::Text(L"CancelsTheRequestAndRestoresTheOriginal"));
         }
         return;
     }
     if (cropTransactionPhase_ == CropTransactionPhase::Writing) {
-        InteractiveCropStatus().Text(L"最终滤镜请求已提交，正在等待结果；请勿把等待当作恢复完成。"); return;
+        InteractiveCropStatus().Text(iima::loc::Text(L"TheFinalFilterRequestHasBeenSubmitted")); return;
     }
     auto const& state = session_->Snapshot();
     if (navigationEpoch_ != interactiveCropEpoch_ || state.entryId != interactiveCropEntry_ ||
         state.session != iima::SessionState::Ready || state.media != iima::MediaState::Loaded ||
         !Matches(cropExpectedEmpty_,state.videoFilters)) {
-        AbandonManagedCropTransaction(L"滤镜或媒体已改变，未覆盖其他操作；原区域滤镜表达式已保留。"); return;
+        AbandonManagedCropTransaction(iima::loc::Text(L"FiltersOrMediaHaveBeenChangedAnd")); return;
     }
     if (removeDelogo) {
         if (!interactiveDelogo_ || !commit || cropOriginal_->entries.empty() ||
@@ -111,7 +111,7 @@ void MainWindow::FinishManagedCropTransaction(bool commit, bool removeDelogo) {
     iima::FilterNode desired = cropOriginal_->root;
     if (commit) {
         if (!interactiveCrop_.Active() || !InteractiveCropMapping()) {
-            InteractiveCropStatus().Text(L"映射尚未就绪，不能确认。取消可恢复原区域滤镜。"); return;
+            InteractiveCropStatus().Text(iima::loc::Text(L"TheMapIsNotReadyToBe")); return;
         }
         auto candidate = interactiveCrop_;
         std::optional<iima::CropCommit> result;
@@ -121,7 +121,7 @@ void MainWindow::FinishManagedCropTransaction(bool commit, bool removeDelogo) {
             if (!pixels || pixels->x < 1 || pixels->y < 1 ||
                 pixels->x + pixels->width >= cropMapping_->sourceWidth ||
                 pixels->y + pixels->height >= cropMapping_->sourceHeight) {
-                InteractiveCropStatus().Text(L"去标志区域必须位于画面内部，四边至少保留1像素。请调整选区后确认。"); return;
+                InteractiveCropStatus().Text(iima::loc::Text(L"PleaseAdjustTheElectoralAreaToConfirm")); return;
             }
             result = iima::CropCommit{interactiveCropEpoch_,*pixels,false,{}};
         } else result = candidate.Confirm();
@@ -172,7 +172,7 @@ void MainWindow::FinishManagedCropTransaction(bool commit, bool removeDelogo) {
     cropTransactionPhase_ = CropTransactionPhase::Writing;
     InteractiveCropConfirmButton().IsEnabled(false);
     InteractiveCropCancelButton().IsEnabled(false);
-    InteractiveCropStatus().Text(restoring ? L"正在恢复原区域滤镜并核对结果…" : L"正在应用新区域滤镜并核对结果…");
+    InteractiveCropStatus().Text(restoring ? iima::loc::Text(L"ResumeOriginalAreaFilterAndCheckResults") : iima::loc::Text(L"ApplyingNewAreaFiltersAndCheckingResults"));
     auto weak = get_weak();
     bool queued = session_->EditFiltersWithCompletion(false,std::move(plan),
         [weak,generation,desired=std::move(desired),restoring](bool success,iima::FilterChainSnapshot observed,std::string) {
@@ -181,7 +181,7 @@ void MainWindow::FinishManagedCropTransaction(bool commit, bool removeDelogo) {
             auto const& state = self->session_->Snapshot();
             if (self->navigationEpoch_ != self->interactiveCropEpoch_ || state.entryId != self->interactiveCropEntry_ ||
                 state.session != iima::SessionState::Ready || state.media != iima::MediaState::Loaded) {
-                self->AbandonManagedCropTransaction(L"最终请求期间媒体已变化，结果未按原媒体确认；原表达式已保留。"); return;
+                self->AbandonManagedCropTransaction(iima::loc::Text(L"TheMediaChangedDuringTheFinalRequest")); return;
             }
             if (success && Matches(desired,observed)) {
                 self->CompleteManagedCropTransaction(true); return;
@@ -189,19 +189,19 @@ void MainWindow::FinishManagedCropTransaction(bool commit, bool removeDelogo) {
             if (Matches(self->cropOriginal_->root,observed)) {
                 const bool emptyBaseline = self->cropOriginal_->entries.empty();
                 self->CompleteManagedCropTransaction(true);
-                self->ShowError(emptyBaseline ? L"新区域滤镜未确认；读取结果仍为空链。" : L"新区域滤镜未确认；读取结果显示原区域滤镜仍在。"); return;
+                self->ShowError(emptyBaseline ? iima::loc::Text(L"TheNewAreaFilterIsNotConfirmed") : iima::loc::Text(L"TheNewAreaFilterIsNotConfirmed2")); return;
             }
             if (!restoring && Matches(self->cropExpectedEmpty_,observed)) {
                 self->cropTransactionPhase_ = CropTransactionPhase::Preparing;
                 self->FinishManagedCropTransaction(false); // One bounded rollback attempt.
-                self->ShowError(L"新区域滤镜未成功确认，已请求恢复原区域滤镜；恢复结果仍需等待。"); return;
+                self->ShowError(iima::loc::Text(L"TheNewAreaFilterWasNotSuccessfully")); return;
             }
-            self->AbandonManagedCropTransaction(L"无法确认恢复或应用结果，未重复覆盖当前滤镜；原区域滤镜表达式已保留供手动恢复。");
+            self->AbandonManagedCropTransaction(iima::loc::Text(L"UnableToConfirmTheRestorationOrApplication"));
         });
     if (!queued) {
         cropTransactionPhase_ = CropTransactionPhase::Preparing;
         InteractiveCropCancelButton().IsEnabled(true);
-        InteractiveCropStatus().Text(L"最终请求未入队。可再次点击取消退出或恢复原区域滤镜。");
+        InteractiveCropStatus().Text(iima::loc::Text(L"TheFinalRequestIsNotInThe"));
     }
 }
 void MainWindow::CompleteManagedCropTransaction(bool restorePlayback) {
@@ -220,6 +220,6 @@ void MainWindow::AbandonManagedCropTransaction(hstring const& message) {
     }
     const bool hadOriginalCrop = cropOriginal_ && !cropOriginal_->entries.empty();
     CompleteManagedCropTransaction(false);
-    if (!closing_) ShowError(hadOriginalCrop ? message : L"区域滤镜结果因媒体或滤镜变化而无法确认；未覆盖当前状态，也未自动恢复播放。");
+    if (!closing_) ShowError(hadOriginalCrop ? message : iima::loc::Text(L"AreaFilterResultsCannotBeConfirmedDue"));
 }
 }

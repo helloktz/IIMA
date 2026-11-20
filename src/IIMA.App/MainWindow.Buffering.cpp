@@ -19,8 +19,8 @@ void MainWindow::UpdateBufferingIndicator(iima::PlaybackSnapshot const& state) {
         BufferingProgress().Visibility(Visibility::Collapsed);
         BufferingProgressText().Text(L""); BufferingDetailsText().Text(L""); return;
     }
-    auto title=model.kind==iima::BufferingIndicatorKind::Opening ? L"正在打开网络流…" :
-        model.kind==iima::BufferingIndicatorKind::Buffering ? L"正在缓冲…" : L"正在定位…";
+    auto title=model.kind==iima::BufferingIndicatorKind::Opening ? iima::loc::Text(L"OpeningNetworkStream") :
+        model.kind==iima::BufferingIndicatorKind::Buffering ? iima::loc::Text(L"Buffering") : iima::loc::Text(L"Positioning");
     // Do not announce percentage every observation; only the phase label is a
     // polite live region. No fake ETA, throughput or seek-complete percentage.
     if (BufferingTitleText().Text()!=title) BufferingTitleText().Text(title);

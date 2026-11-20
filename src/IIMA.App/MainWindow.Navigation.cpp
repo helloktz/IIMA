@@ -76,7 +76,7 @@ void MainWindow::WireNavigationControls() {
 void MainWindow::ApplyCustomSpeed(double requested) {
     if (closing_ || session_->Snapshot().session != iima::SessionState::Ready) return;
     auto speed = iima::NormalizePlaybackSpeed(requested);
-    if (!speed) { ShowError(L"请输入0.01到100之间的有限倍速数值。"); return; }
+    if (!speed) { ShowError(iima::loc::Text(L"EnterALimitedMultiplierValueBetween0")); return; }
     session_->SetSpeed(*speed);
     userData_.settings.speed = *speed;
     MarkUserDataDirty();
@@ -101,8 +101,8 @@ void MainWindow::UpdateNavigationControls(iima::PlaybackSnapshot const& state) {
     if (slider) CustomSpeedSlider().Value(*slider);
     // Do not overwrite a partly edited NumberBox on every time-pos notification.
     // Readback uses its own label; leaving the editor does not submit a change.
-    CustomSpeedStatus().Text(L"当前倍速 " + to_hstring(state.speed) +
-        L"×；滑杆范围0.25到16，精确输入支持0.01到100。");
+    CustomSpeedStatus().Text(iima::loc::Text(L"CurrentSpeed") + to_hstring(state.speed) +
+        iima::loc::Text(L"SlidersRange025To16With"));
 }
 winrt::fire_and_forget MainWindow::JumpToTime() {
     auto lifetime = get_strong();
@@ -115,16 +115,16 @@ winrt::fire_and_forget MainWindow::JumpToTime() {
         Controls::ContentDialog dialog;
         jumpDialog_ = dialog;
         dialog.XamlRoot(Root().XamlRoot());
-        dialog.Title(box_value(L"跳转到时间"));
-        dialog.PrimaryButtonText(L"跳转"); dialog.CloseButtonText(L"取消");
+        dialog.Title(box_value(iima::loc::Text(L"JumpToTime")));
+        dialog.PrimaryButtonText(iima::loc::Text(L"Jump")); dialog.CloseButtonText(iima::loc::Text(L"Cancel"));
         dialog.DefaultButton(Controls::ContentDialogButton::Primary);
         Controls::TextBox input;
         input.MaxLength(64);
         if (auto position = session_->Snapshot().position)
             input.Text(to_hstring(iima::VideoTime(*position).StringRepresentation(3)));
-        input.PlaceholderText(L"时:分:秒.毫秒，或秒数");
+        input.PlaceholderText(iima::loc::Text(L"HoursSecondsMillisecondsOrSeconds"));
         Controls::TextBlock message;
-        message.Text(L"输入秒、分:秒或时:分:秒，支持小数秒。播放可以继续，取消不跳转。");
+        message.Text(iima::loc::Text(L"EnterTheSecondsMinutesSecondsOrTimes"));
         message.TextWrapping(TextWrapping::Wrap);
         Controls::StackPanel content;
         content.Spacing(8); content.Children().Append(input); content.Children().Append(message);
@@ -135,11 +135,11 @@ winrt::fire_and_forget MainWindow::JumpToTime() {
             if (!self || self->closing_) { args.Cancel(true); return; }
             auto const& state = self->session_->Snapshot();
             if (self->navigationEpoch_ != epoch || state.entryId != entry || state.path != path || !SeekAvailable(state)) {
-                args.Cancel(true); message.Text(L"媒体已变化或不能跳转，请取消后重新打开。"); return;
+                args.Cancel(true); message.Text(iima::loc::Text(L"TheMediaHasChangedOrCannotJump")); return;
             }
             auto target = JumpTarget(input.Text());
             if (!target || *target > *state.duration) {
-                args.Cancel(true); message.Text(L"请输入从0到当前时长之间的有效时间。");
+                args.Cancel(true); message.Text(iima::loc::Text(L"EnterAValidTimeBetween0And"));
             }
         });
         auto result = co_await dialog.ShowAsync();
@@ -150,7 +150,7 @@ winrt::fire_and_forget MainWindow::JumpToTime() {
                 session_->Seek(*target);
         }
     } catch (hresult_error const& error) { if (!closing_) ShowError(error.message()); }
-    catch (...) { if (!closing_) ShowError(L"无法打开时间跳转窗口。"); }
+    catch (...) { if (!closing_) ShowError(iima::loc::Text(L"CouldNotOpenTheJumpToTime")); }
     jumpDialog_ = nullptr;
     pickerOpen_ = false;
 }

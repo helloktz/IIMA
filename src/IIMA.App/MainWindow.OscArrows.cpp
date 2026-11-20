@@ -65,11 +65,11 @@ void MainWindow::UpdateOscArrows() {
             (mode!=2 || s.seekable);
         for(auto direction:{-1,1}) {
             auto b=direction<0?OscLeftButton():OscRightButton();
-            hstring label=mode==1?(direction<0?L"上一项":L"下一项"):
-                mode==2?(direction<0?L"后退10秒":L"前进10秒"):(direction<0?L"减速":L"加速");
+            hstring label=mode==1?(direction<0?iima::loc::Text(L"Previous"):iima::loc::Text(L"Next")):
+                mode==2?(direction<0?iima::loc::Text(L"TenSecondsBack"):iima::loc::Text(L"TenSecondsForward")):(direction<0?iima::loc::Text(L"SlowDown"):iima::loc::Text(L"SpeedUp"));
             if(unbox_value_or<hstring>(b.Content(),L"")!=label) b.Content(box_value(label));
             if(Automation::AutomationProperties::GetName(b)!=label) Automation::AutomationProperties::SetName(b,label);
-            hstring tip=mode==0?label+L"；短按保留档位，首档长按释放回到1倍；取消不回滚":label;
+            hstring tip=mode==0?label+iima::loc::Text(L"ShortClickOnTheReservedSlotFirst"):label;
             if(unbox_value_or<hstring>(Controls::ToolTipService::GetToolTip(b),L"")!=tip)
                 Controls::ToolTipService::SetToolTip(b,box_value(tip));
             if(b.IsEnabled()!=enabled) b.IsEnabled(enabled);

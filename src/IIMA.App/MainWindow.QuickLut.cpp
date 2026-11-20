@@ -92,7 +92,7 @@ fire_and_forget MainWindow::ImportQuickLut(std::wstring path) {
     if(ownsPicker) pickerOpen_=false;
     quickLutBusy_=false;
     if(stillCurrent && selected) {
-        if(failure || !valid) ShowError(L"请选择有效绝对路径下的普通3D LUT文件；不接受设备、链接或目录。");
+        if(failure || !valid) ShowError(iima::loc::Text(L"SelectTheNormal3DLUTFile"));
         else SubmitQuickLut(to_string(path));
     }
     if(!closing_) {UpdateQuickLut();OpenPendingFiles();FlushActivation();}
@@ -103,12 +103,12 @@ void MainWindow::UpdateQuickLut() {
     bool known=info.state!=S::Unknown && info.state!=S::Conflict;
     ChooseQuickLutButton().IsEnabled(QuickLutAvailable() && known);
     RemoveQuickLutButton().IsEnabled(QuickLutAvailable() && (info.state==S::Enabled || info.state==S::Disabled));
-    std::wstring text=info.state==S::Unknown ? L"快捷LUT：状态未知" :
-        info.state==S::Conflict ? L"快捷LUT：标签冲突，请在滤镜链中检查；不会自动覆盖" :
-        info.state==S::Absent ? L"快捷LUT：未添加" :
-        info.state==S::Enabled ? L"快捷LUT：已启用" : L"快捷LUT：已停用";
+    std::wstring text=info.state==S::Unknown ? iima::loc::Text(L"FastLUTStatusUnknown") :
+        info.state==S::Conflict ? iima::loc::Text(L"FastLUTTabConflictCheckInFilterChain") :
+        info.state==S::Absent ? iima::loc::Text(L"FastLUTNotAdded") :
+        info.state==S::Enabled ? iima::loc::Text(L"FastLUTEnabled") : iima::loc::Text(L"FastLUTDisabled");
     if(!info.path.empty()) text+=L"\n"+std::wstring(to_hstring(info.path));
-    if(quickLutBusy_) text+=L"\n正在处理，请等待播放器读取结果。";
+    if(quickLutBusy_) text+=iima::loc::Text(L"IsBeingProcessedPleaseWaitForThe");
     QuickLutStatus().Text(text);
 }
 void MainWindow::SubmitQuickLut(std::optional<std::string> path) {
@@ -132,15 +132,15 @@ void MainWindow::SubmitQuickLut(std::optional<std::string> path) {
                 self->quickLutBusy_=false;self->UpdateQuickLut();return;
             }
             iima::FilterEditPlan check{expected,{},true,{}};
-            if(success && check.FreshMatches(observed)) self->ShowError(L"快捷LUT滤镜链更新已由播放器读回确认。");
-            else self->ShowError(L"快捷LUT更新失败或结果未能确认，未自动重试；已提交操作不能撤回，请检查当前滤镜链。");
+            if(success && check.FreshMatches(observed)) self->ShowError(iima::loc::Text(L"TheFastTrackLUTFilterUpdateHas"));
+            else self->ShowError(iima::loc::Text(L"TheFastLUTUpdateFailedOrThe"));
             self->quickLutBusy_=false;
             if(!self->closing_) self->UpdateQuickLut();
         });
     if(queued && !closing_) UpdateQuickLut();
     if(!queued) {
         quickLutBusy_=false;UpdateQuickLut();
-        ShowError(L"快捷LUT请求未提交；滤镜链或播放器状态已变化，请重新操作。");
+        ShowError(iima::loc::Text(L"FastLUTRequestsHaveNotBeenSubmittedFilter"));
     }
 }
 

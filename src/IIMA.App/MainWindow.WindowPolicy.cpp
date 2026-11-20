@@ -40,7 +40,7 @@ void MainWindow::WireWindowPlaybackPolicy() {
             self->session_->SystemWillSuspend();
     });
     if(!powerLifecycle_->ModernStandbyNotificationsRegistered())
-        ShowError(L"无法注册现代待机通知，仅保留传统睡眠广播；睡眠暂停可能不可用。Windows错误：" +
+        ShowError(iima::loc::Text(L"ItIsNotPossibleToRegisterA") +
             winrt::to_hstring(static_cast<std::uint32_t>(powerLifecycle_->RegistrationError())));
     RefreshAccessibility();
     const auto state=windowLifecycle_->Current();

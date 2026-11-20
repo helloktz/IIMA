@@ -9,6 +9,11 @@ set(build_scripts "${PROJECT_SOURCE_DIR}/build")
 set(sdk_bin "${IIMA_WINDOWS_SDK}/bin/${IIMA_WINDOWS_SDK_VERSION}/x64")
 set(xaml App.xaml MainWindow.xaml)
 set(idl MainWindow.idl VideoSurface.idl WheelSlider.idl XamlMetaDataProvider.idl)
+set(strings "${CMAKE_CURRENT_SOURCE_DIR}/Strings")
+set(string_resources
+    "${strings}/en-US/Resources.resw" "${strings}/en-US/Messages.resw"
+    "${strings}/zh-CN/Resources.resw" "${strings}/zh-CN/Messages.resw"
+)
 configure_file(app.manifest.in "${CMAKE_CURRENT_BINARY_DIR}/app.manifest" @ONLY)
 set(runtime_manifests
     "${interactive}/runtimes-framework/package.appxfragment"
@@ -74,11 +79,11 @@ add_custom_command(
     OUTPUT "${generated}/IIMA.manifest" "${generated}/IIMA.pri"
     COMMAND "${IIMA_PWSH}" -NoProfile -File "${build_scripts}/PrepareWinUIRuntime.ps1"
         -ApplicationManifest "${CMAKE_CURRENT_BINARY_DIR}/app.manifest"
-        -Generated "${generated}" -MakePri "${sdk_bin}/makepri.exe"
+        -Generated "${generated}" -Strings "${strings}" -MakePri "${sdk_bin}/makepri.exe"
         -Interactive "${interactive}" -Foundation "${foundation}" -WinUI "${winui}"
     DEPENDS "${generated}/winui.stamp"
         "${CMAKE_CURRENT_BINARY_DIR}/app.manifest" "${build_scripts}/PrepareWinUIRuntime.ps1"
-        "${sdk_bin}/makepri.exe" ${runtime_resources} ${runtime_manifests}
+        "${sdk_bin}/makepri.exe" ${runtime_resources} ${runtime_manifests} ${string_resources}
     VERBATIM
     COMMENT "Generating the app-local WinUI manifest and resources"
 )
@@ -212,6 +217,7 @@ add_executable(IIMA WIN32
     Platform/InstanceRouter.cpp
     Platform/KeyboardInput.cpp
     Platform/LocalInputResolver.cpp
+    Platform/Localization.cpp
     Platform/MediaIntegration.cpp
     Platform/OpenSubClient.cpp
     Platform/PlaylistFileDeletion.cpp
@@ -264,7 +270,8 @@ target_link_options(IIMA PRIVATE /MANIFESTUAC:NO)
 set_property(TARGET IIMA APPEND PROPERTY LINK_DEPENDS "${generated}/IIMA.manifest")
 
 set(runtime_dir "${CMAKE_BINARY_DIR}/bin")
-set(runtime_stamp "${CMAKE_CURRENT_BINARY_DIR}/runtime.stamp")
+set(dependencies_stamp "${CMAKE_CURRENT_BINARY_DIR}/runtime-dependencies.stamp")
+set(application_stamp "${CMAKE_CURRENT_BINARY_DIR}/runtime-application.stamp")
 set(framework_dirs
     "${interactive}/runtimes-framework/win-x64/native"
     "${foundation}/runtimes-framework/win-x64/native"
@@ -273,39 +280,86 @@ set(framework_dirs
 foreach(framework_dir IN LISTS framework_dirs)
     file(GLOB_RECURSE framework_files CONFIGURE_DEPENDS RELATIVE "${framework_dir}" "${framework_dir}/*")
     foreach(file IN LISTS framework_files)
-        if(NOT file STREQUAL "DeploymentAgent.exe")
-            list(APPEND runtime_inputs "${framework_dir}/${file}")
-            list(APPEND runtime_outputs "${runtime_dir}/${file}")
+        if(file STREQUAL "DeploymentAgent.exe")
+            continue()
         endif()
+        string(TOLOWER "${file}" normalized_file)
+        set(runtime_file "${file}")
+        if(normalized_file MATCHES "^en-us/")
+            string(REGEX REPLACE "^[^/]+/" "en-US/" runtime_file "${file}")
+        elseif(normalized_file MATCHES "^zh-cn/")
+            string(REGEX REPLACE "^[^/]+/" "zh-CN/" runtime_file "${file}")
+        elseif(normalized_file MATCHES "^[a-z][a-z][a-z]?-[a-z0-9-]+/")
+            continue()
+        endif()
+        list(APPEND framework_copy_entries "${framework_dir}/${file}|${runtime_file}")
+        list(APPEND runtime_inputs "${framework_dir}/${file}")
+        list(APPEND runtime_outputs "${runtime_dir}/${runtime_file}")
     endforeach()
 endforeach()
-file(GLOB mpv_runtime CONFIGURE_DEPENDS "${IIMA_WORK_DIR}/libmpv/bin/*.dll")
-set(runtime_files
+set(framework_inventory "${CMAKE_CURRENT_BINARY_DIR}/winui-runtime.txt")
+file(GENERATE OUTPUT "${framework_inventory}" CONTENT "$<JOIN:${framework_copy_entries},\n>\n")
+set(mpv_sdk "${IIMA_WORK_DIR}/libmpv")
+file(GLOB mpv_runtime CONFIGURE_DEPENDS "${mpv_sdk}/bin/*.dll")
+file(GLOB mpv_metadata CONFIGURE_DEPENDS "${mpv_sdk}/manifest.json" "${mpv_sdk}/verified-binaries.json")
+if(mpv_runtime OR mpv_metadata)
+    set(mpv_patch "${build_scripts}/patches/mpv-iima-owned-swapchain-v1.patch")
+    set(mpv_checks COMMAND "${IIMA_PWSH}" -NoProfile -File "${PROJECT_SOURCE_DIR}/scripts/verify-libmpv.ps1"
+        -SdkDirectory "${mpv_sdk}")
+    list(APPEND runtime_inputs ${mpv_metadata} "${mpv_patch}"
+        "${PROJECT_SOURCE_DIR}/scripts/verify-libmpv.ps1"
+        "${PROJECT_SOURCE_DIR}/scripts/test-libmpv.ps1"
+        "${PROJECT_SOURCE_DIR}/scripts/Common.ps1")
+    # A restored SDK can have older timestamps than the last deployment.
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${mpv_metadata} "${mpv_patch}")
+    foreach(input IN ITEMS ${mpv_metadata} "${mpv_patch}")
+        file(SHA256 "${input}" input_hash)
+        string(APPEND mpv_identity "${input_hash}\n")
+    endforeach()
+endif()
+set(application_files
     "${generated}/App.xbf" "${generated}/MainWindow.xbf"
     "${generated}/IIMA.pri" "${generated}/IIMA.winmd"
+)
+set(dependency_files
     "${foundation}/runtimes/win-x64/native/Microsoft.WindowsAppRuntime.Bootstrap.dll"
     "${webview2}/runtimes/win-x64/native_uap/Microsoft.Web.WebView2.Core.dll"
     ${sdk_metadata} ${mpv_runtime}
 )
-foreach(file IN LISTS runtime_files)
+foreach(file IN LISTS dependency_files)
     cmake_path(GET file FILENAME filename)
     list(APPEND runtime_outputs "${runtime_dir}/${filename}")
 endforeach()
 list(REMOVE_DUPLICATES runtime_outputs)
 
+# Track inventory removals as well as changes to the files that still exist.
+set(runtime_inventory "${CMAKE_CURRENT_BINARY_DIR}/runtime-dependencies.txt")
+file(GENERATE OUTPUT "${runtime_inventory}"
+    CONTENT "${mpv_identity}$<JOIN:${runtime_inputs};${dependency_files},\n>\n")
 add_custom_command(
-    OUTPUT "${runtime_stamp}"
-    BYPRODUCTS "${runtime_dir}/IIMA.exe" ${runtime_outputs}
+    OUTPUT "${dependencies_stamp}"
+    BYPRODUCTS ${runtime_outputs}
+    ${mpv_checks}
     COMMAND "${CMAKE_COMMAND}" -E rm -rf "${runtime_dir}"
     COMMAND "${CMAKE_COMMAND}" -E make_directory "${runtime_dir}"
-    COMMAND "${CMAKE_COMMAND}" -E copy_directory_if_different
-        ${framework_dirs} "${runtime_dir}"
-    COMMAND "${CMAKE_COMMAND}" -E rm -f "${runtime_dir}/DeploymentAgent.exe"
-    COMMAND "${CMAKE_COMMAND}" -E copy_if_different
-        "$<TARGET_FILE:IIMA>" ${runtime_files} "${runtime_dir}"
-    COMMAND "${CMAKE_COMMAND}" -E touch "${runtime_stamp}"
-    DEPENDS IIMA ${runtime_inputs} ${runtime_files} "${CMAKE_CURRENT_LIST_FILE}"
+    COMMAND "${CMAKE_COMMAND}" "-Dinventory=${framework_inventory}" "-Ddestination=${runtime_dir}"
+        -P "${build_scripts}/CopyWinUIRuntime.cmake"
+    COMMAND "${CMAKE_COMMAND}" -E copy_if_different ${dependency_files} "${runtime_dir}"
+    COMMAND "${CMAKE_COMMAND}" -E touch "${dependencies_stamp}"
+    DEPENDS "${runtime_inventory}" "${framework_inventory}" "${build_scripts}/CopyWinUIRuntime.cmake"
+        ${runtime_inputs} ${dependency_files}
     VERBATIM
     COMMENT "Staging the app-local WinUI and media runtimes"
 )
-add_custom_target(IIMA_runtime ALL DEPENDS "${runtime_stamp}")
+add_custom_command(
+    OUTPUT "${application_stamp}"
+    BYPRODUCTS "${runtime_dir}/IIMA.exe" "${runtime_dir}/App.xbf" "${runtime_dir}/MainWindow.xbf"
+        "${runtime_dir}/IIMA.pri" "${runtime_dir}/IIMA.winmd"
+    COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+        "$<TARGET_FILE:IIMA>" ${application_files} "${runtime_dir}"
+    COMMAND "${CMAKE_COMMAND}" -E touch "${application_stamp}"
+    DEPENDS IIMA "${dependencies_stamp}" ${application_files}
+    VERBATIM
+    COMMENT "Staging IIMA executable and resources"
+)
+add_custom_target(IIMA_runtime ALL DEPENDS "${application_stamp}")

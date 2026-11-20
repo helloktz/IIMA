@@ -13,7 +13,7 @@ App::~App() = default;
 winrt::com_ptr<MainWindow> App::CreatePlayerWindow()
 {
     auto id = windowRegistry_.Register();
-    if (!id) throw winrt::hresult_error(E_OUTOFMEMORY, L"最多同时打开 16 个播放器窗口；正在关闭的窗口仍占用名额。");
+    if (!id) throw winrt::hresult_error(E_OUTOFMEMORY, iima::loc::Text(L"AMaximumOf16PlayerWindowsAre"));
     winrt::com_ptr<MainWindow> window;
     try {
         window = winrt::make_self<MainWindow>();
@@ -122,9 +122,9 @@ void App::OnLaunched(Microsoft::UI::Xaml::LaunchActivatedEventArgs const&)
             if (auto app = weak.get()) {
                 try { app->RouteActivation(std::move(paths)); }
                 catch (winrt::hresult_error const& error) {
-                    MessageBoxW(nullptr, error.message().c_str(), L"IIMA 打开请求失败", MB_OK | MB_ICONWARNING);
+                    MessageBoxW(nullptr, error.message().c_str(), iima::loc::Text(L"IIMAUnableToOpenRequest"), MB_OK | MB_ICONWARNING);
                 } catch (...) {
-                    MessageBoxW(nullptr, L"无法创建或激活播放器窗口。", L"IIMA", MB_OK | MB_ICONWARNING);
+                    MessageBoxW(nullptr, iima::loc::Text(L"CouldNotCreateOrActivateThePlayer"), L"IIMA", MB_OK | MB_ICONWARNING);
                 }
             }
         });

@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Fragment>
+    <EnsureTable Id="ListBox" />
+    <UI Id="IimaSetupUI">
+      <Property Id="DefaultUIFont" Value="IimaSetupFont" />
+      <Property Id="ErrorDialog" Value="IimaErrorDlg" />
+      <TextStyle Id="IimaSetupFont" FaceName="MS Shell Dlg" Size="9" />
+      <TextStyle Id="IimaSetupHeading" FaceName="MS Shell Dlg" Size="13" Bold="yes" />
+
+      <Dialog Id="IimaLanguageDlg" Width="370" Height="210" Title="IIMA">
+        <Control Id="Heading" Type="Text" X="20" Y="18" Width="330" Height="24"
+                 Text="{\IimaSetupHeading}!(loc.LanguageEn) / !(loc.LanguageZh)" />
+        <Control Id="Language" Type="RadioButtonGroup" X="20" Y="57" Width="320" Height="73" Property="IIMALANGUAGECHOICE">
+          <RadioButtonGroup Property="IIMALANGUAGECHOICE">
+            <RadioButton Value="en-US" X="5" Y="6" Width="290" Height="18" Text="!(loc.EnglishName)" />
+            <RadioButton Value="zh-CN" X="5" Y="34" Width="290" Height="18" Text="!(loc.ChineseName)" />
+          </RadioButtonGroup>
+        </Control>
+        <Control Id="Next" Type="PushButton" X="173" Y="181" Width="82" Height="18" Default="yes"
+                 Text="!(loc.NextEn) / !(loc.NextZh)">
+          <Publish Property="IIMAUILANGUAGE" Value="[IIMALANGUAGECHOICE]" Order="1" />
+          <Publish Event="NewDialog" Value="IimaConfirmEn" Order="2" Condition="IIMALANGUAGECHOICE = &quot;en-US&quot;" />
+          <Publish Event="NewDialog" Value="IimaConfirmZh" Order="2" Condition="IIMALANGUAGECHOICE = &quot;zh-CN&quot;" />
+        </Control>
+        <Control Id="Cancel" Type="PushButton" X="267" Y="181" Width="82" Height="18" Cancel="yes"
+                 Text="!(loc.CancelEn) / !(loc.CancelZh)">
+          <Publish Event="EndDialog" Value="Exit" />
+        </Control>
+      </Dialog>
+
+      <?foreach Language in En;Zh?>
+      <Dialog Id="IimaConfirm$(Language)" Width="370" Height="210" Title="!(loc.Setup$(Language))">
+        <Control Id="Heading" Type="Text" X="20" Y="18" Width="330" Height="24"
+                 Text="{\IimaSetupHeading}!(loc.Ready$(Language))" />
+        <Control Id="Description" Type="Text" X="20" Y="60" Width="330" Height="45"
+                 Text="!(loc.Destination$(Language)) [INSTALLFOLDER]" />
+        <Control Id="Back" Type="PushButton" X="86" Y="181" Width="76" Height="18" Text="!(loc.Back$(Language))">
+          <Publish Event="NewDialog" Value="IimaLanguageDlg" />
+        </Control>
+        <Control Id="Install" Type="PushButton" X="173" Y="181" Width="82" Height="18" Default="yes"
+                 ElevationShield="yes" Text="!(loc.Install$(Language))">
+          <Publish Event="EndDialog" Value="Return" />
+        </Control>
+        <Control Id="Cancel" Type="PushButton" X="267" Y="181" Width="82" Height="18" Cancel="yes"
+                 Text="!(loc.Cancel$(Language))">
+          <Publish Event="EndDialog" Value="Exit" />
+        </Control>
+      </Dialog>
+      <?endforeach?>
+
+      <Dialog Id="IimaProgressDlg" Width="370" Height="175" Title="IIMA" Modeless="yes">
+        <Control Id="En" Type="Text" X="20" Y="22" Width="330" Height="26" TabSkip="no"
+                 Text="{\IimaSetupHeading}!(loc.ProgressEn)" HideCondition="IIMAUILANGUAGE = &quot;zh-CN&quot;" />
+        <Control Id="Zh" Type="Text" X="20" Y="22" Width="330" Height="26"
+                 Text="{\IimaSetupHeading}!(loc.ProgressZh)" HideCondition="IIMAUILANGUAGE = &quot;en-US&quot;" />
+        <Control Id="Progress" Type="ProgressBar" X="20" Y="65" Width="330" Height="12">
+          <Subscribe Event="SetProgress" Attribute="Progress" />
+        </Control>
+      </Dialog>
+
+      <Dialog Id="IimaFinishDlg" Width="370" Height="175" Title="IIMA">
+        <Control Id="En" Type="Text" X="20" Y="22" Width="330" Height="27"
+                 Text="{\IimaSetupHeading}!(loc.DoneEn)" HideCondition="IIMAUILANGUAGE = &quot;zh-CN&quot;" />
+        <Control Id="Zh" Type="Text" X="20" Y="22" Width="330" Height="27"
+                 Text="{\IimaSetupHeading}!(loc.DoneZh)" HideCondition="IIMAUILANGUAGE = &quot;en-US&quot;" />
+        <Control Id="CloseEn" Type="PushButton" X="267" Y="146" Width="82" Height="18" Default="yes" Cancel="yes"
+                 Text="!(loc.CloseEn)" HideCondition="IIMAUILANGUAGE = &quot;zh-CN&quot;">
+          <Publish Event="EndDialog" Value="Return" />
+        </Control>
+        <Control Id="CloseZh" Type="PushButton" X="267" Y="146" Width="82" Height="18"
+                 Text="!(loc.CloseZh)" HideCondition="IIMAUILANGUAGE = &quot;en-US&quot;">
+          <Publish Event="EndDialog" Value="Return" />
+        </Control>
+      </Dialog>
+
+      <?foreach Outcome in Failed;Canceled?>
+      <Dialog Id="Iima$(Outcome)Dlg" Width="370" Height="175" Title="IIMA">
+        <Control Id="En" Type="Text" X="20" Y="22" Width="330" Height="40"
+                 Text="{\IimaSetupHeading}!(loc.$(Outcome)En)" HideCondition="IIMAUILANGUAGE = &quot;zh-CN&quot;" />
+        <Control Id="Zh" Type="Text" X="20" Y="22" Width="330" Height="40"
+                 Text="{\IimaSetupHeading}!(loc.$(Outcome)Zh)" HideCondition="IIMAUILANGUAGE &lt;&gt; &quot;zh-CN&quot;" />
+        <Control Id="Close" Type="PushButton" X="267" Y="146" Width="82" Height="18" Default="yes" Cancel="yes"
+                 Text="!(loc.CloseEn) / !(loc.CloseZh)">
+          <Publish Event="EndDialog" Value="Return" />
+        </Control>
+      </Dialog>
+      <?endforeach?>
+
+      <Dialog Id="IimaErrorDlg" Width="370" Height="150" Title="IIMA" ErrorDialog="yes">
+        <Control Id="ErrorText" Type="Text" X="20" Y="16" Width="330" Height="85" TabSkip="no" NoPrefix="yes" />
+        <Control Id="Y" Type="PushButton" X="140" Y="120" Width="88" Height="18" TabSkip="yes"
+                 Text="!(loc.YesEn) / !(loc.YesZh)">
+          <Publish Event="EndDialog" Value="ErrorYes" />
+        </Control>
+        <Control Id="N" Type="PushButton" X="140" Y="120" Width="88" Height="18" TabSkip="yes"
+                 Text="!(loc.NoEn) / !(loc.NoZh)">
+          <Publish Event="EndDialog" Value="ErrorNo" />
+        </Control>
+        <Control Id="O" Type="PushButton" X="140" Y="120" Width="88" Height="18" TabSkip="yes"
+                 Text="!(loc.OkEn) / !(loc.OkZh)">
+          <Publish Event="EndDialog" Value="ErrorOk" />
+        </Control>
+        <Control Id="A" Type="PushButton" X="140" Y="120" Width="88" Height="18" TabSkip="yes"
+                 Text="!(loc.AbortEn) / !(loc.AbortZh)">
+          <Publish Event="EndDialog" Value="ErrorAbort" />
+        </Control>
+        <Control Id="R" Type="PushButton" X="140" Y="120" Width="88" Height="18" TabSkip="yes"
+                 Text="!(loc.RetryEn) / !(loc.RetryZh)">
+          <Publish Event="EndDialog" Value="ErrorRetry" />
+        </Control>
+        <Control Id="I" Type="PushButton" X="140" Y="120" Width="88" Height="18" TabSkip="yes"
+                 Text="!(loc.IgnoreEn) / !(loc.IgnoreZh)">
+          <Publish Event="EndDialog" Value="ErrorIgnore" />
+        </Control>
+        <Control Id="C" Type="PushButton" X="140" Y="120" Width="88" Height="18" TabSkip="yes"
+                 Text="!(loc.CancelEn) / !(loc.CancelZh)">
+          <Publish Event="EndDialog" Value="ErrorCancel" />
+        </Control>
+      </Dialog>
+
+      <Dialog Id="FilesInUse" Width="370" Height="210" Title="IIMA">
+        <Control Id="En" Type="Text" X="20" Y="15" Width="330" Height="34"
+                 Text="!(loc.FilesInUseEn)" HideCondition="IIMAUILANGUAGE = &quot;zh-CN&quot;" />
+        <Control Id="Zh" Type="Text" X="20" Y="15" Width="330" Height="34"
+                 Text="!(loc.FilesInUseZh)" HideCondition="IIMAUILANGUAGE &lt;&gt; &quot;zh-CN&quot;" />
+        <Control Id="Processes" Type="ListBox" X="20" Y="55" Width="330" Height="105" Property="FileInUseProcess" TabSkip="yes" />
+        <Control Id="Retry" Type="PushButton" X="74" Y="181" Width="86" Height="18" Default="yes"
+                 Text="!(loc.RetryEn) / !(loc.RetryZh)">
+          <Publish Event="EndDialog" Value="Retry" />
+        </Control>
+        <Control Id="Ignore" Type="PushButton" X="169" Y="181" Width="86" Height="18"
+                 Text="!(loc.IgnoreEn) / !(loc.IgnoreZh)">
+          <Publish Event="EndDialog" Value="Ignore" />
+        </Control>
+        <Control Id="Cancel" Type="PushButton" X="264" Y="181" Width="86" Height="18" Cancel="yes"
+                 Text="!(loc.CancelEn) / !(loc.CancelZh)">
+          <Publish Event="EndDialog" Value="Exit" />
+        </Control>
+      </Dialog>
+
+      <InstallUISequence>
+        <Show Dialog="IimaLanguageDlg" Before="IimaProgressDlg" Condition="NOT Installed" />
+        <Show Dialog="IimaProgressDlg" Before="ExecuteAction" Condition="NOT Installed" />
+        <Show Dialog="IimaFinishDlg" OnExit="success" Condition="NOT Installed" />
+        <Show Dialog="IimaFailedDlg" OnExit="error" />
+        <Show Dialog="IimaCanceledDlg" OnExit="cancel" />
+      </InstallUISequence>
+      <AdminUISequence>
+        <Show Dialog="IimaFinishDlg" OnExit="success" />
+        <Show Dialog="IimaFailedDlg" OnExit="error" />
+        <Show Dialog="IimaCanceledDlg" OnExit="cancel" />
+      </AdminUISequence>
+    </UI>
+  </Fragment>
+</Wix>

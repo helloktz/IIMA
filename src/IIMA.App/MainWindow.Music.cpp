@@ -74,7 +74,7 @@ void MainWindow::ApplyMusicTransition(iima::MusicModePolicy::Transition const& t
             }
             window.SetPresenter(Microsoft::UI::Windowing::AppWindowPresenterKind::Overlapped);
             fullscreen_ = false;
-            FullscreenButton().Content(box_value(L"全屏"));
+            FullscreenButton().Content(box_value(iima::loc::Text(L"Fullscreen")));
             window.Resize({preferences_.Boolean("musicModeShowPlaylist") ? 940 : 640,
                 preferences_.Boolean("musicModeShowAlbumArt") ? 500 : 290});
         } else if (beforeMusicBounds_) {
@@ -99,8 +99,8 @@ void MainWindow::ApplyMusicLayout(bool compact)
     PlayerSidebar().Visibility(sidebar ? Visibility::Visible : Visibility::Collapsed);
     Root().ColumnDefinitions().GetAt(1).Width(GridLength{sidebar ? 300.0 : 0.0, GridUnitType::Pixel});
     MusicHeader().Visibility(music ? Visibility::Visible : Visibility::Collapsed);
-    MusicModeButton().Content(box_value(music ? L"退出音乐模式" : L"音乐模式"));
-    MusicPlaylistButton().Content(box_value(preferences_.Boolean("musicModeShowPlaylist") ? L"隐藏列表" : L"显示列表"));
+    MusicModeButton().Content(box_value(music ? iima::loc::Text(L"QuitMusicMode") : iima::loc::Text(L"MusicMode")));
+    MusicPlaylistButton().Content(box_value(preferences_.Boolean("musicModeShowPlaylist") ? iima::loc::Text(L"HideList") : iima::loc::Text(L"ShowList")));
     // Keep the panel and its native composition lifetime intact. Opacity hides
     // artwork only, without claiming to stop decoding or resize the mpv core.
     VideoPanel().Opacity(music && !preferences_.Boolean("musicModeShowAlbumArt") ? 0.0 : 1.0);

@@ -12,6 +12,7 @@ struct SubtitleSearchPath {
 };
 // Syntax only: no filesystem access. Empty items are ignored. '~' expansion
 // and wildcards other than one trailing directory /* are deliberately unsupported.
+// On failure, error receives the resource key for the validation message.
 std::optional<std::vector<SubtitleSearchPath>> ParseSubtitleSearchPaths(
     std::wstring_view text, std::wstring& error);
 }

@@ -23,7 +23,7 @@ winrt::fire_and_forget MainWindow::SavePlaylist() {
         check_hresult(GetNativeWindowHandle(&window));
         check_hresult(picker.as<::IInitializeWithWindow>()->Initialize(window));
         picker.SuggestedFileName(L"IIMA-playlist");
-        picker.FileTypeChoices().Insert(L"UTF-8 播放列表", single_threaded_vector<hstring>({L".m3u8"}));
+        picker.FileTypeChoices().Insert(iima::loc::Text(L"UTF8Playlist"), single_threaded_vector<hstring>({L".m3u8"}));
         auto file = co_await picker.PickSaveFileAsync();
         if (file && !closing_) {
             auto path = std::filesystem::path(file.Path().c_str());
@@ -35,10 +35,10 @@ winrt::fire_and_forget MainWindow::SavePlaylist() {
             catch (...) { failure = std::current_exception(); }
             co_await ui;
             if (failure) std::rethrow_exception(failure);
-            if (!closing_) StatusText().Text(L"已保存播放列表。");
+            if (!closing_) StatusText().Text(iima::loc::Text(L"SavesThePlaylist"));
         }
     } catch (hresult_error const& error) { if (!closing_) ShowError(error.message()); }
-    catch (...) { if (!closing_) ShowError(L"保存播放列表失败。"); }
+    catch (...) { if (!closing_) ShowError(iima::loc::Text(L"FailedToSavePlaylist")); }
     pickerOpen_ = false;
     if (!closing_) OpenPendingFiles();
 }

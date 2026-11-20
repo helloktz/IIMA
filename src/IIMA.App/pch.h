@@ -1,4 +1,5 @@
 #pragma once
+#include "Platform/Localization.h"
 #include <windows.h>
 #include <unknwn.h>
 #include <restrictederrorinfo.h>

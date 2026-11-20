@@ -23,8 +23,8 @@ fire_and_forget MainWindow::RevealSelection(bool history) {
             if (!iima::CanPersistMediaPath(path)) { ++excluded; continue; }
             paths.emplace_back(to_hstring(path).c_str());
         }
-        if (paths.empty()) { ShowError(L"所选条目没有可定位的本地文件。"); co_return; }
-        if (paths.size() > 64) { ShowError(L"每次最多定位64个文件，请减少选择。"); co_return; }
+        if (paths.empty()) { ShowError(iima::loc::Text(L"TheSelectedEntryDoesNotHaveA")); co_return; }
+        if (paths.size() > 64) { ShowError(iima::loc::Text(L"PleaseReduceTheSelectionForEachLocation")); co_return; }
         revealSelectionBusy_ = true;
         RevealHistoryButton().IsEnabled(false); RevealPlaylistButton().IsEnabled(false);
         revealSelectionStop_ = std::stop_source{};
@@ -42,11 +42,11 @@ fire_and_forget MainWindow::RevealSelection(bool history) {
         if (SUCCEEDED(com)) CoUninitialize();
         co_await ui;
         if (failure) std::rethrow_exception(failure);
-        if (!closing_) ShowError(L"已向资源管理器提交 " + to_hstring(result.accepted) + L" 项；失败 " +
-            to_hstring(result.failed) + L" 项，跳过 " + to_hstring(result.skipped + excluded) + L" 项。" +
-            (result.cancelled ? L"操作已取消。" : L""));
+        if (!closing_) ShowError(iima::loc::Text(L"SubmittedToResourceManager") + to_hstring(result.accepted) + iima::loc::Text(L"EntriesFailures") +
+            to_hstring(result.failed) + iima::loc::Text(L"RowSkip") + to_hstring(result.skipped + excluded) + iima::loc::Text(L"Item") +
+            (result.cancelled ? iima::loc::Text(L"OperationCancelled") : L""));
     } catch (hresult_error const& error) { if (!closing_) ShowError(error.message()); }
-      catch (...) { if (!closing_) ShowError(L"无法定位所选文件。"); }
+      catch (...) { if (!closing_) ShowError(iima::loc::Text(L"CouldNotLocateTheSelectedFile")); }
     revealSelectionBusy_ = false;
     if (!closing_) { UpdateHistorySelection(); UpdatePlaylistSelection(); }
 }

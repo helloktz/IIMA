@@ -60,7 +60,7 @@ void MainWindow::UpdateCompactOverlayControls() {
     auto const& state=session_->Snapshot();
     const bool ready=CompactTransportAvailable();
     CompactPlayPauseButton().IsEnabled(ready && (state.paused ? session_->PresentationReady() : true));
-    CompactPlayPauseButton().Content(box_value(state.paused ? L"播放" : L"暂停"));
+    CompactPlayPauseButton().Content(box_value(state.paused ? iima::loc::Text(L"Play") : iima::loc::Text(L"Pause")));
     CompactBackButton().IsEnabled(ready && state.seekable);
     CompactForwardButton().IsEnabled(ready && state.seekable);
     CompactPauseReturnButton().IsEnabled(ready);
@@ -68,6 +68,6 @@ void MainWindow::UpdateCompactOverlayControls() {
         return value && std::isfinite(*value) && *value>=0 ? to_hstring(iima::VideoTime(*value).StringRepresentation()) : hstring(L"--:--");
     };
     CompactTimeText().Text(compact && state.media==iima::MediaState::Loaded ?
-        clock(state.position)+L" / "+clock(state.duration) : hstring(L"未加载媒体"));
+        clock(state.position)+L" / "+clock(state.duration) : hstring(iima::loc::Text(L"UnmountedMedia")));
 }
 }

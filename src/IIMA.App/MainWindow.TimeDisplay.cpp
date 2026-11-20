@@ -20,7 +20,7 @@ void MainWindow::WireTimeDisplay() {
     Controls::MenuFlyout menu;
     for (int precision = 0; precision <= 3; ++precision) {
         Controls::MenuFlyoutItem item;
-        constexpr wchar_t const* labels[]{L"时间精度：1秒", L"时间精度：100毫秒", L"时间精度：10毫秒", L"时间精度：1毫秒"};
+        wchar_t const* const labels[]{iima::loc::Text(L"TimeAccuracy1Second"), iima::loc::Text(L"TimeAccuracy100Ms"), iima::loc::Text(L"TimeAccuracy10Ms"), iima::loc::Text(L"TimeAccuracy1Millisecond")};
         item.Text(labels[precision]);
         item.Click([weak, precision](auto const&, auto const&) {
             if (auto self = weak.get(); self && !self->closing_ && self->userDataLoaded_)
@@ -47,9 +47,9 @@ void MainWindow::UpdateTimeDisplay(iima::PlaybackSnapshot const& state) {
     auto text = format(value);
     if (remaining && text != L"--:--") text = L"−" + text;
     TimeModeButton().Content(box_value(text));
-    auto label = remaining ? (scaled ? L"按播放速度计算的剩余时间" : L"媒体剩余时间") : L"媒体总时长";
-    Automation::AutomationProperties::SetName(TimeModeButton(), hstring(label) + L" " + text + L"；点击切换显示模式");
+    auto label = remaining ? (scaled ? iima::loc::Text(L"TimeRemainingAtPlaySpeed") : iima::loc::Text(L"MediaFreeTime")) : iima::loc::Text(L"TotalMediaTime");
+    Automation::AutomationProperties::SetName(TimeModeButton(), hstring(label) + L" " + text + iima::loc::Text(L"ClickingToggleDisplayMode"));
     Controls::ToolTipService::SetToolTip(TimeModeButton(), box_value(hstring(label) +
-        L"。点击切换总时长/剩余时间，右击修改精度。"));
+        iima::loc::Text(L"ClickToChangeTheAccuracyOfThe")));
 }
 }

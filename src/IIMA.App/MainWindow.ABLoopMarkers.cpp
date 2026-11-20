@@ -81,7 +81,7 @@ void MainWindow::FinishABMarker(bool cancelled) {
     const auto a=abMarkerA_,b=abMarkerBValue_;
     abMarkerDragging_=false;
     if(!cancelled && !session_->EditABLoopPoint(pointB,seconds,a,b) && !closing_)
-        ShowError(L"循环端点已改变或操作未被接受；保留播放器观测值。");
+        ShowError(iima::loc::Text(L"CycleEndpointsHaveBeenChangedOrOperations"));
     UpdateABLoopMarkers();UpdateControlBarPolicy();
 }
 void MainWindow::UpdateABLoopMarkers() {
@@ -114,10 +114,10 @@ void MainWindow::UpdateABLoopMarkers() {
         thumb.Visibility(value ? Visibility::Visible : Visibility::Collapsed);
         if(!value) return;
         const double seconds=abMarkerDragging_ && pointB==abMarkerB_ ? abMarkerDraft_ : *value;
-        const auto text=(pointB ? hstring(L"循环终点B：") : hstring(L"循环起点A："))+to_hstring(seconds)+
-            (abMarkerDragging_ && pointB==abMarkerB_ ? L"秒（拖动草稿）" : L"秒");
+        const auto text=(pointB ? hstring(iima::loc::Text(L"CycleEndB")) : hstring(iima::loc::Text(L"CycleStartA")))+to_hstring(seconds)+
+            (abMarkerDragging_ && pointB==abMarkerB_ ? iima::loc::Text(L"SecTrawDraft") : iima::loc::Text(L"Sec"));
         Automation::AutomationProperties::SetName(thumb,text);
-        Automation::AutomationProperties::SetHelpText(thumb,L"左右键调整一秒，Home/End到首尾；Enter不跳转。精确值可在A/B循环编辑中输入。");
+        Automation::AutomationProperties::SetHelpText(thumb,iima::loc::Text(L"LeftAndRightKeysAdjustOneSecond"));
         Controls::ToolTipService::SetToolTip(thumb,box_value(text));
         Controls::Canvas::SetLeft(thumb,geometry->first+std::clamp(seconds / *s.duration,0.0,1.0)*geometry->second-thumb.Width()/2);
     };
@@ -136,6 +136,6 @@ void MainWindow::ABMarkerKey(bool pointB,Input::KeyRoutedEventArgs const& args) 
     auto geometry=get_self<implementation::WheelSlider>(PositionSlider())->HorizontalTravel();if(!geometry) return;
     const auto direction=(geometry->second<0 ? -1.0 : 1.0)*(key==Key::Left ? -1.0 : 1.0);
     const double value=key==Key::Home ? 0 : key==Key::End ? *s.duration : std::clamp(*current+direction,0.0,*s.duration);
-    if(!session_->EditABLoopPoint(pointB,value,s.abLoopA,s.abLoopB)) ShowError(L"循环端点操作未被接受；请等待观测更新。");
+    if(!session_->EditABLoopPoint(pointB,value,s.abLoopA,s.abLoopB)) ShowError(iima::loc::Text(L"CycleEndpointOperationIsNotAcceptedPlease"));
 }
 }

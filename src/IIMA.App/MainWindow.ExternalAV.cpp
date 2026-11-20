@@ -40,7 +40,7 @@ bool MainWindow::CanLoadExternalAV() {
         s.session==iima::SessionState::Ready && s.media==iima::MediaState::Loaded && !s.mediaOriginPending && s.entryId>=0 && !s.path.empty();
 }
 fire_and_forget MainWindow::LoadExternalAV(bool video) {
-    const hstring kind=video ? L"视频" : L"音频";
+    const hstring kind=video ? iima::loc::Text(L"Video") : iima::loc::Text(L"Audio");
     const std::string type=video ? "video" : "audio";
     auto lifetime=get_strong();
     if(!CanLoadExternalAV()) co_return;
@@ -53,7 +53,7 @@ fire_and_forget MainWindow::LoadExternalAV(bool video) {
         Windows::Storage::Pickers::FileOpenPicker picker;
         HWND hwnd{};check_hresult(GetNativeWindowHandle(&hwnd));
         check_hresult(picker.as<::IInitializeWithWindow>()->Initialize(hwnd));
-        picker.CommitButtonText(L"载入并选择"+kind);picker.FileTypeFilter().Append(L"*");
+        picker.CommitButtonText(iima::loc::Text(L"LoadAndSelect")+kind);picker.FileTypeFilter().Append(L"*");
         auto file=co_await picker.PickSingleFileAsync();
         pickerOpen_=false;
         auto current=[&] {auto const& now=session_->Snapshot();return !closing_ && !inputResolving_ && pendingFiles_.empty() && activationInputs_.empty() &&
@@ -67,7 +67,7 @@ fire_and_forget MainWindow::LoadExternalAV(bool video) {
             if(value.size()<3 || normalized[1]!=L':' || normalized[2]!=L'\\' ||
                 !((normalized[0]>=L'A' && normalized[0]<=L'Z') || (normalized[0]>=L'a' && normalized[0]<=L'z')) || value.size()>32767 || normalized.starts_with(L"\\\\?\\") || normalized.starts_with(L"\\\\.\\") ||
                 std::any_of(value.begin(),value.end(),[](wchar_t c){return c<32 || c==127;})) {
-                ShowError(L"所选"+kind+L"没有受支持的普通文件路径。");
+                ShowError(iima::loc::Text(L"Selected")+kind+iima::loc::Text(L"NoSupportedNormalFilePath"));
             } else {
                 pickerOpen_=true; // Keep the input picker lane owned during validation.
                 auto ui=apartment_context();
@@ -77,7 +77,7 @@ fire_and_forget MainWindow::LoadExternalAV(bool video) {
                 try { co_await ui; } catch(...) {co_return;}
                 pickerOpen_=false;
                 if(!current()) {if(!closing_){UpdateExternalAVLoad();OpenPendingFiles();FlushActivation();}co_return;}
-                if(!regular) {ShowError(L"请选择本地普通"+kind+L"文件；不支持目录、链接或脱机文件。");UpdateExternalAVLoad();OpenPendingFiles();FlushActivation();co_return;}
+                if(!regular) {ShowError(iima::loc::Text(L"PleaseChooseLocalNormal")+kind+iima::loc::Text(L"FileNoDirectoriesLinksOrOfflineFiles"));UpdateExternalAVLoad();OpenPendingFiles();FlushActivation();co_return;}
                 externalAVType_=type;externalAVGeneration_=generation;externalAVIntent_=intent;externalAVInput_=input;
                 externalAVObservedInput_=input;externalAVRevision_=session_->ExternalAVLoad().revision+1;
                 externalAVStarting_=true;
@@ -85,7 +85,7 @@ fire_and_forget MainWindow::LoadExternalAV(bool video) {
                 catch(...) { externalAVStarting_=false;throw; }
                 externalAVStarting_=false;
                 if(session_->ExternalAVLoad().revision!=externalAVRevision_) {
-                    externalAVRevision_=0;ShowError(L"未开始载入外部"+kind+L"；播放器可能正在切换或处理另一笔轨道操作。");
+                    externalAVRevision_=0;ShowError(iima::loc::Text(L"NotStartedExternal")+kind+iima::loc::Text(L"ThePlayerMayBeSwitchingOrProcessing"));
                 }
             }
         }
@@ -95,7 +95,7 @@ fire_and_forget MainWindow::LoadExternalAV(bool video) {
             ShowError(error.message());
     } catch(...) {
         if(!closing_ && input==inputGeneration_ && generation==session_->Snapshot().mediaGeneration && intent==session_->Snapshot().mediaOpenIntentRevision)
-            ShowError(L"无法完成外部"+kind+L"选择或提交；已提交操作不能撤回。");
+            ShowError(iima::loc::Text(L"CannotCompleteExternal")+kind+iima::loc::Text(L"SelectOrSubmitSubmittedOperationCannotBe"));
     }
     pickerOpen_=false;externalAVStarting_=false;
     if(!closing_) {UpdateExternalAVLoad();OpenPendingFiles();FlushActivation();}
@@ -127,23 +127,23 @@ void MainWindow::UpdateExternalAVLoad() {
         if(ExternalAudioStatus().Text()!=audio) ExternalAudioStatus().Text(audio);
     };
     if(closing_ || wrong || !externalAVRevision_ || externalAVRevision_!=status.revision || externalAVType_!=status.type) {
-        project(!closing_ && busy ? hstring(L"正在等待已提交的轨道载入操作结束…") : hstring{});return;
+        project(!closing_ && busy ? hstring(iima::loc::Text(L"WaitingForTheSubmittedOrbitalLoadingOperation")) : hstring{});return;
     }
-    const hstring kind=status.type=="audio" ? L"音频" : L"视频";
+    const hstring kind=status.type=="audio" ? iima::loc::Text(L"Audio") : iima::loc::Text(L"Video");
     using Phase=iima::ExternalAVLoadStatus::Phase;
     hstring text;
     switch(status.phase) {
     case Phase::Idle:break;
-    case Phase::Loading:text=L"正在载入并确认所选外部"+kind+L"轨道…";break;
-    case Phase::Completed:text=L"已重新读取并确认目标文件的外部"+kind+L"轨道现已选择。此载入操作不主动切换播放／暂停；不代表声音或画面已呈现。";break;
-    case Phase::Cancelled:text=busy ? L"已取消后续确认，等待在途请求结束；载入可能已提交。" : status.selectedConfirmed ?
-        L"取消前已提交载入；重新读取确认目标外部轨道已选择，不能撤回。" : status.submitted ?
-        L"已取消后续确认；载入已提交但选择结果未确认，请检查当前轨道。" : L"已取消；未收到载入提交确认，请检查当前轨道。";break;
-    case Phase::Failed:text=status.selectedConfirmed ? L"载入事务未完整完成，但重新读取已确认目标外部轨道已选择；未自动重试。" : status.commandAcknowledged ?
-        L"载入命令已确认，但后续轨道选择未确认；未自动重试，已提交操作不能撤回。" :
-        L"外部轨道载入失败或结果未确认；未自动重试，已提交操作不能撤回。";break;
+    case Phase::Loading:text=iima::loc::Text(L"LoadingAndConfirmingSelectedExternals")+kind+iima::loc::Text(L"Orbital");break;
+    case Phase::Completed:text=iima::loc::Text(L"ExternalReadAndConfirmedTargetDocument")+kind+iima::loc::Text(L"TrackIsSelectedThisLoadDoesNot");break;
+    case Phase::Cancelled:text=busy ? iima::loc::Text(L"FollowUpConfirmationHasBeenCancelledPending") : status.selectedConfirmed ?
+        iima::loc::Text(L"TheInclusionHadBeenSubmittedPriorTo") : status.submitted ?
+        iima::loc::Text(L"FollowUpConfirmationHasBeenCancelledPlease") : iima::loc::Text(L"CanceledNoConfirmationOfSubmissionReceivedPlease");break;
+    case Phase::Failed:text=status.selectedConfirmed ? iima::loc::Text(L"LoadingServicesWereNotCompleteButRereading") : status.commandAcknowledged ?
+        iima::loc::Text(L"TheInclusionOrderWasConfirmedButThe") :
+        iima::loc::Text(L"TheExternalTrackHasFailedOrThe");break;
     }
-    if(status.phase==Phase::Cancelled && status.commandAcknowledged) text = text + L" 载入命令已确认。";
+    if(status.phase==Phase::Cancelled && status.commandAcknowledged) text = text + iima::loc::Text(L"ContainingCommandConfirmed");
     if(!status.error.empty()) {
         try {
             auto wide=to_hstring(status.error);std::wstring safe;

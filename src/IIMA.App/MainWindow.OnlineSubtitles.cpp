@@ -39,7 +39,7 @@ void MainWindow::WireOnlineSubtitles() {
         // is a separate local action; nothing is sent until Send Query is used.
         const auto path = std::filesystem::path(to_hstring(state.path).c_str());
         if (state.path.find("://") != std::string::npos || !path.is_absolute()) {
-            self->OnlineSubtitleStatusText().Text(L"请手动输入片名，不发送网络地址。");
+            self->OnlineSubtitleStatusText().Text(iima::loc::Text(L"PleaseEnterTheTitleManuallyAndDo"));
             return;
         }
         self->OnlineSubtitleQueryBox().Text(hstring(path.stem().wstring()));
@@ -85,7 +85,7 @@ void MainWindow::CancelOnlineSubtitles() {
     OnlineSubtitleApiKeyBox().Password(L"");
     OnlineSubtitleTokenBox().Password(L"");
     OnlineSubtitleResultsView().Items().Clear();
-    OnlineSubtitleStatusText().Text(L"已取消。已发送的网络请求无法撤回。");
+    OnlineSubtitleStatusText().Text(iima::loc::Text(L"CanceledTheNetworkRequestSentCannotBe"));
     // A cancelled request must actually return before another can begin. This
     // bounds workers even if a native network operation is slow to cancel.
     RefreshOnlineSubtitleButtons();
@@ -113,13 +113,13 @@ void MainWindow::SearchOnlineSubtitles() {
     const bool shooter = OnlineSubtitleProviderBox().SelectedIndex() == 2;
     const bool useHash = openSub && OnlineSubtitleHashCheck().IsChecked().Value();
     if ((!openSub && !shooter && token.size() != 32) || (openSub && apiKey.empty()) || query.empty() || query.size() > 1024) {
-        OnlineSubtitleStatusText().Text(L"请输入搜索词，以及服务所需的个人令牌或 API Key。"); return;
+        OnlineSubtitleStatusText().Text(iima::loc::Text(L"EnterTheSearchWordAsWellAs")); return;
     }
     // Do not accidentally send a file path/URL when the user copied one into
     // the title field. The provider only needs a title, not a local location.
     if (query.find("://") != std::string::npos || query.find('\\') != std::string::npos ||
         query.starts_with('/') || (query.size() > 1 && query[1] == ':') || query.find('\0') != std::string::npos) {
-        OnlineSubtitleStatusText().Text(L"请只输入片名，不输入完整路径或网址。"); return;
+        OnlineSubtitleStatusText().Text(iima::loc::Text(L"PleaseEnterOnlyTheTitleOfThe")); return;
     }
     onlineSubtitleStop_.request_stop();
     onlineSubtitleStop_ = std::stop_source{};
@@ -136,7 +136,7 @@ void MainWindow::SearchOnlineSubtitles() {
     OnlineSubtitleApiKeyBox().Password(L"");
     OnlineSubtitleTokenBox().Password(L"");
     onlineSubtitleWorkerActive_ = true;
-    OnlineSubtitleStatusText().Text(L"正在搜索在线字幕…");
+    OnlineSubtitleStatusText().Text(iima::loc::Text(L"SearchingForOnlineSubtitles"));
     RefreshOnlineSubtitleButtons();
     auto weak = get_weak();
     auto queue = DispatcherQueue();
@@ -186,7 +186,7 @@ void MainWindow::SearchOnlineSubtitles() {
                 if (!result) {
                     if (result.error == iima::assrt::ErrorCode::Authentication && self->onlineSubtitleSessionCredentials_) {
                         self->openSubSessionToken_.clear(); self->openSubSessionKey_.clear();
-                        self->OpenSubAccountStatus().Text(L"服务器拒绝当前登录凭据，已清除本地会话；请检查API Key并重新登录。");
+                        self->OpenSubAccountStatus().Text(iima::loc::Text(L"TheServerRejectsTheCurrentLoginDocument"));
                     }
                     self->onlineSubtitleTransaction_.Fail(ticket);
                     self->onlineSubtitleToken_.clear(); self->onlineSubtitleApiKey_.clear();
@@ -203,9 +203,9 @@ void MainWindow::SearchOnlineSubtitles() {
                     if (self->onlineSubtitleResults_.empty()) {
                         self->onlineSubtitleToken_.clear(); self->onlineSubtitleApiKey_.clear();
                         self->OnlineSubtitleStatusText().Text(self->onlineSubtitleProvider_ == 2
-                            ? L"未找到受支持的HTTPS文本字幕；服务可能返回了不支持的格式或下载域名。" : L"未找到字幕。");
+                            ? iima::loc::Text(L"SupportedHTTPSTextSubtitlesWereNotFound") : iima::loc::Text(L"NoSubtitlesFound"));
                     } else {
-                        self->OnlineSubtitleStatusText().Text(totalPages > 1 ? L"已显示第一页，请缩小搜索词以找到目标。选择结果后下载文本字幕。" : L"请选择一个结果，再下载。只支持文本字幕，不解压归档。");
+                        self->OnlineSubtitleStatusText().Text(totalPages > 1 ? iima::loc::Text(L"TheFirstPageIsShownPleaseShrink") : iima::loc::Text(L"SelectAResultToDownloadTextSubtitles"));
                         self->OnlineSubtitleResultsView().SelectedIndex(0);
                     }
                 }
@@ -216,7 +216,7 @@ void MainWindow::SearchOnlineSubtitles() {
         onlineSubtitleWorkerActive_ = false;
         onlineSubtitleTransaction_.Fail(ticket);
         onlineSubtitleToken_.clear(); onlineSubtitleApiKey_.clear();
-        OnlineSubtitleStatusText().Text(L"无法创建字幕搜索任务。");
+        OnlineSubtitleStatusText().Text(iima::loc::Text(L"CanNotCreateFolderLockOnS"));
         RefreshOnlineSubtitleButtons();
     }
 }
@@ -231,7 +231,7 @@ void MainWindow::DownloadOnlineSubtitle() {
     const auto loadGeneration=media.mediaGeneration,loadIntent=media.mediaOpenIntentRevision,loadInput=inputGeneration_,loadTrackIntent=session_->TrackEditIntentRevision();
     constexpr std::size_t sessionBudget = 64 * 1024 * 1024;
     if (onlineSubtitleFiles_.size() >= 8 || onlineSubtitleBytes_ >= sessionBudget) {
-        OnlineSubtitleStatusText().Text(L"此窗口已达到临时字幕限额，请关闭窗口后重试。"); return;
+        OnlineSubtitleStatusText().Text(iima::loc::Text(L"ThisWindowHasReachedTheTemporarySubtitle")); return;
     }
     if (!onlineSubtitleTransaction_.Download(*ticket)) return;
     onlineSubtitleStop_ = std::stop_source{};
@@ -247,7 +247,7 @@ void MainWindow::DownloadOnlineSubtitle() {
             [id](auto const& row) { return row.row.id == id; });
         if (found == onlineShooterResults_.end()) {
             onlineSubtitleTransaction_.Fail(*ticket);
-            OnlineSubtitleStatusText().Text(L"Shooter选择已失效，请重新搜索。"); RefreshOnlineSubtitleButtons(); return;
+            OnlineSubtitleStatusText().Text(iima::loc::Text(L"ShooterChoosesToBeDisabledPleaseResearch")); RefreshOnlineSubtitleButtons(); return;
         }
         shooterFile = found->file;
     }
@@ -256,7 +256,7 @@ void MainWindow::DownloadOnlineSubtitle() {
     auto weak = get_weak();
     auto queue = DispatcherQueue();
     onlineSubtitleWorkerActive_ = true;
-    OnlineSubtitleStatusText().Text(L"正在下载字幕…");
+    OnlineSubtitleStatusText().Text(iima::loc::Text(L"DownloadingSubtitles"));
     RefreshOnlineSubtitleButtons();
     try {
         std::thread([weak, queue, stop, ticket = *ticket, loadGeneration,loadIntent,loadInput,loadTrackIntent, openSub, shooter, shooterFile = std::move(shooterFile), apiKey = std::move(apiKey), token = std::move(token), id, budget] {
@@ -331,7 +331,7 @@ void MainWindow::DownloadOnlineSubtitle() {
                 if (!completed.error.empty()) {
                     if (completed.authenticationRejected && self->onlineSubtitleSessionCredentials_) {
                         self->openSubSessionToken_.clear(); self->openSubSessionKey_.clear();
-                        self->OpenSubAccountStatus().Text(L"服务器拒绝当前登录凭据，已清除本地会话；请重新登录。");
+                        self->OpenSubAccountStatus().Text(iima::loc::Text(L"TheServerRejectsTheCurrentLoginDocument2"));
                     }
                     self->onlineSubtitleTransaction_.Fail(ticket);
                     self->OnlineSubtitleStatusText().Text(to_hstring(completed.error));
@@ -350,7 +350,7 @@ void MainWindow::DownloadOnlineSubtitle() {
                     }
                     self->DownloadedSubtitleBox().SelectedIndex(static_cast<int>(self->downloadedSubtitles_.size() - completed.files.size()));
                     const bool submitted=self->session_->TrackEditIntentRevision()==loadTrackIntent && self->StartSubtitleLoad(std::move(batch));
-                    self->OnlineSubtitleStatusText().Text((submitted ? hstring(L"下载完成，字幕批次已提交；实际加载结果见字幕载入状态。") : hstring(L"下载完成，但字幕批次未确认提交；文件仍保留，可另存或稍后手动加载。"))+to_hstring(completed.quota));
+                    self->OnlineSubtitleStatusText().Text((submitted ? hstring(iima::loc::Text(L"DownloadCompletedSubtitleBatchSubmittedActualLoading")) : hstring(iima::loc::Text(L"DownloadsAreCompletedButSubtitleBatchesAre")))+to_hstring(completed.quota));
                 }
                 self->RefreshOnlineSubtitleButtons();
             }); } catch (...) { /* Closing dispatcher releases the staged files. */ }
@@ -358,7 +358,7 @@ void MainWindow::DownloadOnlineSubtitle() {
     } catch (...) {
         onlineSubtitleWorkerActive_ = false;
         onlineSubtitleTransaction_.Fail(*ticket);
-        OnlineSubtitleStatusText().Text(L"无法创建字幕下载任务。请重新搜索。");
+        OnlineSubtitleStatusText().Text(iima::loc::Text(L"CouldNotStartTheSubtitleDownloadSearch"));
         RefreshOnlineSubtitleButtons();
     }
 }

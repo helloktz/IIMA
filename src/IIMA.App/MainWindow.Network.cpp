@@ -57,8 +57,8 @@ winrt::fire_and_forget MainWindow::OpenNetworkUrl(bool invertWindowPolicy, bool 
         Controls::ContentDialog dialog;
         openUrlDialog_ = dialog;
         dialog.XamlRoot(Root().XamlRoot());
-        dialog.Title(box_value(editFailedAttempt ? L"编辑失败的网络地址" : L"打开网络媒体"));
-        dialog.PrimaryButtonText(editFailedAttempt ? L"在此窗口重试" : L"打开"); dialog.CloseButtonText(L"取消");
+        dialog.Title(box_value(editFailedAttempt ? iima::loc::Text(L"EditFailedNetworkAddress") : iima::loc::Text(L"OpenWebMedia")));
+        dialog.PrimaryButtonText(editFailedAttempt ? iima::loc::Text(L"TryAgainInThisWindow") : iima::loc::Text(L"Open")); dialog.CloseButtonText(iima::loc::Text(L"Cancel"));
         dialog.DefaultButton(Controls::ContentDialogButton::Primary);
         Controls::StackPanel content;
         content.Spacing(8);
@@ -68,11 +68,11 @@ winrt::fire_and_forget MainWindow::OpenNetworkUrl(bool invertWindowPolicy, bool 
         input.IsTextPredictionEnabled(false);
         input.PlaceholderText(L"https://example.com/video.mp4");
         Controls::TextBlock message;
-        message.Text(L"支持 HTTP(S)、RTSP(S)、RTMP(S)、FTP、SFTP。网络地址不会写入播放历史。");
+        message.Text(iima::loc::Text(L"SupportsHTTPSRTSPSRTMPS"));
         message.TextWrapping(TextWrapping::Wrap);
         Controls::TextBlock destination;
         const bool newWindow = preferences_.Boolean("alwaysOpenInNewWindow") != invertWindowPolicy;
-        destination.Text(editFailedAttempt ? L"只在此失败窗口重试，不创建或切换到其他窗口。" : newWindow ? L"打开到空白窗口或新窗口，不替换正在播放的窗口。" : L"在当前窗口打开，替换当前队列。");
+        destination.Text(editFailedAttempt ? iima::loc::Text(L"OnlyTryAgainInThisFailedWindow") : newWindow ? iima::loc::Text(L"OpensAnEmptyWindowOrANew") : iima::loc::Text(L"OpensTheCurrentWindowAndReplacesThe"));
         destination.TextWrapping(TextWrapping::Wrap);
         content.Children().Append(input); content.Children().Append(message);
         content.Children().Append(destination);
@@ -80,11 +80,11 @@ winrt::fire_and_forget MainWindow::OpenNetworkUrl(bool invertWindowPolicy, bool 
         dialog.PrimaryButtonClick([input, message, editFailedAttempt, editCurrent](auto const&, Controls::ContentDialogButtonClickEventArgs const& args) {
             if (editFailedAttempt && !editCurrent()) {
                 args.Cancel(true);
-                message.Text(L"打开请求或媒体已变化，此草稿不会提交。请取消后重新操作。");
+                message.Text(iima::loc::Text(L"OpenTheRequestOrTheMediaHas"));
                 return;
             }
             if (!ValidatedNetworkUrl(input.Text())) {
-                args.Cancel(true); message.Text(L"请输入有效的网络媒体地址（最多32767字符）。");
+                args.Cancel(true); message.Text(iima::loc::Text(L"EnterAValidWebMediaAddressUp"));
             }
         });
         auto result = co_await dialog.ShowAsync();
@@ -107,7 +107,7 @@ winrt::fire_and_forget MainWindow::OpenNetworkUrl(bool invertWindowPolicy, bool 
                 else ReceiveResolvedInput(std::move(paths));
             }
         }
-    } catch (...) { if (!closing_) ShowError(L"打开网络媒体失败。"); }
+    } catch (...) { if (!closing_) ShowError(iima::loc::Text(L"CouldNotOpenNetworkMedia")); }
     openUrlDialog_ = nullptr;
     pickerOpen_ = false;
     UpdateInitialWindow();

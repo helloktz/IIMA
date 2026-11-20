@@ -45,7 +45,7 @@ void MainWindow::PerformMouseClick(std::int64_t action) {
         case 6: session_->SetSpeed(1); break;
         default: break;
         }
-    } catch (...) { if (!closing_) ShowError(L"无法执行鼠标播放操作。"); }
+    } catch (...) { if (!closing_) ShowError(iima::loc::Text(L"CannotPerformMousePlay")); }
 }
 void MainWindow::WireMouseClicks() {
     auto weak = get_weak();

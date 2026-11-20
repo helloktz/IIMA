@@ -56,7 +56,7 @@ void MainWindow::WireMpvDiagnosticViewer() {
         self->ResetMpvDiagnosticView();
         bool accepted=self->session_->StartMpvLogCapture(levels[index]);
         self->RefreshMpvDiagnosticViewer();
-        if(!accepted) self->ShowError(L"原始日志采集请求未提交。请等待播放器就绪后重试。");
+        if(!accepted) self->ShowError(iima::loc::Text(L"TheOriginalLogCollectionRequestHasNot"));
     });
     MpvLogStopButton().Click([weak](auto const&,auto const&) {
         if(auto self=weak.get();self && !self->closing_) {self->session_->StopMpvLogCapture();self->RefreshMpvDiagnosticViewer();}
@@ -118,12 +118,12 @@ void MainWindow::RenderMpvDiagnosticViewer() {
     MpvLogStartButton().IsEnabled(!s.closed && !s.pending && !s.capturing && !pickerOpen_ && session_->Snapshot().session==iima::SessionState::Ready);
     MpvLogStopButton().IsEnabled(!s.closed && (s.pending || s.capturing));
     MpvLogClearButton().IsEnabled(!s.closed);
-    MpvLogClearButton().Content(box_value(s.level!="no" && !s.closed ? L"清空记录（继续采集）" : L"清空本窗口原始日志"));
+    MpvLogClearButton().Content(box_value(s.level!="no" && !s.closed ? iima::loc::Text(L"ClearingRecordsContinuingCollection") : iima::loc::Text(L"EmptyTheOriginalLogOfThisWindow")));
     MpvLogExportButton().IsEnabled(!mpvLogExportBusy_ && !pickerOpen_ && !mpvLogVisible_.empty());
     MpvLogCopyButton().IsEnabled(!mpvLogVisible_.empty());
-    std::wstring status=s.closed ? L"播放器已关闭" : s.pending ? L"采集变更等待处理" : s.capturing ? L"正在采集："+std::wstring(to_hstring(s.level)) : L"采集已停止";
-    status+=L"；显示 "+std::to_wstring(mpvLogVisible_.size())+L" / "+std::to_wstring(s.records.size())+
-        L" 条，至少丢弃 "+std::to_wstring(s.dropped)+L"，截断 "+std::to_wstring(s.truncated)+L"。";
+    std::wstring status=s.closed ? iima::loc::Text(L"PlayerClosed") : s.pending ? iima::loc::Text(L"CollectChangesPendingProcessing") : s.capturing ? iima::loc::Text(L"Collecting")+std::wstring(to_hstring(s.level)) : iima::loc::Text(L"CollectingStopped");
+    status+=iima::loc::Text(L"Displaying")+std::to_wstring(mpvLogVisible_.size())+L" / "+std::to_wstring(s.records.size())+
+        iima::loc::Text(L"TheStripAtLeast")+std::to_wstring(s.dropped)+iima::loc::Text(L"Cut")+std::to_wstring(s.truncated)+L"。";
     if(!s.error.empty()) status+=L"\n"+std::wstring(to_hstring(s.error));
     MpvLogStatus().Text(status);
 }
@@ -135,13 +135,13 @@ void MainWindow::CopyMpvDiagnosticSelection() {
             if(auto row=item.try_as<ListViewItem>()) selected.insert(unbox_value<std::uint64_t>(row.Tag()));
         std::string text;
         for(auto const& record:mpvLogVisible_) if(selected.contains(record.sequence)) text+=RawLogLine(record);
-        if(text.empty()) {ShowError(L"请先选择原始日志行。");return;}
+        if(text.empty()) {ShowError(iima::loc::Text(L"PleaseSelectTheOriginalLogLineFirst"));return;}
         using namespace Windows::ApplicationModel::DataTransfer;
         DataPackage package;package.RequestedOperation(DataPackageOperation::Copy);package.SetText(to_hstring(text));
         ClipboardContentOptions options;options.IsAllowedInHistory(false);options.IsRoamable(false);
-        if(!Clipboard::SetContentWithOptions(package,options)) {ShowError(L"剪贴板正忙，未复制。");return;}
-        if(!closing_) ShowError(L"已复制选中原始日志，禁用剪贴板历史及漫游。请在分享前检查私密信息。");
-    } catch(...) {if(!closing_) ShowError(L"无法复制原始日志。");}
+        if(!Clipboard::SetContentWithOptions(package,options)) {ShowError(iima::loc::Text(L"ClipboardIsBusyNotCopied"));return;}
+        if(!closing_) ShowError(iima::loc::Text(L"TheSelectedOriginalLogHasBeenCopied"));
+    } catch(...) {if(!closing_) ShowError(iima::loc::Text(L"CouldNotCopyTheRawLog"));}
 }
 fire_and_forget MainWindow::ExportMpvDiagnosticSnapshot() {
     auto lifetime=get_strong();
@@ -160,7 +160,7 @@ fire_and_forget MainWindow::ExportMpvDiagnosticSnapshot() {
         HWND hwnd{};check_hresult(GetNativeWindowHandle(&hwnd));
         check_hresult(picker.as<::IInitializeWithWindow>()->Initialize(hwnd));
         picker.SuggestedFileName(L"IIMA-private-mpv-log");
-        picker.FileTypeChoices().Insert(L"原始UTF-8日志（可能含私密信息）",single_threaded_vector<hstring>({L".log"}));
+        picker.FileTypeChoices().Insert(iima::loc::Text(L"OriginalUTF8LogMayContainPrivate"),single_threaded_vector<hstring>({L".log"}));
         auto operation=picker.PickSaveFileAsync();mpvLogPicker_=operation.as<Windows::Foundation::IAsyncInfo>();
         auto file=co_await operation;mpvLogPicker_=nullptr;
         if(file && !closing_ && epoch==mpvLogEpoch_ && !stop.stop_requested()) {
@@ -174,8 +174,8 @@ fire_and_forget MainWindow::ExportMpvDiagnosticSnapshot() {
     } catch(...) {failed=!stop.stop_requested();}
     mpvLogPicker_=nullptr;
     if(!closing_ && epoch==mpvLogEpoch_) {
-        if(written) ShowError(L"已写出点击导出时的筛选快照。文件可能含私密信息，请检查后再分享。");
-        else if(failed) ShowError(L"原始日志导出失败；未确认写出成功。");
+        if(written) ShowError(iima::loc::Text(L"FilterSnapshotsAreWrittenWhenClickingTo"));
+        else if(failed) ShowError(iima::loc::Text(L"FailedToExportTheRawLog"));
     }
     mpvLogExportBusy_=false;pickerOpen_=false;
     if(closing_) {FinishClose();co_return;}

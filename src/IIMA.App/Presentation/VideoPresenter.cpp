@@ -41,7 +41,7 @@ void VideoPresenter::UpdateTransform()
     auto sx = panel_.CompositionScaleX();
     auto sy = panel_.CompositionScaleY();
     if (!std::isfinite(sx) || !std::isfinite(sy) || sx <= 0 || sy <= 0)
-        throw winrt::hresult_invalid_argument(L"视频面板的 DPI 缩放比例无效。");
+        throw winrt::hresult_invalid_argument(iima::loc::Text(L"TheVideoPanelSDPIScalingRatio"));
     // mpv receives physical-pixel dimensions. Cancel XAML's composition scaling
     // on the composition swapchain so those pixels are not scaled a second time.
     DXGI_MATRIX_3X2_F inverse{1.0f / sx, 0.0f, 0.0f, 1.0f / sy, 0.0f, 0.0f};
@@ -55,7 +55,7 @@ void VideoPresenter::OnSizeChanged() noexcept
         try { if (error_) error_(error.message()); } catch (...) {}
     }
     catch (...) {
-        try { if (error_) error_(L"视频输出尺寸更新失败。"); } catch (...) {}
+        try { if (error_) error_(iima::loc::Text(L"VideoOutputSizeUpdateFailed")); } catch (...) {}
     }
 }
 void VideoPresenter::UpdateSize()

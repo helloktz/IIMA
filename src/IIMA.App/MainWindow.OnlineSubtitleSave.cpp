@@ -13,7 +13,7 @@ winrt::fire_and_forget MainWindow::SaveOnlineSubtitle() {
     if (closing_ || pickerOpen_) co_return;
     const auto index = DownloadedSubtitleBox().SelectedIndex();
     if (index < 0 || static_cast<std::size_t>(index) >= downloadedSubtitles_.size()) {
-        OnlineSubtitleStatusText().Text(L"请先选择一份已下载的字幕。"); co_return;
+        OnlineSubtitleStatusText().Text(iima::loc::Text(L"PleaseSelectADownloadedSubtitleFirst")); co_return;
     }
     // Copy identity and shared ownership before showing a picker. Changing media
     // or closing the player cannot change which file this action saves.
@@ -26,7 +26,7 @@ winrt::fire_and_forget MainWindow::SaveOnlineSubtitle() {
         check_hresult(GetNativeWindowHandle(&window));
         check_hresult(picker.as<::IInitializeWithWindow>()->Initialize(window));
         picker.SuggestedFileName(hstring(selected.path.stem().wstring()));
-        picker.FileTypeChoices().Insert(L"字幕文件", single_threaded_vector<hstring>(
+        picker.FileTypeChoices().Insert(iima::loc::Text(L"SubtitleFiles"), single_threaded_vector<hstring>(
             {hstring(selected.path.extension().wstring())}));
         auto file = co_await picker.PickSaveFileAsync();
         if (file && !closing_) {
@@ -37,12 +37,12 @@ winrt::fire_and_forget MainWindow::SaveOnlineSubtitle() {
             catch (...) { failure = std::current_exception(); }
             co_await ui;
             if (failure) std::rethrow_exception(failure);
-            if (!closing_) OnlineSubtitleStatusText().Text(L"字幕已另存。播放器仍使用原暂存副本。");
+            if (!closing_) OnlineSubtitleStatusText().Text(iima::loc::Text(L"SubtitlesHaveBeenSaved"));
         }
     } catch (hresult_error const&) {
-        if (!closing_) OnlineSubtitleStatusText().Text(L"无法保存字幕，请检查目标位置和权限。");
+        if (!closing_) OnlineSubtitleStatusText().Text(iima::loc::Text(L"CouldNotSaveSubtitlesCheckTheDestination"));
     } catch (...) {
-        if (!closing_) OnlineSubtitleStatusText().Text(L"保存字幕失败，原暂存字幕仍保留。");
+        if (!closing_) OnlineSubtitleStatusText().Text(iima::loc::Text(L"SubtitlesFailedToBeKeptAndThe"));
     }
     pickerOpen_ = false;
     if (!closing_) OpenPendingFiles();

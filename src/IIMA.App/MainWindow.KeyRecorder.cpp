@@ -12,25 +12,25 @@ void MainWindow::WireKeyRecorder() {
     StartKeyRecordingButton().Click([weak](auto const&, auto const&) {
         if (auto self = weak.get(); self && !self->closing_ && !self->pickerOpen_) {
             self->recordingBindingKey_ = true;
-            self->KeyRecordingSurface().Text(L"等待一个按键组合…");
-            self->KeyRecordingStatus().Text(L"只在此录入框聚焦时捕获；Esc取消，Tab离开。不会执行绑定。");
+            self->KeyRecordingSurface().Text(iima::loc::Text(L"WaitingForACombinationOfKeys"));
+            self->KeyRecordingStatus().Text(iima::loc::Text(L"OnlyCapturesWhenEnteringAFocusEsc"));
             if (!self->KeyRecordingSurface().Focus(FocusState::Programmatic)) {
                 self->recordingBindingKey_ = false;
-                self->KeyRecordingStatus().Text(L"录入框无法获得焦点，请手工填写按键名称。");
+                self->KeyRecordingStatus().Text(iima::loc::Text(L"EnterTheBoxToGetTheFocus"));
             }
         }
     });
     CancelKeyRecordingButton().Click([weak](auto const&, auto const&) {
         if (auto self = weak.get(); self && !self->closing_) {
             self->recordingBindingKey_ = false;
-            self->KeyRecordingStatus().Text(L"已取消录入，原按键字段不变。");
+            self->KeyRecordingStatus().Text(iima::loc::Text(L"TheEntryHasBeenCancelledAndThe"));
             self->BindingRowKey().Focus(FocusState::Programmatic);
         }
     });
     KeyRecordingSurface().LostFocus([weak](auto const&, auto const&) {
         if (auto self = weak.get(); self && self->recordingBindingKey_) {
             self->recordingBindingKey_ = false;
-            if (!self->closing_) self->KeyRecordingStatus().Text(L"焦点已离开，录入取消。");
+            if (!self->closing_) self->KeyRecordingStatus().Text(iima::loc::Text(L"FocusSGoneLoginOff"));
         }
     });
     KeyRecordingSurface().PreviewKeyDown([weak](auto const&, Input::KeyRoutedEventArgs const& args) {
@@ -39,7 +39,7 @@ void MainWindow::WireKeyRecorder() {
         using Key = Windows::System::VirtualKey;
         if (args.Key() == Key::Escape || args.Key() == Key::Tab) {
             self->recordingBindingKey_ = false;
-            self->KeyRecordingStatus().Text(L"录入取消；Esc或Tab绑定可手工填写，但Tab仍保留原生焦点导航。");
+            self->KeyRecordingStatus().Text(iima::loc::Text(L"LogInToCancelEscOrTab"));
             // Tab remains native keyboard traversal. Escape must not close a
             // containing page or accidentally become a playback shortcut.
             if (args.Key() == Key::Escape) args.Handled(true);
@@ -55,7 +55,7 @@ void MainWindow::WireKeyRecorder() {
             (GetKeyState(VK_LWIN) & 0x8000) || (GetKeyState(VK_RWIN) & 0x8000)) return;
         auto chord = iima::WindowsMpvKey(key, status.ScanCode, status.IsExtendedKey);
         if (!chord) {
-            self->KeyRecordingStatus().Text(L"请按非修饰键；Windows系统键、AltGr、IME和死键组合不录入。");
+            self->KeyRecordingStatus().Text(iima::loc::Text(L"PressNonModifiedKeysWindowsSystemKeys"));
             return;
         }
         // The same conversion is used for actual playback dispatch, including
@@ -64,7 +64,7 @@ void MainWindow::WireKeyRecorder() {
         self->recordingBindingKey_ = false;
         self->KeyRecordingSurface().Text(to_hstring(*chord));
         self->BindingRowKey().Text(to_hstring(*chord));
-        self->KeyRecordingStatus().Text(L"已填入按键字段；填写动作并追加/替换行后才进入草稿，尚未应用。");
+        self->KeyRecordingStatus().Text(iima::loc::Text(L"KeyFieldsAreFilledActionIsCompleted"));
         // Keep focus in the read-only TextBox until the user moves it, so the
         // release/repeat of this chord cannot trigger the player's shortcuts.
     });

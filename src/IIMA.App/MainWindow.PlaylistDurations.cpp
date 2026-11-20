@@ -98,14 +98,14 @@ void MainWindow::UpdatePlaylistDurations(bool refresh) {
     }
     // The playlist itself is mpv-owned. A total larger than the display budget
     // is reported explicitly rather than overflowing the clock conversion.
-    auto sum=[](double seconds){return std::isfinite(seconds) && seconds<=1e15 ? DurationText(seconds) : hstring(L"超出显示范围");};
-    PlaylistDurationSummary().Text(L"总计已知 "+to_hstring(totalKnown)+L"/"+to_hstring(state.playlist.size())+L" 项："+sum(total)+
-        L"；选中已知 "+to_hstring(selectedKnown)+L"/"+to_hstring(selectedCount)+L" 项："+sum(selectedTotal));
+    auto sum=[](double seconds){return std::isfinite(seconds) && seconds<=1e15 ? DurationText(seconds) : hstring(iima::loc::Text(L"BeyondDisplay"));};
+    PlaylistDurationSummary().Text(iima::loc::Text(L"TotalKnown")+to_hstring(totalKnown)+L"/"+to_hstring(state.playlist.size())+iima::loc::Text(L"Items")+sum(total)+
+        iima::loc::Text(L"SelectingKnown")+to_hstring(selectedKnown)+L"/"+to_hstring(selectedCount)+iima::loc::Text(L"Items")+sum(selectedTotal));
     RefreshPlaylistDurationsButton().IsEnabled(enabled && state.session==iima::SessionState::Ready);
-    PlaylistDurationHint().Text(!enabled ? L"预取已关闭；不显示缓存标签，仅显示播放器已观测的当前时长。" :
+    PlaylistDurationHint().Text(!enabled ? iima::loc::Text(L"PrefetchHasBeenClosedNoCacheLabels") :
         playlistDurationCache_.size()>=MaxCache || playlistDurationBytes_+MetadataReserve+MaxPath>MaxBytes ?
-        L"已达或接近512条／1MiB缓存预算（每项预留2KiB标签）；刷新会清除时长与标签缓存。—表示未知。" :
-        L"仅本地文件：自动前128项＋选中最多32项；—表示未知，合计仅含已知项。文件改动后请刷新时长与标签缓存。");
+        iima::loc::Text(L"Text5121MiBCacheBudgetReachedOr") :
+        iima::loc::Text(L"LocalFilesOnlyTheFirst128Items"));
     UpdatePlaylistMetadata();
     if(!ready || playlistDurationBusy_ || !rowsMatch) return;
     std::vector<DurationTask> tasks;
@@ -171,7 +171,7 @@ void MainWindow::UpdatePlaylistDurations(bool refresh) {
     } catch(...) {
         playlistDurationBusy_=false;
         for(auto& [path,entry]:playlistDurationCache_) if(!entry.complete) entry.complete=true;
-        PlaylistDurationHint().Text(L"无法启动时长读取；可稍后显式刷新重试。");
+        PlaylistDurationHint().Text(iima::loc::Text(L"UnableToReadLongAtStartUp"));
     }
 }
 }

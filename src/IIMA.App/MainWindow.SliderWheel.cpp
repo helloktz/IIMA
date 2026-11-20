@@ -51,7 +51,7 @@ void MainWindow::WireSliderWheels() {
                     self->session_->SeekRelativeWithMode(amount,mode);
                 }
                 self->ControlBarActivity();
-            } catch(...) {if(!self->closing_) self->ShowError(L"无法提交滑块滚轮操作。");}
+            } catch(...) {if(!self->closing_) self->ShowError(iima::loc::Text(L"CouldNotApplyTheScrollWheelAction"));}
         });
     };
     wire(PositionSlider(),false);wire(VolumeSlider(),true);wire(MusicVolumeSlider(),true,true);

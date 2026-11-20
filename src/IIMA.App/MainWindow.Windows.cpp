@@ -24,7 +24,7 @@ void MainWindow::ConfigureWindowActions(std::function<void()> create,
 void MainWindow::UpdateWindowCount(std::size_t count)
 {
     if (closing_) return;
-    WindowCountText().Text(L"播放器窗口：" + winrt::to_hstring(count));
+    WindowCountText().Text(iima::loc::Text(L"PlayerWindow") + winrt::to_hstring(count));
     NewWindowButton().IsEnabled(count < 16);
     NextWindowButton().IsEnabled(count > 1);
     RefreshPlayerMenus();

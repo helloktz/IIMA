@@ -105,7 +105,7 @@ winrt::fire_and_forget MainWindow::OpenScreenshotPreviewFile(bool reveal) {
         if (closing_ || generation != screenshotPreviewGeneration_) co_return;
         if (reveal) iima::RevealFile(path);
         else if (!(co_await Windows::System::Launcher::LaunchFileAsync(file)))
-            throw hresult_error(E_FAIL, L"Windows未能打开截图，请检查默认图片应用。");
+            throw hresult_error(E_FAIL, iima::loc::Text(L"WindowsWasUnableToOpenTheScreenshot"));
         if (!closing_ && generation == screenshotPreviewGeneration_) HideScreenshotPreview();
     } catch (hresult_error const& error) {
         if (!closing_ && generation == screenshotPreviewGeneration_) ShowError(error.message());

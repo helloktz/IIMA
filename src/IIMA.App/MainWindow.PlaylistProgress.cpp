@@ -62,7 +62,7 @@ void MainWindow::UpdatePlaylistProgress() {
         // Divide only when position < duration, avoiding overflow for extreme values.
         const auto percent=*position>=*duration ? 100.0 : (*position / *duration)*100.0;
         const auto whole=static_cast<unsigned>(std::floor(percent));
-        const auto text=(current ? hstring(L"当前进度 ") : hstring(L"上次进度 "))+to_hstring(whole)+L"%";
+        const auto text=(current ? hstring(iima::loc::Text(L"CurrentProgress")) : hstring(iima::loc::Text(L"LastProgress")))+to_hstring(whole)+L"%";
         if(label.Text()!=text) {
             label.Text(text);
             Automation::AutomationProperties::SetItemStatus(item,text);

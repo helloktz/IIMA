@@ -14,9 +14,9 @@ winrt::fire_and_forget MainWindow::ClearThumbnailCache() {
     try {
         Controls::ContentDialog dialog;
         dialog.XamlRoot(Root().XamlRoot());
-        dialog.Title(box_value(L"清空缩略图缓存？"));
-        dialog.Content(box_value(L"只删除 IIMA 的磁盘缩略图缓存，不删除视频文件。之后悬停会重新生成预览。"));
-        dialog.PrimaryButtonText(L"清空缓存"); dialog.CloseButtonText(L"取消");
+        dialog.Title(box_value(iima::loc::Text(L"EmptyThumbnailCache")));
+        dialog.Content(box_value(iima::loc::Text(L"DeletesOnlyTheDiskThumbnailCacheOf")));
+        dialog.PrimaryButtonText(iima::loc::Text(L"ClearCache")); dialog.CloseButtonText(iima::loc::Text(L"Cancel"));
         dialog.DefaultButton(Controls::ContentDialogButton::Close);
         confirmed = (co_await dialog.ShowAsync()) == Controls::ContentDialogResult::Primary;
     } catch (hresult_error const& error) { if (!closing_) ShowError(error.message()); }
@@ -25,17 +25,17 @@ winrt::fire_and_forget MainWindow::ClearThumbnailCache() {
     clearingThumbnailCache_ = true;
     ClearThumbnailCacheButton().IsEnabled(false);
     CancelThumbnailPreview(); thumbnailMemory_.clear();
-    ThumbnailCacheStatusText().Text(L"正在清空缓存…");
+    ThumbnailCacheStatusText().Text(iima::loc::Text(L"ClearingCache"));
     auto apartment = apartment_context();
     co_await resume_background();
     std::wstring status;
     try {
         auto result = iima::ClearThumbnailDiskCache();
-        status = L"已删除 " + std::to_wstring(result.deletedFiles) + L" 个缓存文件。";
-        if (result.failedFiles) status += L"另有 " + std::to_wstring(result.failedFiles) + L" 个文件未能删除。";
+        status = iima::loc::Text(L"Deleted") + std::to_wstring(result.deletedFiles) + iima::loc::Text(L"ACacheFile");
+        if (result.failedFiles) status += iima::loc::Text(L"ThereSMore") + std::to_wstring(result.failedFiles) + iima::loc::Text(L"FilesCouldNotBeDeleted");
         if (!result.error.empty()) status += L" " + result.error;
-    } catch (hresult_error const& error) { status = L"清空缓存失败：" + std::wstring(error.message()); }
-      catch (...) { status = L"清空缓存失败。"; }
+    } catch (hresult_error const& error) { status = iima::loc::Text(L"ClearCacheFailed") + std::wstring(error.message()); }
+      catch (...) { status = iima::loc::Text(L"ClearCacheFailed2"); }
     try { co_await apartment; } catch (...) { co_return; }
     clearingThumbnailCache_ = false;
     if (!closing_) {

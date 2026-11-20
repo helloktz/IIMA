@@ -27,7 +27,7 @@ std::wstring Exe()
     // Win32 forbids literal quotes in a filename. Refuse instead of attempting
     // to escape an unexpected executable name in the shell command template.
     if (path.find_first_of(L"\"%") != std::wstring::npos)
-        throw winrt::hresult_invalid_argument(L"播放器目录含有无法安全写入关联命令模板的字符，请移动到不含引号或百分号的目录。");
+        throw winrt::hresult_invalid_argument(iima::loc::Text(L"ThePlayerDirectoryContainsCharactersThatCannot"));
     return path;
 }
 std::wstring Command() { return L"\"" + Exe() + L"\" \"%1\""; }
@@ -70,13 +70,13 @@ void FileAssociations::Register()
     // This is idempotent. A failure is surfaced; retry completes a partial write.
     auto command=Command();
     SetString(capabilities,L"OwnerExecutable",Exe());
-    SetString(L"Software\\Classes\\IIMA.Media",nullptr,L"IIMA 媒体文件");
+    SetString(L"Software\\Classes\\IIMA.Media",nullptr,iima::loc::Text(L"IIMAMediaFiles"));
     SetString(L"Software\\Classes\\IIMA.Media\\DefaultIcon",nullptr,L"\""+Exe()+L"\",0");
     SetString(L"Software\\Classes\\IIMA.Media\\shell\\open\\command",nullptr,command);
     SetString(application,L"FriendlyAppName",L"IIMA");
     SetString(std::wstring(application)+L"\\shell\\open\\command",nullptr,command);
     SetString(capabilities,L"ApplicationName",L"IIMA");
-    SetString(capabilities,L"ApplicationDescription",L"IIMA 原生媒体播放器");
+    SetString(capabilities,L"ApplicationDescription",iima::loc::Text(L"IMARawMediaPlayer"));
     for(auto const& extension:extensions) {
         SetString(std::wstring(capabilities)+L"\\FileAssociations",extension,progId);
         SetString(std::wstring(application)+L"\\SupportedTypes",extension,L"");
@@ -96,10 +96,10 @@ void FileAssociations::Unregister()
     auto owner=GetString(capabilities,L"OwnerExecutable");
     if (owner != Exe()) {
         if (owner.empty() && current.empty() && appCommand.empty() && GetString(capabilities,L"ApplicationName").empty()) return;
-        throw winrt::hresult_error(E_ACCESSDENIED,L"无法确认此副本拥有该注册，未移除任何关联。");
+        throw winrt::hresult_error(E_ACCESSDENIED,iima::loc::Text(L"CouldNotVerifyThatThisCopyOwns"));
     }
     if ((!current.empty() && current!=expected) || (!appCommand.empty() && appCommand!=expected))
-        throw winrt::hresult_error(E_ACCESSDENIED,L"关联由另一位置的 IIMA 注册，请在该副本中取消注册。");
+        throw winrt::hresult_error(E_ACCESSDENIED,iima::loc::Text(L"TheLinkIsRegisteredByTheIIMA"));
     for(auto const& extension:extensions)
         DeleteValue(std::wstring(L"Software\\Classes\\")+extension+L"\\OpenWithProgids",progId);
     DeleteTree(L"Software\\Classes\\IIMA.Media");
@@ -112,6 +112,6 @@ void FileAssociations::Unregister()
 void FileAssociations::OpenDefaultApps(HWND owner)
 {
     auto result=ShellExecuteW(owner,L"open",L"ms-settings:defaultapps",nullptr,nullptr,SW_SHOWNORMAL);
-    if(reinterpret_cast<INT_PTR>(result)<=32) throw winrt::hresult_error(E_FAIL,L"无法打开 Windows 默认应用设置。");
+    if(reinterpret_cast<INT_PTR>(result)<=32) throw winrt::hresult_error(E_FAIL,iima::loc::Text(L"CannotOpenWindowsDefaultApplicationSettings"));
 }
 }

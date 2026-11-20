@@ -49,7 +49,7 @@ fire_and_forget MainWindow::OpenSelectedPlaylistInBrowser() {
     auto const& state=session_->Snapshot();
     const auto item=state.playlist[rows.front()];
     auto uri=BrowserMediaUri(item.path);
-    if(!uri) { ShowError(L"浏览器打开仅支持不含用户名或密码的单个HTTP(S)地址。"); co_return; }
+    if(!uri) { ShowError(iima::loc::Text(L"BrowserOpensASingleHTTPSAddress")); co_return; }
     const auto revision=state.playlistRevision, intent=state.mediaOpenIntentRevision, generation=state.mediaGeneration;
     const auto input=inputGeneration_, edit=session_->PlaylistEditIntentRevision();
     const auto selection=playlistSubtitleSelectionRevision_;
@@ -72,8 +72,8 @@ fire_and_forget MainWindow::OpenSelectedPlaylistInBrowser() {
     UpdatePlaylistBrowserControls();
     try {
         const bool accepted=co_await Windows::System::Launcher::LaunchUriAsync(uri);
-        if(current()) ShowError(accepted ? L"已将所选地址交给默认浏览器；未验证页面是否加载。" : L"系统未打开浏览器。队列和当前播放未改变。");
-    } catch(...) { if(current()) ShowError(L"无法将所选地址交给默认浏览器。队列和当前播放未改变。"); }
+        if(current()) ShowError(accepted ? iima::loc::Text(L"TheSelectedAddressHasBeenGivenTo") : iima::loc::Text(L"TheSystemDoesNotOpenTheBrowser"));
+    } catch(...) { if(current()) ShowError(iima::loc::Text(L"CouldNotOpenTheSelectedAddressIn")); }
     playlistBrowserBusy_=false;
     if(!closing_) UpdatePlaylistBrowserControls();
 }

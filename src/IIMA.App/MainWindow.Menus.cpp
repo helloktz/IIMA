@@ -99,7 +99,7 @@ void MainWindow::WirePlayerMenus() {
             auto selected = self->playerMenuActions_[index];
             if (selected.mediaBound && (selected.menuGeneration != self->session_->Snapshot().mediaGeneration ||
                 selected.menuIntent != self->session_->Snapshot().mediaOpenIntentRevision)) {
-                self->ShowError(L"媒体已变化，请重新打开菜单。"); return;
+                self->ShowError(iima::loc::Text(L"TheMediaHasChangedPleaseReopenThe")); return;
             }
             if (selected.enabled && !selected.enabled()) { self->RefreshPlayerMenus(); return; }
             try {
@@ -130,101 +130,101 @@ void MainWindow::WirePlayerMenus() {
         return video() && !musicMode_.IsMusic() && !interactiveCrop_.Active() && !cropOriginal_ && normal &&
             normal.State() == Microsoft::UI::Windowing::OverlappedPresenterState::Restored;
     };
-    auto file = top(L"文件");
-    app(file, L"打开文件…", iima::ApplicationCommand::OpenFile);
-    add(file, L"打开文件夹…", [this] { OpenFolder(); });
-    app(file, L"打开网址…", iima::ApplicationCommand::OpenUrl);
-    add(file, L"追加文件…", [this] { OpenFile(true); });
-    recentMenu_ = sub(file, L"最近播放");
+    auto file = top(iima::loc::Text(L"File"));
+    app(file, iima::loc::Text(L"OpenFile"), iima::ApplicationCommand::OpenFile);
+    add(file, iima::loc::Text(L"OpenFolder"), [this] { OpenFolder(); });
+    app(file, iima::loc::Text(L"OpenURL"), iima::ApplicationCommand::OpenUrl);
+    add(file, iima::loc::Text(L"AppendFile"), [this] { OpenFile(true); });
+    recentMenu_ = sub(file, iima::loc::Text(L"RecentlyPlayed"));
     file.Items().Append(Controls::MenuFlyoutSeparator{});
-    app(file, L"保存播放列表…", iima::ApplicationCommand::SavePlaylist);
-    app(file, L"在资源管理器中显示", iima::ApplicationCommand::RevealCurrentFile);
-    app(file, L"移至回收站…", iima::ApplicationCommand::DeleteCurrentFile);
+    app(file, iima::loc::Text(L"SavePlaylist"), iima::ApplicationCommand::SavePlaylist);
+    app(file, iima::loc::Text(L"ShowInResourceManager"), iima::ApplicationCommand::RevealCurrentFile);
+    app(file, iima::loc::Text(L"MoveToWastebin"), iima::ApplicationCommand::DeleteCurrentFile);
     file.Items().Append(Controls::MenuFlyoutSeparator{});
-    add(file, L"关闭当前窗口", [this] { BeginClose(); }, {}, {"quit"});
+    add(file, iima::loc::Text(L"CloseTheCurrentWindow"), [this] { BeginClose(); }, {}, {"quit"});
 
     buildingMediaMenu = true;
-    auto playback = top(L"播放");
-    add(playback, L"播放", [this] { session_->TogglePause(); }, loaded, {"cycle","pause"}, false, {},
-        [this] { return hstring{session_->Snapshot().paused ? L"播放" : L"暂停"}; });
-    add(playback, L"停止", [this] { session_->Stop(); }, [this] {
+    auto playback = top(iima::loc::Text(L"Play"));
+    add(playback, iima::loc::Text(L"Play"), [this] { session_->TogglePause(); }, loaded, {"cycle","pause"}, false, {},
+        [this] { return hstring{session_->Snapshot().paused ? iima::loc::Text(L"Play") : iima::loc::Text(L"Pause")}; });
+    add(playback, iima::loc::Text(L"Stop"), [this] { session_->Stop(); }, [this] {
         auto const& s = session_->Snapshot();
         return s.session == iima::SessionState::Ready &&
             (s.media == iima::MediaState::Loading || s.media == iima::MediaState::Loaded || s.mediaOriginPending);
     }, {"stop"});
-    add(playback, L"上一项", [this] { session_->PlaylistPrevious(); }, loaded, {"playlist-prev"});
-    add(playback, L"下一项", [this] { session_->PlaylistNext(); }, loaded, {"playlist-next"});
-    add(playback, L"后退5秒", [this] { session_->SeekRelative(-5, true); }, seekable, {"seek","-5"});
-    add(playback, L"前进5秒", [this] { session_->SeekRelative(5, true); }, seekable, {"seek","5"});
-    add(playback, L"上一帧", [this] { session_->StepFrame(true); }, video, {"frame-back-step"});
-    add(playback, L"下一帧", [this] { session_->StepFrame(); }, video, {"frame-step"});
-    chapterMenu_ = sub(playback, L"章节");
-    auto speed = sub(playback, L"速度");
+    add(playback, iima::loc::Text(L"Previous"), [this] { session_->PlaylistPrevious(); }, loaded, {"playlist-prev"});
+    add(playback, iima::loc::Text(L"Next"), [this] { session_->PlaylistNext(); }, loaded, {"playlist-next"});
+    add(playback, iima::loc::Text(L"FiveSecondsBack"), [this] { session_->SeekRelative(-5, true); }, seekable, {"seek","-5"});
+    add(playback, iima::loc::Text(L"FiveSecondsForward"), [this] { session_->SeekRelative(5, true); }, seekable, {"seek","5"});
+    add(playback, iima::loc::Text(L"PreviousFrame"), [this] { session_->StepFrame(true); }, video, {"frame-back-step"});
+    add(playback, iima::loc::Text(L"NextFrame"), [this] { session_->StepFrame(); }, video, {"frame-step"});
+    chapterMenu_ = sub(playback, iima::loc::Text(L"Chapter"));
+    auto speed = sub(playback, iima::loc::Text(L"Speed"));
     for (double value : {0.5, 1.0, 1.25, 1.5, 2.0})
-        add(speed, to_hstring(value) + L" 倍", [this, value] { session_->SetSpeed(value); }, loaded,
+        add(speed, to_hstring(value) + iima::loc::Text(L"Multiply"), [this, value] { session_->SetSpeed(value); }, loaded,
             {"set","speed",std::to_string(value)}, false, [this, value] { return std::abs(session_->Snapshot().speed-value) < 1e-9; });
-    add(playback, L"A–B循环", [this] { session_->CycleABLoop(); }, seekable, {"ab-loop"}, false,
+    add(playback, iima::loc::Text(L"ABCycle"), [this] { session_->CycleABLoop(); }, seekable, {"ab-loop"}, false,
         [this] { return session_->Snapshot().abLoopA.has_value(); });
-    auto repeat = sub(playback, L"循环模式");
-    for (auto [mode, label] : {std::pair{iima::RepeatMode::Off,L"不循环"}, {iima::RepeatMode::File,L"单文件循环"}, {iima::RepeatMode::Playlist,L"列表循环"}})
+    auto repeat = sub(playback, iima::loc::Text(L"CycleMode"));
+    for (auto [mode, label] : {std::pair{iima::RepeatMode::Off,iima::loc::Text(L"NoLoop")}, {iima::RepeatMode::File,iima::loc::Text(L"LoopFile")}, {iima::RepeatMode::Playlist,iima::loc::Text(L"LoopPlaylist")}})
         add(repeat, label, [this, mode] { session_->SetRepeatMode(mode); }, loaded, {}, false,
             [this, mode] { return session_->Snapshot().repeatMode == mode; });
-    app(playback, L"播放列表侧栏", iima::ApplicationCommand::PlaylistPanel);
+    app(playback, iima::loc::Text(L"PlaylistSidebar"), iima::ApplicationCommand::PlaylistPanel);
 
-    auto picture = top(L"视频");
-    videoTrackMenu_ = sub(picture, L"视频轨道");
-    add(picture, L"载入外部视频…", [this] {LoadExternalVideo();}, [this] {return CanLoadExternalAV();});
-    auto sizes = sub(picture, L"窗口尺寸");
+    auto picture = top(iima::loc::Text(L"Video"));
+    videoTrackMenu_ = sub(picture, iima::loc::Text(L"VideoTrack"));
+    add(picture, iima::loc::Text(L"LoadExternalVideo"), [this] {LoadExternalVideo();}, [this] {return CanLoadExternalAV();});
+    auto sizes = sub(picture, iima::loc::Text(L"WindowDimensions"));
     for (double value : {0.5, 1.0, 1.5, 2.0})
-        add(sizes, to_hstring(value) + L" 倍", [this, value] { ResizeToVideo(value); }, normalVideo);
-    add(sizes, L"适合工作区", [this] { ResizeToVideo({}); }, normalVideo);
-    auto rotation = sub(picture, L"旋转");
+        add(sizes, to_hstring(value) + iima::loc::Text(L"Multiply"), [this, value] { ResizeToVideo(value); }, normalVideo);
+    add(sizes, iima::loc::Text(L"FitToWorkspace"), [this] { ResizeToVideo({}); }, normalVideo);
+    auto rotation = sub(picture, iima::loc::Text(L"Rotate"));
     for (int value : {0, 90, 180, 270})
         add(rotation, to_hstring(value) + L"°", [this, value] { session_->SetVideoRotation(value); }, video, {}, false,
             [this, value] { return session_->Snapshot().videoRotation == value; });
-    app(picture, L"上下翻转", iima::ApplicationCommand::ToggleFlip);
-    app(picture, L"左右镜像", iima::ApplicationCommand::ToggleMirror);
-    add(picture, L"反交错", [this] { session_->SetDeinterlace(!session_->Snapshot().deinterlace.value_or(false)); },
+    app(picture, iima::loc::Text(L"FlipUpAndDown"), iima::ApplicationCommand::ToggleFlip);
+    app(picture, iima::loc::Text(L"LeftAndRightMirrors"), iima::ApplicationCommand::ToggleMirror);
+    add(picture, iima::loc::Text(L"Inverted"), [this] { session_->SetDeinterlace(!session_->Snapshot().deinterlace.value_or(false)); },
         [this, video] { return video() && session_->Snapshot().deinterlace.has_value(); }, {}, false,
         [this] { return session_->Snapshot().deinterlace.value_or(false); });
-    add(picture, L"截图", [this] { SaveScreenshot(); }, video, {"screenshot"});
-    add(picture, L"截图另存为…", [this] { SaveScreenshot(false,true); }, video);
-    savedVideoFilterMenu_ = sub(picture, L"保存的视频滤镜");
-    app(picture, L"视频设置", iima::ApplicationCommand::VideoPanel);
+    add(picture, iima::loc::Text(L"Screenshots"), [this] { SaveScreenshot(); }, video, {"screenshot"});
+    add(picture, iima::loc::Text(L"SaveScreenshotAs"), [this] { SaveScreenshot(false,true); }, video);
+    savedVideoFilterMenu_ = sub(picture, iima::loc::Text(L"SavedVideoFilters"));
+    app(picture, iima::loc::Text(L"VideoSettings"), iima::ApplicationCommand::VideoPanel);
 
-    auto audio = top(L"音频");
-    audioTrackMenu_ = sub(audio, L"音轨");
-    audioDeviceMenu_ = sub(audio, L"输出设备");
-    savedAudioFilterMenu_ = sub(audio, L"保存的音频滤镜");
-    add(audio, L"加载外部音轨…", [this] { LoadExternalAudio(); }, [this] {return CanLoadExternalAV();});
-    add(audio, L"静音", [this] { session_->ToggleMute(); }, loaded, {"cycle","mute"}, false,
+    auto audio = top(iima::loc::Text(L"Audio"));
+    audioTrackMenu_ = sub(audio, iima::loc::Text(L"Track"));
+    audioDeviceMenu_ = sub(audio, iima::loc::Text(L"OutputDevice"));
+    savedAudioFilterMenu_ = sub(audio, iima::loc::Text(L"SavedAudioFilters"));
+    add(audio, iima::loc::Text(L"LoadExternalTracks"), [this] { LoadExternalAudio(); }, [this] {return CanLoadExternalAV();});
+    add(audio, iima::loc::Text(L"Mute"), [this] { session_->ToggleMute(); }, loaded, {"cycle","mute"}, false,
         [this] { return session_->Snapshot().muted; });
-    add(audio, L"增大音量", [this] { session_->SetVolume(session_->Snapshot().volume + 5); }, loaded, {"add","volume","5"});
-    add(audio, L"减小音量", [this] { session_->SetVolume(session_->Snapshot().volume - 5); }, loaded, {"add","volume","-5"});
-    app(audio, L"音频设置", iima::ApplicationCommand::AudioPanel);
+    add(audio, iima::loc::Text(L"IncreaseVolume"), [this] { session_->SetVolume(session_->Snapshot().volume + 5); }, loaded, {"add","volume","5"});
+    add(audio, iima::loc::Text(L"VolumeReduction"), [this] { session_->SetVolume(session_->Snapshot().volume - 5); }, loaded, {"add","volume","-5"});
+    app(audio, iima::loc::Text(L"AudioSettings"), iima::ApplicationCommand::AudioPanel);
 
-    auto subtitles = top(L"字幕");
-    subtitleTrackMenu_ = sub(subtitles, L"主字幕");
-    secondaryTrackMenu_ = sub(subtitles, L"第二字幕");
-    add(subtitles, L"显示字幕", [this] { session_->SetSubtitlesVisible(!session_->Snapshot().subtitlesVisible); }, loaded,
+    auto subtitles = top(iima::loc::Text(L"Subtitles"));
+    subtitleTrackMenu_ = sub(subtitles, iima::loc::Text(L"PrimarySubtitles"));
+    secondaryTrackMenu_ = sub(subtitles, iima::loc::Text(L"Subtitle2"));
+    add(subtitles, iima::loc::Text(L"ShowSubtitles"), [this] { session_->SetSubtitlesVisible(!session_->Snapshot().subtitlesVisible); }, loaded,
         {"cycle","sub-visibility"}, false, [this] { return session_->Snapshot().subtitlesVisible; });
-    add(subtitles, L"加载字幕…", [this] { OpenSubtitle(); }, [this] {return CanStartSubtitleLoad();});
-    add(subtitles, L"重新载入字幕", [this] { StartSubtitleReload(); }, [this] {return CanStartSubtitleReload();});
-    app(subtitles, L"查找在线字幕…", iima::ApplicationCommand::FindOnlineSubtitles);
-    app(subtitles, L"另存下载的字幕…", iima::ApplicationCommand::SaveDownloadedSubtitle);
-    app(subtitles, L"字幕设置", iima::ApplicationCommand::SubtitlePanel);
+    add(subtitles, iima::loc::Text(L"LoadSubtitles"), [this] { OpenSubtitle(); }, [this] {return CanStartSubtitleLoad();});
+    add(subtitles, iima::loc::Text(L"ReloadSubtitles"), [this] { StartSubtitleReload(); }, [this] {return CanStartSubtitleReload();});
+    app(subtitles, iima::loc::Text(L"FindOnlineSubtitles"), iima::ApplicationCommand::FindOnlineSubtitles);
+    app(subtitles, iima::loc::Text(L"SaveDownloadedSubtitles"), iima::ApplicationCommand::SaveDownloadedSubtitle);
+    app(subtitles, iima::loc::Text(L"SubtitleSettings"), iima::ApplicationCommand::SubtitlePanel);
 
     buildingMediaMenu = false;
-    auto window = top(L"窗口");
-    add(window, L"全屏", [this] { ToggleFullscreen(); }, {}, {"cycle","fullscreen"}, false, {},
-        [this] { return hstring{fullscreen_ ? L"退出全屏" : L"全屏"}; });
-    app(window, L"切换画中画", iima::ApplicationCommand::TogglePictureInPicture);
-    app(window, L"切换音乐模式", iima::ApplicationCommand::ToggleMusicMode);
-    add(window, L"始终置顶", [this] { ApplyAdvancedSetting("alwaysFloatOnTop", !preferences_.Boolean("alwaysFloatOnTop")); }, {}, {}, false,
+    auto window = top(iima::loc::Text(L"Window"));
+    add(window, iima::loc::Text(L"Fullscreen"), [this] { ToggleFullscreen(); }, {}, {"cycle","fullscreen"}, false, {},
+        [this] { return hstring{fullscreen_ ? iima::loc::Text(L"ExitFullScreen") : iima::loc::Text(L"Fullscreen")}; });
+    app(window, iima::loc::Text(L"ToggleDrawings"), iima::ApplicationCommand::TogglePictureInPicture);
+    app(window, iima::loc::Text(L"ToggleMusicMode"), iima::ApplicationCommand::ToggleMusicMode);
+    add(window, iima::loc::Text(L"KeepTops"), [this] { ApplyAdvancedSetting("alwaysFloatOnTop", !preferences_.Boolean("alwaysFloatOnTop")); }, {}, {}, false,
         [this] { return preferences_.Boolean("alwaysFloatOnTop"); });
     window.Items().Append(Controls::MenuFlyoutSeparator{});
-    add(window, L"新建播放器窗口", [this] { if (newWindow_) newWindow_(); }, [this] { return newWindow_ && NewWindowButton().IsEnabled(); });
-    add(window, L"下一个播放器窗口", [this] { if (nextWindow_) nextWindow_(); }, [this] { return nextWindow_ && NextWindowButton().IsEnabled(); });
+    add(window, iima::loc::Text(L"NewPlayerWindow"), [this] { if (newWindow_) newWindow_(); }, [this] { return newWindow_ && NewWindowButton().IsEnabled(); });
+    add(window, iima::loc::Text(L"NextPlayerWindow"), [this] { if (nextWindow_) nextWindow_(); }, [this] { return nextWindow_ && NextWindowButton().IsEnabled(); });
     ApplicationMenuBar().PointerEntered([weak](auto const&, auto const&) { if (auto self = weak.get()) self->RefreshPlayerMenus(); });
     ApplicationMenuBar().GotFocus([weak](auto const&, auto const&) { if (auto self = weak.get()) self->RefreshPlayerMenus(); });
     playerMenusReady_ = true;

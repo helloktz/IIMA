@@ -23,7 +23,7 @@ void MainWindow::LoadUserData()
             init_apartment(apartment_type::multi_threaded); initialized = true;
             data = iima::UserDataStore::Load();
             try { placement = iima::WindowPlacementStore::Load(); }
-            catch (...) { placementWritable = false; data.warning += " 窗口位置文件未能读取，保留原文件。"; }
+            catch (...) { placementWritable = false; data.warning += iima::loc::Utf8(L"WindowLocationFileCouldNotBeRead"); }
         } catch (std::exception const& e) { data.warning = e.what(); data.writable = false; }
           catch (hresult_error const& e) { data.warning = to_string(e.message()); data.writable = false; }
         if (initialized) uninit_apartment();
@@ -152,7 +152,7 @@ void MainWindow::PumpSave()
                 self->saving_ = false;
                 if (!error.empty()) {
                     self->saveDirty_ = true; self->saveFailed_ = true;
-                    self->ShowError(L"设置或历史保存失败：" + to_hstring(error) + L"。本次更改尚未保存。");
+                    self->ShowError(iima::loc::Text(L"SetupOrHistorySavingFailed") + to_hstring(error) + iima::loc::Text(L"ThisChangeHasNotBeenSaved"));
                     if (self->closing_) self->ConfirmUnsavedClose();
                 } else { self->savedUserData_ = data; self->PumpSave(); }
             }
@@ -167,14 +167,14 @@ winrt::fire_and_forget MainWindow::ConfirmUnsavedClose()
     try {
         Microsoft::UI::Xaml::Controls::ContentDialog dialog;
         dialog.XamlRoot(Root().XamlRoot());
-        dialog.Title(box_value(L"设置或历史尚未保存"));
+        dialog.Title(box_value(iima::loc::Text(L"SettingsOrHistoryNotSaved")));
         dialog.Content(box_value(userData_.writable
-            ? L"保存失败。可以重试，或退出并放弃本次未保存的更改。"
-            : L"原数据未能安全读取或备份。为保护原文件，本次不会覆盖保存；退出会放弃本次更改。"));
-        dialog.PrimaryButtonText(L"重试保存");
+            ? iima::loc::Text(L"SaveFailedYouCanTryAgainOr")
+            : iima::loc::Text(L"TheOriginalDataCouldNotBeRead")));
+        dialog.PrimaryButtonText(iima::loc::Text(L"RetrySave"));
         dialog.IsPrimaryButtonEnabled(userData_.writable);
-        dialog.SecondaryButtonText(L"退出而不保存");
-        dialog.CloseButtonText(L"留在窗口");
+        dialog.SecondaryButtonText(iima::loc::Text(L"QuitWithoutSaving"));
+        dialog.CloseButtonText(iima::loc::Text(L"StayInTheWindow"));
         auto result = co_await dialog.ShowAsync();
         saveDialogOpen_ = false;
         if (result == Microsoft::UI::Xaml::Controls::ContentDialogResult::Secondary) {

@@ -22,7 +22,7 @@ winrt::fire_and_forget MainWindow::OpenFolder(bool append, bool invertWindowPoli
         auto folder = co_await picker.PickSingleFolderAsync();
         if (folder && !closing_) {
             auto path = folder.Path();
-            if (path.empty()) ShowError(L"请选择可访问的本地文件夹。");
+            if (path.empty()) ShowError(iima::loc::Text(L"PleaseSelectALocalFolderToAccess"));
             else QueueFiles({to_string(path)}, append, !append, invertWindowPolicy);
         }
     } catch (hresult_error const& error) { if (!closing_) ShowError(error.message()); }

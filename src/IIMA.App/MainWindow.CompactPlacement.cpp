@@ -52,7 +52,7 @@ bool MainWindow::EnterCompactOverlay() {
         saved.geometry=iima::CaptureWindowPlacement(bounds,
             {double(monitor.rcWork.left),double(monitor.rcWork.top),double(monitor.rcWork.right-monitor.rcWork.left),
                 double(monitor.rcWork.bottom-monitor.rcWork.top)},dpi,iima::WindowPlacementMode::Normal);
-        if(!saved.geometry) {ShowError(L"无法保存小窗之前的窗口位置，未切换呈现模式。");return false;}
+        if(!saved.geometry) {ShowError(iima::loc::Text(L"CannotSaveTheWindowPositionBeforeThe"));return false;}
         const auto generation=session_->Snapshot().mediaGeneration,intent=session_->Snapshot().mediaOpenIntentRevision,input=inputGeneration_;
         if(!saved.music) windowPlacement_=saved.geometry;
         compactRestore_=std::move(saved);
@@ -61,7 +61,7 @@ bool MainWindow::EnterCompactOverlay() {
         window.SetPresenter(AppWindowPresenterKind::CompactOverlay);
         if(window.Presenter().Kind()!=AppWindowPresenterKind::CompactOverlay) {
             UpdatePresentationLayout();
-            ShowError(L"小窗切换未完成；可使用返回播放器重试恢复。"); return false;
+            ShowError(iima::loc::Text(L"TheSmallWindowSwitchWasNotCompleted")); return false;
         }
         if(CompactTransportAvailable() && preferences_.Boolean("pauseWhenPip") &&
             session_->Snapshot().mediaGeneration==generation && session_->Snapshot().mediaOpenIntentRevision==intent && inputGeneration_==input)
@@ -98,10 +98,10 @@ bool MainWindow::ExitCompactOverlay(bool restoreGeometry) {
             bounds=iima::RestoreWindowPlacement(*compactRestore_->geometry,
                 {double(work.X),double(work.Y),double(work.Width),double(work.Height)},dpi,
                 {640*dpi/96.0,(compactRestore_->music ? 290.0 : 360.0)*dpi/96.0});
-            if(!bounds) {ShowError(L"当前屏幕无法恢复播放器位置，未改变当前呈现模式。");return false;}
+            if(!bounds) {ShowError(iima::loc::Text(L"TheCurrentScreenDoesNotRestoreThe"));return false;}
         }
         if(restoreGeometry && compactRestore_ && !bounds) {
-            ShowError(L"当前屏幕不可用，请稍后重试返回。"); return false;
+            ShowError(iima::loc::Text(L"TheCurrentScreenIsNotAvailablePlease")); return false;
         }
         compactLayoutPending_=true;
         if(compactRestore_ && compactRestore_->presenter) window.SetPresenter(compactRestore_->presenter);
@@ -134,7 +134,7 @@ bool MainWindow::ExitCompactOverlay(bool restoreGeometry) {
         compactLayoutPending_=true;
         windowScaleExpectedPanelWidth_.reset();
         try {UpdatePresentationLayout();}catch(...){}
-        ShowError(L"窗口恢复未完成："+e.message()); return false;
+        ShowError(iima::loc::Text(L"CouldNotRestoreTheWindow")+e.message()); return false;
     }
 }
 }

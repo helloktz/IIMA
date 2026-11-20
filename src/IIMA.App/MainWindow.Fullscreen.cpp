@@ -19,7 +19,7 @@ void MainWindow::ToggleFullscreen() {
     if(compactRestore_ && AppWindow().Presenter().Kind()!=Microsoft::UI::Windowing::AppWindowPresenterKind::CompactOverlay &&
         !ExitCompactOverlay()) return;
     if(compactLayoutPending_ && AppWindow().Presenter().Kind()==Microsoft::UI::Windowing::AppWindowPresenterKind::Overlapped) {
-        ShowError(L"窗口布局正在恢复，请稍后再次进入全屏。"); return;
+        ShowError(iima::loc::Text(L"WindowLayoutIsBeingRestoredPleaseEnter")); return;
     }
     try {
         auto window = AppWindow();
@@ -70,7 +70,7 @@ void MainWindow::ToggleFullscreen() {
         window.SetPresenter(Microsoft::UI::Windowing::AppWindowPresenterKind::FullScreen);
         fullscreen_ = true;
         fullscreenTransition_ = false;
-        FullscreenButton().Content(winrt::box_value(L"退出全屏"));
+        FullscreenButton().Content(winrt::box_value(iima::loc::Text(L"ExitFullScreen")));
         ApplyWindowPreferences();
         if (preferences_.Boolean("playWhenEnteringFullScreen")) session_->Pause(false);
         UpdateAutomaticVideoSize();
@@ -121,7 +121,7 @@ bool MainWindow::ExitFullscreen(bool restoreGeometry) {
         fullscreenRestore_.reset();
         restoringPlacement_ = false;
         fullscreenTransition_ = false;
-        FullscreenButton().Content(winrt::box_value(L"全屏"));
+        FullscreenButton().Content(winrt::box_value(iima::loc::Text(L"Fullscreen")));
         ApplyWindowPreferences();
         QueueWindowScaleFeedback();
         return true;
@@ -130,7 +130,7 @@ bool MainWindow::ExitFullscreen(bool restoreGeometry) {
         fullscreenTransition_ = false;
         fullscreen_ = AppWindow().Presenter().Kind() == Microsoft::UI::Windowing::AppWindowPresenterKind::FullScreen;
         if (!fullscreen_) fullscreenRestore_.reset();
-        FullscreenButton().Content(winrt::box_value(fullscreen_ ? L"退出全屏" : L"全屏"));
+        FullscreenButton().Content(winrt::box_value(fullscreen_ ? iima::loc::Text(L"ExitFullScreen") : iima::loc::Text(L"Fullscreen")));
         ShowError(error.message());
         return false;
     }

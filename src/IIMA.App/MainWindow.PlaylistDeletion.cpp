@@ -22,7 +22,7 @@ void MainWindow::WirePlaylistDeletion() {
     CancelPlaylistDeletionButton().Click([weak](auto const&, auto const&) {
         if (auto self = weak.get(); self && self->playlistDeletionBusy_) {
             self->playlistDeletionStop_.request_stop();
-            self->StatusText().Text(L"已请求停止后续文件。当前系统删除对话框需在其中取消；已完成的删除不能撤回。");
+            self->StatusText().Text(iima::loc::Text(L"AFollowUpFileHasBeenRequested"));
         }
     });
 }
@@ -50,12 +50,12 @@ fire_and_forget MainWindow::DeleteSelectedPlaylistFiles() {
             if (std::none_of(paths.begin(),paths.end(),[&](auto const& p) { return SamePath(p,path); }))
                 paths.push_back(path);
         }
-        if (paths.empty()) { ShowError(L"没有可删除的非当前本地文件。网络条目和当前播放文件不会删除。"); co_return; }
-        if (paths.size() > 64) { ShowError(L"每次最多删除64个不同文件，请减少选择。"); co_return; }
-        std::wstring preview = L"这是删除磁盘文件，不是仅移除播放列表。Windows将优先使用回收站；不能回收时会另行要求系统确认永久删除。请在系统对话框取消不希望永久删除的文件。\n\n";
+        if (paths.empty()) { ShowError(iima::loc::Text(L"ThereAreNoNonCurrentLocalFiles2")); co_return; }
+        if (paths.size() > 64) { ShowError(iima::loc::Text(L"PleaseReduceTheSelectionForEachDeletion")); co_return; }
+        std::wstring preview = iima::loc::Text(L"ThisIsToRemoveDiskFilesNot");
         for (auto const& path : paths) {
             if (preview.size()+path.native().size()+1 > 24000) {
-                ShowError(L"选择的路径过多，无法完整展示，请减少选择。"); co_return;
+                ShowError(iima::loc::Text(L"SelectAPathThatIsTooMany")); co_return;
             }
             preview += path.native()+L"\n";
         }
@@ -64,19 +64,19 @@ fire_and_forget MainWindow::DeleteSelectedPlaylistFiles() {
         UpdatePlaylistSelection(); CancelPlaylistDeletionButton().IsEnabled(true);
         playlistDeletionDialog_ = Controls::ContentDialog();
         playlistDeletionDialog_.XamlRoot(Root().XamlRoot());
-        playlistDeletionDialog_.Title(box_value(L"确认删除这些磁盘文件？"));
+        playlistDeletionDialog_.Title(box_value(iima::loc::Text(L"ConfirmingToDeleteTheseDiskFiles")));
         Controls::TextBlock text; text.Text(preview); text.TextWrapping(TextWrapping::Wrap);
         Controls::ScrollViewer scroll; scroll.MaxHeight(420); scroll.Content(text);
         playlistDeletionDialog_.Content(scroll);
-        playlistDeletionDialog_.PrimaryButtonText(L"继续到系统删除确认");
-        playlistDeletionDialog_.CloseButtonText(L"取消");
+        playlistDeletionDialog_.PrimaryButtonText(iima::loc::Text(L"ContinueToSystemDeleteConfirmation"));
+        playlistDeletionDialog_.CloseButtonText(iima::loc::Text(L"Cancel"));
         playlistDeletionDialog_.DefaultButton(Controls::ContentDialogButton::Close);
         const auto approved = co_await playlistDeletionDialog_.ShowAsync();
         playlistDeletionDialog_ = nullptr;
         auto stop = playlistDeletionStop_.get_token();
         if (approved == Controls::ContentDialogResult::Primary && !closing_ && !stop.stop_requested()) {
             if (navigationEpoch_ != epoch || session_->Snapshot().playlistRevision != revision || session_->PlaylistEditBusy())
-                throw hresult_error(E_ABORT,L"确认期间媒体或播放列表变化，未开始删除。请重新选择。");
+                throw hresult_error(E_ABORT,iima::loc::Text(L"TheMediaOrPlaylistChangesDuringThe"));
             apartment_context ui;
             iima::PlaylistFileDeletionResult result;
             std::exception_ptr error;
@@ -113,15 +113,15 @@ fire_and_forget MainWindow::DeleteSelectedPlaylistFiles() {
                 }
                 const auto requestedRows = rows.size();
                 if (!rows.empty()) session_->RemovePlaylistItems(std::move(rows));
-                StatusText().Text(L"系统完成删除 "+to_hstring(completed)+L" 个文件；已请求移除 "+
-                    to_hstring(requestedRows)+L" 个仍匹配的列表条目；跳过 "+to_hstring(skipped)+L" 个所选条目。"+
-                    (result.cancelled ? L"后续操作已取消。" : L""));
+                StatusText().Text(iima::loc::Text(L"SystemCompleteForDeletion")+to_hstring(completed)+iima::loc::Text(L"FilesRequiredForRemoval")+
+                    to_hstring(requestedRows)+iima::loc::Text(L"ListEntriesThatStillMatchSkipping")+to_hstring(skipped)+iima::loc::Text(L"SelectedItems")+
+                    (result.cancelled ? iima::loc::Text(L"FollowUpHasBeenCancelled") : L""));
                 if (completed != static_cast<std::ptrdiff_t>(paths.size()))
-                    ShowError(L"部分文件未删除或尚未处理，请检查列表。目录、链接、网络/设备路径和超长路径不支持；系统错误不会自动重试。");
+                    ShowError(iima::loc::Text(L"SomeFilesHaveNotBeenDeletedOr"));
             }
         }
     } catch (hresult_error const& error) { if (!closing_) ShowError(error.message()); }
-      catch (...) { if (!closing_) ShowError(L"删除未完整完成。已发生的系统操作不会回滚，请检查文件后再决定是否重试。"); }
+      catch (...) { if (!closing_) ShowError(iima::loc::Text(L"DeletesIncompletelyTheSystemOperationThatHas")); }
     playlistDeletionDialog_ = nullptr;
     playlistDeletionBusy_ = false; pickerOpen_ = false;
     if (!closing_) { CancelPlaylistDeletionButton().IsEnabled(false); UpdatePlaylistSelection(); }

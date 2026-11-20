@@ -94,12 +94,12 @@ void MainWindow::UpdateMusicVolume() {
     const bool valid=MusicVolumeContextValid();
     MusicVolumeSlider().IsEnabled(valid);
     MusicMuteButton().IsEnabled(valid);
-    MusicMuteButton().Content(box_value(s.muted ? L"取消静音" : L"静音"));
-    const auto value=!available ? hstring(L"不可用") :
-        s.volume<0 || s.volume>1000000 ? hstring(L"超出显示范围") :
+    MusicMuteButton().Content(box_value(s.muted ? iima::loc::Text(L"CancelMute") : iima::loc::Text(L"Mute")));
+    const auto value=!available ? hstring(iima::loc::Text(L"NotAvailable")) :
+        s.volume<0 || s.volume>1000000 ? hstring(iima::loc::Text(L"BeyondDisplay")) :
         to_hstring(static_cast<int>(std::lround(s.volume)))+L"%";
-    MusicVolumeButton().Content(box_value(available && s.muted ? L"音量（静音）" : L"音量"));
-    MusicVolumeValue().Text(available && s.muted ? value+L" · 静音" : value);
+    MusicVolumeButton().Content(box_value(available && s.muted ? iima::loc::Text(L"VolumeSilence") : iima::loc::Text(L"Volume")));
+    MusicVolumeValue().Text(available && s.muted ? value+iima::loc::Text(L"Mute2") : value);
     if(available) {
         if(MusicVolumeSlider().Maximum()!=s.maxVolume) MusicVolumeSlider().CancelTracking();
         MusicVolumeSlider().Maximum(s.maxVolume);

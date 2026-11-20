@@ -43,17 +43,17 @@ fire_and_forget MainWindow::ChooseSubtitleFont() {
             // Enumeration failure still permits explicit manual input, as IINA does.
             auto catalog = std::make_shared<const std::vector<iima::FontFamilyEntry>>(std::move(families));
             Controls::TextBlock info;
-            info.Text(failure ? L"无法枚举本地字体，仍可手动输入名称。" :
-                observed ? L"初值来自当前字幕字体。选择本地字体家族或手动输入名称。" : L"当前字体未知，初值来自编辑草稿。");
+            info.Text(failure ? iima::loc::Text(L"CouldNotListInstalledFontsYouCan") :
+                observed ? iima::loc::Text(L"TheOpeningValueIsDerivedFromThe") : iima::loc::Text(L"TheCurrentFontIsUnknownTheOpening"));
             info.TextWrapping(TextWrapping::Wrap);
             Controls::TextBox search;
-            search.Header(box_value(L"搜索字体家族")); search.MaxLength(128);
+            search.Header(box_value(iima::loc::Text(L"SearchFontFamily"))); search.MaxLength(128);
             Controls::TextBox name;
-            name.Header(box_value(L"字体名称（留空使用 sans-serif）")); name.MaxLength(512); name.Text(initial);
+            name.Header(box_value(iima::loc::Text(L"FontNameSansSerifLeftEmpty"))); name.MaxLength(512); name.Text(initial);
             Controls::TextBlock preview;
-            preview.Text(L"字幕预览  Aa Bb 0123456789 中文"); preview.FontSize(24); preview.TextWrapping(TextWrapping::Wrap);
+            preview.Text(iima::loc::Text(L"SubtitlePreviewAaBb0123456789Chinese")); preview.FontSize(24); preview.TextWrapping(TextWrapping::Wrap);
             Controls::TextBlock disclaimer;
-            disclaimer.Text(L"仅应用字体名称，不改变字号或粗斜体。预览采用 Windows 字体回退，不能保证与 libass 渲染一致；ASS 内置样式可能覆盖选择。");
+            disclaimer.Text(iima::loc::Text(L"ApplyFontNamesOnlyWithoutChangingFonts"));
             disclaimer.TextWrapping(TextWrapping::Wrap);
             Controls::ListView list;
             list.Height(240); list.SelectionMode(Controls::ListViewSelectionMode::Single);
@@ -93,14 +93,14 @@ fire_and_forget MainWindow::ChooseSubtitleFont() {
             Controls::ScrollViewer scroll; scroll.MaxHeight(560); scroll.Content(content);
             Controls::ContentDialog dialog;
             subtitleFontDialog_ = dialog;
-            dialog.XamlRoot(Root().XamlRoot()); dialog.Title(box_value(L"字幕字体")); dialog.Content(scroll);
-            dialog.PrimaryButtonText(L"应用字体名称"); dialog.CloseButtonText(L"取消");
+            dialog.XamlRoot(Root().XamlRoot()); dialog.Title(box_value(iima::loc::Text(L"SubtitleFont"))); dialog.Content(scroll);
+            dialog.PrimaryButtonText(iima::loc::Text(L"ApplyFontName")); dialog.CloseButtonText(iima::loc::Text(L"Cancel"));
             dialog.DefaultButton(Controls::ContentDialogButton::Close);
             dialog.PrimaryButtonClick([valid, name, info](auto const&, Controls::ContentDialogButtonClickEventArgs const& args) {
                 auto text = to_string(name.Text());
-                if (!valid()) { args.Cancel(true); info.Text(L"媒体或字幕选择已变化，请取消后重新打开。"); }
+                if (!valid()) { args.Cancel(true); info.Text(iima::loc::Text(L"TheChoiceOfMediaOrSubtitlesHas")); }
                 else if (text.size() > 1024 || text.find_first_of("\r\n") != std::string::npos || text.find('\0') != std::string::npos) {
-                    args.Cancel(true); info.Text(L"请输入不含换行的有效字体名称。");
+                    args.Cancel(true); info.Text(iima::loc::Text(L"EnterAValidFontNameThatDoes"));
                 }
             });
             auto result = co_await dialog.ShowAsync();
@@ -112,7 +112,7 @@ fire_and_forget MainWindow::ChooseSubtitleFont() {
             }
         }
     } catch (hresult_error const& error) { if (!closing_) ShowError(error.message()); }
-    catch (...) { if (!closing_) ShowError(L"无法选择字幕字体。"); }
+    catch (...) { if (!closing_) ShowError(iima::loc::Text(L"CouldNotSelectTheSubtitleFont")); }
     subtitleFontDialog_ = nullptr;
     pickerOpen_ = false;
     if (!closing_) OpenPendingFiles();

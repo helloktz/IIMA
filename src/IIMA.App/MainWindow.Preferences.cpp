@@ -42,7 +42,7 @@ void MainWindow::PopulateAdvancedSettings() {
     panel.Children().Clear();
     advancedSettingsRows_.clear(); advancedSettingsIndex_.clear();
     Controls::TextBlock explanation;
-    explanation.Text(L"播放器选项采用上游键名。即时项会提交至内核；标注“下次打开”的项不会改写当前媒体。控制值表示偏好，不代表内核已确认。");
+    explanation.Text(iima::loc::Text(L"ThePlayerOptionUsesAnUpstreamKeyname"));
     explanation.TextWrapping(TextWrapping::Wrap);
     panel.Children().Append(explanation);
     auto weak = get_weak();
@@ -52,12 +52,12 @@ void MainWindow::PopulateAdvancedSettings() {
         if (!sessionAdapter && !HasApplicationAdapter(descriptor.key)) continue;
         auto key = std::string(descriptor.key);
         auto label = to_hstring(key);
-        if(key=="arrowBtnAction") label = label + L"（OSC 左右箭头：0倍速 / 1队列 / 2跳转10秒）";
-        if(key=="showChapterPos") label = label + L"（显示章节刻度；最多512章）";
+        if(key=="arrowBtnAction") label = label + iima::loc::Text(L"OSCLeftAndRightArrows0Times");
+        if(key=="showChapterPos") label = label + iima::loc::Text(L"ShowsChapterScaleUpTo512");
         if (descriptor.timing == iima::settings::ApplyTiming::NextMedia)
-            label = label + L"（下次打开）";
+            label = label + iima::loc::Text(L"NextTimeOpen");
         else if (descriptor.timing == iima::settings::ApplyTiming::NextPlayer)
-            label = label + L"（下次新播放器）";
+            label = label + iima::loc::Text(L"NextNewPlayer");
         auto value = preferences_.Get(key);
         auto refreshing = std::make_shared<bool>(false);
         std::function<void(iima::settings::PreferenceValue const&)> refreshEditor;
@@ -106,11 +106,11 @@ void MainWindow::PopulateAdvancedSettings() {
             Controls::TextBox box; box.Header(box_value(label)); box.Text(to_hstring(*text)); box.MaxLength(4096);
             if (key == "initialWindowSizePosition") {
                 box.MaxLength(128);
-                box.PlaceholderText(L"1000x600+20+30 或 80%+50%+50%");
+                box.PlaceholderText(iima::loc::Text(L"Text1000X6002030Or80"));
                 Automation::AutomationProperties::SetHelpText(box,
-                    L"物理像素窗口几何；宽度优先于高度，保留窗口宽高比。正偏移从左上，负偏移从右下；百分比定位中心。留空使用保存位置，下次新播放器生效。");
+                    iima::loc::Text(L"PhysicalPixelWindowGeometryWidthIsHigher"));
             }
-            Controls::Button apply; apply.Content(box_value(L"应用"));
+            Controls::Button apply; apply.Content(box_value(iima::loc::Text(L"Apply")));
             apply.Click([weak, key, box](auto const&, auto const&) {
                 if (auto self = weak.get(); self && !self->closing_) self->ApplyAdvancedSetting(key, to_string(box.Text()));
             });
@@ -129,7 +129,7 @@ void MainWindow::PopulateAdvancedSettings() {
                 if (auto self = weak.get(); self && !self->closing_) {
                     if (integral) {
                         if (std::trunc(v) != v || v < -9007199254740991.0 || v > 9007199254740991.0) {
-                            self->ShowError(L"此偏好必须是整数。"); return;
+                            self->ShowError(iima::loc::Text(L"ThisPreferenceMustBeInteger")); return;
                         }
                         self->ApplyAdvancedSetting(key, static_cast<std::int64_t>(v));
                     } else self->ApplyAdvancedSetting(key, v);
@@ -149,15 +149,15 @@ void MainWindow::PopulateAdvancedSettings() {
         settingsRow.Children().Append(editor);
         if (key == "subAutoLoadSearchPath") {
             Controls::TextBlock hint;
-            hint.Text(L"下次单文件打开生效。用分号分隔，如 Subs;D:\\Subtitles;./*。末尾 /* 仅搜索直接子目录；当前目录始终包含。不支持 ~。");
+            hint.Text(iima::loc::Text(L"NextSingleFileOpensSeparatedBySemicolons"));
             hint.TextWrapping(TextWrapping::Wrap);
             settingsRow.Children().Append(hint);
         }
         Controls::Button reset;
-        reset.Content(box_value(L"恢复此项默认值"));
-        Automation::AutomationProperties::SetName(reset, label + L"，恢复默认值");
+        reset.Content(box_value(iima::loc::Text(L"RestoreThisDefault")));
+        Automation::AutomationProperties::SetName(reset, label + iima::loc::Text(L"RestoreDefaultValue"));
         Controls::ToolTipService::SetToolTip(reset, box_value(
-            L"只恢复这一项，并丢弃该项未应用的草稿。其他设置和草稿不变。下次打开项需重开媒体；新播放器项只在新窗口初始化时生效。"));
+            iima::loc::Text(L"OnlyThisItemWillBeRestoredAnd")));
         // Keep enabled even if there is no stored override: a string editor can
         // contain an unapplied draft that the user wants to discard.
         reset.Click([weak, key, refreshing, refreshEditor](auto const&, auto const&) {
@@ -183,11 +183,11 @@ void MainWindow::PopulateAdvancedSettings() {
         auto row=panel.Children().GetAt(panel.Children().Size()-1).as<FrameworkElement>();
         std::string searchable=key+" "+std::string(iima::settings::PreferenceAreaTitle(descriptor.area))+" "+
             std::string(descriptor.mpvProperty);
-        if(key=="arrowBtnAction") searchable+=" OSC 左右 箭头 倍速 上一项 下一项 跳转 arrow speed playlist seek";
-        if(key=="showChapterPos") searchable+=" 章节 刻度 进度条 chapter markers";
+        if(key=="arrowBtnAction") searchable+=iima::loc::Utf8(L"OSCLeftAndRightArrowMultiSpeed");
+        if(key=="showChapterPos") searchable+=iima::loc::Utf8(L"ChapterMarks");
         for (auto const& choice:descriptor.choices) searchable+=" "+std::string(choice.token);
-        searchable += descriptor.timing == iima::settings::ApplyTiming::NextMedia ? " 下次打开 next media" :
-            descriptor.timing == iima::settings::ApplyTiming::NextPlayer ? " 下次新播放器 startup initial player" : " 即时 immediate";
+        searchable += descriptor.timing == iima::settings::ApplyTiming::NextMedia ? iima::loc::Utf8(L"NextMediaNextTime") :
+            descriptor.timing == iima::settings::ApplyTiming::NextPlayer ? iima::loc::Utf8(L"NextNewPlayerStartupInitialPlayer") : iima::loc::Utf8(L"Immediate");
         advancedSettingsRows_.push_back(row);
         advancedSettingsIndex_.push_back({key,descriptor.area,std::move(searchable)});
     }
@@ -198,7 +198,7 @@ void MainWindow::ApplyAdvancedSetting(std::string const& key, iima::settings::Pr
         auto text=std::get_if<std::string>(&value);
         if (!text || !iima::ValidateScreenshotFilenameTemplate(*text) ||
             !iima::PlanScreenshotFilename("IIMA",1,iima::ScreenshotFormat::Png,*text)) {
-            ShowError(L"截图模板无效：仅支持%F、%n、%%，不得含路径、保留名或超长结果。"); return;
+            ShowError(iima::loc::Text(L"TheScreenshotTemplateIsInvalidOnlyF")); return;
         }
     }
     if (closing_ || !userDataLoaded_) return;
@@ -206,7 +206,7 @@ void MainWindow::ApplyAdvancedSetting(std::string const& key, iima::settings::Pr
         auto geometry = std::get_if<std::string>(&value);
         if (!geometry || geometry->size() > 128 ||
             (!geometry->empty() && !iima::WindowGeometry::Parse(*geometry))) {
-            ShowError(L"窗口几何格式无效。示例：1000x600+20+30、80%+50%+50%、+20-30；留空按首个视频尺寸在当前屏幕居中。下次新播放器生效。");
+            ShowError(iima::loc::Text(L"WindowGeometryFormatIsInvalidExample1000"));
             return;
         }
     }
@@ -214,7 +214,7 @@ void MainWindow::ApplyAdvancedSetting(std::string const& key, iima::settings::Pr
         auto text = std::get_if<std::string>(&value);
         std::wstring issue;
         if (!text || !iima::ParseSubtitleSearchPaths(to_hstring(*text), issue)) {
-            ShowError(issue.empty() ? L"字幕目录格式无效；Windows路径请用分号分隔。" : hstring(issue));
+            ShowError(iima::loc::Text(issue.empty() ? L"SubtitleDirectoryFormatIsInvalidWindowsPath" : issue.c_str()));
             return;
         }
     }

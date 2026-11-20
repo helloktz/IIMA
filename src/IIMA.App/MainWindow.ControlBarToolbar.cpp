@@ -10,12 +10,12 @@ namespace {
 using Action=iima::settings::ToolbarAction;
 hstring ActionLabel(Action action) {
     switch(action) {
-    case Action::Settings:return L"设置";case Action::Playlist:return L"播放列表";
-    case Action::Pip:return L"画中画";case Action::Fullscreen:return L"全屏";
-    case Action::MusicMode:return L"音乐模式";case Action::SubtitleTrack:return L"字幕轨道";
-    case Action::Screenshot:return L"截图";
+    case Action::Settings:return iima::loc::Text(L"Settings");case Action::Playlist:return iima::loc::Text(L"Playlist");
+    case Action::Pip:return iima::loc::Text(L"DrawIn");case Action::Fullscreen:return iima::loc::Text(L"Fullscreen");
+    case Action::MusicMode:return iima::loc::Text(L"MusicMode");case Action::SubtitleTrack:return iima::loc::Text(L"SubtitleTrack");
+    case Action::Screenshot:return iima::loc::Text(L"Screenshots");
     }
-    return L"未知动作";
+    return iima::loc::Text(L"UnknownAction");
 }
 void ShowToolbarTarget(Control const& target) {
     for(DependencyObject parent=target;parent;parent=Media::VisualTreeHelper::GetParent(parent))
@@ -50,7 +50,7 @@ void MainWindow::CancelToolbarDraft() {
     if(closing_ || !userDataLoaded_) return;
     toolbarBaseline_=preferences_.String("controlBarToolbarButtons");
     auto parsed=iima::settings::ParseToolbarActions(toolbarBaseline_);
-    if(!parsed) {ToolbarDraftStatus().Text(L"已保存的工具栏配置无效，未覆盖。");return;}
+    if(!parsed) {ToolbarDraftStatus().Text(iima::loc::Text(L"TheSavedToolbarConfigurationIsInvalidNot"));return;}
     toolbarDraft_=std::move(*parsed);toolbarDraftReady_=true;toolbarDraftDirty_=false;
     RenderToolbarDraft();
 }
@@ -79,8 +79,8 @@ void MainWindow::UpdateToolbarDraftControls() {
     ToolbarDefaultButton().IsEnabled(enabled);ToolbarApplyButton().IsEnabled(enabled && toolbarDraftDirty_);
     ToolbarCancelButton().IsEnabled(enabled && toolbarDraftDirty_);
     if(enabled && toolbarDraftDirty_ && preferences_.String("controlBarToolbarButtons")!=toolbarBaseline_)
-        ToolbarDraftStatus().Text(L"工具栏偏好已在别处改变。请取消草稿，重新编辑，避免覆盖新配置。");
-    else ToolbarDraftStatus().Text(toolbarDraftDirty_ ? L"草稿尚未应用。恢复默认也需点击应用。" : L"当前工具栏配置；最多5项。设置按钮打开高级偏好。");
+        ToolbarDraftStatus().Text(iima::loc::Text(L"TheToolbarPreferencesHaveBeenChangedElsewhere"));
+    else ToolbarDraftStatus().Text(toolbarDraftDirty_ ? iima::loc::Text(L"TheDraftHasNotYetBeenApplied") : iima::loc::Text(L"CurrentToolbarConfigurationMaximumFiveItemsSet"));
 }
 void MainWindow::EditToolbarDraft(int operation) {
     if(closing_ || !userDataLoaded_ || !toolbarDraftReady_ || toolbarProjecting_) return;
@@ -106,10 +106,10 @@ void MainWindow::ApplyToolbarDraft() {
     if(closing_ || !userDataLoaded_ || !toolbarDraftReady_ || !toolbarDraftDirty_) return;
     if(preferences_.String("controlBarToolbarButtons")!=toolbarBaseline_) {UpdateToolbarDraftControls();return;}
     auto value=iima::settings::SerializeToolbarActions(toolbarDraft_);
-    if(!iima::settings::ParseToolbarActions(value)) {ShowError(L"工具栏草稿无效，未应用。");return;}
+    if(!iima::settings::ParseToolbarActions(value)) {ShowError(iima::loc::Text(L"TheToolbarDraftIsInvalidNotApplied"));return;}
     ApplyAdvancedSetting("controlBarToolbarButtons",value);
     if(preferences_.String("controlBarToolbarButtons")==value) {
-        CancelToolbarDraft();ToolbarDraftStatus().Text(L"已应用到当前窗口；磁盘保存结果遵循设置保存状态。");
+        CancelToolbarDraft();ToolbarDraftStatus().Text(iima::loc::Text(L"ApplysToTheCurrentWindowTheDisk"));
     }
 }
 bool MainWindow::ToolbarActionAvailable(Action action) {
@@ -172,7 +172,7 @@ void MainWindow::UpdateControlBarToolbar() {
     }
     for(auto const& [action,button]:toolbarButtons_) {
         button.IsEnabled(ToolbarActionAvailable(action));
-        if(action==Action::MusicMode) button.Content(box_value(musicMode_.IsMusic() ? L"退出音乐模式" : L"音乐模式"));
+        if(action==Action::MusicMode) button.Content(box_value(musicMode_.IsMusic() ? iima::loc::Text(L"QuitMusicMode") : iima::loc::Text(L"MusicMode")));
     }
     if(!toolbarDraftReady_ || (!toolbarDraftDirty_ && toolbarBaseline_!=value)) CancelToolbarDraft();
     else UpdateToolbarDraftControls();

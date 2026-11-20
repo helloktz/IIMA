@@ -26,7 +26,7 @@ std::vector<std::size_t> MainWindow::SelectedPlaylistRows() {
     if (current.size() != playlist_.size() ||
         !std::equal(current.begin(), current.end(), playlist_.begin(),
             [](auto const& a, auto const& b) { return a.id == b.id; })) {
-        ShowError(L"播放列表已变化，请等待更新后重新选择。");
+        ShowError(iima::loc::Text(L"ThePlaylistHasChangedPleaseReSelect"));
         return {};
     }
     auto ids = SelectedPlaylistIds();
@@ -35,7 +35,7 @@ std::vector<std::size_t> MainWindow::SelectedPlaylistRows() {
     for (std::size_t i = 0; i < current.size(); ++i)
         if (selectedIds.contains(current[i].id)) rows.push_back(i);
     if (rows.size() != ids.size()) {
-        ShowError(L"部分选择已失效，请重新选择。");
+        ShowError(iima::loc::Text(L"ReSelect"));
         return {};
     }
     return rows; // Ascending visual order, not the order of Ctrl-clicks.
@@ -66,8 +66,8 @@ void MainWindow::UpdatePlaylistSelection() {
     }) : playlist_.end();
     MoveUpButton().IsEnabled(selected != playlist_.end() && selected != playlist_.begin());
     MoveDownButton().IsEnabled(selected != playlist_.end() && std::next(selected) != playlist_.end());
-    PlaylistSelectionText().Text(ids.empty() ? L"未选择条目；Ctrl或Shift可多选" :
-        L"已选 " + to_hstring(ids.size()) + L" 项；移除不会删除磁盘文件。");
+    PlaylistSelectionText().Text(ids.empty() ? iima::loc::Text(L"NoEntriesSelectedMultipleOptionsForCtrl") :
+        iima::loc::Text(L"Selected2") + to_hstring(ids.size()) + iima::loc::Text(L"EntryRemovalDoesNotDeleteDiskFiles"));
     UpdatePlaylistSubtitleControls();
     UpdatePlaylistBrowserControls();
     UpdatePlaylistDurations();
@@ -82,7 +82,7 @@ void MainWindow::PlaySelectedPlaylistInNewWindow() {
     try {
         auto rows=SelectedPlaylistRows(); // Validates UI order against real mpv IDs.
         if (rows.empty()) return;
-        if (rows.size()>1000) { ShowError(L"每次最多在新窗口打开1000个条目。"); return; }
+        if (rows.size()>1000) { ShowError(iima::loc::Text(L"OpensAMaximumOf1000Entries")); return; }
         auto const& state=session_->Snapshot();
         std::vector<std::string> paths;
         std::size_t bytes{};
@@ -91,19 +91,19 @@ void MainWindow::PlaySelectedPlaylistInNewWindow() {
             auto const& path=item.path;
             if (item.id<0 || path.empty() || path.size()>1024*1024-bytes ||
                 std::any_of(path.begin(),path.end(),[](unsigned char c) { return c<32 || c==127; })) {
-                ShowError(L"所选条目包含无效路径或超过1MiB，未打开新窗口。"); return;
+                ShowError(iima::loc::Text(L"TheSelectedEntryContainsInvalidPathsOr")); return;
             }
             bytes+=path.size();
             if (iima::IsNetworkMediaPath(path)) {
                 if (!iima::PrepareMediaUrl(path) || Windows::Foundation::Uri(to_hstring(path)).Host().empty()) {
-                    ShowError(L"所选条目包含无效网络地址，未打开新窗口。"); return;
+                    ShowError(iima::loc::Text(L"TheSelectedEntryContainsAnInvalidNetwork")); return;
                 }
             } else {
                 std::wstring local{to_hstring(path)};
                 std::replace(local.begin(),local.end(),L'/',L'\\');
                 if (local.size()>32767 || !std::filesystem::path(local).is_absolute() ||
                     local.starts_with(L"\\\\?\\") || local.starts_with(L"\\\\.\\") || local.find(L':',2)!=local.npos) {
-                    ShowError(L"仅支持绝对本地文件路径或支持的网络媒体地址，未打开新窗口。"); return;
+                    ShowError(iima::loc::Text(L"OnlyAbsoluteLocalFilePathsOrSupported")); return;
                 }
             }
             paths.push_back(path); // Preserve visual order and duplicate-path entries.
@@ -114,8 +114,8 @@ void MainWindow::PlaySelectedPlaylistInNewWindow() {
         selectedInputNewWindowRouter_(std::move(paths));
     } catch (hresult_error const&) {
         // A URL may carry private query data. Do not echo parser exceptions.
-        ShowError(L"无法在新窗口打开所选条目；请检查地址及16窗口上限。");
-    } catch (...) { ShowError(L"无法创建播放器窗口，原队列未修改。"); }
+        ShowError(iima::loc::Text(L"CouldNotOpenTheSelectedItemIn"));
+    } catch (...) { ShowError(iima::loc::Text(L"CouldNotCreatePlayerWindowOriginalQueue")); }
 }
 void MainWindow::RemoveSelectedPlaylistItems() {
     auto rows = SelectedPlaylistRows();

@@ -74,9 +74,9 @@ void MainWindow::FilterAdvancedSettings() {
             if (node==advancedSettingsRows_[i]) { hidingFocus=true; break; }
         advancedSettingsRows_[i].Visibility(visible?Visibility::Visible:Visibility::Collapsed);
     }
-    AdvancedSettingsSearchStatus().Text(matches.queryTooLarge ? L"搜索词过长或超过32个词，请缩短。" :
-        L"显示 "+to_hstring(matches.indices.size())+L" / "+to_hstring(advancedSettingsRows_.size())+
-        L" 项。匹配键名、mpv属性、分类和选项值；不会修改设置。Enter定位首项，Esc清空搜索词。");
+    AdvancedSettingsSearchStatus().Text(matches.queryTooLarge ? iima::loc::Text(L"IfYouSearchForTooLongWords") :
+        iima::loc::Text(L"Show")+to_hstring(matches.indices.size())+L" / "+to_hstring(advancedSettingsRows_.size())+
+        iima::loc::Text(L"EntryMatchKeynameMpvAttributeClassificationAnd"));
     if (hidingFocus) AdvancedSettingsSearchBox().Focus(FocusState::Programmatic);
 }
 }

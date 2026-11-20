@@ -53,15 +53,15 @@ void MainWindow::LoadBindingRows() {
     if (closing_) return;
     auto text = to_string(KeyBindingsEditor().Text());
     if (text.size() > 256 * 1024 || text.find('\0') != std::string::npos) {
-        BindingRowStatus().Text(L"文本超过256KiB或包含NUL，未载入。"); return;
+        BindingRowStatus().Text(iima::loc::Text(L"TextExceeding256KiBOrContainingNUL")); return;
     }
     auto parsed = iima::ParseInputConf(text);
     if (!parsed.issues.empty()) {
         auto const& issue = parsed.issues.front();
-        BindingRowStatus().Text(L"第 " + to_hstring(issue.line) + L" 行：" + to_hstring(issue.message)); return;
+        BindingRowStatus().Text(iima::loc::Text(L"IDonTThinkSo") + to_hstring(issue.line) + iima::loc::Text(L"Lines") + to_hstring(issue.message)); return;
     }
     if (parsed.mappings.size() > iima::BindingConfiguration::MaximumMappings) {
-        BindingRowStatus().Text(L"最多10000条绑定。"); return;
+        BindingRowStatus().Text(iima::loc::Text(L"UpTo10000Bindings")); return;
     }
     bindingRowDraft_ = std::make_unique<iima::BindingConfiguration>("editor draft", std::move(parsed.mappings));
     bindingRowSource_ = std::move(text);
@@ -72,7 +72,7 @@ void MainWindow::RefreshBindingRows(std::optional<std::size_t> selected) {
     if (!selected) selected = SelectedBindingRow();
     struct Guard { bool& flag; explicit Guard(bool& f):flag(f){flag=true;} ~Guard(){flag=false;} } guard(projectingBindingRows_);
     BindingRowsList().Items().Clear();
-    if (!bindingRowDraft_) { BindingRowStatus().Text(L"请先从文本区读取绑定。"); return; }
+    if (!bindingRowDraft_) { BindingRowStatus().Text(iima::loc::Text(L"ReadTheBindingFirstFromTheText")); return; }
     std::set<std::size_t> conflicts, winners;
     auto groups = bindingRowDraft_->Conflicts();
     for (auto const& conflict : groups) {
@@ -82,20 +82,20 @@ void MainWindow::RefreshBindingRows(std::optional<std::size_t> selected) {
     for (auto row : rows) {
         auto const& mapping = bindingRowDraft_->Mappings()[row];
         auto label = std::to_string(row + 1) + ". " + mapping.RawKey() + " → " + mapping.ReadableAction();
-        if (conflicts.contains(row)) label += winners.contains(row) ? " [重复键：最后优先]" : " [被后项覆盖]";
+        if (conflicts.contains(row)) label += winners.contains(row) ? iima::loc::Utf8(L"RepeatedKeysFinalPriority") : iima::loc::Utf8(L"CoveredByTheLatterItem");
         Controls::ListViewItem item;
         item.Tag(box_value(static_cast<std::uint64_t>(row))); item.Content(box_value(to_hstring(label)));
         BindingRowsList().Items().Append(item);
         if (selected == row) BindingRowsList().SelectedItem(item);
     }
     UpdateBindingRowFields();
-    BindingRowStatus().Text(L"显示 " + to_hstring(rows.size()) + L" / " + to_hstring(bindingRowDraft_->Mappings().size()) +
-        L" 条，重复键组 " + to_hstring(groups.size()) + L"。改动仅在行编辑草稿中，尚未生成文本或应用。");
+    BindingRowStatus().Text(iima::loc::Text(L"Show") + to_hstring(rows.size()) + L" / " + to_hstring(bindingRowDraft_->Mappings().size()) +
+        iima::loc::Text(L"BarRepeatKeys") + to_hstring(groups.size()) + iima::loc::Text(L"TheChangesAreOnlyInLineEdit"));
 }
 void MainWindow::EditBindingRow(int action) {
     if (closing_ || !bindingRowDraft_) return;
     auto row = SelectedBindingRow();
-    if (action != 0 && !row) { BindingRowStatus().Text(L"请先选择一条绑定。"); return; }
+    if (action != 0 && !row) { BindingRowStatus().Text(iima::loc::Text(L"PleaseSelectABindingFirst")); return; }
     auto candidate = *bindingRowDraft_;
     iima::BindingEditResult result;
     std::optional<std::size_t> selection = row;
@@ -119,7 +119,7 @@ void MainWindow::EditBindingRow(int action) {
     } else return;
     if (!result) { BindingRowStatus().Text(to_hstring(result.message)); return; }
     if (candidate.Serialize().size() > 256 * 1024) {
-        BindingRowStatus().Text(L"生成文本将超过256KiB，未接受此修改。"); return;
+        BindingRowStatus().Text(iima::loc::Text(L"GeneratingTextWillExceed256KiBAnd")); return;
     }
     *bindingRowDraft_ = std::move(candidate);
     RefreshBindingRows(selection);
@@ -127,13 +127,13 @@ void MainWindow::EditBindingRow(int action) {
 void MainWindow::WriteBindingRows() {
     if (closing_ || !bindingRowDraft_) return;
     if (to_string(KeyBindingsEditor().Text()) != bindingRowSource_) {
-        BindingRowStatus().Text(L"文本区已变化，未覆盖。请先导出或另存所需内容，再重新读取行编辑器。"); return;
+        BindingRowStatus().Text(iima::loc::Text(L"TextAreaHasChangedNotCoveredPlease")); return;
     }
     auto text = bindingRowDraft_->Serialize();
-    if (text.size() > 256 * 1024) { BindingRowStatus().Text(L"生成文本超过256KiB。"); return; }
+    if (text.size() > 256 * 1024) { BindingRowStatus().Text(iima::loc::Text(L"GeneratesTextExceeding256KiB")); return; }
     // GenerateInputConf normalizes whitespace and keeps per-mapping comments,
     // not standalone comments/blank lines. The button explicitly discloses it.
     KeyBindingsEditor().Text(to_hstring(text)); bindingRowSource_ = std::move(text);
-    BindingRowStatus().Text(L"已生成规范化文本，独立注释/空行未保留。需保存并应用，当前按键尚未改变。");
+    BindingRowStatus().Text(iima::loc::Text(L"AStandardizedTextHasBeenGeneratedAnd"));
 }
 }

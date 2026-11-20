@@ -29,7 +29,7 @@ void MainWindow::WireMediaInformation() {
                 auto name = to_string(unbox_value<hstring>(item.Tag()));
                 if (name != "auto" && !self->session_->Snapshot().audioDevicesObserved) {
                     self->UpdateMediaInformation(self->session_->Snapshot());
-                    self->ShowError(L"音频设备列表尚未完整读取，请稍后重新选择。");
+                    self->ShowError(iima::loc::Text(L"TheListOfAudioDevicesIsNot"));
                     return;
                 }
                 self->ApplyAdvancedSetting("audioDevice", std::move(name));
@@ -42,7 +42,7 @@ void MainWindow::UpdateMediaInformation(iima::PlaybackSnapshot const& state) {
     if (audioDevicesRevision_ != state.audioDevicesRevision) {
         auto box = AudioDeviceBox(); box.Items().Clear();
         Controls::ComboBoxItem automatic;
-        automatic.Content(box_value(L"系统默认音频输出")); automatic.Tag(box_value(L"auto")); box.Items().Append(automatic);
+        automatic.Content(box_value(iima::loc::Text(L"DefaultSystemAudioOutput"))); automatic.Tag(box_value(L"auto")); box.Items().Append(automatic);
         std::set<std::string> inserted{"auto"};
         for (auto const& device : state.audioDevices) {
             if (device.name.empty() || !inserted.insert(device.name).second) continue;

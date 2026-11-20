@@ -69,9 +69,9 @@ void MainWindow::UpdatePlaylistSubtitleControls() {
     ClearPlaylistSubtitleAssociationButton().IsEnabled(allowed);
     auto paths=valid ? PlaylistSubtitlePaths(selected->id,selected->path) : std::vector<std::string>{};
     const bool overridden=valid && HasPlaylistSubtitleOverride(selected->id,selected->path);
-    PlaylistSubtitleAssociationStatus().Text(!valid ? L"请选择一个队列条目。" :
-        overridden ? (paths.empty() ? L"已清除IIMA关联；mpv自身自动加载不受影响。" : L"手动关联将在下次播放此条目时应用。") :
-        paths.empty() ? L"此条目暂无字幕关联。" : L"当前自动匹配关联（最多显示64项）。");
+    PlaylistSubtitleAssociationStatus().Text(!valid ? iima::loc::Text(L"PleaseSelectAQueueEntry") :
+        overridden ? (paths.empty() ? iima::loc::Text(L"IMAConnectionClearedMpvSelfLoadingIs") : iima::loc::Text(L"TheManualConnectionWillBeAppliedNext")) :
+        paths.empty() ? iima::loc::Text(L"ThisEntryIsNotTiedToSubtitles") : iima::loc::Text(L"CurrentAutomaticMatchingAssociationUpTo64"));
     if(paths!=playlistSubtitleDisplayPaths_) {
         playlistSubtitleDisplayPaths_=paths;
         PlaylistSubtitleAssociationList().Items().Clear();
@@ -91,8 +91,8 @@ void MainWindow::ClearPlaylistSubtitleAssociation() {
     if(!LocalPlaylistMedia(item.path)) return;
     if(SetPlaylistSubtitlePaths(item.id,item.path,{})) {
         UpdatePlaylistSubtitleControls();
-        ShowError(L"已清除IIMA关联；不卸载当前字幕，也不关闭mpv自身自动加载。");
-    } else ShowError(L"队列已变化或关联无法更新，请重新选择。");
+        ShowError(iima::loc::Text(L"IMAConnectionsClearedCurrentSubtitlesAreNot"));
+    } else ShowError(iima::loc::Text(L"TheQueueHasChangedOrTheConnection"));
 }
 fire_and_forget MainWindow::AddPlaylistSubtitleAssociation() {
     auto lifetime=get_strong();
@@ -129,13 +129,13 @@ fire_and_forget MainWindow::AddPlaylistSubtitleAssociation() {
             L".aqt",L".jss",L".js",L".ass",L".mks",L".vtt",L".sup",L".scc",L".lrc"}) picker.FileTypeFilter().Append(extension);
         auto files=co_await picker.PickMultipleFilesAsync();
         if(files && files.Size()) {
-            if(!current()) throw hresult_invalid_argument(L"选择字幕期间队列或播放请求已变化，未修改关联。");
-            if(files.Size()>64) throw hresult_invalid_argument(L"每次最多选择64个字幕文件，未修改关联。");
+            if(!current()) throw hresult_invalid_argument(iima::loc::Text(L"TheQueueOrPlayRequestHasChanged"));
+            if(files.Size()>64) throw hresult_invalid_argument(iima::loc::Text(L"AMaximumOf64SubtitleFilesWere"));
             std::vector<std::wstring> selected;
             std::size_t bytes{};
             for(auto const& file:files) {
                 std::wstring path{file.Path()}; bytes+=path.size()*sizeof(wchar_t);
-                if(bytes>1024*1024) throw hresult_invalid_argument(L"字幕路径超过1MiB，未修改关联。");
+                if(bytes>1024*1024) throw hresult_invalid_argument(iima::loc::Text(L"SubtitlesWithMoreThan1MiBUnmodified"));
                 selected.push_back(std::move(path));
             }
             apartment_context ui;
@@ -143,23 +143,23 @@ fire_and_forget MainWindow::AddPlaylistSubtitleAssociation() {
             co_await resume_background();
             try {
                 for(auto const& path:selected) {
-                    if(!SafeSubtitleFile(path)) throw hresult_invalid_argument(L"所选项目不是有效的普通字幕文件，未修改关联。");
+                    if(!SafeSubtitleFile(path)) throw hresult_invalid_argument(iima::loc::Text(L"TheSelectedItemIsNotAValid"));
                     auto utf8=to_string(path);
                     if(std::none_of(paths.begin(),paths.end(),[&](auto const& existing){return SameSubtitlePath(existing,utf8);}))
                         paths.push_back(std::move(utf8));
-                    if(paths.size()>64) throw hresult_invalid_argument(L"合并后超过每条目64个字幕的上限，未修改关联。");
+                    if(paths.size()>64) throw hresult_invalid_argument(iima::loc::Text(L"TheMergerExceededTheMaximumOf64"));
                 }
             } catch(...) { failure=std::current_exception(); }
             try { co_await ui; } catch(...) { co_return; }
             if(failure) std::rethrow_exception(failure);
-            if(!current()) throw hresult_invalid_argument(L"检查字幕期间队列或播放请求已变化，未修改关联。");
+            if(!current()) throw hresult_invalid_argument(iima::loc::Text(L"QueueOrPlayRequestsChangedDuringThe"));
             // Setter owns association storage; no sub-add/sub-remove here.
             if(!SetPlaylistSubtitlePaths(item.id,item.path,std::move(paths)))
-                throw hresult_invalid_argument(L"队列已变化或关联超过存储预算，未修改关联。");
-            ShowError(L"已保存此队列条目的字幕关联，下次播放此条目时应用；当前字幕未更改。");
+                throw hresult_invalid_argument(iima::loc::Text(L"TheQueueHasChangedOrIsAssociated"));
+            ShowError(iima::loc::Text(L"ThisQueueEntryHasBeenSavedAnd"));
         }
     } catch(hresult_error const& error) { if(!closing_) ShowError(error.message()); }
-      catch(...) { if(!closing_) ShowError(L"无法修改字幕关联。"); }
+      catch(...) { if(!closing_) ShowError(iima::loc::Text(L"CouldNotChangeTheSubtitleAssociation")); }
     pickerOpen_=false;
     if(!closing_) { UpdatePlaylistSubtitleControls(); OpenPendingFiles(); FlushActivation(); }
 }

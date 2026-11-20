@@ -70,7 +70,7 @@ void MainWindow::RestorePlacement(std::optional<iima::WindowPlacementSnapshot> s
         restoringPlacement_ = false;
         CapturePlacement();
     } catch (hresult_error const& e) {
-        restoringPlacement_ = false; placementProgrammaticBounds_.reset(); ShowError(L"窗口位置未恢复：" + e.message());
+        restoringPlacement_ = false; placementProgrammaticBounds_.reset(); ShowError(iima::loc::Text(L"WindowPositionNotRestored") + e.message());
     }
 }
 void MainWindow::ApplyInitialWindowGeometry()
@@ -84,7 +84,7 @@ void MainWindow::ApplyInitialWindowGeometry()
     auto const& text = initialVideoGeometry_;
     if (text.empty()) return;
     auto geometry = text.size() <= 128 ? iima::WindowGeometry::Parse(text) : std::nullopt;
-    if (!geometry) { ShowError(L"已保存的初始窗口几何无效，保留当前窗口位置。"); return; }
+    if (!geometry) { ShowError(iima::loc::Text(L"TheInitialWindowSavedIsGeometricallyInvalid")); return; }
     try {
         auto window = AppWindow();
         auto presenter = window.Presenter().try_as<Microsoft::UI::Windowing::OverlappedPresenter>();
@@ -99,7 +99,7 @@ void MainWindow::ApplyInitialWindowGeometry()
         auto rect = geometry->ResolveVisible(
             {double(point.X), double(point.Y), double(size.Width), double(size.Height)},
             {double(work.X), double(work.Y), double(work.Width), double(work.Height)}, {640 * dpi, 360 * dpi});
-        if (!rect) { ShowError(L"初始窗口几何无法适用于当前屏幕，保留当前窗口位置。"); return; }
+        if (!rect) { ShowError(iima::loc::Text(L"TheInitialWindowGeometryCannotBeApplied")); return; }
         restoringPlacement_ = true;
         placementProgrammaticBounds_ = Windows::Graphics::RectInt32{static_cast<int>(std::ceil(rect->x)), static_cast<int>(std::ceil(rect->y)),
             static_cast<int>(std::floor(rect->width)), static_cast<int>(std::floor(rect->height))};
@@ -108,7 +108,7 @@ void MainWindow::ApplyInitialWindowGeometry()
         CapturePlacement();
     } catch (hresult_error const& error) {
         restoringPlacement_ = false; placementProgrammaticBounds_.reset();
-        ShowError(L"初始窗口几何未能应用：" + error.message());
+        ShowError(iima::loc::Text(L"InitialWindowGeometryNotApplied") + error.message());
     }
 }
 void MainWindow::SaveWindowPlacement()

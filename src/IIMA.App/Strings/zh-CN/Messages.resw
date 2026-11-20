@@ -1,0 +1,2731 @@
+<?xml version='1.0' encoding='utf-8'?>
+<root>
+  <data name="ABCycle" xml:space="preserve">
+    <value>A–B循环</value>
+  </data>
+  <data name="ACacheFile" xml:space="preserve">
+    <value> 个缓存文件。</value>
+  </data>
+  <data name="ACenteredDraftHasBeenGeneratedIt" xml:space="preserve">
+    <value>已生成居中裁剪草稿；点击应用后才提交，非实际播放状态。</value>
+  </data>
+  <data name="AFollowUpDocumentHasBeenRequested" xml:space="preserve">
+    <value>已请求停止后续文件；正在显示的系统删除确认需在其中取消。已发生的删除不能由历史撤销恢复。</value>
+  </data>
+  <data name="AFollowUpFileHasBeenRequested" xml:space="preserve">
+    <value>已请求停止后续文件。当前系统删除对话框需在其中取消；已完成的删除不能撤回。</value>
+  </data>
+  <data name="AMaximumOf1000Copies1" xml:space="preserve">
+    <value>每次最多复制1000项、1MiB文本。</value>
+  </data>
+  <data name="AMaximumOf16PlayerWindowsAre" xml:space="preserve">
+    <value>最多同时打开 16 个播放器窗口；正在关闭的窗口仍占用名额。</value>
+  </data>
+  <data name="AMaximumOf64DifferentFilesPer" xml:space="preserve">
+    <value>每批最多64个不同文件，请减少选择。</value>
+  </data>
+  <data name="AMaximumOf64SubtitleFilesWere" xml:space="preserve">
+    <value>每次最多选择64个字幕文件，未修改关联。</value>
+  </data>
+  <data name="ANetworkCurrentPlayRecordHistoricalRecords" xml:space="preserve">
+    <value> 条网络/当前播放记录。历史记录保留。</value>
+  </data>
+  <data name="AStandardizedTextHasBeenGeneratedAnd" xml:space="preserve">
+    <value>已生成规范化文本，独立注释/空行未保留。需保存并应用，当前按键尚未改变。</value>
+  </data>
+  <data name="AUNCSubtitlePathMustIncludeThe" xml:space="preserve">
+    <value>UNC字幕路径必须包含服务器名和共享名。</value>
+  </data>
+  <data name="AVideoFilterExpressionHasBeenGenerated" xml:space="preserve">
+    <value>已生成视频滤镜表达式，尚未添加。需实际libmpv/FFmpeg支持对应滤镜。</value>
+  </data>
+  <data name="ActualDecoded" xml:space="preserve">
+    <value>；实际解码：</value>
+  </data>
+  <data name="ActualSubtitleDelayLord" xml:space="preserve">
+    <value>实际字幕延迟：主 </value>
+  </data>
+  <data name="AllowsTheDecodementOfHardwareNotTo" xml:space="preserve">
+    <value>。允许硬件解码不保证当前视频实际使用硬件。</value>
+  </data>
+  <data name="AnErrorOccurredInTheOrbitalRemoval" xml:space="preserve">
+    <value>轨道移除提交发生错误；已提交操作不能撤回，请检查当前轨道。</value>
+  </data>
+  <data name="AnErrorOccurredWhileSubmittingTheSubtitle" xml:space="preserve">
+    <value>字幕操作提交时出现错误；请检查事务状态，已提交操作不能撤回。</value>
+  </data>
+  <data name="AnExpandedPathExceeding1MiBNot" xml:space="preserve">
+    <value>展开后的路径超过1MiB，未插入。</value>
+  </data>
+  <data name="AppendFile" xml:space="preserve">
+    <value>追加文件…</value>
+  </data>
+  <data name="Apply" xml:space="preserve">
+    <value>应用</value>
+  </data>
+  <data name="ApplyColours" xml:space="preserve">
+    <value>应用颜色</value>
+  </data>
+  <data name="ApplyFontName" xml:space="preserve">
+    <value>应用字体名称</value>
+  </data>
+  <data name="ApplyFontNamesOnlyWithoutChangingFonts" xml:space="preserve">
+    <value>仅应用字体名称，不改变字号或粗斜体。预览采用 Windows 字体回退，不能保证与 libass 渲染一致；ASS 内置样式可能覆盖选择。</value>
+  </data>
+  <data name="ApplydSavingSettingsUnportedActionsAreClearly" xml:space="preserve">
+    <value>已应用，正在保存设置。未移植的动作会在触发时明确提示。</value>
+  </data>
+  <data name="ApplyingNewAreaFiltersAndCheckingResults" xml:space="preserve">
+    <value>正在应用新区域滤镜并核对结果…</value>
+  </data>
+  <data name="ApplysToTheCurrentWindowTheDisk" xml:space="preserve">
+    <value>已应用到当前窗口；磁盘保存结果遵循设置保存状态。</value>
+  </data>
+  <data name="AreaEditorialServicesAreNoLongerValid" xml:space="preserve">
+    <value>区域编辑事务已失效，未提交滤镜。</value>
+  </data>
+  <data name="AreaFilterResultsCannotBeConfirmedDue" xml:space="preserve">
+    <value>区域滤镜结果因媒体或滤镜变化而无法确认；未覆盖当前状态，也未自动恢复播放。</value>
+  </data>
+  <data name="Article" xml:space="preserve">
+    <value> 条。</value>
+  </data>
+  <data name="ArticleExceedingCapacity" xml:space="preserve">
+    <value> 条、超过容量 </value>
+  </data>
+  <data name="ArticleInvalidRecord" xml:space="preserve">
+    <value> 条、无效记录 </value>
+  </data>
+  <data name="ArticlesRAMPhaseOut" xml:space="preserve">
+    <value> 条；内存淘汰 </value>
+  </data>
+  <data name="AttributeListHasBeenAppliedSavingResults" xml:space="preserve">
+    <value>属性列表已应用；保存结果由设置保存状态显示。</value>
+  </data>
+  <data name="AttributeNameMustBe1To128" xml:space="preserve">
+    <value>属性名必须是 1–128 个非空白 ASCII 字符。</value>
+  </data>
+  <data name="Audio" xml:space="preserve">
+    <value>音频</value>
+  </data>
+  <data name="AudioDeviceSettings" xml:space="preserve">
+    <value>音频设备设置…</value>
+  </data>
+  <data name="AudioFilterExpressionGeneratedNotAddedThe" xml:space="preserve">
+    <value>已生成音频滤镜表达式，尚未添加。需实际libmpv/FFmpeg支持对应滤镜。</value>
+  </data>
+  <data name="AudioSettings" xml:space="preserve">
+    <value>音频设置</value>
+  </data>
+  <data name="AutomaticSelection" xml:space="preserve">
+    <value>自动选择中</value>
+  </data>
+  <data name="AutomaticSubtitleBatchesAreNotConfirmedThey" xml:space="preserve">
+    <value>自动字幕批次未确认提交；可手动加载。</value>
+  </data>
+  <data name="AutomaticSubtitleCachesExceed4096QuotesOr" xml:space="preserve">
+    <value>自动字幕缓存超过4096条引用或4MiB预算，后续切换不使用此缓存。</value>
+  </data>
+  <data name="AutomaticSubtitlesAddUpTo64Entries" xml:space="preserve">
+    <value>自动字幕最多添加64项；其余匹配未添加，请手动选择。</value>
+  </data>
+  <data name="AutomaticSubtitlesAwaitingOvertimeNotSubmittedManual" xml:space="preserve">
+    <value>自动字幕等待超时，未提交；可手动加载。</value>
+  </data>
+  <data name="AutomaticallyFindsOrSubtitlingFailedNoResults" xml:space="preserve">
+    <value>自动发现或字幕匹配失败，未应用结果。</value>
+  </data>
+  <data name="AutomaticallyMatchBackOfficeTasksWithBusy" xml:space="preserve">
+    <value>自动匹配后台任务忙，未启动额外目录扫描。</value>
+  </data>
+  <data name="AutomaticallyMatchPathDataBeyondThe1" xml:space="preserve">
+    <value>自动匹配路径数据超过1 MiB限制，请手动打开文件。</value>
+  </data>
+  <data name="AutomaticallyMatchesCommonLocalMediaFilesThat" xml:space="preserve">
+    <value>自动匹配仅支持显式打开的普通本地媒体文件。</value>
+  </data>
+  <data name="AutomaticallyMatchingADirectoryToASkipping" xml:space="preserve">
+    <value>同目录自动匹配已跳过部分内容：</value>
+  </data>
+  <data name="AutomaticallyMatchingSubtitlesWithoutConfirmationManualLoadable" xml:space="preserve">
+    <value>自动匹配字幕未确认提交；可手动加载。</value>
+  </data>
+  <data name="AvailableLocalFilesInTheLast12" xml:space="preserve">
+    <value>最近12条记录中的可用本地文件。恢复位置遵循设置；完整历史在侧栏。 </value>
+  </data>
+  <data name="BackToPlayer" xml:space="preserve">
+    <value>返回播放器</value>
+  </data>
+  <data name="BackgroundColour" xml:space="preserve">
+    <value>背景色</value>
+  </data>
+  <data name="BackstageCheckLocalHistoryFilesWebUnaccessible" xml:space="preserve">
+    <value>后台检查本地历史文件…网络、不可访问及不支持路径保持未知。</value>
+  </data>
+  <data name="BarRepeatKeys" xml:space="preserve">
+    <value> 条，重复键组 </value>
+  </data>
+  <data name="BarTimeIsUnixMilliseconds" xml:space="preserve">
+    <value> 条。时间为 Unix 毫秒。</value>
+  </data>
+  <data name="BarsDiskQueuedForDisposal" xml:space="preserve">
+    <value> 条；磁盘排队丢弃 </value>
+  </data>
+  <data name="Battery" xml:space="preserve">
+    <value>电池 </value>
+  </data>
+  <data name="BeforeEntryNotPlayed" xml:space="preserve">
+    <value> 项之前（不播放）</value>
+  </data>
+  <data name="BeforeItem" xml:space="preserve">
+    <value> 项之前</value>
+  </data>
+  <data name="BeyondDisplay" xml:space="preserve">
+    <value>超出显示范围</value>
+  </data>
+  <data name="Blur" xml:space="preserve">
+    <value>模糊</value>
+  </data>
+  <data name="Bold" xml:space="preserve">
+    <value>粗体</value>
+  </data>
+  <data name="BrowserOpensASingleHTTPSAddress" xml:space="preserve">
+    <value>浏览器打开仅支持不含用户名或密码的单个HTTP(S)地址。</value>
+  </data>
+  <data name="Buffering" xml:space="preserve">
+    <value>正在缓冲…</value>
+  </data>
+  <data name="CanNotCreateFolderLockOnS" xml:space="preserve">
+    <value>无法创建字幕搜索任务。</value>
+  </data>
+  <data name="CanNotDeleteFolderSNoSuch" xml:space="preserve">
+    <value>每次拖放1到1000个文件或文件夹。</value>
+  </data>
+  <data name="CanNotGetFolderSS" xml:space="preserve">
+    <value>无法读取媒体所在目录。</value>
+  </data>
+  <data name="CanNotGetFolderSS2" xml:space="preserve">
+    <value>无法完整读取字幕搜索目录，未应用结果。</value>
+  </data>
+  <data name="CanNotOpenMessage" xml:space="preserve">
+    <value>截图保存失败：</value>
+  </data>
+  <data name="CanNotReloadSubtitlesAtThisTime" xml:space="preserve">
+    <value>当前无法重载字幕：请等待输入、媒体切换或字幕操作完成。</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="CancelMute" xml:space="preserve">
+    <value>取消静音</value>
+  </data>
+  <data name="CanceledNoConfirmationOfSubmissionReceivedPlease" xml:space="preserve">
+    <value>已取消；未收到载入提交确认，请检查当前轨道。</value>
+  </data>
+  <data name="CanceledNoReloadingOrderWasSubmitted" xml:space="preserve">
+    <value>已取消，未提交重载命令。</value>
+  </data>
+  <data name="CanceledNoRemovalOrderSubmittedToPlayer" xml:space="preserve">
+    <value>已取消，未向播放器提交移除命令。</value>
+  </data>
+  <data name="CanceledTheNetworkRequestSentCannotBe" xml:space="preserve">
+    <value>已取消。已发送的网络请求无法撤回。</value>
+  </data>
+  <data name="CancelsTheRequestAndRestoresTheOriginal" xml:space="preserve">
+    <value>取消已请求，等待移除结果后恢复原区域滤镜。关闭播放器将直接释放本会话。</value>
+  </data>
+  <data name="CannotCompleteExternal" xml:space="preserve">
+    <value>无法完成外部</value>
+  </data>
+  <data name="CannotInitialiseEvolutionSMailComponent" xml:space="preserve">
+    <value>未保留本地登录会话：</value>
+  </data>
+  <data name="CannotLocateThePlayerToRunThe" xml:space="preserve">
+    <value>无法定位播放器运行目录。</value>
+  </data>
+  <data name="CannotOnlyConfirmTheCurrentMediaIn" xml:space="preserve">
+    <value>目录中无法唯一确认当前媒体，未应用自动匹配结果。</value>
+  </data>
+  <data name="CannotOpenWindowsDefaultApplicationSettings" xml:space="preserve">
+    <value>无法打开 Windows 默认应用设置。</value>
+  </data>
+  <data name="CannotPerformMousePlay" xml:space="preserve">
+    <value>无法执行鼠标播放操作。</value>
+  </data>
+  <data name="CannotReadTheMediaDirectoryInIts" xml:space="preserve">
+    <value>无法完整读取媒体目录，未应用自动匹配结果。</value>
+  </data>
+  <data name="CannotSaveTheWindowPositionBeforeThe" xml:space="preserve">
+    <value>无法保存小窗之前的窗口位置，未切换呈现模式。</value>
+  </data>
+  <data name="Chapter" xml:space="preserve">
+    <value>章节</value>
+  </data>
+  <data name="ChapterMarks" xml:space="preserve">
+    <value> 章节 刻度 进度条 chapter markers</value>
+  </data>
+  <data name="Character" xml:space="preserve">
+    <value>字号</value>
+  </data>
+  <data name="Charging" xml:space="preserve">
+    <value>（充电）</value>
+  </data>
+  <data name="CheckFailedLastStatusRetainedUnknownDoes" xml:space="preserve">
+    <value>检查失败，保留上次状态；未知不代表文件缺失。</value>
+  </data>
+  <data name="CheckingStoppedAndLastStateMaintainedYou" xml:space="preserve">
+    <value>检查已停止，保留上次状态。可手动刷新。</value>
+  </data>
+  <data name="Checklist" xml:space="preserve">
+    <value>截图目录：</value>
+  </data>
+  <data name="ClearCache" xml:space="preserve">
+    <value>清空缓存</value>
+  </data>
+  <data name="ClearCacheFailed" xml:space="preserve">
+    <value>清空缓存失败：</value>
+  </data>
+  <data name="ClearCacheFailed2" xml:space="preserve">
+    <value>清空缓存失败。</value>
+  </data>
+  <data name="ClearingCache" xml:space="preserve">
+    <value>正在清空缓存…</value>
+  </data>
+  <data name="ClearingRecordsContinuingCollection" xml:space="preserve">
+    <value>清空记录（继续采集）</value>
+  </data>
+  <data name="ClickToChangeTheAccuracyOfThe" xml:space="preserve">
+    <value>。点击切换总时长/剩余时间，右击修改精度。</value>
+  </data>
+  <data name="ClickingToggleDisplayMode" xml:space="preserve">
+    <value>；点击切换显示模式</value>
+  </data>
+  <data name="ClipboardIsBusyNotCopied" xml:space="preserve">
+    <value>剪贴板正忙，未复制。</value>
+  </data>
+  <data name="ClipboardIsBusyNotCopiedPleaseTry" xml:space="preserve">
+    <value>剪贴板正忙，未复制。请重试。</value>
+  </data>
+  <data name="CloseTheCurrentWindow" xml:space="preserve">
+    <value>关闭当前窗口</value>
+  </data>
+  <data name="CollectChangesPendingProcessing" xml:space="preserve">
+    <value>采集变更等待处理</value>
+  </data>
+  <data name="Collecting" xml:space="preserve">
+    <value>正在采集：</value>
+  </data>
+  <data name="CollectingStopped" xml:space="preserve">
+    <value>采集已停止</value>
+  </data>
+  <data name="ColourMustBeRRGGBBOrAARRGGBBHexadecimal" xml:space="preserve">
+    <value>颜色必须是 #RRGGBB 或 #AARRGGBB 十六进制值。</value>
+  </data>
+  <data name="CommandsOrParametersForThisShortcutHave" xml:space="preserve">
+    <value>该快捷键的命令或参数尚未移植，未执行。</value>
+  </data>
+  <data name="ConfigureContainsLinesThatCannotBeParsed" xml:space="preserve">
+    <value>配置包含无法解析的行；有效条目已载入，请检查后重新保存。</value>
+  </data>
+  <data name="ConfigureIsExported" xml:space="preserve">
+    <value>配置已导出。</value>
+  </data>
+  <data name="ConfigureMoreThan256KiB" xml:space="preserve">
+    <value>配置超过 256 KiB。</value>
+  </data>
+  <data name="ConfiguresMoreThan256KiBOrContains" xml:space="preserve">
+    <value>配置超过 256 KiB 或包含无效字符。</value>
+  </data>
+  <data name="Confirm" xml:space="preserve">
+    <value>，确认 </value>
+  </data>
+  <data name="ConfirmCrop" xml:space="preserve">
+    <value>确认裁剪</value>
+  </data>
+  <data name="ConfirmTheMarkingArea" xml:space="preserve">
+    <value>确认去标志区域</value>
+  </data>
+  <data name="ConfirmingToDeleteTheseDiskFiles" xml:space="preserve">
+    <value>确认删除这些磁盘文件？</value>
+  </data>
+  <data name="ContainingCommandConfirmed" xml:space="preserve">
+    <value> 载入命令已确认。</value>
+  </data>
+  <data name="ContinueLastPlay" xml:space="preserve">
+    <value>继续上次播放：</value>
+  </data>
+  <data name="ContinueToSystemDeleteConfirmation" xml:space="preserve">
+    <value>继续到系统删除确认</value>
+  </data>
+  <data name="CopiedAndRequestedToBeRemovedFrom" xml:space="preserve">
+    <value>已复制并请求从队列移除，结果以列表为准；磁盘文件不受影响。网络地址可能含私密参数。</value>
+  </data>
+  <data name="CopiedButQueueRemovalDoesNotStart" xml:space="preserve">
+    <value>已复制，但队列移除事务未开始；未确认任何条目已移除。</value>
+  </data>
+  <data name="CopiedButRemovalRequestFailedPleaseCheck" xml:space="preserve">
+    <value>已复制，但移除请求失败；请检查队列。</value>
+  </data>
+  <data name="CopiedButTheQueueOrPlayRequest" xml:space="preserve">
+    <value>已复制，但队列或播放请求已变化；未移除任何条目。</value>
+  </data>
+  <data name="CopiedToTheClipboard" xml:space="preserve">
+    <value>已复制到剪贴板。</value>
+  </data>
+  <data name="CopyFailed" xml:space="preserve">
+    <value>复制失败：</value>
+  </data>
+  <data name="CopyToTheEndOfThisWindow" xml:space="preserve">
+    <value>复制到此窗口列表末尾（不播放）</value>
+  </data>
+  <data name="CopyToThisWindowFirst" xml:space="preserve">
+    <value>复制到此窗口第 </value>
+  </data>
+  <data name="CouldNotApplyTheScrollWheelAction" xml:space="preserve">
+    <value>无法提交滑块滚轮操作。</value>
+  </data>
+  <data name="CouldNotCaptureTheScreenshot" xml:space="preserve">
+    <value>无法提交截图。</value>
+  </data>
+  <data name="CouldNotChangeTheSubtitleAssociation" xml:space="preserve">
+    <value>无法修改字幕关联。</value>
+  </data>
+  <data name="CouldNotCloseTemporaryFolderS" xml:space="preserve">
+    <value>
+无法读取字幕或字幕为链接文件，已跳过。</value>
+  </data>
+  <data name="CouldNotCompleteThePathPleaseReduce" xml:space="preserve">
+    <value>无法完整显示全部路径，请减少选择。</value>
+  </data>
+  <data name="CouldNotCopyTheRawLog" xml:space="preserve">
+    <value>无法复制原始日志。</value>
+  </data>
+  <data name="CouldNotCopyTrackReport" xml:space="preserve">
+    <value>无法复制轨道报告。</value>
+  </data>
+  <data name="CouldNotCreateOrActivateThePlayer" xml:space="preserve">
+    <value>无法创建或激活播放器窗口。</value>
+  </data>
+  <data name="CouldNotCreatePlayerWindowOriginalQueue" xml:space="preserve">
+    <value>无法创建播放器窗口，原队列未修改。</value>
+  </data>
+  <data name="CouldNotDetermineTheCurrentDisplayWork" xml:space="preserve">
+    <value>无法取得当前屏幕工作区。</value>
+  </data>
+  <data name="CouldNotFinishPastingCheckThePlaylist" xml:space="preserve">
+    <value>无法完成剪贴板粘贴，请查看当前列表及播放器错误。</value>
+  </data>
+  <data name="CouldNotFinishSelectingOrLoadingSubtitles" xml:space="preserve">
+    <value>无法完成字幕选择或提交；已提交操作不能撤回。</value>
+  </data>
+  <data name="CouldNotGenerateFiltersCustomFiltersMust" xml:space="preserve">
+    <value>无法生成滤镜；自定义滤镜必须提供有效名称。</value>
+  </data>
+  <data name="CouldNotIdentifyAFileTypeThe" xml:space="preserve">
+    <value>无法确认文件类型，未应用不完整匹配结果。</value>
+  </data>
+  <data name="CouldNotIdentifyTheSubtitleFileType" xml:space="preserve">
+    <value>无法确认字幕文件类型，未应用结果。</value>
+  </data>
+  <data name="CouldNotListAllSubtitleSearchSubfolders" xml:space="preserve">
+    <value>无法完整枚举字幕搜索子目录，未应用结果。</value>
+  </data>
+  <data name="CouldNotListInstalledFontsYouCan" xml:space="preserve">
+    <value>无法枚举本地字体，仍可手动输入名称。</value>
+  </data>
+  <data name="CouldNotLocateTheSelectedFile" xml:space="preserve">
+    <value>无法定位所选文件。</value>
+  </data>
+  <data name="CouldNotOpenNetworkMedia" xml:space="preserve">
+    <value>打开网络媒体失败。</value>
+  </data>
+  <data name="CouldNotOpenNetworkMediaRetryThe" xml:space="preserve">
+    <value>网络媒体打开失败。可重试原地址或编辑后在此窗口重试。</value>
+  </data>
+  <data name="CouldNotOpenTheDroppedItems" xml:space="preserve">
+    <value>无法读取拖放内容，未打开。</value>
+  </data>
+  <data name="CouldNotOpenTheJumpToTime" xml:space="preserve">
+    <value>无法打开时间跳转窗口。</value>
+  </data>
+  <data name="CouldNotOpenTheRecentItemBecause" xml:space="preserve">
+    <value>无法解析最近项目，未打开。</value>
+  </data>
+  <data name="CouldNotOpenTheSelectedAddressIn" xml:space="preserve">
+    <value>无法将所选地址交给默认浏览器。队列和当前播放未改变。</value>
+  </data>
+  <data name="CouldNotOpenTheSelectedItemIn" xml:space="preserve">
+    <value>无法在新窗口打开所选条目；请检查地址及16窗口上限。</value>
+  </data>
+  <data name="CouldNotReadFileProperties" xml:space="preserve">
+    <value>无法读取文件属性</value>
+  </data>
+  <data name="CouldNotReadTheFolder" xml:space="preserve">
+    <value>无法读取文件夹</value>
+  </data>
+  <data name="CouldNotReadTheSubtitleSearchFolder" xml:space="preserve">
+    <value>无法读取字幕搜索目录，未应用不完整结果。</value>
+  </data>
+  <data name="CouldNotResolveTheStartupPath" xml:space="preserve">
+    <value>无法解析启动路径。</value>
+  </data>
+  <data name="CouldNotRestoreTheWindow" xml:space="preserve">
+    <value>窗口恢复未完成：</value>
+  </data>
+  <data name="CouldNotSaveSubtitlesCheckTheDestination" xml:space="preserve">
+    <value>无法保存字幕，请检查目标位置和权限。</value>
+  </data>
+  <data name="CouldNotSelectLutFile" xml:space="preserve">
+    <value>无法选择 LUT 文件。</value>
+  </data>
+  <data name="CouldNotSelectTheSubtitleColor" xml:space="preserve">
+    <value>无法选择字幕颜色。</value>
+  </data>
+  <data name="CouldNotSelectTheSubtitleFont" xml:space="preserve">
+    <value>无法选择字幕字体。</value>
+  </data>
+  <data name="CouldNotSetTheScreenshotFolder" xml:space="preserve">
+    <value>无法设置截图目录。</value>
+  </data>
+  <data name="CouldNotShowText" xml:space="preserve">
+    <value>无法显示该文本</value>
+  </data>
+  <data name="CouldNotStartIIMA" xml:space="preserve">
+    <value>IIMA 启动失败</value>
+  </data>
+  <data name="CouldNotStartMatchingFilesInThe" xml:space="preserve">
+    <value>无法开始同目录自动匹配，未修改队列或字幕。</value>
+  </data>
+  <data name="CouldNotStartSignInNoSession" xml:space="preserve">
+    <value>无法创建登录任务，未保存会话。</value>
+  </data>
+  <data name="CouldNotStartTheSubtitleDownloadSearch" xml:space="preserve">
+    <value>无法创建字幕下载任务。请重新搜索。</value>
+  </data>
+  <data name="CouldNotTemporarilyRemoveTheCroppingThe" xml:space="preserve">
+    <value>未能临时移除裁剪；读取结果确认原滤镜仍保留。</value>
+  </data>
+  <data name="CouldNotVerifyThatThisCopyOwns" xml:space="preserve">
+    <value>无法确认此副本拥有该注册，未移除任何关联。</value>
+  </data>
+  <data name="CouldNotWriteToTheClipboardTry" xml:space="preserve">
+    <value>无法写入剪贴板，请重试。</value>
+  </data>
+  <data name="CountsOnlyIndicateAResponseToThe" xml:space="preserve">
+    <value>
+计数仅表示命令回复，不保证画面已刷新。取消不撤回已提交的重载或编码变更；失败可能已移除原字幕。</value>
+  </data>
+  <data name="CoveredByTheLatterItem" xml:space="preserve">
+    <value> [被后项覆盖]</value>
+  </data>
+  <data name="Crop" xml:space="preserve">
+    <value>裁剪</value>
+  </data>
+  <data name="CropTabConflictsNoFilterChanges" xml:space="preserve">
+    <value>裁剪标签冲突，未修改滤镜。</value>
+  </data>
+  <data name="CurrentA" xml:space="preserve">
+    <value>当前 A=</value>
+  </data>
+  <data name="CurrentAutomaticMatchingAssociationUpTo64" xml:space="preserve">
+    <value>当前自动匹配关联（最多显示64项）。</value>
+  </data>
+  <data name="CurrentDelay" xml:space="preserve">
+    <value>当前延迟 </value>
+  </data>
+  <data name="CurrentDisabled" xml:space="preserve">
+    <value>（当前停用）</value>
+  </data>
+  <data name="CurrentEncoding" xml:space="preserve">
+    <value>当前编码：</value>
+  </data>
+  <data name="CurrentEncodingUnknown" xml:space="preserve">
+    <value>当前编码：未知</value>
+  </data>
+  <data name="CurrentKernelValue" xml:space="preserve">
+    <value>当前内核值：</value>
+  </data>
+  <data name="CurrentProgress" xml:space="preserve">
+    <value>当前进度 </value>
+  </data>
+  <data name="CurrentSpeed" xml:space="preserve">
+    <value>当前倍速 </value>
+  </data>
+  <data name="CurrentSubtitleLocation" xml:space="preserve">
+    <value>当前主字幕位置 </value>
+  </data>
+  <data name="CurrentToolbarConfigurationMaximumFiveItemsSet" xml:space="preserve">
+    <value>当前工具栏配置；最多5项。设置按钮打开高级偏好。</value>
+  </data>
+  <data name="CurrentVideoOutputWithoutControls" xml:space="preserve">
+    <value>当前视频输出（不含控件）</value>
+  </data>
+  <data name="CustomFFFmpegFilter" xml:space="preserve">
+    <value>自定义FFmpeg滤镜</value>
+  </data>
+  <data name="CustomMpvFilter" xml:space="preserve">
+    <value>自定义mpv滤镜</value>
+  </data>
+  <data name="Cut" xml:space="preserve">
+    <value>，截断 </value>
+  </data>
+  <data name="CycleEndB" xml:space="preserve">
+    <value>循环终点B：</value>
+  </data>
+  <data name="CycleEndpointOperationIsNotAcceptedPlease" xml:space="preserve">
+    <value>循环端点操作未被接受；请等待观测更新。</value>
+  </data>
+  <data name="CycleEndpointsHaveBeenChangedOrOperations" xml:space="preserve">
+    <value>循环端点已改变或操作未被接受；保留播放器观测值。</value>
+  </data>
+  <data name="CycleMode" xml:space="preserve">
+    <value>循环模式</value>
+  </data>
+  <data name="CycleStartA" xml:space="preserve">
+    <value>循环起点A：</value>
+  </data>
+  <data name="Default" xml:space="preserve">
+    <value>默认</value>
+  </data>
+  <data name="DefaultSystemAudioOutput" xml:space="preserve">
+    <value>系统默认音频输出</value>
+  </data>
+  <data name="DelaysMustBeLimitedToZeroTo" xml:space="preserve">
+    <value>延迟必须为有限数字，位置为0到150的整数，缩放为0到100。</value>
+  </data>
+  <data name="DeleteTheHistoricalDiskFile" xml:space="preserve">
+    <value>删除历史对应的磁盘文件？</value>
+  </data>
+  <data name="Deleted" xml:space="preserve">
+    <value>已删除 </value>
+  </data>
+  <data name="DeletesIncompletelyTheSystemOperationThatHas" xml:space="preserve">
+    <value>删除未完整完成。已发生的系统操作不会回滚，请检查文件后再决定是否重试。</value>
+  </data>
+  <data name="DeletesOnlyTheDiskThumbnailCacheOf" xml:space="preserve">
+    <value>只删除 IIMA 的磁盘缩略图缓存，不删除视频文件。之后悬停会重新生成预览。</value>
+  </data>
+  <data name="DeletesTheDiskFileBelowButKeeps" xml:space="preserve">
+    <value>删除下面的磁盘文件，但保留历史记录。历史的“撤销移除”不能恢复磁盘文件。Windows优先使用回收站；不能回收时，系统会另行要求永久删除确认，不同意请在系统对话框取消。
+
+</value>
+  </data>
+  <data name="DiagnosisLogsAreNotAvailable" xml:space="preserve">
+    <value>诊断日志不可用：</value>
+  </data>
+  <data name="Disable" xml:space="preserve">
+    <value>停用 </value>
+  </data>
+  <data name="DisabledClickToEnable" xml:space="preserve">
+    <value>已停用，点击启用</value>
+  </data>
+  <data name="Displaying" xml:space="preserve">
+    <value>；显示 </value>
+  </data>
+  <data name="DocumentsNotCompleted" xml:space="preserve">
+    <value> 个文件；未完成 </value>
+  </data>
+  <data name="DownloadCompletedSubtitleBatchSubmittedActualLoading" xml:space="preserve">
+    <value>下载完成，字幕批次已提交；实际加载结果见字幕载入状态。</value>
+  </data>
+  <data name="DownloadingSubtitles" xml:space="preserve">
+    <value>正在下载字幕…</value>
+  </data>
+  <data name="DownloadsAreCompletedButSubtitleBatchesAre" xml:space="preserve">
+    <value>下载完成，但字幕批次未确认提交；文件仍保留，可另存或稍后手动加载。</value>
+  </data>
+  <data name="Draft" xml:space="preserve">
+    <value>草稿：(</value>
+  </data>
+  <data name="DragAndDropContainingVirtualObjectsInvalid" xml:space="preserve">
+    <value>拖放包含虚拟对象、无效/设备路径或超过1MiB的路径数据，未打开。</value>
+  </data>
+  <data name="DragTheSourceOrPlaylistHasChanged" xml:space="preserve">
+    <value>拖动来源或播放列表已变化，请重新拖动。</value>
+  </data>
+  <data name="DrawIn" xml:space="preserve">
+    <value>画中画</value>
+  </data>
+  <data name="EachTimeAMaximumOf64Subtitles" xml:space="preserve">
+    <value>每次最多附加64个字幕文件，未附加任何字幕。</value>
+  </data>
+  <data name="EditFailedNetworkAddress" xml:space="preserve">
+    <value>编辑失败的网络地址</value>
+  </data>
+  <data name="EmptyTheOriginalLogOfThisWindow" xml:space="preserve">
+    <value>清空本窗口原始日志</value>
+  </data>
+  <data name="EmptyThumbnailCache" xml:space="preserve">
+    <value>清空缩略图缓存？</value>
+  </data>
+  <data name="EnabledClickToRemove" xml:space="preserve">
+    <value>已启用，点击移除</value>
+  </data>
+  <data name="EnterALimitedMultiplierValueBetween0" xml:space="preserve">
+    <value>请输入0.01到100之间的有限倍速数值。</value>
+  </data>
+  <data name="EnterAValidFontAndFont" xml:space="preserve">
+    <value>请输入有效字体和字号。</value>
+  </data>
+  <data name="EnterAValidFontNameThatDoes" xml:space="preserve">
+    <value>请输入不含换行的有效字体名称。</value>
+  </data>
+  <data name="EnterAValidRatioEG16" xml:space="preserve">
+    <value>请输入有效比例，例如 16:9 或 2.35:1。</value>
+  </data>
+  <data name="EnterAValidTimeBetween0And" xml:space="preserve">
+    <value>请输入从0到当前时长之间的有效时间。</value>
+  </data>
+  <data name="EnterAValidWebMediaAddressUp" xml:space="preserve">
+    <value>请输入有效的网络媒体地址（最多32767字符）。</value>
+  </data>
+  <data name="EnterTheAttributeNameAndClickSave" xml:space="preserve">
+    <value>输入属性名后点击“保存并监视”。</value>
+  </data>
+  <data name="EnterTheBoxToGetTheFocus" xml:space="preserve">
+    <value>录入框无法获得焦点，请手工填写按键名称。</value>
+  </data>
+  <data name="EnterTheIntegerCoordinatesWithinTheRange" xml:space="preserve">
+    <value>请输入范围内的整数坐标。</value>
+  </data>
+  <data name="EnterTheIntegerCropCoordinatesAndDimensions" xml:space="preserve">
+    <value>请输入视频范围内的整数裁剪坐标和尺寸。</value>
+  </data>
+  <data name="EnterTheSearchWordAsWellAs" xml:space="preserve">
+    <value>请输入搜索词，以及服务所需的个人令牌或 API Key。</value>
+  </data>
+  <data name="EnterTheSecondsMinutesSecondsOrTimes" xml:space="preserve">
+    <value>输入秒、分:秒或时:分:秒，支持小数秒。播放可以继续，取消不跳转。</value>
+  </data>
+  <data name="EnterTheURLOfTheNetworkUp" xml:space="preserve">
+    <value>请输入每行一个绝对文件路径或支持的网络URL（最多1000项/1MiB），未添加任何条目。</value>
+  </data>
+  <data name="EntriesFailures" xml:space="preserve">
+    <value> 项；失败 </value>
+  </data>
+  <data name="EntryMatchKeynameMpvAttributeClassificationAnd" xml:space="preserve">
+    <value> 项。匹配键名、mpv属性、分类和选项值；不会修改设置。Enter定位首项，Esc清空搜索词。</value>
+  </data>
+  <data name="EntryRemovalDoesNotDeleteDiskFiles" xml:space="preserve">
+    <value> 项；移除不会删除磁盘文件。</value>
+  </data>
+  <data name="EqualizerGainMustBeAValidValue" xml:space="preserve">
+    <value>均衡器增益必须是有效数值。</value>
+  </data>
+  <data name="ExecuteOperationFailed" xml:space="preserve">
+    <value>执行操作失败。</value>
+  </data>
+  <data name="ExistingDemarkingGraphicsAreNotASingle" xml:space="preserve">
+    <value>已有去标志图形不是单一可识别的delogo表达式；请在滤镜列表中检查，不自动替换。</value>
+  </data>
+  <data name="ExitFullScreen" xml:space="preserve">
+    <value>退出全屏</value>
+  </data>
+  <data name="ExtensionCanvas" xml:space="preserve">
+    <value>扩展画布</value>
+  </data>
+  <data name="External" xml:space="preserve">
+    <value> [外部]</value>
+  </data>
+  <data name="ExternalReadAndConfirmedTargetDocument" xml:space="preserve">
+    <value>已重新读取并确认目标文件的外部</value>
+  </data>
+  <data name="FailedToExportTheRawLog" xml:space="preserve">
+    <value>原始日志导出失败；未确认写出成功。</value>
+  </data>
+  <data name="FailedToReadDirectoryFilePropertiesIncomplete" xml:space="preserve">
+    <value>读取同目录文件属性失败，未应用不完整匹配结果。</value>
+  </data>
+  <data name="FailedToSaveDiagnosticLog" xml:space="preserve">
+    <value>保存诊断日志失败。</value>
+  </data>
+  <data name="FailedToSavePlaylist" xml:space="preserve">
+    <value>保存播放列表失败。</value>
+  </data>
+  <data name="Failure" xml:space="preserve">
+    <value>，失败 </value>
+  </data>
+  <data name="FastLUTDisabled" xml:space="preserve">
+    <value>快捷LUT：已停用</value>
+  </data>
+  <data name="FastLUTEnabled" xml:space="preserve">
+    <value>快捷LUT：已启用</value>
+  </data>
+  <data name="FastLUTNotAdded" xml:space="preserve">
+    <value>快捷LUT：未添加</value>
+  </data>
+  <data name="FastLUTRequestsHaveNotBeenSubmittedFilter" xml:space="preserve">
+    <value>快捷LUT请求未提交；滤镜链或播放器状态已变化，请重新操作。</value>
+  </data>
+  <data name="FastLUTStatusUnknown" xml:space="preserve">
+    <value>快捷LUT：状态未知</value>
+  </data>
+  <data name="FastLUTTabConflictCheckInFilterChain" xml:space="preserve">
+    <value>快捷LUT：标签冲突，请在滤镜链中检查；不会自动覆盖</value>
+  </data>
+  <data name="File" xml:space="preserve">
+    <value>文件</value>
+  </data>
+  <data name="FileDepthLimitHasBeenReached" xml:space="preserve">
+    <value>已达到文件夹深度限制</value>
+  </data>
+  <data name="FileNoDirectoriesLinksOrOfflineFiles" xml:space="preserve">
+    <value>文件；不支持目录、链接或脱机文件。</value>
+  </data>
+  <data name="FileOriginalFilePathNoNeedFor" xml:space="preserve">
+    <value>file（原始文件路径，无需转义）</value>
+  </data>
+  <data name="FileSaveCanceled" xml:space="preserve">
+    <value>已取消保存文件。</value>
+  </data>
+  <data name="FilesAssociatedWithThisCopyHaveBeen" xml:space="preserve">
+    <value>已移除此副本的文件关联注册。如原先设为默认，请在 Windows 设置中选择其他应用。</value>
+  </data>
+  <data name="FilesCouldNotBeDeleted" xml:space="preserve">
+    <value> 个文件未能删除。</value>
+  </data>
+  <data name="FilesRequiredForRemoval" xml:space="preserve">
+    <value> 个文件；已请求移除 </value>
+  </data>
+  <data name="FilterExpressionIsInvalid" xml:space="preserve">
+    <value>滤镜表达式无效。</value>
+  </data>
+  <data name="FilterSnapshotsAreWrittenWhenClickingTo" xml:space="preserve">
+    <value>已写出点击导出时的筛选快照。文件可能含私密信息，请检查后再分享。</value>
+  </data>
+  <data name="FilterStatusIsNotYetAvailable" xml:space="preserve">
+    <value>滤镜状态尚不可用。</value>
+  </data>
+  <data name="FiltersOrMediaHaveBeenChangedAnd" xml:space="preserve">
+    <value>滤镜或媒体已改变，未覆盖其他操作；原区域滤镜表达式已保留。</value>
+  </data>
+  <data name="FindOnlineSubtitles" xml:space="preserve">
+    <value>查找在线字幕…</value>
+  </data>
+  <data name="FitToWorkspace" xml:space="preserve">
+    <value>适合工作区</value>
+  </data>
+  <data name="FiveSecondsBack" xml:space="preserve">
+    <value>后退5秒</value>
+  </data>
+  <data name="FiveSecondsForward" xml:space="preserve">
+    <value>前进5秒</value>
+  </data>
+  <data name="FlipUpAndDown" xml:space="preserve">
+    <value>上下翻转</value>
+  </data>
+  <data name="FocusSGoneLoginOff" xml:space="preserve">
+    <value>焦点已离开，录入取消。</value>
+  </data>
+  <data name="FollowUpAborted" xml:space="preserve">
+    <value>后续操作已取消</value>
+  </data>
+  <data name="FollowUpCancelledPendingSubmissionOfRequest" xml:space="preserve">
+    <value>已取消后续操作，等待已提交请求回复</value>
+  </data>
+  <data name="FollowUpConfirmationHasBeenCancelledPending" xml:space="preserve">
+    <value>已取消后续确认，等待在途请求结束；载入可能已提交。</value>
+  </data>
+  <data name="FollowUpConfirmationHasBeenCancelledPending2" xml:space="preserve">
+    <value>已取消后续确认，等待在途请求结束；移除可能已提交。</value>
+  </data>
+  <data name="FollowUpConfirmationHasBeenCancelledPlease" xml:space="preserve">
+    <value>已取消后续确认；载入已提交但选择结果未确认，请检查当前轨道。</value>
+  </data>
+  <data name="FollowUpConfirmationsHaveBeenCancelledRemoval" xml:space="preserve">
+    <value>已取消后续确认；移除已提交但结果未确认，不能撤回，请检查当前轨道列表。</value>
+  </data>
+  <data name="FollowUpHasBeenCancelled" xml:space="preserve">
+    <value>后续操作已取消。</value>
+  </data>
+  <data name="FollowUpHasBeenCancelledReloadingHas" xml:space="preserve">
+    <value>已取消后续操作；重载已提交，不能撤回。</value>
+  </data>
+  <data name="FollowUpOperationsHaveBeenCancelledPending" xml:space="preserve">
+    <value>已取消后续操作，等待在途请求结束；已提交动作不能撤回。</value>
+  </data>
+  <data name="FollowUpSubtitlesHaveBeenCancelledSubmissions" xml:space="preserve">
+    <value>已取消后续字幕载入；已提交项不能撤回。</value>
+  </data>
+  <data name="FontNameSansSerifLeftEmpty" xml:space="preserve">
+    <value>字体名称（留空使用 sans-serif）</value>
+  </data>
+  <data name="Fonts" xml:space="preserve">
+    <value>字体</value>
+  </data>
+  <data name="Fullscreen" xml:space="preserve">
+    <value>全屏</value>
+  </data>
+  <data name="FuzzySubtitlingReachesAComparativeCeilingAnd" xml:space="preserve">
+    <value>模糊字幕配对达到比较上限，仅保留已完成的规则匹配。</value>
+  </data>
+  <data name="GeneratesAnExpressionThatIsInvalidOr" xml:space="preserve">
+    <value>生成表达式无效或超过64KiB，未替换手工输入。</value>
+  </data>
+  <data name="GeneratesTextExceeding256KiB" xml:space="preserve">
+    <value>生成文本超过256KiB。</value>
+  </data>
+  <data name="GeneratingTextWillExceed256KiBAnd" xml:space="preserve">
+    <value>生成文本将超过256KiB，未接受此修改。</value>
+  </data>
+  <data name="GoToTheSign" xml:space="preserve">
+    <value>去标志</value>
+  </data>
+  <data name="GraphicalSubtitlesDoNotSupportTextStyles" xml:space="preserve">
+    <value>图形字幕不支持文本样式，副字幕可能与主字幕重叠。</value>
+  </data>
+  <data name="HideList" xml:space="preserve">
+    <value>隐藏列表</value>
+  </data>
+  <data name="HistorySelectionFileStatusOrPlayRequest" xml:space="preserve">
+    <value>解析期间历史选择、文件状态或播放请求已变化，未打开；请重新选择。</value>
+  </data>
+  <data name="HistoryTargetIsNoLongerARegular" xml:space="preserve">
+    <value>历史目标不再是普通媒体文件，已跳过且不展开目录/播放列表</value>
+  </data>
+  <data name="HoursSecondsMillisecondsOrSeconds" xml:space="preserve">
+    <value>时:分:秒.毫秒，或秒数</value>
+  </data>
+  <data name="IDonTThinkSo" xml:space="preserve">
+    <value>第 </value>
+  </data>
+  <data name="IIMADeleteSelectedPlaylistFile" xml:space="preserve">
+    <value>IIMA：删除所选播放列表文件</value>
+  </data>
+  <data name="IIMAMediaFiles" xml:space="preserve">
+    <value>IIMA 媒体文件</value>
+  </data>
+  <data name="IIMAUnableToOpenRequest" xml:space="preserve">
+    <value>IIMA 打开请求失败</value>
+  </data>
+  <data name="IMAConnectionClearedMpvSelfLoadingIs" xml:space="preserve">
+    <value>已清除IIMA关联；mpv自身自动加载不受影响。</value>
+  </data>
+  <data name="IMAConnectionsClearedCurrentSubtitlesAreNot" xml:space="preserve">
+    <value>已清除IIMA关联；不卸载当前字幕，也不关闭mpv自身自动加载。</value>
+  </data>
+  <data name="IMARawMediaPlayer" xml:space="preserve">
+    <value>IIMA 原生媒体播放器</value>
+  </data>
+  <data name="IfRegistrationIsNotCompleteTryAgain" xml:space="preserve">
+    <value>注册未完成，可重试：</value>
+  </data>
+  <data name="IfYouSearchForTooLongWords" xml:space="preserve">
+    <value>搜索词过长或超过32个词，请缩短。</value>
+  </data>
+  <data name="Image" xml:space="preserve">
+    <value> 图像</value>
+  </data>
+  <data name="Immediate" xml:space="preserve">
+    <value> 即时 immediate</value>
+  </data>
+  <data name="ImportedEditingAreaCheckAndClickSave" xml:space="preserve">
+    <value>已导入编辑区，检查后点击“保存并应用”。</value>
+  </data>
+  <data name="IncludesAlreadySkipped" xml:space="preserve">
+    <value>（含已有跳过），已有而跳过 </value>
+  </data>
+  <data name="IncreaseVolume" xml:space="preserve">
+    <value>增大音量</value>
+  </data>
+  <data name="IndividualSkipping" xml:space="preserve">
+    <value> 个；跳过 </value>
+  </data>
+  <data name="InitialWindowGeometryNotApplied" xml:space="preserve">
+    <value>初始窗口几何未能应用：</value>
+  </data>
+  <data name="Input" xml:space="preserve">
+    <value>输入</value>
+  </data>
+  <data name="InsertAtTheEndOfTheList" xml:space="preserve">
+    <value>插入到列表末尾（不播放）</value>
+  </data>
+  <data name="InsertToTheFirst" xml:space="preserve">
+    <value>插入到第 </value>
+  </data>
+  <data name="InteractToMark" xml:space="preserve">
+    <value>交互去标志</value>
+  </data>
+  <data name="InteractiveAreaSelectionRequiresAnUnrotatedVideo" xml:space="preserve">
+    <value>交互区域选择需要已确认的未旋转视频映射。请移除现有视频滤镜/裁剪，恢复旋转为0，等待画面尺寸稳定后重试。</value>
+  </data>
+  <data name="InteractiveCrop" xml:space="preserve">
+    <value>交互裁剪</value>
+  </data>
+  <data name="InvalidScreenshotFormat" xml:space="preserve">
+    <value>截图格式无效。</value>
+  </data>
+  <data name="InverselyStaggeringTheCurrentPlayerAutomaticMode" xml:space="preserve">
+    <value> 反交错当前为播放器自动模式。</value>
+  </data>
+  <data name="Invert" xml:space="preserve">
+    <value>反色</value>
+  </data>
+  <data name="Inverted" xml:space="preserve">
+    <value>反交错</value>
+  </data>
+  <data name="IsBeingProcessedPleaseWaitForThe" xml:space="preserve">
+    <value>
+正在处理，请等待播放器读取结果。</value>
+  </data>
+  <data name="ItIsNotPossibleToRegisterA" xml:space="preserve">
+    <value>无法注册现代待机通知，仅保留传统睡眠广播；睡眠暂停可能不可用。Windows错误：</value>
+  </data>
+  <data name="ItSTooBigPleaseChooseSubtitles" xml:space="preserve">
+    <value>目录过大，请手动选择字幕。</value>
+  </data>
+  <data name="Italic" xml:space="preserve">
+    <value>斜体</value>
+  </data>
+  <data name="Item" xml:space="preserve">
+    <value> 项。</value>
+  </data>
+  <data name="Items" xml:space="preserve">
+    <value> 项：</value>
+  </data>
+  <data name="Jump" xml:space="preserve">
+    <value>跳转</value>
+  </data>
+  <data name="JumpToTime" xml:space="preserve">
+    <value>跳转到时间</value>
+  </data>
+  <data name="KeepTops" xml:space="preserve">
+    <value>始终置顶</value>
+  </data>
+  <data name="KeepUpTo512BalancedPresets" xml:space="preserve">
+    <value>最多保存512个均衡预设。</value>
+  </data>
+  <data name="KeyFieldsAreFilledActionIsCompleted" xml:space="preserve">
+    <value>已填入按键字段；填写动作并追加/替换行后才进入草稿，尚未应用。</value>
+  </data>
+  <data name="LastCheckDidNotFindThisFile" xml:space="preserve">
+    <value>上次检查未找到此文件，请在历史侧栏刷新后重试。</value>
+  </data>
+  <data name="LastCheckMissing" xml:space="preserve">
+    <value>（上次检查缺失）</value>
+  </data>
+  <data name="LastProgress" xml:space="preserve">
+    <value>上次进度 </value>
+  </data>
+  <data name="LaunchPathIsInvalidOrTooLong" xml:space="preserve">
+    <value>启动路径无效或过长。</value>
+  </data>
+  <data name="LeftAndRightKeysAdjustOneSecond" xml:space="preserve">
+    <value>左右键调整一秒，Home/End到首尾；Enter不跳转。精确值可在A/B循环编辑中输入。</value>
+  </data>
+  <data name="LeftAndRightMirrors" xml:space="preserve">
+    <value>左右镜像</value>
+  </data>
+  <data name="LeftAndRightMirrors2" xml:space="preserve">
+    <value>左右镜像：</value>
+  </data>
+  <data name="Lines" xml:space="preserve">
+    <value> 行：</value>
+  </data>
+  <data name="ListEntriesThatStillMatchSkipping" xml:space="preserve">
+    <value> 个仍匹配的列表条目；跳过 </value>
+  </data>
+  <data name="LoadAndSelect" xml:space="preserve">
+    <value>载入并选择</value>
+  </data>
+  <data name="LoadAndSelectSubtitles" xml:space="preserve">
+    <value>载入并选择字幕</value>
+  </data>
+  <data name="LoadExternalTracks" xml:space="preserve">
+    <value>加载外部音轨…</value>
+  </data>
+  <data name="LoadExternalVideo" xml:space="preserve">
+    <value>载入外部视频…</value>
+  </data>
+  <data name="LoadSubtitles" xml:space="preserve">
+    <value>加载字幕…</value>
+  </data>
+  <data name="LoadingAndConfirmingSelectedExternals" xml:space="preserve">
+    <value>正在载入并确认所选外部</value>
+  </data>
+  <data name="LoadingAndConfirmingSubtitlesItemByItem" xml:space="preserve">
+    <value>正在逐项载入并确认字幕…</value>
+  </data>
+  <data name="LoadingServicesWereNotCompleteButRereading" xml:space="preserve">
+    <value>载入事务未完整完成，但重新读取已确认目标外部轨道已选择；未自动重试。</value>
+  </data>
+  <data name="LocalFilesOnlyTheFirst128Items" xml:space="preserve">
+    <value>仅本地文件：自动前128项＋选中最多32项；—表示未知，合计仅含已知项。文件改动后请刷新时长与标签缓存。</value>
+  </data>
+  <data name="LocalSessionClearedButTheServerExits" xml:space="preserve">
+    <value>本地会话已清除，但服务器退出未确认：</value>
+  </data>
+  <data name="LocalSessionClearedRequestingServerExit" xml:space="preserve">
+    <value>本地会话已清除，正在请求服务器退出…</value>
+  </data>
+  <data name="LocalSessionClearedServerConfirmedExit" xml:space="preserve">
+    <value>本地会话已清除，服务器已确认退出。</value>
+  </data>
+  <data name="LocalSessionHasBeenClearedAndThe" xml:space="preserve">
+    <value>本地会话已清除，无法创建服务器退出任务。</value>
+  </data>
+  <data name="LogInToCancelEscOrTab" xml:space="preserve">
+    <value>录入取消；Esc或Tab绑定可手工填写，但Tab仍保留原生焦点导航。</value>
+  </data>
+  <data name="LoginOnlyTheAPIKeyAndTokens" xml:space="preserve">
+    <value>已登录，仅本窗口内存保留API Key及令牌，最长23小时。搜索/下载将使用此会话，不保存密码。</value>
+  </data>
+  <data name="LoopFile" xml:space="preserve">
+    <value>单文件循环</value>
+  </data>
+  <data name="LoopPlaylist" xml:space="preserve">
+    <value>列表循环</value>
+  </data>
+  <data name="LoopPlaylist2" xml:space="preserve">
+    <value>播放列表循环</value>
+  </data>
+  <data name="LutIsNotAPlaylistMediumPlease" xml:space="preserve">
+    <value>LUT不是播放列表媒体，请拖到播放区域。</value>
+  </data>
+  <data name="ManageSavedFilters" xml:space="preserve">
+    <value>管理保存的滤镜…</value>
+  </data>
+  <data name="MarginalWidth" xml:space="preserve">
+    <value>描边宽度</value>
+  </data>
+  <data name="MatchingDirectorySubtitles" xml:space="preserve">
+    <value>正在匹配同目录字幕…</value>
+  </data>
+  <data name="MatchingSubtitleFailed" xml:space="preserve">
+    <value>匹配字幕失败。</value>
+  </data>
+  <data name="MatchingSubtitleLoadingUnconfirmedSubmissionPleaseWait" xml:space="preserve">
+    <value>匹配字幕加载未确认提交；请等待当前轨道操作后重试。</value>
+  </data>
+  <data name="MaximumOf32PropertiesMonitored" xml:space="preserve">
+    <value>最多监视 32 个属性。</value>
+  </data>
+  <data name="Media" xml:space="preserve">
+    <value>媒体</value>
+  </data>
+  <data name="MediaChangedDuringTemporaryRemovalAndNo" xml:space="preserve">
+    <value>临时移除期间媒体已变化，未向新媒体写回裁剪；原表达式已保留。</value>
+  </data>
+  <data name="MediaDirectoriesAreNotReadableOrContain" xml:space="preserve">
+    <value>媒体目录不可读或包含隐藏/链接目录，未应用自动匹配。</value>
+  </data>
+  <data name="MediaFreeTime" xml:space="preserve">
+    <value>媒体剩余时间</value>
+  </data>
+  <data name="MediaHasChangedPleaseRereadSubtitles" xml:space="preserve">
+    <value>媒体已变化，请重新读取副字幕参数。</value>
+  </data>
+  <data name="MediaOrChapterHasChangedPleaseReopen" xml:space="preserve">
+    <value>媒体或章节已变化，请重新打开章节菜单。</value>
+  </data>
+  <data name="MediaOrDirectoriesAreNotAvailableOr" xml:space="preserve">
+    <value>媒体或目录不可用，或是隐藏/链接目标；未自动扩展播放列表。</value>
+  </data>
+  <data name="MediaOrSessionHasChangedAndThe" xml:space="preserve">
+    <value>媒体或会话已变化，未把原区域滤镜写入新的媒体；原表达式已保留供手动恢复。</value>
+  </data>
+  <data name="Missing" xml:space="preserve">
+    <value>，缺失 </value>
+  </data>
+  <data name="MoreThan1000FoldersHaveBeen" xml:space="preserve">
+    <value>展开文件夹后超过1000项，未插入；请减少选择。</value>
+  </data>
+  <data name="MoreThan1000PiecesUnopenedAfter" xml:space="preserve">
+    <value>解析后超过1000项，未打开。</value>
+  </data>
+  <data name="MoveToPosition" xml:space="preserve">
+    <value>移动到第 </value>
+  </data>
+  <data name="MoveToTheEndOfTheList" xml:space="preserve">
+    <value>移动到列表末尾</value>
+  </data>
+  <data name="MoveToWastebin" xml:space="preserve">
+    <value>移至回收站…</value>
+  </data>
+  <data name="MpvShortcutConfiguration" xml:space="preserve">
+    <value>mpv 快捷键配置</value>
+  </data>
+  <data name="Multiply" xml:space="preserve">
+    <value> 倍</value>
+  </data>
+  <data name="MusicMode" xml:space="preserve">
+    <value>音乐模式</value>
+  </data>
+  <data name="Mute" xml:space="preserve">
+    <value>静音</value>
+  </data>
+  <data name="Mute2" xml:space="preserve">
+    <value> · 静音</value>
+  </data>
+  <data name="NewPlayerWindow" xml:space="preserve">
+    <value>新建播放器窗口</value>
+  </data>
+  <data name="Next" xml:space="preserve">
+    <value>下一项</value>
+  </data>
+  <data name="NextFrame" xml:space="preserve">
+    <value>下一帧</value>
+  </data>
+  <data name="NextMediaNextTime" xml:space="preserve">
+    <value> 下次打开 next media</value>
+  </data>
+  <data name="NextNewPlayer" xml:space="preserve">
+    <value>（下次新播放器）</value>
+  </data>
+  <data name="NextNewPlayerStartupInitialPlayer" xml:space="preserve">
+    <value> 下次新播放器 startup initial player</value>
+  </data>
+  <data name="NextPlayerWindow" xml:space="preserve">
+    <value>下一个播放器窗口</value>
+  </data>
+  <data name="NextSingleFileOpensSeparatedBySemicolons" xml:space="preserve">
+    <value>下次单文件打开生效。用分号分隔，如 Subs;D:\Subtitles;./*。末尾 /* 仅搜索直接子目录；当前目录始终包含。不支持 ~。</value>
+  </data>
+  <data name="NextTimeOpen" xml:space="preserve">
+    <value>（下次打开）</value>
+  </data>
+  <data name="NoChapterAvailable" xml:space="preserve">
+    <value>暂无章节</value>
+  </data>
+  <data name="NoDeletionStartedHistoryAndDiskFiles" xml:space="preserve">
+    <value>未开始删除；历史和磁盘文件未因本次操作改变。</value>
+  </data>
+  <data name="NoDirectorySetSelectASavingPosition" xml:space="preserve">
+    <value>未设置目录：捕获后选择保存位置。</value>
+  </data>
+  <data name="NoEntriesSelectedMultipleOptionsForCtrl" xml:space="preserve">
+    <value>未选择条目；Ctrl或Shift可多选</value>
+  </data>
+  <data name="NoLoop" xml:space="preserve">
+    <value>不循环</value>
+  </data>
+  <data name="NoMatchingSubtitlesFound" xml:space="preserve">
+    <value>未找到匹配字幕。</value>
+  </data>
+  <data name="NoMediaFilesAreAvailableForPlay" xml:space="preserve">
+    <value>所选位置没有可播放的媒体文件。</value>
+  </data>
+  <data name="NoRecentPlaybacks" xml:space="preserve">
+    <value>暂无最近播放记录</value>
+  </data>
+  <data name="NoSavedFilters" xml:space="preserve">
+    <value>尚无保存的滤镜</value>
+  </data>
+  <data name="NoSubtitlesFound" xml:space="preserve">
+    <value>未找到字幕。</value>
+  </data>
+  <data name="NoSupportedNormalFilePath" xml:space="preserve">
+    <value>没有受支持的普通文件路径。</value>
+  </data>
+  <data name="NotAddedClickEnabled" xml:space="preserve">
+    <value>未添加，点击启用</value>
+  </data>
+  <data name="NotAnOpenMediaFileSubtitlesUsed" xml:space="preserve">
+    <value>不是可打开的媒体文件；字幕请使用添加字幕操作</value>
+  </data>
+  <data name="NotAvailable" xml:space="preserve">
+    <value>不可用</value>
+  </data>
+  <data name="NotReadForTheTimeBeingTry" xml:space="preserve">
+    <value>暂时无法读取，稍后重试。</value>
+  </data>
+  <data name="NotSetOrReadable" xml:space="preserve">
+    <value>未设置或不可读取</value>
+  </data>
+  <data name="NotStarted" xml:space="preserve">
+    <value>尚未开始</value>
+  </data>
+  <data name="NotStartedExternal" xml:space="preserve">
+    <value>未开始载入外部</value>
+  </data>
+  <data name="NotYetAvailable" xml:space="preserve">
+    <value>尚不可用</value>
+  </data>
+  <data name="OSCLeftAndRightArrowMultiSpeed" xml:space="preserve">
+    <value> OSC 左右 箭头 倍速 上一项 下一项 跳转 arrow speed playlist seek</value>
+  </data>
+  <data name="OSCLeftAndRightArrows0Times" xml:space="preserve">
+    <value>（OSC 左右箭头：0倍速 / 1队列 / 2跳转10秒）</value>
+  </data>
+  <data name="Off" xml:space="preserve">
+    <value>关闭</value>
+  </data>
+  <data name="OnlyAbsoluteLocalFilePathsOrSupported" xml:space="preserve">
+    <value>仅支持绝对本地文件路径或支持的网络媒体地址，未打开新窗口。</value>
+  </data>
+  <data name="OnlyAbsoluteLocalPathsOrSupportedNetwork" xml:space="preserve">
+    <value>仅支持绝对本地路径或支持的网络URL，不执行拖放文本。</value>
+  </data>
+  <data name="OnlyCapturesWhenEnteringAFocusEsc" xml:space="preserve">
+    <value>只在此录入框聚焦时捕获；Esc取消，Tab离开。不会执行绑定。</value>
+  </data>
+  <data name="OnlyTheOnlyManagedFilterInThe" xml:space="preserve">
+    <value>只能编辑当前模式唯一的受管滤镜（iina_crop或iina_delogo）；请先移除其他滤镜、解决标签冲突并退出悬浮小窗。</value>
+  </data>
+  <data name="OnlyThisItemWillBeRestoredAnd" xml:space="preserve">
+    <value>只恢复这一项，并丢弃该项未应用的草稿。其他设置和草稿不变。下次打开项需重开媒体；新播放器项只在新窗口初始化时生效。</value>
+  </data>
+  <data name="OnlyTryAgainInThisFailedWindow" xml:space="preserve">
+    <value>只在此失败窗口重试，不创建或切换到其他窗口。</value>
+  </data>
+  <data name="Open" xml:space="preserve">
+    <value>打开</value>
+  </data>
+  <data name="OpenFile" xml:space="preserve">
+    <value>打开文件…</value>
+  </data>
+  <data name="OpenFolder" xml:space="preserve">
+    <value>打开文件夹…</value>
+  </data>
+  <data name="OpenTheRequestMayHaveBeenDelivered" xml:space="preserve">
+    <value>打开请求可能已交付，但未收到确认。请检查现有 IIMA 窗口；为避免重复播放，未自动重发。</value>
+  </data>
+  <data name="OpenTheRequestOrTheMediaHas" xml:space="preserve">
+    <value>打开请求或媒体已变化，此草稿不会提交。请取消后重新操作。</value>
+  </data>
+  <data name="OpenURL" xml:space="preserve">
+    <value>打开网址…</value>
+  </data>
+  <data name="OpenWebMedia" xml:space="preserve">
+    <value>打开网络媒体</value>
+  </data>
+  <data name="Opening" xml:space="preserve">
+    <value>正在打开…</value>
+  </data>
+  <data name="OpeningNetworkStream" xml:space="preserve">
+    <value>正在打开网络流…</value>
+  </data>
+  <data name="OpeningWebMediaInThisWindow" xml:space="preserve">
+    <value>正在此窗口打开网络媒体…</value>
+  </data>
+  <data name="OpensAMaximumOf1000Entries" xml:space="preserve">
+    <value>每次最多在新窗口打开1000个条目。</value>
+  </data>
+  <data name="OpensAMaximumOf256FilesOr" xml:space="preserve">
+    <value>一次最多打开 256 个文件或文件夹。</value>
+  </data>
+  <data name="OpensAnEmptyWindowOrANew" xml:space="preserve">
+    <value>打开到空白窗口或新窗口，不替换正在播放的窗口。</value>
+  </data>
+  <data name="OpensTheCurrentWindowAndReplacesThe" xml:space="preserve">
+    <value>在当前窗口打开，替换当前队列。</value>
+  </data>
+  <data name="OpensTheRequestOrTheMediaIdentity" xml:space="preserve">
+    <value>打开请求或媒体身份已变化，未停止当前媒体。请使用播放器停止操作。</value>
+  </data>
+  <data name="OperationCancelled" xml:space="preserve">
+    <value>操作已取消。</value>
+  </data>
+  <data name="Orbital" xml:space="preserve">
+    <value>轨道…</value>
+  </data>
+  <data name="Orbital2" xml:space="preserve">
+    <value>轨道 </value>
+  </data>
+  <data name="OrbitalOperationReportErrorNoAutomaticRe" xml:space="preserve">
+    <value>轨道操作报告错误；未自动重试，已提交操作不能撤回。</value>
+  </data>
+  <data name="OrbitalOrPlayerStateHasChangedAnd" xml:space="preserve">
+    <value>轨道或播放器状态已变化，未开始重载；请重新选择并确认。</value>
+  </data>
+  <data name="OrbitalOrPlayerStatusHasChangedAnd" xml:space="preserve">
+    <value>轨道或播放器状态已变化，未开始移除；请重新选择并确认。</value>
+  </data>
+  <data name="OriginalUTF8LogMayContainPrivate" xml:space="preserve">
+    <value>原始UTF-8日志（可能含私密信息）</value>
+  </data>
+  <data name="OutputDevice" xml:space="preserve">
+    <value>输出设备</value>
+  </data>
+  <data name="Over512SubtitlesWithDirectoriesAreNot" xml:space="preserve">
+    <value>同目录字幕超过512个，未应用自动匹配结果。</value>
+  </data>
+  <data name="ParametersAreDerivedFromFixedIINAPresets" xml:space="preserve">
+    <value>参数来自固定IINA预设。生成仅填入表达式，点击添加/替换才提交播放器。切换类型或预设会丢弃参数草稿。</value>
+  </data>
+  <data name="ParametersAreInvalidOrNonCompliant" xml:space="preserve">
+    <value>参数无效或不符合步进：</value>
+  </data>
+  <data name="ParsingClipboardFilesAndFoldersCanCancel" xml:space="preserve">
+    <value>正在解析剪贴板文件和文件夹…可取消待处理粘贴。</value>
+  </data>
+  <data name="PartOfTheClipboardItemCannotBe" xml:space="preserve">
+    <value>部分剪贴板项目无法解析或被跳过；其余条目已请求加入，是否成功以列表为准。</value>
+  </data>
+  <data name="PartialPropertiesAreNotAvailableAndThe" xml:space="preserve">
+    <value>部分属性暂不可用，对应控件已禁用。</value>
+  </data>
+  <data name="PartiallySavedFiltersAreInvalidOrShortcuts" xml:space="preserve">
+    <value>部分保存的滤镜无效或快捷键重复，未载入这些条目。</value>
+  </data>
+  <data name="Paste1To1000FilesOr" xml:space="preserve">
+    <value>每次粘贴1到1000个文件或文件夹。</value>
+  </data>
+  <data name="Pause" xml:space="preserve">
+    <value>暂停</value>
+  </data>
+  <data name="PhysicalPixelWindowGeometryWidthIsHigher" xml:space="preserve">
+    <value>物理像素窗口几何；宽度优先于高度，保留窗口宽高比。正偏移从左上，负偏移从右下；百分比定位中心。留空使用保存位置，下次新播放器生效。</value>
+  </data>
+  <data name="Planned" xml:space="preserve">
+    <value>（计划 </value>
+  </data>
+  <data name="Play" xml:space="preserve">
+    <value>播放</value>
+  </data>
+  <data name="PlayTheKernelIsNotYetAvailable" xml:space="preserve">
+    <value>播放内核尚不可用，请安装配套的 libmpv 后重新打开文件。</value>
+  </data>
+  <data name="PlayerClosed" xml:space="preserve">
+    <value>播放器已关闭</value>
+  </data>
+  <data name="PlayerWindow" xml:space="preserve">
+    <value>播放器窗口：</value>
+  </data>
+  <data name="Playlist" xml:space="preserve">
+    <value>播放列表</value>
+  </data>
+  <data name="PlaylistRowsReceiveMediaOnlySubtitlesAre" xml:space="preserve">
+    <value>播放列表行只接收媒体；字幕请拖到播放区域或使用添加字幕。</value>
+  </data>
+  <data name="PlaylistSidebar" xml:space="preserve">
+    <value>播放列表侧栏</value>
+  </data>
+  <data name="PleaseAdjustTheElectoralAreaToConfirm" xml:space="preserve">
+    <value>去标志区域必须位于画面内部，四边至少保留1像素。请调整选区后确认。</value>
+  </data>
+  <data name="PleaseCheckTheFileWithTheSystem" xml:space="preserve">
+    <value>请核对文件与系统提示，不会自动重试。</value>
+  </data>
+  <data name="PleaseChooseLocalNormal" xml:space="preserve">
+    <value>请选择本地普通</value>
+  </data>
+  <data name="PleaseCreateAnEndpointAndRereadAnd" xml:space="preserve">
+    <value>。请建立端点并重新读取后编辑。</value>
+  </data>
+  <data name="PleaseDragAndDropAnAbsoluteFile" xml:space="preserve">
+    <value>请拖放一个绝对文件路径或支持的网络URL（最多32767字符）。</value>
+  </data>
+  <data name="PleaseEnterAValidSubtitleScalingAnd" xml:space="preserve">
+    <value>请输入有效字幕缩放和位置。</value>
+  </data>
+  <data name="PleaseEnterOnlyTheTitleOfThe" xml:space="preserve">
+    <value>请只输入片名，不输入完整路径或网址。</value>
+  </data>
+  <data name="PleaseEnterTheTitleManuallyAndDo" xml:space="preserve">
+    <value>请手动输入片名，不发送网络地址。</value>
+  </data>
+  <data name="PleaseExitTheSuspendedSmallWindowBefore" xml:space="preserve">
+    <value>请先退出悬浮小窗再交互裁剪。</value>
+  </data>
+  <data name="PleaseFillInTheUsernameAndPassword" xml:space="preserve">
+    <value>请填写个人API Key、OpenSubtitles用户名和密码。</value>
+  </data>
+  <data name="PleaseOpenTheMediaAndDragThe" xml:space="preserve">
+    <value>请先打开媒体，再拖放字幕。</value>
+  </data>
+  <data name="PleaseReduceTheSelectionByOpeningA" xml:space="preserve">
+    <value>每次最多打开1000条历史，请减少选择。</value>
+  </data>
+  <data name="PleaseReduceTheSelectionForEachDeletion" xml:space="preserve">
+    <value>每次最多删除64个不同文件，请减少选择。</value>
+  </data>
+  <data name="PleaseReduceTheSelectionForEachLocation" xml:space="preserve">
+    <value>每次最多定位64个文件，请减少选择。</value>
+  </data>
+  <data name="PleaseRefreshAsExternalDocumentsChange" xml:space="preserve">
+    <value>。外部文件变化后请刷新。</value>
+  </data>
+  <data name="PleaseRemoveTheOtherVideoFiltersAnd" xml:space="preserve">
+    <value>请先移除其他视频滤镜，再使用源像素裁剪。</value>
+  </data>
+  <data name="PleaseReturnToNormalWindowModeBefore" xml:space="preserve">
+    <value>请先返回普通窗口模式，再按视频尺寸缩放。</value>
+  </data>
+  <data name="PleaseSelectABindingFirst" xml:space="preserve">
+    <value>请先选择一条绑定。</value>
+  </data>
+  <data name="PleaseSelectADownloadedSubtitleFirst" xml:space="preserve">
+    <value>请先选择一份已下载的字幕。</value>
+  </data>
+  <data name="PleaseSelectALocalCommonSubtitleFile" xml:space="preserve">
+    <value>请选择本地普通字幕文件；不支持目录、链接或脱机文件。</value>
+  </data>
+  <data name="PleaseSelectALocalFolderToAccess" xml:space="preserve">
+    <value>请选择可访问的本地文件夹。</value>
+  </data>
+  <data name="PleaseSelectALogLineToCopy" xml:space="preserve">
+    <value>请先选择要复制的日志行。</value>
+  </data>
+  <data name="PleaseSelectAQueueEntry" xml:space="preserve">
+    <value>请选择一个队列条目。</value>
+  </data>
+  <data name="PleaseSelectAnOrbitToViewThe" xml:space="preserve">
+    <value>请选择轨道查看；查看不会改变实际播放轨道。</value>
+  </data>
+  <data name="PleaseSelectTheOriginalLogLineFirst" xml:space="preserve">
+    <value>请先选择原始日志行。</value>
+  </data>
+  <data name="PleaseWaitForTheCurrentVideoAnd" xml:space="preserve">
+    <value>请等待当前视频及其他操作完成后再导入LUT。</value>
+  </data>
+  <data name="Positioning" xml:space="preserve">
+    <value>正在定位…</value>
+  </data>
+  <data name="PrefetchHasBeenClosedNoCacheLabels" xml:space="preserve">
+    <value>预取已关闭；不显示缓存标签，仅显示播放器已观测的当前时长。</value>
+  </data>
+  <data name="PresetNameIsTooLongOrInvalid" xml:space="preserve">
+    <value>预设名称过长或无效。</value>
+  </data>
+  <data name="PressNonModifiedKeysWindowsSystemKeys" xml:space="preserve">
+    <value>请按非修饰键；Windows系统键、AltGr、IME和死键组合不录入。</value>
+  </data>
+  <data name="PreviewIsNotAvailable" xml:space="preserve">
+    <value>预览不可用。</value>
+  </data>
+  <data name="Previous" xml:space="preserve">
+    <value>上一项</value>
+  </data>
+  <data name="PreviousCheckExistence" xml:space="preserve">
+    <value>上次检查：存在 </value>
+  </data>
+  <data name="PreviousFrame" xml:space="preserve">
+    <value>上一帧</value>
+  </data>
+  <data name="PrimarySubtitles" xml:space="preserve">
+    <value>主字幕</value>
+  </data>
+  <data name="Processed" xml:space="preserve">
+    <value> 已处理 </value>
+  </data>
+  <data name="ProfileReadingIncompletely" xml:space="preserve">
+    <value>配置文件读取不完整。</value>
+  </data>
+  <data name="QuantityTimeBudgetIsAchievedAndThe" xml:space="preserve">
+    <value>达到数量/时间预算，未检查部分保持未知。</value>
+  </data>
+  <data name="QueueAssociatedSubtitlesAreNotConfirmedFor" xml:space="preserve">
+    <value>队列关联字幕未确认提交；当前轨道操作未就绪，可手动加载。</value>
+  </data>
+  <data name="QueueOrPlayRequestsChangedDuringThe" xml:space="preserve">
+    <value>检查字幕期间队列或播放请求已变化，未修改关联。</value>
+  </data>
+  <data name="QuickAdditionsAndDecreasesAlongINANon" xml:space="preserve">
+    <value>；快捷增减沿 IINA 非线性步进，输入框为独立编辑值。</value>
+  </data>
+  <data name="QuitMusicMode" xml:space="preserve">
+    <value>退出音乐模式</value>
+  </data>
+  <data name="QuitWithoutSaving" xml:space="preserve">
+    <value>退出而不保存</value>
+  </data>
+  <data name="RandomSorting" xml:space="preserve">
+    <value>随机排序</value>
+  </data>
+  <data name="ReSelect" xml:space="preserve">
+    <value>部分选择已失效，请重新选择。</value>
+  </data>
+  <data name="ReadAgainAfterEachApplication0Seconds" xml:space="preserve">
+    <value>。每次应用后重新读取；0秒按 IINA 调整为0.000001秒。</value>
+  </data>
+  <data name="ReadTheBindingFirstFromTheText" xml:space="preserve">
+    <value>请先从文本区读取绑定。</value>
+  </data>
+  <data name="ReadingOrbitsAndOriginalSelection" xml:space="preserve">
+    <value>正在读取轨道与原选择…</value>
+  </data>
+  <data name="ReadingRecentPlaybacks" xml:space="preserve">
+    <value>正在读取最近播放记录…</value>
+  </data>
+  <data name="ReadingSubtitleFilePropertiesFailedNoResults" xml:space="preserve">
+    <value>读取字幕文件属性失败，未应用结果。</value>
+  </data>
+  <data name="ReadingSubtitleSearchSubdirectorialAttributesFailedNo" xml:space="preserve">
+    <value>读取字幕搜索子目录属性失败，未应用结果。</value>
+  </data>
+  <data name="ReadingTheLatestSubtitleTrack" xml:space="preserve">
+    <value>正在读取最新字幕轨道</value>
+  </data>
+  <data name="ReadsThePlaylistChangedDuringTheClipboard" xml:space="preserve">
+    <value>读取剪贴板期间播放列表已改变，请重新粘贴。</value>
+  </data>
+  <data name="RecentlyPlayed" xml:space="preserve">
+    <value>最近播放</value>
+  </data>
+  <data name="RefreshingEverySecondReadOnlyNotSaving" xml:space="preserve">
+    <value>每秒刷新；只读，不将属性值保存到日志或设置。</value>
+  </data>
+  <data name="RegisteredAsAnOptionalPlayerTheDefault" xml:space="preserve">
+    <value>已注册为可选播放器，默认应用未改变。请在 Windows 设置中选择 IIMA。</value>
+  </data>
+  <data name="RehabilitatingAndConfirmingTheOriginalOrbitalOption" xml:space="preserve">
+    <value>正在恢复并确认原轨道选择…</value>
+  </data>
+  <data name="RejectEmptyPathsEmbeddedNULOrDevice" xml:space="preserve">
+    <value>拒绝空路径、嵌入 NUL 或设备命名空间</value>
+  </data>
+  <data name="RejectURIOrBackupDataStreamPath" xml:space="preserve">
+    <value>拒绝 URI 或备用数据流路径</value>
+  </data>
+  <data name="ReloadCommandConfirmed" xml:space="preserve">
+    <value> 重载命令已确认。</value>
+  </data>
+  <data name="ReloadOrbit" xml:space="preserve">
+    <value>重载轨道</value>
+  </data>
+  <data name="ReloadSelectedExternalAudioAndVideoTracks" xml:space="preserve">
+    <value>重新载入所选外部音视频轨道？</value>
+  </data>
+  <data name="ReloadSubtitles" xml:space="preserve">
+    <value>重新载入字幕</value>
+  </data>
+  <data name="ReloadingExternalOrbits" xml:space="preserve">
+    <value>正在重新载入外部轨道…</value>
+  </data>
+  <data name="ReloadingExternalSubtitlesInSerials" xml:space="preserve">
+    <value>正在串行重载外部字幕</value>
+  </data>
+  <data name="ReloadingIsIncompleteNoAutomaticRetestingIs" xml:space="preserve">
+    <value>重载未完整完成；未自动重试。原轨道可能已不在，请检查当前轨道与选择。</value>
+  </data>
+  <data name="ReloadingSuccessfully" xml:space="preserve">
+    <value>；重载回复成功 </value>
+  </data>
+  <data name="RemoveExternalTracksFromThePlayer" xml:space="preserve">
+    <value>从播放器移除外部轨道？</value>
+  </data>
+  <data name="RemoveTrack" xml:space="preserve">
+    <value>移除轨道</value>
+  </data>
+  <data name="RemovesOnlyFromTheCurrentPlayerAnd" xml:space="preserve">
+    <value>
+仅从当前播放器移除，不删除源文件。移除正在使用的音频、视频或字幕可能导致无声音、无画面或字幕消失；不会自动选择替代轨道。
+提交后无法撤回；需要时可重新添加外部文件。</value>
+  </data>
+  <data name="RemovesOnlyTheLibrarySnapshotAndCan" xml:space="preserve">
+    <value>仅移除库内快照，可撤销；当前生效配置和外部文件未删除。</value>
+  </data>
+  <data name="RemovingAndRereadingTrackLists" xml:space="preserve">
+    <value>正在移除并重新读取轨道列表…</value>
+  </data>
+  <data name="RepeatedKeysFinalPriority" xml:space="preserve">
+    <value> [重复键：最后优先]</value>
+  </data>
+  <data name="RequestMode" xml:space="preserve">
+    <value>请求模式：</value>
+  </data>
+  <data name="RereadConfirmedOriginalSelectionIsRestored" xml:space="preserve">
+    <value> 重新读取已确认原选择已恢复。</value>
+  </data>
+  <data name="RereadTheSourceFileOnlyAndDo" xml:space="preserve">
+    <value>
+仅重读源文件，不修改或删除磁盘文件。播放器可能先移除再添加轨道，轨道ID可能变化；会尝试恢复原音频或视频选择。失败时原轨道可能已不在，恢复选择并不是回滚。
+操作不主动切换播放／暂停，不保证首帧或声音已呈现。已提交操作无法撤回。</value>
+  </data>
+  <data name="RereadingConfirmedTargetOrbit" xml:space="preserve">
+    <value> 重新读取已确认目标轨道存在。</value>
+  </data>
+  <data name="RestoreDefaultValue" xml:space="preserve">
+    <value>，恢复默认值</value>
+  </data>
+  <data name="RestoreOrder" xml:space="preserve">
+    <value>恢复顺序</value>
+  </data>
+  <data name="RestoreOriginalSubtitleSelection" xml:space="preserve">
+    <value>正在恢复原字幕选择</value>
+  </data>
+  <data name="RestoreThisDefault" xml:space="preserve">
+    <value>恢复此项默认值</value>
+  </data>
+  <data name="Restored" xml:space="preserve">
+    <value>已恢复 </value>
+  </data>
+  <data name="ResumeOriginalAreaFilterAndCheckResults" xml:space="preserve">
+    <value>正在恢复原区域滤镜并核对结果…</value>
+  </data>
+  <data name="RetrySave" xml:space="preserve">
+    <value>重试保存</value>
+  </data>
+  <data name="Rotate" xml:space="preserve">
+    <value>旋转</value>
+  </data>
+  <data name="RowInsertionDoesNotSupportThePlaylist" xml:space="preserve">
+    <value>行插入不支持播放列表文件的异步展开，请先打开该列表；本次未插入任何项。</value>
+  </data>
+  <data name="RowSkip" xml:space="preserve">
+    <value> 项，跳过 </value>
+  </data>
+  <data name="SaveDownloadedSubtitles" xml:space="preserve">
+    <value>另存下载的字幕…</value>
+  </data>
+  <data name="SaveFailedYouCanTryAgainOr" xml:space="preserve">
+    <value>保存失败。可以重试，或退出并放弃本次未保存的更改。</value>
+  </data>
+  <data name="SavePlaylist" xml:space="preserve">
+    <value>保存播放列表…</value>
+  </data>
+  <data name="SaveScreenshotAs" xml:space="preserve">
+    <value>截图另存为…</value>
+  </data>
+  <data name="SavedAudioFilters" xml:space="preserve">
+    <value>保存的音频滤镜</value>
+  </data>
+  <data name="SavedPreferences" xml:space="preserve">
+    <value>；已保存偏好：</value>
+  </data>
+  <data name="SavedVideoFilters" xml:space="preserve">
+    <value>保存的视频滤镜</value>
+  </data>
+  <data name="SavesALogSnapshotFromTheStart" xml:space="preserve">
+    <value>已保存操作开始时的日志快照。</value>
+  </data>
+  <data name="SavesThePlaylist" xml:space="preserve">
+    <value>已保存播放列表。</value>
+  </data>
+  <data name="SavesTheSuffixInAFormatThat" xml:space="preserve">
+    <value>保存后缀与截图格式不一致，未保存文件。</value>
+  </data>
+  <data name="Scaling" xml:space="preserve">
+    <value>；缩放 </value>
+  </data>
+  <data name="Scene" xml:space="preserve">
+    <value>描边色</value>
+  </data>
+  <data name="Screenshots" xml:space="preserve">
+    <value>截图</value>
+  </data>
+  <data name="SearchFontFamily" xml:space="preserve">
+    <value>搜索字体家族</value>
+  </data>
+  <data name="SearchingForOnlineSubtitles" xml:space="preserve">
+    <value>正在搜索在线字幕…</value>
+  </data>
+  <data name="Sec" xml:space="preserve">
+    <value>秒</value>
+  </data>
+  <data name="SecTrawDraft" xml:space="preserve">
+    <value>秒（拖动草稿）</value>
+  </data>
+  <data name="SecondsLocation" xml:space="preserve">
+    <value> 秒；位置 </value>
+  </data>
+  <data name="SecondsSeconds" xml:space="preserve">
+    <value> 秒；副 </value>
+  </data>
+  <data name="SecondsTimeAlignmentOnlyChangesTheSubtitles" xml:space="preserve">
+    <value> 秒。时间对齐仅改变字幕延迟，不跳转视频。</value>
+  </data>
+  <data name="SelectAPathThatIsTooMany" xml:space="preserve">
+    <value>选择的路径过多，无法完整展示，请减少选择。</value>
+  </data>
+  <data name="SelectAResultToDownloadTextSubtitles" xml:space="preserve">
+    <value>请选择一个结果，再下载。只支持文本字幕，不解压归档。</value>
+  </data>
+  <data name="SelectASmallerFolderIfTheDirectory" xml:space="preserve">
+    <value>目录超过安全枚举限制，请选择较小的文件夹</value>
+  </data>
+  <data name="SelectLUTFile" xml:space="preserve">
+    <value>选择 LUT 文件…</value>
+  </data>
+  <data name="SelectLUTFile2" xml:space="preserve">
+    <value>选择 LUT 文件</value>
+  </data>
+  <data name="SelectOrSubmitSubmittedOperationCannotBe" xml:space="preserve">
+    <value>选择或提交；已提交操作不能撤回。</value>
+  </data>
+  <data name="SelectTheNormal3DLUTFile" xml:space="preserve">
+    <value>请选择有效绝对路径下的普通3D LUT文件；不接受设备、链接或目录。</value>
+  </data>
+  <data name="SelectTheSubtitleFileWithTheNormal" xml:space="preserve">
+    <value>请选择具有普通本地盘符路径的字幕文件。</value>
+  </data>
+  <data name="Selected" xml:space="preserve">
+    <value>所选</value>
+  </data>
+  <data name="Selected2" xml:space="preserve">
+    <value>已选 </value>
+  </data>
+  <data name="SelectedItems" xml:space="preserve">
+    <value> 个所选条目。</value>
+  </data>
+  <data name="SelectingKnown" xml:space="preserve">
+    <value>；选中已知 </value>
+  </data>
+  <data name="SetTheFileToReadTheOriginal" xml:space="preserve">
+    <value>设置文件无法读取，已保留原文件并使用默认设置。</value>
+  </data>
+  <data name="SettingSubtitleEncoding" xml:space="preserve">
+    <value>正在设置字幕编码</value>
+  </data>
+  <data name="Settings" xml:space="preserve">
+    <value>设置</value>
+  </data>
+  <data name="SettingsOrHistoryNotSaved" xml:space="preserve">
+    <value>设置或历史尚未保存</value>
+  </data>
+  <data name="SetupOrHistorySavingFailed" xml:space="preserve">
+    <value>设置或历史保存失败：</value>
+  </data>
+  <data name="Sharpening" xml:space="preserve">
+    <value>锐化</value>
+  </data>
+  <data name="ShooterChoosesToBeDisabledPleaseResearch" xml:space="preserve">
+    <value>Shooter选择已失效，请重新搜索。</value>
+  </data>
+  <data name="ShortClickOnTheReservedSlotFirst" xml:space="preserve">
+    <value>；短按保留档位，首档长按释放回到1倍；取消不回滚</value>
+  </data>
+  <data name="ShortcutConfigurationIsLoaded" xml:space="preserve">
+    <value>快捷键配置已载入。</value>
+  </data>
+  <data name="Show" xml:space="preserve">
+    <value>显示 </value>
+  </data>
+  <data name="ShowInResourceManager" xml:space="preserve">
+    <value>在资源管理器中显示</value>
+  </data>
+  <data name="ShowList" xml:space="preserve">
+    <value>显示列表</value>
+  </data>
+  <data name="ShowOnlyTheFirst100ItemsManaging" xml:space="preserve">
+    <value>仅显示前100项；管理保存的滤镜查看全部…</value>
+  </data>
+  <data name="ShowOnlyTheFirst99DevicesOpen" xml:space="preserve">
+    <value>仅显示前99个设备；打开音频设备设置查看全部</value>
+  </data>
+  <data name="ShowOnlyTheFirst99TracksOpen" xml:space="preserve">
+    <value>仅显示前99条轨道；打开侧栏查看全部</value>
+  </data>
+  <data name="ShowSubtitles" xml:space="preserve">
+    <value>显示字幕</value>
+  </data>
+  <data name="ShowingOnlyTheFirst100ChaptersOpening" xml:space="preserve">
+    <value>仅显示前100章；打开章节侧栏查看全部</value>
+  </data>
+  <data name="ShowingOnlyTheLast12ItemsOpening" xml:space="preserve">
+    <value>仅显示最近12项；打开历史侧栏查看全部</value>
+  </data>
+  <data name="ShowsChapterScaleUpTo512" xml:space="preserve">
+    <value>（显示章节刻度；最多512章）</value>
+  </data>
+  <data name="Skip" xml:space="preserve">
+    <value>，跳过 </value>
+  </data>
+  <data name="SkippedLinkFolder" xml:space="preserve">
+    <value>已跳过链接文件夹</value>
+  </data>
+  <data name="SkippedSubtitlesPlaylistInsertionDoesNotAdd" xml:space="preserve">
+    <value>
+已跳过字幕；播放列表插入不会给当前媒体附加字幕。</value>
+  </data>
+  <data name="SlidersRange025To16With" xml:space="preserve">
+    <value>×；滑杆范围0.25到16，精确输入支持0.01到100。</value>
+  </data>
+  <data name="SlowDown" xml:space="preserve">
+    <value>减速</value>
+  </data>
+  <data name="SoftwareDecoding" xml:space="preserve">
+    <value>软件解码</value>
+  </data>
+  <data name="SomeAdvancedPreferencesAreInvalidAndThe" xml:space="preserve">
+    <value>部分高级偏好无效，已分别恢复默认值。</value>
+  </data>
+  <data name="SomeFilesHaveNotBeenDeletedOr" xml:space="preserve">
+    <value>部分文件未删除或尚未处理，请检查列表。目录、链接、网络/设备路径和超长路径不支持；系统错误不会自动重试。</value>
+  </data>
+  <data name="SomeOfTheHistoricalFilesCannotBe" xml:space="preserve">
+    <value>部分历史文件无法打开或被跳过；其余文件已请求打开。</value>
+  </data>
+  <data name="SourcePixelsTopLeftPoint" xml:space="preserve">
+    <value> 源像素（左上原点）</value>
+  </data>
+  <data name="Speed" xml:space="preserve">
+    <value>速度</value>
+  </data>
+  <data name="SpeedUp" xml:space="preserve">
+    <value>加速</value>
+  </data>
+  <data name="StartParametersMustBeAValidLocal" xml:space="preserve">
+    <value>启动参数必须是有效的本地或 UNC 文件系统路径。</value>
+  </data>
+  <data name="StartsTheFileListMoreThan1" xml:space="preserve">
+    <value>启动文件列表超过 1 MiB。请分批打开。</value>
+  </data>
+  <data name="StateUnknown" xml:space="preserve">
+    <value>（状态未知）</value>
+  </data>
+  <data name="StatusNotInPlace" xml:space="preserve">
+    <value>状态未就绪</value>
+  </data>
+  <data name="StatusUnknown" xml:space="preserve">
+    <value>状态未知</value>
+  </data>
+  <data name="StayInTheWindow" xml:space="preserve">
+    <value>留在窗口</value>
+  </data>
+  <data name="Stop" xml:space="preserve">
+    <value>停止</value>
+  </data>
+  <data name="StripHistorySkippingRecords" xml:space="preserve">
+    <value> 条历史；跳过已有记录 </value>
+  </data>
+  <data name="SubdirectoriesOfSubtitleSearchAreNotReadable" xml:space="preserve">
+    <value>字幕搜索子目录不可读或超过安全限制，未应用结果。</value>
+  </data>
+  <data name="Submit" xml:space="preserve">
+    <value>，提交 </value>
+  </data>
+  <data name="SubmitLoginToOpenSubtitlesPasswordNotSaved" xml:space="preserve">
+    <value>正在向OpenSubtitles提交登录；密码不保存…</value>
+  </data>
+  <data name="SubmittedToResourceManager" xml:space="preserve">
+    <value>已向资源管理器提交 </value>
+  </data>
+  <data name="Subtitle2" xml:space="preserve">
+    <value>第二字幕</value>
+  </data>
+  <data name="SubtitleBackgroundColour" xml:space="preserve">
+    <value>字幕背景颜色</value>
+  </data>
+  <data name="SubtitleBatchesAreNotConfirmedForSubmission" xml:space="preserve">
+    <value>字幕批次未确认提交；请等待当前轨道操作后重试。</value>
+  </data>
+  <data name="SubtitleDirectoryFormatIsInvalidWindowsPath" xml:space="preserve">
+    <value>字幕目录格式无效；Windows路径请用分号分隔。</value>
+  </data>
+  <data name="SubtitleFiles" xml:space="preserve">
+    <value>字幕文件</value>
+  </data>
+  <data name="SubtitleFont" xml:space="preserve">
+    <value>字幕字体</value>
+  </data>
+  <data name="SubtitleLoadingIsNotConfirmedPleaseCheck" xml:space="preserve">
+    <value>字幕加载未确认提交；请检查载入状态，已提交操作不能撤回，未自动重试。</value>
+  </data>
+  <data name="SubtitleOperationNotSubmittedCheckMediaTrack" xml:space="preserve">
+    <value>字幕操作未提交；请检查媒体、轨道及当前事务状态。</value>
+  </data>
+  <data name="SubtitleOperationsAreStillProcessingTheSubmitted" xml:space="preserve">
+    <value>字幕操作仍在处理已提交请求；等待回复后才能开始下一笔。</value>
+  </data>
+  <data name="SubtitleOutlineColor" xml:space="preserve">
+    <value>字幕描边颜色</value>
+  </data>
+  <data name="SubtitleParametersAreNotYetAvailablePlease" xml:space="preserve">
+    <value>副字幕参数尚不可用，请等待播放器反馈。</value>
+  </data>
+  <data name="SubtitlePreviewAaBb0123456789Chinese" xml:space="preserve">
+    <value>字幕预览  Aa Bb 0123456789 中文</value>
+  </data>
+  <data name="SubtitleProcessingCompletedConfirmationRefersOnlyTo" xml:space="preserve">
+    <value>字幕批次处理完成；确认仅指轨道事实，不代表字幕已绘制。</value>
+  </data>
+  <data name="SubtitleSearchDirectoriesAreAbove64Or" xml:space="preserve">
+    <value>字幕搜索目录超过64项或路径长度限制，未应用结果。</value>
+  </data>
+  <data name="SubtitleSearchDirectoriesAreNotReadableOr" xml:space="preserve">
+    <value>字幕搜索目录不可读或超过安全限制，未应用结果。</value>
+  </data>
+  <data name="SubtitleSearchPathsCannotUseDeviceNamespaces" xml:space="preserve">
+    <value>字幕搜索路径不支持 ~、设备命名空间或此通配符；只允许末尾 /*。</value>
+  </data>
+  <data name="SubtitleServiceFailed" xml:space="preserve">
+    <value>字幕事务失败</value>
+  </data>
+  <data name="SubtitleServiceIsOver" xml:space="preserve">
+    <value>字幕事务已结束</value>
+  </data>
+  <data name="SubtitleSettings" xml:space="preserve">
+    <value>字幕设置</value>
+  </data>
+  <data name="SubtitleTextColour" xml:space="preserve">
+    <value>字幕文字颜色</value>
+  </data>
+  <data name="SubtitleTrack" xml:space="preserve">
+    <value>字幕轨道</value>
+  </data>
+  <data name="Subtitles" xml:space="preserve">
+    <value>字幕</value>
+  </data>
+  <data name="SubtitlesActuallyScaled" xml:space="preserve">
+    <value>主字幕实际缩放：</value>
+  </data>
+  <data name="SubtitlesAreNotFullyCompletedEntriesAre" xml:space="preserve">
+    <value>字幕载入未完整完成；未自动重试，已加载项不回滚。</value>
+  </data>
+  <data name="SubtitlesFailedToBeKeptAndThe" xml:space="preserve">
+    <value>保存字幕失败，原暂存字幕仍保留。</value>
+  </data>
+  <data name="SubtitlesHaveBeenSaved" xml:space="preserve">
+    <value>字幕已另存。播放器仍使用原暂存副本。</value>
+  </data>
+  <data name="SubtitlesSearchForMoreThan10000" xml:space="preserve">
+    <value>字幕搜索超过10000项访问限制，未应用结果。</value>
+  </data>
+  <data name="SubtitlesSearchForMoreThan512Subtitles" xml:space="preserve">
+    <value>字幕搜索超过512个字幕或1 MiB路径限制，未应用结果。</value>
+  </data>
+  <data name="SubtitlesWithMoreThan1MiBUnmodified" xml:space="preserve">
+    <value>字幕路径超过1MiB，未修改关联。</value>
+  </data>
+  <data name="SupportedHTTPSTextSubtitlesWereNotFound" xml:space="preserve">
+    <value>未找到受支持的HTTPS文本字幕；服务可能返回了不支持的格式或下载域名。</value>
+  </data>
+  <data name="SupportsHTTPSRTSPSRTMPS" xml:space="preserve">
+    <value>支持 HTTP(S)、RTSP(S)、RTMP(S)、FTP、SFTP。网络地址不会写入播放历史。</value>
+  </data>
+  <data name="SynchronisingS" xml:space="preserve">
+    <value>遍历文件夹失败</value>
+  </data>
+  <data name="SystemCompleteForDeletion" xml:space="preserve">
+    <value>系统完成删除 </value>
+  </data>
+  <data name="SystemMediaControlsAreNotAvailablePlay" xml:space="preserve">
+    <value>系统媒体控制不可用；窗口内播放和防休眠策略仍可使用。关闭并重新打开播放器可重试系统媒体控制。</value>
+  </data>
+  <data name="TabConflict" xml:space="preserve">
+    <value>标签冲突</value>
+  </data>
+  <data name="TenSecondsBack" xml:space="preserve">
+    <value>后退10秒</value>
+  </data>
+  <data name="TenSecondsForward" xml:space="preserve">
+    <value>前进10秒</value>
+  </data>
+  <data name="Text1000X6002030Or80" xml:space="preserve">
+    <value>1000x600+20+30 或 80%+50%+50%</value>
+  </data>
+  <data name="Text3DLUTInMixedDragAnd" xml:space="preserve">
+    <value>
+混合拖放中的3D LUT已跳过；请将单个LUT单独拖到播放区域。</value>
+  </data>
+  <data name="Text3DLut" xml:space="preserve">
+    <value>三维LUT</value>
+  </data>
+  <data name="Text5121MiBCacheBudgetReachedOr" xml:space="preserve">
+    <value>已达或接近512条／1MiB缓存预算（每项预留2KiB标签）；刷新会清除时长与标签缓存。—表示未知。</value>
+  </data>
+  <data name="TextAreaHasChangedNotCoveredPlease" xml:space="preserve">
+    <value>文本区已变化，未覆盖。请先导出或另存所需内容，再重新读取行编辑器。</value>
+  </data>
+  <data name="TextColour" xml:space="preserve">
+    <value>文字色</value>
+  </data>
+  <data name="TextExceeding256KiBOrContainingNUL" xml:space="preserve">
+    <value>文本超过256KiB或包含NUL，未载入。</value>
+  </data>
+  <data name="TheAreaMustBeAtLeast1" xml:space="preserve">
+    <value>；区域须与四边至少相隔1像素，确认才提交。</value>
+  </data>
+  <data name="TheAutomaticMatchToTheDirectoryIs" xml:space="preserve">
+    <value>同目录自动匹配未完整完成，未修改队列或字幕。</value>
+  </data>
+  <data name="TheBalancePresetIsNotReadable" xml:space="preserve">
+    <value>均衡预设无法读取。</value>
+  </data>
+  <data name="TheBuiltInLayoutOfTheASS" xml:space="preserve">
+    <value>ASS字幕的内置排版可能覆盖样式；缩放或位置调整可能破坏排版。</value>
+  </data>
+  <data name="TheChangesAreOnlyInLineEdit" xml:space="preserve">
+    <value>。改动仅在行编辑草稿中，尚未生成文本或应用。</value>
+  </data>
+  <data name="TheChoiceOfMediaOrSubtitlesHas" xml:space="preserve">
+    <value>媒体或字幕选择已变化，请取消后重新打开。</value>
+  </data>
+  <data name="TheClipboardDoesNotHaveAFile" xml:space="preserve">
+    <value>剪贴板没有可用文件对象或路径文本。</value>
+  </data>
+  <data name="TheClipboardIsBusyAndTheTrack" xml:space="preserve">
+    <value>剪贴板正忙，未复制轨道报告。</value>
+  </data>
+  <data name="TheCommandReportIsWrongButRereading" xml:space="preserve">
+    <value>命令报告错误，但重新读取已确认原轨道身份不再存在；不能据此声称命令成功。未自动重试。</value>
+  </data>
+  <data name="TheConfigurationSnapshotHasBeenUpdatedAnd" xml:space="preserve">
+    <value>配置快照已更新，正在保存；当前生效快捷键未改变。</value>
+  </data>
+  <data name="TheCropAreaIsInvalid" xml:space="preserve">
+    <value>裁剪区域无效。</value>
+  </data>
+  <data name="TheCroppingAreaMustBeWithinThe" xml:space="preserve">
+    <value>裁剪区域必须位于源图像内且至少1×1像素。</value>
+  </data>
+  <data name="TheCurrentColourIsUnknownUsingThe" xml:space="preserve">
+    <value>当前颜色未知，使用默认草稿作为初值。</value>
+  </data>
+  <data name="TheCurrentFontIsUnknownTheOpening" xml:space="preserve">
+    <value>当前字体未知，初值来自编辑草稿。</value>
+  </data>
+  <data name="TheCurrentIIMADoesNotAcceptThe" xml:space="preserve">
+    <value>现有 IIMA 未接受打开请求，可能正在退出。请等待其退出后重试。</value>
+  </data>
+  <data name="TheCurrentKernelColourIsNotDecipherable" xml:space="preserve">
+    <value>当前内核颜色不可解析，使用编辑草稿作为初值。</value>
+  </data>
+  <data name="TheCurrentLayoutDoesNotAccommodateThe" xml:space="preserve">
+    <value>当前布局无法容纳所请求的视频尺寸。</value>
+  </data>
+  <data name="TheCurrentLibmpvLacksASecureVideo" xml:space="preserve">
+    <value>当前 libmpv 缺少安全的视频合成接口，请安装配套构建。</value>
+  </data>
+  <data name="TheCurrentScreenDoesNotRestoreThe" xml:space="preserve">
+    <value>当前屏幕无法恢复播放器位置，未改变当前呈现模式。</value>
+  </data>
+  <data name="TheCurrentScreenIsNotAvailablePlease" xml:space="preserve">
+    <value>当前屏幕不可用，请稍后重试返回。</value>
+  </data>
+  <data name="TheDecompositionPathExceeds1MiBWhich" xml:space="preserve">
+    <value>解析后路径超过1MiB，未打开。</value>
+  </data>
+  <data name="TheDirectoryExceedsTheAutomaticMatchingOf" xml:space="preserve">
+    <value>目录超过自动匹配的10000项扫描限制，请手动打开文件。</value>
+  </data>
+  <data name="TheDraftHasNotYetBeenApplied" xml:space="preserve">
+    <value>草稿尚未应用。恢复默认也需点击应用。</value>
+  </data>
+  <data name="TheDragAndDropNetworkURLIs" xml:space="preserve">
+    <value>拖放的网络URL无效。</value>
+  </data>
+  <data name="TheDragAndDropNetworkURLLacks" xml:space="preserve">
+    <value>拖放的网络URL缺少主机名。</value>
+  </data>
+  <data name="TheEdgeWidthMustBeALimited" xml:space="preserve">
+    <value>描边宽度必须是0到100之间的有限值。</value>
+  </data>
+  <data name="TheEditingAreaHasBeenReplacedAfter" xml:space="preserve">
+    <value>已替换编辑区；检查后点击“保存并应用”才切换当前快捷键。</value>
+  </data>
+  <data name="TheEndpointMustBeALimitedNumber" xml:space="preserve">
+    <value>端点必须是从0到当前时长之间的有限秒数。</value>
+  </data>
+  <data name="TheEntryContainsAPathThatCannot" xml:space="preserve">
+    <value>条目包含不能无损复制为单行文本的路径，未修改剪贴板。</value>
+  </data>
+  <data name="TheEntryHasBeenCancelledAndThe" xml:space="preserve">
+    <value>已取消录入，原按键字段不变。</value>
+  </data>
+  <data name="TheExpandedUTF8PathExceeds1" xml:space="preserve">
+    <value>展开后的UTF-8路径超过1MiB，未插入。</value>
+  </data>
+  <data name="TheExternalTrackHasFailedOrThe" xml:space="preserve">
+    <value>外部轨道载入失败或结果未确认；未自动重试，已提交操作不能撤回。</value>
+  </data>
+  <data name="TheFastLUTUpdateFailedOrThe" xml:space="preserve">
+    <value>快捷LUT更新失败或结果未能确认，未自动重试；已提交操作不能撤回，请检查当前滤镜链。</value>
+  </data>
+  <data name="TheFastTrackLUTFilterUpdateHas" xml:space="preserve">
+    <value>快捷LUT滤镜链更新已由播放器读回确认。</value>
+  </data>
+  <data name="TheFileClipboardContainsVirtualObjectsDevice" xml:space="preserve">
+    <value>文件剪贴板包含无本地路径的虚拟对象、设备路径或过多路径数据，未粘贴。</value>
+  </data>
+  <data name="TheFileOperationIsNotFullyCompleted" xml:space="preserve">
+    <value>文件操作未完整完成；已发生的删除不会回滚，请核对文件后再决定是否重试。历史记录保留。</value>
+  </data>
+  <data name="TheFilterCannotBeParsedNoCropping" xml:space="preserve">
+    <value>滤镜无法解析，未重置裁剪。</value>
+  </data>
+  <data name="TheFinalFilterRequestHasBeenSubmitted" xml:space="preserve">
+    <value>最终滤镜请求已提交，正在等待结果；请勿把等待当作恢复完成。</value>
+  </data>
+  <data name="TheFinalRequestIsNotInThe" xml:space="preserve">
+    <value>最终请求未入队。可再次点击取消退出或恢复原区域滤镜。</value>
+  </data>
+  <data name="TheFirstPageIsShownPleaseShrink" xml:space="preserve">
+    <value>已显示第一页，请缩小搜索词以找到目标。选择结果后下载文本字幕。</value>
+  </data>
+  <data name="TheInclusionHadBeenSubmittedPriorTo" xml:space="preserve">
+    <value>取消前已提交载入；重新读取确认目标外部轨道已选择，不能撤回。</value>
+  </data>
+  <data name="TheInclusionOrderWasConfirmedButThe" xml:space="preserve">
+    <value>载入命令已确认，但后续轨道选择未确认；未自动重试，已提交操作不能撤回。</value>
+  </data>
+  <data name="TheInitialColourIsDerivedFromThe" xml:space="preserve">
+    <value>初始颜色来自当前内核观察值。</value>
+  </data>
+  <data name="TheInitialWindowGeometryCannotBeApplied" xml:space="preserve">
+    <value>初始窗口几何无法适用于当前屏幕，保留当前窗口位置。</value>
+  </data>
+  <data name="TheInitialWindowSavedIsGeometricallyInvalid" xml:space="preserve">
+    <value>已保存的初始窗口几何无效，保留当前窗口位置。</value>
+  </data>
+  <data name="TheInspectionHasBeenRequestedToStop" xml:space="preserve">
+    <value>已请求停止检查；正在进行的Windows文件查询可能仍需返回。</value>
+  </data>
+  <data name="TheInvertedStateIsUnknown" xml:space="preserve">
+    <value> 反交错状态未知。</value>
+  </data>
+  <data name="TheLayoutOfTheWindowIsStill" xml:space="preserve">
+    <value>窗口布局仍在变化，请稍后重试视频尺寸缩放。</value>
+  </data>
+  <data name="TheLinkIsRegisteredByTheIIMA" xml:space="preserve">
+    <value>关联由另一位置的 IIMA 注册，请在该副本中取消注册。</value>
+  </data>
+  <data name="TheListHasChangedDuringTheReading" xml:space="preserve">
+    <value>读取文件剪贴板期间列表已改变，请重新粘贴。</value>
+  </data>
+  <data name="TheListOfAudioDevicesIsNot" xml:space="preserve">
+    <value>音频设备列表尚未完整读取，请稍后重新选择。</value>
+  </data>
+  <data name="TheListOfMediaOrAudioDevices" xml:space="preserve">
+    <value>媒体或音频设备列表已变化，请重新打开设备菜单。</value>
+  </data>
+  <data name="TheLoopEndpointsChangedHaveNotBeen" xml:space="preserve">
+    <value>端点已改变、尚未建立或命令未被接受，请重新读取。</value>
+  </data>
+  <data name="TheMainSubtitleSharingStyleTheASS" xml:space="preserve">
+    <value> 主副字幕共享样式，ASS内置排版可能覆盖选择。仅确认后提交此颜色，不改变描边宽度。8位sRGB，透明度0完全透明。</value>
+  </data>
+  <data name="TheManualConnectionWillBeAppliedNext" xml:space="preserve">
+    <value>手动关联将在下次播放此条目时应用。</value>
+  </data>
+  <data name="TheMapIsNotReadyToBe" xml:space="preserve">
+    <value>映射尚未就绪，不能确认。取消可恢复原区域滤镜。</value>
+  </data>
+  <data name="TheMaximumNumberOfSubtitlingCachesPer" xml:space="preserve">
+    <value>自动字幕缓存每个媒体最多保留64项，其余匹配未缓存。</value>
+  </data>
+  <data name="TheMediaChangedDuringTheFinalRequest" xml:space="preserve">
+    <value>最终请求期间媒体已变化，结果未按原媒体确认；原表达式已保留。</value>
+  </data>
+  <data name="TheMediaHasChangedOrCannotJump" xml:space="preserve">
+    <value>媒体已变化或不能跳转，请取消后重新打开。</value>
+  </data>
+  <data name="TheMediaHasChangedPleaseReopenThe" xml:space="preserve">
+    <value>媒体已变化，请重新打开菜单。</value>
+  </data>
+  <data name="TheMediaHasChangedPleaseReopenThe2" xml:space="preserve">
+    <value>媒体已变化，请重新打开轨道菜单。</value>
+  </data>
+  <data name="TheMediaHaveChangedDuringTheConfirmation" xml:space="preserve">
+    <value>确认期间媒体已改变，未开始删除。请重新选择。</value>
+  </data>
+  <data name="TheMediaOrPlaylistChangesDuringThe" xml:space="preserve">
+    <value>确认期间媒体或播放列表变化，未开始删除。请重新选择。</value>
+  </data>
+  <data name="TheMediaTheSavedFilterOrThe" xml:space="preserve">
+    <value>媒体、保存的滤镜或当前滤镜链已变化，请重新打开菜单。</value>
+  </data>
+  <data name="TheMergerExceededTheMaximumOf64" xml:space="preserve">
+    <value>合并后超过每条目64个字幕的上限，未修改关联。</value>
+  </data>
+  <data name="TheNameCannotBeEmptyOrDuplicate" xml:space="preserve">
+    <value>名称不能为空或与现有预设重复，增益必须有效。</value>
+  </data>
+  <data name="TheNewAreaFilterIsNotConfirmed" xml:space="preserve">
+    <value>新区域滤镜未确认；读取结果仍为空链。</value>
+  </data>
+  <data name="TheNewAreaFilterIsNotConfirmed2" xml:space="preserve">
+    <value>新区域滤镜未确认；读取结果显示原区域滤镜仍在。</value>
+  </data>
+  <data name="TheNewAreaFilterWasNotSuccessfully" xml:space="preserve">
+    <value>新区域滤镜未成功确认，已请求恢复原区域滤镜；恢复结果仍需等待。</value>
+  </data>
+  <data name="TheNumberOfCyclesIs0And" xml:space="preserve">
+    <value> 循环次数为0，当前不会重复。</value>
+  </data>
+  <data name="TheOldSnapshotHasBeenRestoredAnd" xml:space="preserve">
+    <value>旧快照已恢复，正在保存；尚未应用到当前快捷键。</value>
+  </data>
+  <data name="TheOpeningValueIsDerivedFromThe" xml:space="preserve">
+    <value>初值来自当前字幕字体。选择本地字体家族或手动输入名称。</value>
+  </data>
+  <data name="TheOrbitalListHasBeenRereadTo" xml:space="preserve">
+    <value>已重新读取轨道列表，确认目标外部轨道不再存在。没有删除源文件，也未自动选择替代轨道。</value>
+  </data>
+  <data name="TheOriginalAreaFilterHasBeenTemporarily" xml:space="preserve">
+    <value>原区域滤镜已临时移除，等待完整源图像映射；取消将请求恢复原区域滤镜。</value>
+  </data>
+  <data name="TheOriginalAreaFilterIsBeingTemporarily" xml:space="preserve">
+    <value>正在临时移除原区域滤镜并读取结果；取消将在结果确认后恢复。</value>
+  </data>
+  <data name="TheOriginalChoiceIsNotConfirmed" xml:space="preserve">
+    <value> 原选择恢复未确认。</value>
+  </data>
+  <data name="TheOriginalDataCouldNotBeRead" xml:space="preserve">
+    <value>原数据未能安全读取或备份。为保护原文件，本次不会覆盖保存；退出会放弃本次更改。</value>
+  </data>
+  <data name="TheOriginalLogCollectionRequestHasNot" xml:space="preserve">
+    <value>原始日志采集请求未提交。请等待播放器就绪后重试。</value>
+  </data>
+  <data name="TheOriginalPathHasBeenFilledAnd" xml:space="preserve">
+    <value>已填入原始路径，尚未生成或添加滤镜。文件格式由FFmpeg确认。</value>
+  </data>
+  <data name="TheOtherMediaHasNotYetBeen" xml:space="preserve">
+    <value>另一次媒体打开尚未完成，请等待后重新拖放字幕。</value>
+  </data>
+  <data name="ThePathDraftHasBeenChangedNot" xml:space="preserve">
+    <value>路径草稿已改变，未覆盖。请重新选择。</value>
+  </data>
+  <data name="ThePendingPasteHasBeenCancelledSubmitted" xml:space="preserve">
+    <value>已取消待处理粘贴；已经提交的播放器操作不受影响。</value>
+  </data>
+  <data name="ThePlayHistoryIsNotReadableThe" xml:space="preserve">
+    <value> 播放历史无法读取，原文件已保留。</value>
+  </data>
+  <data name="ThePlayerDirectoryContainsCharactersThatCannot" xml:space="preserve">
+    <value>播放器目录含有无法安全写入关联命令模板的字符，请移动到不含引号或百分号的目录。</value>
+  </data>
+  <data name="ThePlayerMayBeSwitchingOrProcessing" xml:space="preserve">
+    <value>；播放器可能正在切换或处理另一笔轨道操作。</value>
+  </data>
+  <data name="ThePlayerOptionUsesAnUpstreamKeyname" xml:space="preserve">
+    <value>播放器选项采用上游键名。即时项会提交至内核；标注“下次打开”的项不会改写当前媒体。控制值表示偏好，不代表内核已确认。</value>
+  </data>
+  <data name="ThePlaylistChangedDuringTheParseFile" xml:space="preserve">
+    <value>解析文件期间播放列表已改变，未插入；请重新粘贴。</value>
+  </data>
+  <data name="ThePlaylistHasChangedPleaseReSelect" xml:space="preserve">
+    <value>播放列表已变化，请等待更新后重新选择。</value>
+  </data>
+  <data name="ThePlaylistIsTooLargeToKeep" xml:space="preserve">
+    <value>播放列表过大，无法保留插入上下文；请分批操作。</value>
+  </data>
+  <data name="ThePlaylistIsTooLargeToKeep2" xml:space="preserve">
+    <value>播放列表过大，无法安全保留拖动快照；请改用队列按钮分批操作。</value>
+  </data>
+  <data name="ThePresetHasBeenChangedToCover" xml:space="preserve">
+    <value>预设库已改变，不能覆盖新修改。</value>
+  </data>
+  <data name="TheQueueHasChangedOrIsAssociated" xml:space="preserve">
+    <value>队列已变化或关联超过存储预算，未修改关联。</value>
+  </data>
+  <data name="TheQueueHasChangedOrTheConnection" xml:space="preserve">
+    <value>队列已变化或关联无法更新，请重新选择。</value>
+  </data>
+  <data name="TheQueueOrPlayRequestHasChanged" xml:space="preserve">
+    <value>选择字幕期间队列或播放请求已变化，未修改关联。</value>
+  </data>
+  <data name="TheReloadCommandHasConfirmedThatThe" xml:space="preserve">
+    <value>重载命令已确认，重新读取已确认目标轨道存在且原选择已恢复。轨道ID可能改变；不代表首帧或声音已呈现。</value>
+  </data>
+  <data name="TheRemovalBeforeTheCancellationHasBeen" xml:space="preserve">
+    <value>取消前的移除已提交；重新读取确认原轨道不再存在。没有删除源文件。</value>
+  </data>
+  <data name="TheResultOfTheRequestToReceive" xml:space="preserve">
+    <value>已取消接收账户请求结果。已发送请求不能撤回，服务器可能已建立或结束会话。</value>
+  </data>
+  <data name="TheSavedToolbarConfigurationIsInvalidNot" xml:space="preserve">
+    <value>已保存的工具栏配置无效，未覆盖。</value>
+  </data>
+  <data name="TheScreenshotFileNameTemplateIsInvalid" xml:space="preserve">
+    <value>截图文件名模板无效，仅支持%F、%n和%%且不能包含路径。</value>
+  </data>
+  <data name="TheScreenshotHasBeenSaved" xml:space="preserve">
+    <value>截图已保存。</value>
+  </data>
+  <data name="TheScreenshotIsClosedAndCopyingIs" xml:space="preserve">
+    <value>截图保存和复制均已关闭，请启用至少一种输出。</value>
+  </data>
+  <data name="TheScreenshotTemplateIsInvalidOnlyF" xml:space="preserve">
+    <value>截图模板无效：仅支持%F、%n、%%，不得含路径、保留名或超长结果。</value>
+  </data>
+  <data name="TheSelectedAddressHasBeenGivenTo" xml:space="preserve">
+    <value>已将所选地址交给默认浏览器；未验证页面是否加载。</value>
+  </data>
+  <data name="TheSelectedEntryContainsAnInvalidNetwork" xml:space="preserve">
+    <value>所选条目包含无效网络地址，未打开新窗口。</value>
+  </data>
+  <data name="TheSelectedEntryContainsInvalidPathsOr" xml:space="preserve">
+    <value>所选条目包含无效路径或超过1MiB，未打开新窗口。</value>
+  </data>
+  <data name="TheSelectedEntryDoesNotHaveA" xml:space="preserve">
+    <value>所选条目没有可定位的本地文件。</value>
+  </data>
+  <data name="TheSelectedFileDoesNotHaveA" xml:space="preserve">
+    <value>所选文件没有可用本地路径或路径过长。</value>
+  </data>
+  <data name="TheSelectedHistoricalPathExceeds1MiB" xml:space="preserve">
+    <value>所选历史路径超过1MiB，未打开。</value>
+  </data>
+  <data name="TheSelectedItemIsNotAValid" xml:space="preserve">
+    <value>所选项目不是有效的普通字幕文件，未修改关联。</value>
+  </data>
+  <data name="TheSelectedLogHasBeenPlacedOn" xml:space="preserve">
+    <value>已将选中日志放入剪贴板。</value>
+  </data>
+  <data name="TheSelectedOriginalLogHasBeenCopied" xml:space="preserve">
+    <value>已复制选中原始日志，禁用剪贴板历史及漫游。请在分享前检查私密信息。</value>
+  </data>
+  <data name="TheSelectedPathTextIsCopiedThe" xml:space="preserve">
+    <value>已复制所选路径文本。网络地址可能包含私密参数，请谨慎粘贴。</value>
+  </data>
+  <data name="TheSelectedTrackReportHasBeenCopied" xml:space="preserve">
+    <value>已复制所选轨道报告，禁用剪贴板历史及漫游；分享前请检查外部路径等私密信息。</value>
+  </data>
+  <data name="TheSelectionOfMediaOrSubtitlesHas" xml:space="preserve">
+    <value>媒体或字幕选择已变化，请取消后重新选择颜色。</value>
+  </data>
+  <data name="TheServerRejectsTheCurrentLoginDocument" xml:space="preserve">
+    <value>服务器拒绝当前登录凭据，已清除本地会话；请检查API Key并重新登录。</value>
+  </data>
+  <data name="TheServerRejectsTheCurrentLoginDocument2" xml:space="preserve">
+    <value>服务器拒绝当前登录凭据，已清除本地会话；请重新登录。</value>
+  </data>
+  <data name="TheSizeOfTheSourceVideoHas" xml:space="preserve">
+    <value>源视频尺寸已改变，交互区域选择已取消；未自动恢复播放。</value>
+  </data>
+  <data name="TheSmallWindowSwitchWasNotCompleted" xml:space="preserve">
+    <value>小窗切换未完成；可使用返回播放器重试恢复。</value>
+  </data>
+  <data name="TheSnapshotHasBeenRenamedAndIs" xml:space="preserve">
+    <value>快照已重命名，正在保存；当前快捷键与编辑区不变。</value>
+  </data>
+  <data name="TheSnapshotHasChangedAgainAndIs" xml:space="preserve">
+    <value>快照已再次变化，未用旧版本覆盖；请先保留当前编辑内容。</value>
+  </data>
+  <data name="TheSourceImageIsTooSmallTo" xml:space="preserve">
+    <value>源画面过小，无法选择去标志区域；已请求恢复原滤镜，请等待结果。</value>
+  </data>
+  <data name="TheSourceImageIsTooSmallTo2" xml:space="preserve">
+    <value>源画面过小，无法选择去标志区域。</value>
+  </data>
+  <data name="TheStripAtLeast" xml:space="preserve">
+    <value> 条，至少丢弃 </value>
+  </data>
+  <data name="TheSubtitleSearchPathIsTooLong" xml:space="preserve">
+    <value>字幕搜索路径过长或含 NUL。</value>
+  </data>
+  <data name="TheSystemDoesNotOpenTheBrowser" xml:space="preserve">
+    <value>系统未打开浏览器。队列和当前播放未改变。</value>
+  </data>
+  <data name="TheTargetListIsTooLargeTo" xml:space="preserve">
+    <value>目标列表过大，无法安全保留复制落点快照。</value>
+  </data>
+  <data name="TheTemporaryRemovalRequestIsNotQueued" xml:space="preserve">
+    <value>临时移除请求未排入队列，原区域滤镜未由本操作修改。</value>
+  </data>
+  <data name="TheTemporaryRemovalResultWasNotConfirmed" xml:space="preserve">
+    <value>临时移除结果未能确认或出现外部修改；未覆盖滤镜，原表达式已保留。</value>
+  </data>
+  <data name="TheToolbarDraftIsInvalidNotApplied" xml:space="preserve">
+    <value>工具栏草稿无效，未应用。</value>
+  </data>
+  <data name="TheToolbarPreferencesHaveBeenChangedElsewhere" xml:space="preserve">
+    <value>工具栏偏好已在别处改变。请取消草稿，重新编辑，避免覆盖新配置。</value>
+  </data>
+  <data name="TheTrackListHasChangedPleaseReopen" xml:space="preserve">
+    <value>轨道列表已变化，请重新打开菜单。</value>
+  </data>
+  <data name="TheTrackListIsTooLargeOr" xml:space="preserve">
+    <value>轨道列表过大或身份不明确，未显示部分结果。请等待完整的播放器观察。</value>
+  </data>
+  <data name="TheTwoEndpointsAreIdenticalAndDo" xml:space="preserve">
+    <value> 两个端点相同，当前不会形成有效区间。</value>
+  </data>
+  <data name="TheVideoFilterWasChangedDuringThe" xml:space="preserve">
+    <value>预览期间视频滤镜被其他操作改变，未覆盖；原区域滤镜表达式已保留。</value>
+  </data>
+  <data name="TheVideoOrSizeHasChangedRead" xml:space="preserve">
+    <value>视频或尺寸已变化，请重新读取尺寸。</value>
+  </data>
+  <data name="TheVideoPanelSDPIScalingRatio" xml:space="preserve">
+    <value>视频面板的 DPI 缩放比例无效。</value>
+  </data>
+  <data name="TheVideoPixelSizeHasNotYet" xml:space="preserve">
+    <value>尚未获得视频像素尺寸。</value>
+  </data>
+  <data name="TheWithdrawalOfTheSnapshotDidNot" xml:space="preserve">
+    <value>撤销快照未通过预设校验，当前预设保持不变。</value>
+  </data>
+  <data name="ThereAreMoreThan256CoDirectorial" xml:space="preserve">
+    <value>同目录媒体超过256个，未自动扩展播放列表。</value>
+  </data>
+  <data name="ThereAreNoLocallyAvailableRecentItems" xml:space="preserve">
+    <value>暂无已确认可用的本地最近项目。可从侧栏查看完整历史或刷新文件状态。</value>
+  </data>
+  <data name="ThereAreNoNonCurrentLocalFiles" xml:space="preserve">
+    <value>没有可删除的非当前本地文件；网络历史和当前播放文件不会删除。</value>
+  </data>
+  <data name="ThereAreNoNonCurrentLocalFiles2" xml:space="preserve">
+    <value>没有可删除的非当前本地文件。网络条目和当前播放文件不会删除。</value>
+  </data>
+  <data name="ThereAreNoOpenFilesInThe" xml:space="preserve">
+    <value>所选历史中没有可打开的文件，请刷新文件状态。</value>
+  </data>
+  <data name="ThereAreNoOpenMediaOrSubtitles" xml:space="preserve">
+    <value>拖放内容中没有可打开的媒体或字幕。</value>
+  </data>
+  <data name="ThereAreNoPlayableEntriesInThe" xml:space="preserve">
+    <value>剪贴板文件中没有可播放条目。</value>
+  </data>
+  <data name="ThereAreNoSelectedEntriesThatCan" xml:space="preserve">
+    <value>没有可复制的所选条目。</value>
+  </data>
+  <data name="ThereIsCurrentlyNoConfiguredPlaybackSo" xml:space="preserve">
+    <value>当前没有已配置的播放画面，无法按视频尺寸缩放。</value>
+  </data>
+  <data name="ThereSMore" xml:space="preserve">
+    <value>另有 </value>
+  </data>
+  <data name="ThereWasAnErrorInTheOrbital" xml:space="preserve">
+    <value>轨道重载提交发生错误；已提交操作不能撤回，请检查当前轨道。</value>
+  </data>
+  <data name="ThisAudioDeviceIsNoLongerAvailable" xml:space="preserve">
+    <value>此音频设备已不可用，请重新打开设备菜单。</value>
+  </data>
+  <data name="ThisBatchOpensRequestsNeedMoreThan" xml:space="preserve">
+    <value>此批打开请求需要超过 16 个窗口。请启用 groupSimultaneousOpensInPlaylist 或减少选择；本批未打开。</value>
+  </data>
+  <data name="ThisChangeHasNotBeenSaved" xml:space="preserve">
+    <value>。本次更改尚未保存。</value>
+  </data>
+  <data name="ThisEntryIsNotTiedToSubtitles" xml:space="preserve">
+    <value>此条目暂无字幕关联。</value>
+  </data>
+  <data name="ThisFeatureOnlySupportsLocalMediaPaths" xml:space="preserve">
+    <value>此功能仅支持本地媒体路径。</value>
+  </data>
+  <data name="ThisHistoryHasBeenRemovedPleaseReopen" xml:space="preserve">
+    <value>此历史记录已移除，请重新打开最近播放菜单。</value>
+  </data>
+  <data name="ThisIsToRemoveDiskFilesNot" xml:space="preserve">
+    <value>这是删除磁盘文件，不是仅移除播放列表。Windows将优先使用回收站；不能回收时会另行要求系统确认永久删除。请在系统对话框取消不希望永久删除的文件。
+
+</value>
+  </data>
+  <data name="ThisOperationIsNotCurrentlyAvailable" xml:space="preserve">
+    <value>此操作当前不可用。</value>
+  </data>
+  <data name="ThisOptionCannotBeCopiedAcrossThe" xml:space="preserve">
+    <value>此选择不能跨窗口复制：最多1000项／1MiB，仅普通绝对盘符路径或显式网络URL；不支持本地播放列表、设备路径或特殊协议。</value>
+  </data>
+  <data name="ThisPostIsPartOfOurSpecial" xml:space="preserve">
+    <value>枚举本地媒体失败。</value>
+  </data>
+  <data name="ThisPreferenceMustBeInteger" xml:space="preserve">
+    <value>此偏好必须是整数。</value>
+  </data>
+  <data name="ThisQueueEntryHasBeenSavedAnd" xml:space="preserve">
+    <value>已保存此队列条目的字幕关联，下次播放此条目时应用；当前字幕未更改。</value>
+  </data>
+  <data name="ThisRatioIsLessThanOnePixel" xml:space="preserve">
+    <value>该比例在当前视频中不足一个像素，未生成裁剪。</value>
+  </data>
+  <data name="ThisRecentItemIsNoLongerAvailable" xml:space="preserve">
+    <value>该最近项目已不可用或不是普通媒体文件；未打开，请使用打开文件重新选择。</value>
+  </data>
+  <data name="ThisShortcutIsAlreadyUsedByInput" xml:space="preserve">
+    <value>此快捷键已由 input.conf 使用，请修改快捷键配置或选择其他键。</value>
+  </data>
+  <data name="ThisWindowDiagnosticLogIsNotAvailable" xml:space="preserve">
+    <value>本窗口诊断日志不可用。</value>
+  </data>
+  <data name="ThisWindowHasBeenLoggedInFor" xml:space="preserve">
+    <value>本窗口登录凭据已超过23小时，已清除；请重新登录。服务器有效期仍以响应为准。</value>
+  </data>
+  <data name="ThisWindowHasReachedTheTemporarySubtitle" xml:space="preserve">
+    <value>此窗口已达到临时字幕限额，请关闭窗口后重试。</value>
+  </data>
+  <data name="TimeAccuracy100Ms" xml:space="preserve">
+    <value>时间精度：100毫秒</value>
+  </data>
+  <data name="TimeAccuracy10Ms" xml:space="preserve">
+    <value>时间精度：10毫秒</value>
+  </data>
+  <data name="TimeAccuracy1Millisecond" xml:space="preserve">
+    <value>时间精度：1毫秒</value>
+  </data>
+  <data name="TimeAccuracy1Second" xml:space="preserve">
+    <value>时间精度：1秒</value>
+  </data>
+  <data name="TimeRemainingAtPlaySpeed" xml:space="preserve">
+    <value>按播放速度计算的剩余时间</value>
+  </data>
+  <data name="ToAvoidLoopsDoNotGoThrough" xml:space="preserve">
+    <value>为避免循环，不遍历链接文件夹</value>
+  </data>
+  <data name="ToSubmitTheFilterOnlyAfterConfirmation" xml:space="preserve">
+    <value>；确认才提交滤镜。</value>
+  </data>
+  <data name="ToggleDrawings" xml:space="preserve">
+    <value>切换画中画</value>
+  </data>
+  <data name="ToggleMusicMode" xml:space="preserve">
+    <value>切换音乐模式</value>
+  </data>
+  <data name="TooManyFilesToOpenAtOnce" xml:space="preserve">
+    <value>一次打开的文件过多，请分批打开。</value>
+  </data>
+  <data name="TotalKnown" xml:space="preserve">
+    <value>总计已知 </value>
+  </data>
+  <data name="TotalMediaTime" xml:space="preserve">
+    <value>媒体总时长</value>
+  </data>
+  <data name="Track" xml:space="preserve">
+    <value>音轨</value>
+  </data>
+  <data name="TrackIsSelectedThisLoadDoesNot" xml:space="preserve">
+    <value>轨道现已选择。此载入操作不主动切换播放／暂停；不代表声音或画面已呈现。</value>
+  </data>
+  <data name="TryAgainInThisWindow" xml:space="preserve">
+    <value>在此窗口重试</value>
+  </data>
+  <data name="TryAgainToReturnPlayer" xml:space="preserve">
+    <value>重试返回播放器</value>
+  </data>
+  <data name="UTF8Log" xml:space="preserve">
+    <value>UTF-8 日志</value>
+  </data>
+  <data name="UTF8Playlist" xml:space="preserve">
+    <value>UTF-8 播放列表</value>
+  </data>
+  <data name="UnableToAccessPath" xml:space="preserve">
+    <value>无法访问路径</value>
+  </data>
+  <data name="UnableToConfirmTheRestorationOrApplication" xml:space="preserve">
+    <value>无法确认恢复或应用结果，未重复覆盖当前滤镜；原区域滤镜表达式已保留供手动恢复。</value>
+  </data>
+  <data name="UnableToParseAbsolutePath" xml:space="preserve">
+    <value>无法解析绝对路径</value>
+  </data>
+  <data name="UnableToReadLongAtStartUp" xml:space="preserve">
+    <value>无法启动时长读取；可稍后显式刷新重试。</value>
+  </data>
+  <data name="UnableToShowOrCompleteReloadConfirmation" xml:space="preserve">
+    <value>无法显示或完成轨道重载确认，未自动重试。</value>
+  </data>
+  <data name="UnableToShowOrCompleteTrackRemoval" xml:space="preserve">
+    <value>无法显示或完成轨道移除确认，未自动重试。</value>
+  </data>
+  <data name="UnableToWriteToClipboardNoQueue" xml:space="preserve">
+    <value>无法写入剪贴板；未移除队列条目。</value>
+  </data>
+  <data name="UndoTheShortcutThatRestoresTheConflict" xml:space="preserve">
+    <value>撤销会恢复与当前 input.conf 冲突的快捷键，请先解决冲突。</value>
+  </data>
+  <data name="Unknown" xml:space="preserve">
+    <value>，未知 </value>
+  </data>
+  <data name="Unknown2" xml:space="preserve">
+    <value>未知 </value>
+  </data>
+  <data name="Unknown3" xml:space="preserve">
+    <value>未知</value>
+  </data>
+  <data name="UnknownAction" xml:space="preserve">
+    <value>未知动作</value>
+  </data>
+  <data name="UnknownDate" xml:space="preserve">
+    <value>未知日期</value>
+  </data>
+  <data name="UnknownError" xml:space="preserve">
+    <value>未知错误</value>
+  </data>
+  <data name="UnknownLocation" xml:space="preserve">
+    <value>未知位置</value>
+  </data>
+  <data name="UnmountedMedia" xml:space="preserve">
+    <value>未加载媒体</value>
+  </data>
+  <data name="UnrecognizedFilterLinesCouldNotBeSaved" xml:space="preserve">
+    <value>无法保存未识别的滤镜行。</value>
+  </data>
+  <data name="UnsolvedItem" xml:space="preserve">
+    <value>，未结项 </value>
+  </data>
+  <data name="Untitled" xml:space="preserve">
+    <value>无标题</value>
+  </data>
+  <data name="UpAndDown" xml:space="preserve">
+    <value>上下翻转：</value>
+  </data>
+  <data name="UpTo10000Bindings" xml:space="preserve">
+    <value>最多10000条绑定。</value>
+  </data>
+  <data name="UseAFullAbsolutePathIncludingThe" xml:space="preserve">
+    <value>不支持省略盘符的根路径，请填写完整绝对路径。</value>
+  </data>
+  <data name="UseARelativeOrFullyQualifiedSubtitle" xml:space="preserve">
+    <value>字幕搜索路径必须是相对路径或完整绝对路径，不能是 URI、备用数据流或盘符相对路径。</value>
+  </data>
+  <data name="ValuesAreFedBackByThePlayer" xml:space="preserve">
+    <value>数值由播放器反馈；修改后等待实际属性更新。</value>
+  </data>
+  <data name="Video" xml:space="preserve">
+    <value>视频</value>
+  </data>
+  <data name="VideoOnly" xml:space="preserve">
+    <value>仅视频</value>
+  </data>
+  <data name="VideoOutputSizeUpdateFailed" xml:space="preserve">
+    <value>视频输出尺寸更新失败。</value>
+  </data>
+  <data name="VideoSettings" xml:space="preserve">
+    <value>视频设置</value>
+  </data>
+  <data name="VideoSizeRotationOrBuiltInCropping" xml:space="preserve">
+    <value>视频尺寸、旋转或内建裁剪尚不支持，未修改窗口。</value>
+  </data>
+  <data name="VideoTrack" xml:space="preserve">
+    <value>视频轨道</value>
+  </data>
+  <data name="VideosAndSubtitles" xml:space="preserve">
+    <value>视频与字幕</value>
+  </data>
+  <data name="Volume" xml:space="preserve">
+    <value>音量</value>
+  </data>
+  <data name="VolumeReduction" xml:space="preserve">
+    <value>减小音量</value>
+  </data>
+  <data name="VolumeSilence" xml:space="preserve">
+    <value>音量（静音）</value>
+  </data>
+  <data name="WaitForTheMediaToLoad" xml:space="preserve">
+    <value>等待媒体加载。</value>
+  </data>
+  <data name="WaitingForACombinationOfKeys" xml:space="preserve">
+    <value>等待一个按键组合…</value>
+  </data>
+  <data name="WaitingForTheCompletionOfTheSubmitted" xml:space="preserve">
+    <value>正在等待已提交的轨道操作结束；不能开始另一笔重载。</value>
+  </data>
+  <data name="WaitingForTheCompletionOfTheSubmitted2" xml:space="preserve">
+    <value>正在等待已提交的轨道操作结束；不能开始另一笔移除。</value>
+  </data>
+  <data name="WaitingForTheEndOfTheTrailing" xml:space="preserve">
+    <value>等待在途字幕载入结束…</value>
+  </data>
+  <data name="WaitingForTheSubmittedOrbitalLoadingOperation" xml:space="preserve">
+    <value>正在等待已提交的轨道载入操作结束…</value>
+  </data>
+  <data name="WaitsForCompatibleAndStableVideoMaps" xml:space="preserve">
+    <value>等待兼容且稳定的视频映射；可取消退出。旋转/内建裁剪等不支持的变换需先恢复。</value>
+  </data>
+  <data name="WebBasedMedia" xml:space="preserve">
+    <value>网络媒体</value>
+  </data>
+  <data name="WebBasedMediaAreBeingRedirectedOr" xml:space="preserve">
+    <value>网络媒体正在重定向或等待确认，可取消。</value>
+  </data>
+  <data name="WhatSLeft" xml:space="preserve">
+    <value>，剩余 </value>
+  </data>
+  <data name="Window" xml:space="preserve">
+    <value>窗口</value>
+  </data>
+  <data name="WindowDimensions" xml:space="preserve">
+    <value>窗口尺寸</value>
+  </data>
+  <data name="WindowGeometryFormatIsInvalidExample1000" xml:space="preserve">
+    <value>窗口几何格式无效。示例：1000x600+20+30、80%+50%+50%、+20-30；留空按首个视频尺寸在当前屏幕居中。下次新播放器生效。</value>
+  </data>
+  <data name="WindowLayoutIsBeingRestoredPleaseEnter" xml:space="preserve">
+    <value>窗口布局正在恢复，请稍后再次进入全屏。</value>
+  </data>
+  <data name="WindowLocationFileCouldNotBeRead" xml:space="preserve">
+    <value> 窗口位置文件未能读取，保留原文件。</value>
+  </data>
+  <data name="WindowPositionNotRestored" xml:space="preserve">
+    <value>窗口位置未恢复：</value>
+  </data>
+  <data name="WindowsWasUnableToOpenTheScreenshot" xml:space="preserve">
+    <value>Windows未能打开截图，请检查默认图片应用。</value>
+  </data>
+  <data name="YouCanConfigureUpTo32Subtitle" xml:space="preserve">
+    <value>最多配置32个字幕搜索路径。</value>
+  </data>
+</root>

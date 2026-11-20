@@ -31,7 +31,7 @@ void MainWindow::WireSubtitleEncoding() {
 void MainWindow::UpdateSubtitleEncoding(iima::PlaybackSnapshot const& state) {
     const auto value = state.subtitleStyleValues.find("sub-codepage");
     SubtitleEncodingObservedText().Text(value == state.subtitleStyleValues.end() ?
-        L"当前编码：未知" : hstring{L"当前编码：" + std::wstring(to_hstring(value->second))});
+        iima::loc::Text(L"CurrentEncodingUnknown") : hstring{iima::loc::Text(L"CurrentEncoding") + std::wstring(to_hstring(value->second))});
     ApplySubtitleEncodingButton().IsEnabled(CanStartSubtitleReload());
     UpdateSubtitleReload();
     // Keep user's candidate separate from observed codepage: periodic time-pos
@@ -48,7 +48,7 @@ bool MainWindow::CanStartSubtitleReload() {
         state.session==iima::SessionState::Ready && state.media==iima::MediaState::Loaded;
 }
 void MainWindow::StartSubtitleReload(std::optional<std::string> encoding) {
-    if(!CanStartSubtitleReload()) {if(!closing_) ShowError(L"当前无法重载字幕：请等待输入、媒体切换或字幕操作完成。");return;}
+    if(!CanStartSubtitleReload()) {if(!closing_) ShowError(iima::loc::Text(L"CanNotReloadSubtitlesAtThisTime"));return;}
     auto const& state=session_->Snapshot();
     subtitleReloadRevision_=session_->SubtitleReload().revision+1;
     subtitleReloadGeneration_=state.mediaGeneration;
@@ -62,12 +62,12 @@ void MainWindow::StartSubtitleReload(std::optional<std::string> encoding) {
         else session_->ReloadSubtitles();
     } catch(...) {threw=true;}
     subtitleReloadStarting_=false;
-    if(threw && !closing_) ShowError(L"字幕操作提交时出现错误；请检查事务状态，已提交操作不能撤回。");
+    if(threw && !closing_) ShowError(iima::loc::Text(L"AnErrorOccurredWhileSubmittingTheSubtitle"));
     // An accepted transaction can fail its first worker submission and return
     // false while already owning a new revision. Retain that failure report.
     if(session_->SubtitleReload().revision!=subtitleReloadRevision_) {
         subtitleReloadRevision_=0;
-        if(!closing_ && !threw) ShowError(L"字幕操作未提交；请检查媒体、轨道及当前事务状态。");
+        if(!closing_ && !threw) ShowError(iima::loc::Text(L"SubtitleOperationNotSubmittedCheckMediaTrack"));
     }
     UpdateSubtitleReload();
     RefreshPlayerMenus();
@@ -103,24 +103,24 @@ void MainWindow::UpdateSubtitleReload() {
     CancelSubtitleReloadButton().IsEnabled(!closing_ && busy && status.phase!=Phase::Cancelled);
     if(closing_) {SubtitleReloadStatusText().Text(L"");return;}
     if(!owned) {
-        SubtitleReloadStatusText().Text(busy ? L"字幕操作仍在处理已提交请求；等待回复后才能开始下一笔。" : L"");
+        SubtitleReloadStatusText().Text(busy ? iima::loc::Text(L"SubtitleOperationsAreStillProcessingTheSubmitted") : L"");
         return;
     }
     hstring phase;
     switch(status.phase) {
-    case Phase::Idle: phase=L"尚未开始";break;
-    case Phase::Encoding: phase=L"正在设置字幕编码";break;
-    case Phase::Reading: phase=L"正在读取最新字幕轨道";break;
-    case Phase::Reloading: phase=L"正在串行重载外部字幕";break;
-    case Phase::Restoring: phase=L"正在恢复原字幕选择";break;
-    case Phase::Completed: phase=L"字幕事务已结束";break;
-    case Phase::Cancelled: phase=busy ? L"已取消后续操作，等待已提交请求回复" : L"后续操作已取消";break;
-    case Phase::Failed: phase=L"字幕事务失败";break;
+    case Phase::Idle: phase=iima::loc::Text(L"NotStarted");break;
+    case Phase::Encoding: phase=iima::loc::Text(L"SettingSubtitleEncoding");break;
+    case Phase::Reading: phase=iima::loc::Text(L"ReadingTheLatestSubtitleTrack");break;
+    case Phase::Reloading: phase=iima::loc::Text(L"ReloadingExternalSubtitlesInSerials");break;
+    case Phase::Restoring: phase=iima::loc::Text(L"RestoreOriginalSubtitleSelection");break;
+    case Phase::Completed: phase=iima::loc::Text(L"SubtitleServiceIsOver");break;
+    case Phase::Cancelled: phase=busy ? iima::loc::Text(L"FollowUpCancelledPendingSubmissionOfRequest") : iima::loc::Text(L"FollowUpAborted");break;
+    case Phase::Failed: phase=iima::loc::Text(L"SubtitleServiceFailed");break;
     }
-    hstring text=phase+L"；重载回复成功 "+to_hstring(status.completed)+L"，失败 "+to_hstring(status.failed)+
-        L"，跳过 "+to_hstring(status.skipped)+L"，剩余 "+to_hstring(status.remaining)+L"（计划 "+to_hstring(status.total)+L"）。";
+    hstring text=phase+iima::loc::Text(L"ReloadingSuccessfully")+to_hstring(status.completed)+iima::loc::Text(L"Failure")+to_hstring(status.failed)+
+        iima::loc::Text(L"Skip")+to_hstring(status.skipped)+iima::loc::Text(L"WhatSLeft")+to_hstring(status.remaining)+iima::loc::Text(L"Planned")+to_hstring(status.total)+L"）。";
     if(!status.error.empty()) text = text + L"\n"+to_hstring(status.error.substr(0,512));
-    text = text + L"\n计数仅表示命令回复，不保证画面已刷新。取消不撤回已提交的重载或编码变更；失败可能已移除原字幕。";
+    text = text + iima::loc::Text(L"CountsOnlyIndicateAResponseToThe");
     if(SubtitleReloadStatusText().Text()!=text) SubtitleReloadStatusText().Text(text);
 }
 }

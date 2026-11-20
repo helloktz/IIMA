@@ -96,7 +96,7 @@ void MainWindow::OpenPendingFiles()
     auto paths = std::move(pendingFiles_); pendingFiles_.clear();
     if (state.session != iima::SessionState::Ready || !state.compositionAvailable) {
         UpdateNetworkOpen(state);
-        ShowError(L"播放内核尚不可用，请安装配套的 libmpv 后重新打开文件。"); return;
+        ShowError(iima::loc::Text(L"PlayTheKernelIsNotYetAvailable")); return;
     }
     inputAssigned_ = true;
     BindNetworkOpenAttempt(paths, pendingAppend_);

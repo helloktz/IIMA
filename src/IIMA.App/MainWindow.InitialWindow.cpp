@@ -65,7 +65,7 @@ void MainWindow::UpdateInitialWindow(bool invalidate) {
         // newest entry is missing. Resume is owned by ApplyUserData, not a seek here.
         if(!userData_.history.empty() && SameHistory(entry,userData_.history.front())) {
             if(auto position=iima::ResumePosition(userData_,entry.path))
-                caption=L"继续上次播放："+name+L"  "+std::wstring(to_hstring(iima::VideoTime(*position).StringRepresentation()));
+                caption=iima::loc::Text(L"ContinueLastPlay")+name+L"  "+std::wstring(to_hstring(iima::VideoTime(*position).StringRepresentation()));
         }
         Controls::TextBlock label;label.Text(caption);label.TextWrapping(TextWrapping::Wrap);
         button.Content(label);button.HorizontalAlignment(HorizontalAlignment::Stretch);
@@ -74,8 +74,8 @@ void MainWindow::UpdateInitialWindow(bool invalidate) {
         });
         InitialRecentItems().Children().Append(button);
     }
-    InitialRecentHint().Text(entries.empty() ? L"暂无已确认可用的本地最近项目。可从侧栏查看完整历史或刷新文件状态。" :
-        L"最近12条记录中的可用本地文件。恢复位置遵循设置；完整历史在侧栏。 ");
+    InitialRecentHint().Text(entries.empty() ? iima::loc::Text(L"ThereAreNoLocallyAvailableRecentItems") :
+        iima::loc::Text(L"AvailableLocalFilesInTheLast12"));
 }
 void MainWindow::OpenInitialHistory(iima::HistoryEntry entry,std::uint64_t epoch) {
     if(!InitialWindowEligible() || epoch!=initialWindowEpoch_ ||
@@ -112,12 +112,12 @@ void MainWindow::OpenInitialHistory(iima::HistoryEntry entry,std::uint64_t epoch
                         std::filesystem::path(std::wstring(to_hstring(entry.path))).lexically_normal();
                 } catch(...) {}
                 if(!samePath) {
-                    self->ShowError(L"该最近项目已不可用或不是普通媒体文件；未打开，请使用打开文件重新选择。");self->UpdateInitialWindow();return;
+                    self->ShowError(iima::loc::Text(L"ThisRecentItemIsNoLongerAvailable"));self->UpdateInitialWindow();return;
                 }
                 // Deliberate history provenance: no sibling auto expansion,
                 // no global new-window policy, no manual resume seek.
                 self->ReceiveResolvedInput({entry.path},false);
             },true);
-    } catch(...) {inputResolving_=false;ShowError(L"无法解析最近项目，未打开。");UpdateInitialWindow();}
+    } catch(...) {inputResolving_=false;ShowError(iima::loc::Text(L"CouldNotOpenTheRecentItemBecause"));UpdateInitialWindow();}
 }
 }

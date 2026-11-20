@@ -37,7 +37,7 @@ void MainWindow::LoadSecondarySubtitleDraft() {
     auto const& state = session_->Snapshot();
     if (state.media != iima::MediaState::Loaded || !state.secondarySubtitleDelay ||
         !state.secondarySubtitlePosition || !state.secondarySubtitleScale) {
-        ShowError(L"副字幕参数尚不可用，请等待播放器反馈。"); return;
+        ShowError(iima::loc::Text(L"SubtitleParametersAreNotYetAvailablePlease")); return;
     }
     secondaryDraftEntry_ = state.entryId;
     secondaryDraftPath_ = state.path;
@@ -51,14 +51,14 @@ void MainWindow::ApplySecondarySubtitleDraft() {
     auto const& state = session_->Snapshot();
     if (!secondaryDraftEntry_ || state.media != iima::MediaState::Loaded ||
         *secondaryDraftEntry_ != state.entryId || secondaryDraftPath_ != state.path) {
-        ShowError(L"媒体已变化，请重新读取副字幕参数。"); return;
+        ShowError(iima::loc::Text(L"MediaHasChangedPleaseRereadSubtitles")); return;
     }
     auto delay = SecondarySubtitleDelayBox().Value();
     auto position = SecondarySubtitlePositionBox().Value();
     auto scale = SecondarySubtitleScaleBox().Value();
     if (!std::isfinite(delay) || !std::isfinite(position) || !std::isfinite(scale) ||
         position < 0 || position > 150 || std::floor(position) != position || scale < 0 || scale > 100) {
-        ShowError(L"延迟必须为有限数字，位置为0到150的整数，缩放为0到100。"); return;
+        ShowError(iima::loc::Text(L"DelaysMustBeLimitedToZeroTo")); return;
     }
     // Independent mpv options, not an atomic transaction. Each command's error
     // is reported by the normal session path; observed labels remain truth.
@@ -73,9 +73,9 @@ void MainWindow::UpdateSecondarySubtitles(iima::PlaybackSnapshot const& state) {
     SmallerSubtitleButton().IsEnabled(scaleKnown);
     LargerSubtitleButton().IsEnabled(scaleKnown);
     ResetSubtitleScaleButton().IsEnabled(active);
-    std::wstring scaleStatus = L"主字幕实际缩放：";
-    scaleStatus += active && state.subtitleScale ? to_hstring(*state.subtitleScale).c_str() : L"未知";
-    scaleStatus += L"；快捷增减沿 IINA 非线性步进，输入框为独立编辑值。";
+    std::wstring scaleStatus = iima::loc::Text(L"SubtitlesActuallyScaled");
+    scaleStatus += active && state.subtitleScale ? to_hstring(*state.subtitleScale).c_str() : iima::loc::Text(L"Unknown3");
+    scaleStatus += iima::loc::Text(L"QuickAdditionsAndDecreasesAlongINANon");
     SubtitleScaleStatus().Text(scaleStatus);
     const bool primaryTiming = active && state.subtitleId && *state.subtitleId > 0;
     const bool secondaryTiming = active && state.secondarySubtitleId && *state.secondarySubtitleId > 0;
@@ -85,11 +85,11 @@ void MainWindow::UpdateSecondarySubtitles(iima::PlaybackSnapshot const& state) {
     NextSecondaryTimingButton().IsEnabled(secondaryTiming);
     PreviousSubtitleButton().IsEnabled(primaryTiming && state.seekable);
     NextSubtitleButton().IsEnabled(primaryTiming && state.seekable);
-    std::wstring timing = L"实际字幕延迟：主 ";
-    timing += active && state.observedSubtitleDelay ? to_hstring(*state.observedSubtitleDelay).c_str() : L"未知";
-    timing += L" 秒；副 ";
-    timing += active && state.secondarySubtitleDelay ? to_hstring(*state.secondarySubtitleDelay).c_str() : L"未知";
-    timing += L" 秒。时间对齐仅改变字幕延迟，不跳转视频。";
+    std::wstring timing = iima::loc::Text(L"ActualSubtitleDelayLord");
+    timing += active && state.observedSubtitleDelay ? to_hstring(*state.observedSubtitleDelay).c_str() : iima::loc::Text(L"Unknown3");
+    timing += iima::loc::Text(L"SecondsSeconds");
+    timing += active && state.secondarySubtitleDelay ? to_hstring(*state.secondarySubtitleDelay).c_str() : iima::loc::Text(L"Unknown3");
+    timing += iima::loc::Text(L"SecondsTimeAlignmentOnlyChangesTheSubtitles");
     SubtitleTimingStatus().Text(timing);
     if (!active || (secondaryDraftEntry_ && (*secondaryDraftEntry_ != state.entryId || secondaryDraftPath_ != state.path)))
         secondaryDraftEntry_.reset();
@@ -97,14 +97,14 @@ void MainWindow::UpdateSecondarySubtitles(iima::PlaybackSnapshot const& state) {
         secondaryTracksRevision_ = state.tracksRevision;
         SecondarySubtitleBox().Items().Clear();
         Controls::ComboBoxItem off;
-        off.Content(box_value(L"关闭")); off.Tag(box_value(std::int64_t{0}));
+        off.Content(box_value(iima::loc::Text(L"Off"))); off.Tag(box_value(std::int64_t{0}));
         SecondarySubtitleBox().Items().Append(off);
         for (auto const& track : state.tracks) {
             if (track.type != "sub") continue;
             Controls::ComboBoxItem item;
             auto info = iima::TrackPresentation::FromMediaTrack(track);
             auto label = info ? info->ReadableTitle() : std::to_string(track.id);
-            if (track.external) label += " [外部]";
+            if (track.external) label += iima::loc::Utf8(L"External");
             item.Content(box_value(to_hstring(label))); item.Tag(box_value(track.id));
             SecondarySubtitleBox().Items().Append(item);
         }
@@ -118,7 +118,7 @@ void MainWindow::UpdateSecondarySubtitles(iima::PlaybackSnapshot const& state) {
                 if (unbox_value<std::int64_t>(item.Tag()) == *id) { index = static_cast<int>(row); break; }
             }
         }
-        box.PlaceholderText(id && *id == -1 ? L"自动选择中" : L"状态未就绪");
+        box.PlaceholderText(id && *id == -1 ? iima::loc::Text(L"AutomaticSelection") : iima::loc::Text(L"StatusNotInPlace"));
         box.SelectedIndex(index);
     };
     // track-list.selected may be true for TWO subtitle tracks. Never infer the
@@ -134,10 +134,10 @@ void MainWindow::UpdateSecondarySubtitles(iima::PlaybackSnapshot const& state) {
     LoadSecondarySubtitleButton().IsEnabled(active && valuesKnown);
     ApplySecondarySubtitleButton().IsEnabled(active && secondaryDraftEntry_.has_value() && valuesKnown);
     ResetSecondaryDelayButton().IsEnabled(active && state.secondarySubtitleDelay.has_value());
-    auto value = [](std::optional<double> number) -> hstring { return number ? to_hstring(*number) : L"未知"; };
-    SecondarySubtitleStatus().Text(L"当前延迟 " + value(state.secondarySubtitleDelay) + L" 秒；位置 " +
-        value(state.secondarySubtitlePosition) + L"；缩放 " + value(state.secondarySubtitleScale));
-    SubtitleLayoutStatus().Text(L"当前主字幕位置 " + value(state.subtitlePosition) + L"；缩放 " + value(state.subtitleScale));
+    auto value = [](std::optional<double> number) -> hstring { return number ? to_hstring(*number) : iima::loc::Text(L"Unknown3"); };
+    SecondarySubtitleStatus().Text(iima::loc::Text(L"CurrentDelay") + value(state.secondarySubtitleDelay) + iima::loc::Text(L"SecondsLocation") +
+        value(state.secondarySubtitlePosition) + iima::loc::Text(L"Scaling") + value(state.secondarySubtitleScale));
+    SubtitleLayoutStatus().Text(iima::loc::Text(L"CurrentSubtitleLocation") + value(state.subtitlePosition) + iima::loc::Text(L"Scaling") + value(state.subtitleScale));
     bool imageOnly = true, selectedAny = false, ass = false;
     for (auto const& track : state.tracks) {
         if (track.type != "sub" || ((!state.subtitleId || track.id != *state.subtitleId) &&
@@ -149,8 +149,8 @@ void MainWindow::UpdateSecondarySubtitles(iima::PlaybackSnapshot const& state) {
         } else imageOnly = false;
     }
     SubtitleStyleWarning().Text(selectedAny && imageOnly ?
-        L"图形字幕不支持文本样式，副字幕可能与主字幕重叠。" : ass ?
-        L"ASS字幕的内置排版可能覆盖样式；缩放或位置调整可能破坏排版。" : L"");
+        iima::loc::Text(L"GraphicalSubtitlesDoNotSupportTextStyles") : ass ?
+        iima::loc::Text(L"TheBuiltInLayoutOfTheASS") : L"");
     const bool canStyle = active && (!selectedAny || !imageOnly);
     ApplySubtitleStyleButton().IsEnabled(canStyle);
     ChooseSubtitleFontButton().IsEnabled(canStyle);

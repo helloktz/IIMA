@@ -16,7 +16,7 @@ void MainWindow::WirePlaylistClipboard() {
             self->playlistPasteStop_.request_stop();
             ++self->playlistPasteGeneration_;
             self->playlistPasteBusy_ = false;
-            self->StatusText().Text(L"已取消待处理粘贴；已经提交的播放器操作不受影响。");
+            self->StatusText().Text(iima::loc::Text(L"ThePendingPasteHasBeenCancelledSubmitted"));
         }
     });
     CutPlaylistPathsButton().Click([weak](auto const&, auto const&) {
@@ -50,15 +50,15 @@ void MainWindow::CopyPlaylistPaths(bool networkOnly, bool cut) {
             if (networkOnly && !iima::IsNetworkMediaPath(path)) continue;
             if (path.empty() || path.find_first_of("\r\n") != std::string::npos ||
                 path.find('\0') != std::string::npos) {
-                ShowError(L"条目包含不能无损复制为单行文本的路径，未修改剪贴板。"); return;
+                ShowError(iima::loc::Text(L"TheEntryContainsAPathThatCannot")); return;
             }
             if (++count > 1000 || text.size() + path.size() + 2 > 1024 * 1024) {
-                ShowError(L"每次最多复制1000项、1MiB文本。"); return;
+                ShowError(iima::loc::Text(L"AMaximumOf1000Copies1")); return;
             }
             if (!text.empty()) text += "\r\n";
             text += path;
         }
-        if (text.empty()) { ShowError(L"没有可复制的所选条目。"); return; }
+        if (text.empty()) { ShowError(iima::loc::Text(L"ThereAreNoSelectedEntriesThatCan")); return; }
         DataPackage package;
         package.RequestedOperation(DataPackageOperation::Copy);
         package.SetText(to_hstring(text));
@@ -66,7 +66,7 @@ void MainWindow::CopyPlaylistPaths(bool networkOnly, bool cut) {
         options.IsAllowedInHistory(false);
         options.IsRoamable(false);
         if (!Clipboard::SetContentWithOptions(package, options)) {
-            ShowError(L"剪贴板正忙，未复制。请重试。"); return;
+            ShowError(iima::loc::Text(L"ClipboardIsBusyNotCopiedPleaseTry")); return;
         }
         copied=true;
         if (cut) {
@@ -79,21 +79,21 @@ void MainWindow::CopyPlaylistPaths(bool networkOnly, bool cut) {
                 SelectedPlaylistIds()!=selected || now.playlist.size()!=queue.size() ||
                 !std::equal(now.playlist.begin(),now.playlist.end(),queue.begin(),
                     [](auto const& a,auto const& b) { return a.id==b.id && a.path==b.path; })) {
-                ShowError(L"已复制，但队列或播放请求已变化；未移除任何条目。"); return;
+                ShowError(iima::loc::Text(L"CopiedButTheQueueOrPlayRequest")); return;
             }
             // Clipboard stays pure text with Copy operation: this never asks
             // Explorer to move/delete files. Removal is the typed mpv edit plan.
             session_->RemovePlaylistItems(std::move(rows));
             if (!session_->PlaylistEditBusy()) {
-                ShowError(L"已复制，但队列移除事务未开始；未确认任何条目已移除。");
+                ShowError(iima::loc::Text(L"CopiedButQueueRemovalDoesNotStart"));
                 return; // Core snapshot.error retains the concrete rejection.
             }
-            StatusText().Text(L"已复制并请求从队列移除，结果以列表为准；磁盘文件不受影响。网络地址可能含私密参数。");
+            StatusText().Text(iima::loc::Text(L"CopiedAndRequestedToBeRemovedFrom"));
             return;
         }
         // No Flush: retain neither paths nor signed URLs in clipboard history.
-        StatusText().Text(L"已复制所选路径文本。网络地址可能包含私密参数，请谨慎粘贴。");
-    } catch (...) { ShowError(copied ? L"已复制，但移除请求失败；请检查队列。" : L"无法写入剪贴板；未移除队列条目。"); }
+        StatusText().Text(iima::loc::Text(L"TheSelectedPathTextIsCopiedThe"));
+    } catch (...) { ShowError(copied ? iima::loc::Text(L"CopiedButRemovalRequestFailedPleaseCheck") : iima::loc::Text(L"UnableToWriteToClipboardNoQueue")); }
 }
 fire_and_forget MainWindow::PastePlaylistPaths() {
     auto lifetime = get_strong();
@@ -116,9 +116,9 @@ fire_and_forget MainWindow::PastePlaylistPaths() {
             if (closing_ || operation != playlistPasteGeneration_) co_return;
             if (epoch != navigationEpoch_ || revision != session_->Snapshot().playlistRevision ||
                 session_->PlaylistEditBusy()) {
-                ShowError(L"读取文件剪贴板期间列表已改变，请重新粘贴。");
+                ShowError(iima::loc::Text(L"TheListHasChangedDuringTheReading"));
             } else if (items.Size() == 0 || items.Size() > 1000) {
-                ShowError(L"每次粘贴1到1000个文件或文件夹。");
+                ShowError(iima::loc::Text(L"Paste1To1000FilesOr"));
             } else {
                 std::vector<std::wstring> inputs;
                 std::size_t bytes{};
@@ -135,20 +135,20 @@ fire_and_forget MainWindow::PastePlaylistPaths() {
                     inputs.emplace_back(value.c_str());
                 }
                 if (!valid) {
-                    ShowError(L"文件剪贴板包含无本地路径的虚拟对象、设备路径或过多路径数据，未粘贴。");
+                    ShowError(iima::loc::Text(L"TheFileClipboardContainsVirtualObjectsDevice"));
                 } else {
                     ResolvePlaylistPaste(std::move(inputs), operation, epoch, revision, destination);
                     co_return; // The resolver completion releases the paste gate.
                 }
             }
         } else if (!data.Contains(StandardDataFormats::Text())) {
-            ShowError(L"剪贴板没有可用文件对象或路径文本。");
+            ShowError(iima::loc::Text(L"TheClipboardDoesNotHaveAFile"));
         } else {
             auto raw = co_await data.GetTextAsync();
             if (!closing_ && operation == playlistPasteGeneration_) {
                 if (epoch != navigationEpoch_ || revision != session_->Snapshot().playlistRevision ||
                     session_->PlaylistEditBusy()) {
-                    ShowError(L"读取剪贴板期间播放列表已改变，请重新粘贴。");
+                    ShowError(iima::loc::Text(L"ReadsThePlaylistChangedDuringTheClipboard"));
                 } else {
                     auto text = to_string(raw);
                     std::vector<std::string> paths;
@@ -179,7 +179,7 @@ fire_and_forget MainWindow::PastePlaylistPaths() {
                         if (paths.size() > 1000) valid = false;
                     }
                     if (!valid || paths.empty()) {
-                        ShowError(L"请输入每行一个绝对文件路径或支持的网络URL（最多1000项/1MiB），未添加任何条目。");
+                        ShowError(iima::loc::Text(L"EnterTheURLOfTheNetworkUp"));
                     } else {
                         session_->InsertPlaylist(std::move(paths), destination);
                         // Queued is not loaded: playlist events and command errors own feedback.
@@ -189,7 +189,7 @@ fire_and_forget MainWindow::PastePlaylistPaths() {
         }
     } catch (...) {
         if (!closing_ && operation == playlistPasteGeneration_)
-            ShowError(L"无法完成剪贴板粘贴，请查看当前列表及播放器错误。");
+            ShowError(iima::loc::Text(L"CouldNotFinishPastingCheckThePlaylist"));
     }
     if (operation == playlistPasteGeneration_) playlistPasteBusy_ = false;
 }
@@ -198,7 +198,7 @@ void MainWindow::ResolvePlaylistPaste(std::vector<std::wstring> inputs,
     std::size_t destination) {
     playlistPasteStop_.request_stop();
     auto weak = get_weak();
-    StatusText().Text(L"正在解析剪贴板文件和文件夹…可取消待处理粘贴。");
+    StatusText().Text(iima::loc::Text(L"ParsingClipboardFilesAndFoldersCanCancel"));
     playlistPasteStop_ = iima::LocalInputResolver::Resolve(std::move(inputs), DispatcherQueue(),
         [weak, operation, epoch, revision, destination](iima::LocalInputResult result) {
             auto self = weak.get();
@@ -208,24 +208,24 @@ void MainWindow::ResolvePlaylistPaste(std::vector<std::wstring> inputs,
             auto const& state = self->session_->Snapshot();
             if (self->navigationEpoch_ != epoch || state.playlistRevision != revision ||
                 state.session != iima::SessionState::Ready || self->session_->PlaylistEditBusy()) {
-                self->ShowError(L"解析文件期间播放列表已改变，未插入；请重新粘贴。"); return;
+                self->ShowError(iima::loc::Text(L"ThePlaylistChangedDuringTheParseFile")); return;
             }
             if (result.paths.empty()) {
-                self->ShowError(L"剪贴板文件中没有可播放条目。"); return;
+                self->ShowError(iima::loc::Text(L"ThereAreNoPlayableEntriesInThe")); return;
             }
             if (result.paths.size() > 1000) {
-                self->ShowError(L"展开文件夹后超过1000项，未插入；请减少选择。"); return;
+                self->ShowError(iima::loc::Text(L"MoreThan1000FoldersHaveBeen")); return;
             }
             std::size_t bytes{};
             for (auto const& path : result.paths) bytes += path.size();
             if (bytes > 1024 * 1024) {
-                self->ShowError(L"展开后的路径超过1MiB，未插入。"); return;
+                self->ShowError(iima::loc::Text(L"AnExpandedPathExceeding1MiBNot")); return;
             }
             // Keep resolver's existing playable-file ordering and supported
             // directory policy; no second filesystem implementation here.
             self->session_->InsertPlaylist(std::move(result.paths), destination);
             if (!result.warnings.empty())
-                self->ShowError(L"部分剪贴板项目无法解析或被跳过；其余条目已请求加入，是否成功以列表为准。");
+                self->ShowError(iima::loc::Text(L"PartOfTheClipboardItemCannotBe"));
         });
 }
 

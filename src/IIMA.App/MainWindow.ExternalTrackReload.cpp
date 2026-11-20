@@ -17,7 +17,7 @@ hstring SafeReloadText(std::string const& value,std::size_t limit) {
     }
     if(!result.empty() && result.back()>=0xd800 && result.back()<=0xdbff) result.pop_back();
     return hstring(result);
-    } catch(...) {return L"无法显示该文本";}
+    } catch(...) {return iima::loc::Text(L"CouldNotShowText");}
 }
 }
 namespace winrt::IIMA::implementation {
@@ -61,11 +61,11 @@ winrt::fire_and_forget MainWindow::ReloadInspectedTrack() {
     try {
         Controls::ContentDialog dialog;
         externalReloadDialog_=dialog;
-        dialog.XamlRoot(Root().XamlRoot());dialog.Title(box_value(L"重新载入所选外部音视频轨道？"));
+        dialog.XamlRoot(Root().XamlRoot());dialog.Title(box_value(iima::loc::Text(L"ReloadSelectedExternalAudioAndVideoTracks")));
         Controls::TextBlock text;text.TextWrapping(TextWrapping::Wrap);
-        text.Text(L"轨道 "+externalReloadLabel_+
-            L"\n仅重读源文件，不修改或删除磁盘文件。播放器可能先移除再添加轨道，轨道ID可能变化；会尝试恢复原音频或视频选择。失败时原轨道可能已不在，恢复选择并不是回滚。\n操作不主动切换播放／暂停，不保证首帧或声音已呈现。已提交操作无法撤回。");
-        dialog.Content(text);dialog.PrimaryButtonText(L"重载轨道");dialog.CloseButtonText(L"取消");
+        text.Text(iima::loc::Text(L"Orbital2")+externalReloadLabel_+
+            iima::loc::Text(L"RereadTheSourceFileOnlyAndDo"));
+        dialog.Content(text);dialog.PrimaryButtonText(iima::loc::Text(L"ReloadOrbit"));dialog.CloseButtonText(iima::loc::Text(L"Cancel"));
         dialog.DefaultButton(Controls::ContentDialogButton::Close);
         dialog.PrimaryButtonClick([&](auto const&,Controls::ContentDialogButtonClickEventArgs const& args) {
             if(!current() || session_->ExternalTrackReloadBusy() || session_->ExternalTrackRemovalBusy() || session_->ExternalAVLoadBusy() || session_->SubtitleReloadBusy() || session_->SubtitleLoadBusy()) args.Cancel(true);
@@ -78,15 +78,15 @@ winrt::fire_and_forget MainWindow::ReloadInspectedTrack() {
             externalReloadRevision_=session_->ExternalTrackReload().revision+1;
             externalReloadStarting_=true;
             try {session_->ReloadExternalTrack(track.type,track.id,track.externalPath);}
-            catch(...) {if(reportCurrent()) ShowError(L"轨道重载提交发生错误；已提交操作不能撤回，请检查当前轨道。");}
+            catch(...) {if(reportCurrent()) ShowError(iima::loc::Text(L"ThereWasAnErrorInTheOrbital"));}
             externalReloadStarting_=false;
             if(session_->ExternalTrackReload().revision!=externalReloadRevision_) {
-                externalReloadRevision_=0;if(reportCurrent()) ShowError(L"轨道或播放器状态已变化，未开始重载；请重新选择并确认。");
+                externalReloadRevision_=0;if(reportCurrent()) ShowError(iima::loc::Text(L"OrbitalOrPlayerStateHasChangedAnd"));
             }
         }
     } catch(...) {
         externalReloadDialog_=nullptr;pickerOpen_=false;externalReloadStarting_=false;
-        if(reportCurrent()) ShowError(L"无法显示或完成轨道重载确认，未自动重试。");
+        if(reportCurrent()) ShowError(iima::loc::Text(L"UnableToShowOrCompleteReloadConfirmation"));
     }
     if(!closing_) {UpdateExternalTrackReload();OpenPendingFiles();FlushActivation();}
 }
@@ -119,25 +119,25 @@ void MainWindow::UpdateExternalTrackReload() {
     ReloadInspectedTrackButton().IsEnabled(CanReloadInspectedTrack());
     CancelExternalReloadButton().IsEnabled(!closing_ && busy && status.phase!=iima::ExternalTrackReloadStatus::Phase::Cancelled);
     if(closing_ || !externalReloadRevision_ || externalReloadRevision_!=status.revision || wrongMedia) {
-        ExternalReloadStatus().Text(!closing_ && busy ? L"正在等待已提交的轨道操作结束；不能开始另一笔重载。" : L"");return;
+        ExternalReloadStatus().Text(!closing_ && busy ? iima::loc::Text(L"WaitingForTheCompletionOfTheSubmitted") : L"");return;
     }
     using Phase=iima::ExternalTrackReloadStatus::Phase;
     hstring text;
     switch(status.phase) {
     case Phase::Idle: break;
-    case Phase::Reading:text=L"正在读取轨道与原选择…";break;
-    case Phase::Reloading:text=L"正在重新载入外部轨道…";break;
-    case Phase::Restoring:text=L"正在恢复并确认原轨道选择…";break;
-    case Phase::Completed:text=L"重载命令已确认，重新读取已确认目标轨道存在且原选择已恢复。轨道ID可能改变；不代表首帧或声音已呈现。";break;
-    case Phase::Cancelled:text=busy ? L"已取消后续操作，等待在途请求结束；已提交动作不能撤回。" :
-        !status.reloadSubmitted ? L"已取消，未提交重载命令。" : L"已取消后续操作；重载已提交，不能撤回。";break;
-    case Phase::Failed:text=L"重载未完整完成；未自动重试。原轨道可能已不在，请检查当前轨道与选择。";break;
+    case Phase::Reading:text=iima::loc::Text(L"ReadingOrbitsAndOriginalSelection");break;
+    case Phase::Reloading:text=iima::loc::Text(L"ReloadingExternalOrbits");break;
+    case Phase::Restoring:text=iima::loc::Text(L"RehabilitatingAndConfirmingTheOriginalOrbitalOption");break;
+    case Phase::Completed:text=iima::loc::Text(L"TheReloadCommandHasConfirmedThatThe");break;
+    case Phase::Cancelled:text=busy ? iima::loc::Text(L"FollowUpOperationsHaveBeenCancelledPending") :
+        !status.reloadSubmitted ? iima::loc::Text(L"CanceledNoReloadingOrderWasSubmitted") : iima::loc::Text(L"FollowUpHasBeenCancelledReloadingHas");break;
+    case Phase::Failed:text=iima::loc::Text(L"ReloadingIsIncompleteNoAutomaticRetestingIs");break;
     }
     if(status.phase==Phase::Cancelled || status.phase==Phase::Failed) {
-        if(status.reloadAcknowledged) text = text + L" 重载命令已确认。";
-        if(status.targetPresentConfirmed) text = text + L" 重新读取已确认目标轨道存在。";
-        if(status.selectionRestoredConfirmed) text = text + L" 重新读取已确认原选择已恢复。";
-        else if(status.reloadSubmitted && !busy) text = text + L" 原选择恢复未确认。";
+        if(status.reloadAcknowledged) text = text + iima::loc::Text(L"ReloadCommandConfirmed");
+        if(status.targetPresentConfirmed) text = text + iima::loc::Text(L"RereadingConfirmedTargetOrbit");
+        if(status.selectionRestoredConfirmed) text = text + iima::loc::Text(L"RereadConfirmedOriginalSelectionIsRestored");
+        else if(status.reloadSubmitted && !busy) text = text + iima::loc::Text(L"TheOriginalChoiceIsNotConfirmed");
     }
     if(!text.empty()) text=externalReloadLabel_+L"："+text;
     if(!status.error.empty()) text = text + L"\n"+SafeReloadText(status.error,1024);

@@ -8,7 +8,7 @@ void MainWindow::LoadSavedFilters() {
     savedFilterUndo_.reset();
     auto issues = savedFilterLibrary_.Restore(userData_.settings.savedVideoFilters, userData_.settings.savedAudioFilters);
     RefreshSavedFilters();
-    if (!issues.empty()) ShowError(L"部分保存的滤镜无效或快捷键重复，未载入这些条目。");
+    if (!issues.empty()) ShowError(iima::loc::Text(L"PartiallySavedFiltersAreInvalidOrShortcuts"));
 }
 void MainWindow::WireSavedFilters() {
     auto weak = get_weak();
@@ -50,7 +50,7 @@ void MainWindow::WireSavedFilters() {
         auto index = self->FilterChainView().SelectedIndex();
         if (index < 0 || static_cast<std::size_t>(index) >= self->displayedFilters_.entries.size()) return;
         auto const& row = self->displayedFilters_.entries[index];
-        if (!row.filter) { self->ShowError(L"无法保存未识别的滤镜行。"); return; }
+        if (!row.filter) { self->ShowError(iima::loc::Text(L"UnrecognizedFilterLinesCouldNotBeSaved")); return; }
         self->ChainFilterExpression().Text(to_hstring(row.filter->StringFormat()));
         self->EditSavedFilter(0);
     });
@@ -67,8 +67,8 @@ void MainWindow::RefreshSavedFilters() {
     for (std::size_t index = 0; index < values.size(); ++index) {
         auto state = savedFilterLibrary_.ObservedState(audio, index, chain);
         auto prefix = state == iima::SavedFilterObservedState::Enabled ? L"✓ " :
-            state == iima::SavedFilterObservedState::Disabled ? L"停用 " :
-            state == iima::SavedFilterObservedState::Unavailable ? L"未知 " : L"○ ";
+            state == iima::SavedFilterObservedState::Disabled ? iima::loc::Text(L"Disable") :
+            state == iima::SavedFilterObservedState::Unavailable ? iima::loc::Text(L"Unknown2") : L"○ ";
         auto label = hstring(prefix) + to_hstring(values[index].name);
         if (!values[index].shortcutKey.empty()) label = label + L"  [" + to_hstring(values[index].ReadableShortcut()) + L"]";
         SavedFilterView().Items().Append(box_value(label));
@@ -98,7 +98,7 @@ void MainWindow::EditSavedFilter(int action) {
         if (SavedFilterShift().IsChecked().Value()) value.modifiers = value.modifiers | iima::FilterShortcutModifier::Shift;
         auto key = iima::SavedFilterLibrary::ShortcutKey(value);
         if (key && keyBindings_ && keyBindings_->Find(*key)) {
-            ShowError(L"此快捷键已由 input.conf 使用，请修改快捷键配置或选择其他键。"); return;
+            ShowError(iima::loc::Text(L"ThisShortcutIsAlreadyUsedByInput")); return;
         }
         if (action == 0) result = savedFilterLibrary_.Add(audio, std::move(value));
         else if (action == 1 && row >= 0) result = savedFilterLibrary_.Edit(audio, row, std::move(value));
@@ -123,7 +123,7 @@ void MainWindow::OrganizeSavedFilter(int action) {
         if (!savedFilterUndo_) return;
         if (savedFilterUndo_->expectedRevision != savedFilterLibrary_.Revision()) {
             savedFilterUndo_.reset(); RefreshSavedFilters();
-            ShowError(L"预设库已改变，不能覆盖新修改。"); return;
+            ShowError(iima::loc::Text(L"ThePresetHasBeenChangedToCover")); return;
         }
         // input.conf can be changed independently after deletion of a preset.
         // Restoring a shortcut must not silently steal a newly assigned key.
@@ -131,7 +131,7 @@ void MainWindow::OrganizeSavedFilter(int action) {
             for (auto const& value : savedFilterUndo_->library.Values(category)) {
                 auto key = iima::SavedFilterLibrary::ShortcutKey(value);
                 if (key && !key->empty() && keyBindings_ && keyBindings_->Find(*key)) {
-                    ShowError(L"撤销会恢复与当前 input.conf 冲突的快捷键，请先解决冲突。"); return;
+                    ShowError(iima::loc::Text(L"UndoTheShortcutThatRestoresTheConflict")); return;
                 }
             }
         }
@@ -140,7 +140,7 @@ void MainWindow::OrganizeSavedFilter(int action) {
         auto issues = candidate.Restore(savedFilterUndo_->library.Values(false),
                                         savedFilterUndo_->library.Values(true));
         if (!issues.empty()) {
-            ShowError(L"撤销快照未通过预设校验，当前预设保持不变。"); return;
+            ShowError(iima::loc::Text(L"TheWithdrawalOfTheSnapshotDidNot")); return;
         }
         auto undo = std::move(*savedFilterUndo_);
         savedFilterUndo_.reset();

@@ -6,6 +6,10 @@ param(
 )
 . (Join-Path $PSScriptRoot 'Common.ps1')
 
+$mpvRoot = Join-Path $BuildRoot 'libmpv'
+if (-not (Test-Path -LiteralPath $mpvRoot) -and $env:IIMA_LIBMPV_SDK) {
+    & (Join-Path $PSScriptRoot 'stage-libmpv.ps1') -SdkDirectory $env:IIMA_LIBMPV_SDK
+}
 $preset = $Configuration.ToLowerInvariant()
 $logRoot = Join-Path $BuildRoot 'logs'
 New-Item -ItemType Directory -Force $logRoot | Out-Null
@@ -24,22 +28,7 @@ Invoke-IimaMsvcEnvironment {
 }
 
 # The player can be compiled without a media SDK.
-$mpvRoot = Join-Path $BuildRoot 'libmpv'
-if (Test-Path -LiteralPath $mpvRoot) {
-    $mpvManifest = Get-Content -LiteralPath (Join-Path $mpvRoot 'manifest.json') -Raw | ConvertFrom-Json
-    $patchHash = (Get-FileHash -LiteralPath (Join-Path $RepoRoot 'build/patches/mpv-iima-owned-swapchain-v1.patch') -Algorithm SHA256).Hash
-    if ($mpvManifest.sourcePatch -ne 'mpv-iima-owned-swapchain-v1' -or $mpvManifest.patchSha256 -ne $patchHash) { throw 'SDK owned-swapchain patch is out of date; rebuild and re-stage.' }
-    $hashes = Get-Content -LiteralPath (Join-Path $mpvRoot 'verified-binaries.json') -Raw | ConvertFrom-Json
-    $actualNames = @(Get-ChildItem -LiteralPath (Join-Path $mpvRoot 'bin') -File -Filter '*.dll' | ForEach-Object Name)
-    $recordedNames = @($hashes | ForEach-Object file)
-    if (-not $recordedNames.Count -or (Compare-Object $actualNames $recordedNames)) { throw 'Staged DLL inventory changed; re-stage the SDK.' }
-    foreach ($entry in $hashes) {
-        if ([IO.Path]::GetFileName($entry.file) -ne $entry.file) { throw 'Invalid staged binary filename.' }
-        $binary = Join-Path $mpvRoot "bin/$($entry.file)"
-        if ((Get-FileHash -LiteralPath $binary -Algorithm SHA256).Hash -ne $entry.sha256) { throw "Staged DLL changed: $binary. Re-run SDK staging." }
-    }
-    & (Join-Path $PSScriptRoot 'test-libmpv.ps1') -BinDirectory (Join-Path $mpvRoot 'bin')
-} else {
+if (-not (Test-Path -LiteralPath (Join-Path $mpvRoot 'verified-binaries.json') -PathType Leaf)) {
     Write-Warning 'libmpv SDK is absent: application compilation only. Playback requires scripts/stage-libmpv.ps1.'
 }
 Write-Host "Built: $(Join-Path $BuildRoot "cmake/$preset/bin/IIMA.exe")"

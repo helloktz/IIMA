@@ -11,7 +11,7 @@ std::optional<std::vector<SubtitleSearchPath>> ParseSubtitleSearchPaths(
         error=reason; return std::nullopt;
     };
     if (text.size()>8192 || text.find(L'\0')!=text.npos)
-        return reject(L"字幕搜索路径过长或含 NUL。");
+        return reject(L"TheSubtitleSearchPathIsTooLong");
     std::vector<SubtitleSearchPath> result;
     for (std::size_t start=0; start<text.size();) {
         auto end=text.find(L';',start);
@@ -26,22 +26,22 @@ std::optional<std::vector<SubtitleSearchPath>> ParseSubtitleSearchPaths(
         if (std::any_of(path.begin(),path.end(),[](wchar_t c) { return c<32; }) ||
             path.empty() || path.front()==L'~' || path.starts_with(L"\\\\?\\") || path.starts_with(L"\\\\.\\") ||
             path.find_first_of(L"*?\"<>|\r\n\t")!=path.npos)
-            return reject(L"字幕搜索路径不支持 ~、设备命名空间或此通配符；只允许末尾 /*。");
+            return reject(L"SubtitleSearchPathsCannotUseDeviceNamespaces");
         const auto colon=path.find(L':');
         if (colon!=path.npos && (colon!=1 || path.size()<3 || path[2]!=L'\\' ||
             !((path[0]>=L'A' && path[0]<=L'Z') || (path[0]>=L'a' && path[0]<=L'z')) ||
             path.find(L':',2)!=path.npos))
-            return reject(L"字幕搜索路径必须是相对路径或完整绝对路径，不能是 URI、备用数据流或盘符相对路径。");
+            return reject(L"UseARelativeOrFullyQualifiedSubtitle");
         if (path.front()==L'\\' && !path.starts_with(L"\\\\"))
-            return reject(L"不支持省略盘符的根路径，请填写完整绝对路径。");
+            return reject(L"UseAFullAbsolutePathIncludingThe");
         if (path.starts_with(L"\\\\")) {
             const auto serverEnd=path.find(L'\\',2);
             const auto shareStart=serverEnd==path.npos ? path.size() : serverEnd+1;
             const auto shareEnd=path.find(L'\\',shareStart);
             if (serverEnd==path.npos || serverEnd==2 || shareStart==path.size() || shareEnd==shareStart)
-                return reject(L"UNC字幕路径必须包含服务器名和共享名。");
+                return reject(L"AUNCSubtitlePathMustIncludeThe");
         }
-        if (result.size()==32) return reject(L"最多配置32个字幕搜索路径。");
+        if (result.size()==32) return reject(L"YouCanConfigureUpTo32Subtitle");
         result.push_back({std::move(path),children});
     }
     return result;

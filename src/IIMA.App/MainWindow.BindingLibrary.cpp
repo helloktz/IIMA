@@ -72,7 +72,7 @@ void MainWindow::SaveBindingSnapshot(bool replace) {
     }
     library.insert_or_assign(*name, std::move(text));
     RefreshBindingLibrary(*name); MarkUserDataDirty();
-    BindingLibraryStatus().Text(L"配置快照已更新，正在保存；当前生效快捷键未改变。");
+    BindingLibraryStatus().Text(iima::loc::Text(L"TheConfigurationSnapshotHasBeenUpdatedAnd"));
 }
 void MainWindow::RenameBindingSnapshot() {
     if (closing_ || !userDataLoaded_) return;
@@ -90,7 +90,7 @@ void MainWindow::RenameBindingSnapshot() {
     if (!error.empty()) { BindingLibraryStatus().Text(to_hstring(error)); return; }
     candidate.emplace(name, std::move(text)); library = std::move(candidate);
     RefreshBindingLibrary(name); MarkUserDataDirty();
-    BindingLibraryStatus().Text(L"快照已重命名，正在保存；当前快捷键与编辑区不变。");
+    BindingLibraryStatus().Text(iima::loc::Text(L"TheSnapshotHasBeenRenamedAndIs"));
 }
 void MainWindow::DeleteBindingSnapshot() {
     if (closing_ || !userDataLoaded_) return;
@@ -102,7 +102,7 @@ void MainWindow::DeleteBindingSnapshot() {
     bindingSnapshotUndo_ = std::pair{found->first, found->second};
     bindingSnapshotUndoExpected_.reset();
     library.erase(found); RefreshBindingLibrary(); MarkUserDataDirty();
-    BindingLibraryStatus().Text(L"仅移除库内快照，可撤销；当前生效配置和外部文件未删除。");
+    BindingLibraryStatus().Text(iima::loc::Text(L"RemovesOnlyTheLibrarySnapshotAndCan"));
 }
 void MainWindow::UndoBindingSnapshot() {
     if (closing_ || !userDataLoaded_ || !bindingSnapshotUndo_) return;
@@ -113,13 +113,13 @@ void MainWindow::UndoBindingSnapshot() {
     auto found = library.find(name);
     if ((bindingSnapshotUndoExpected_ && (found == library.end() || found->second != *bindingSnapshotUndoExpected_)) ||
         (!bindingSnapshotUndoExpected_ && found != library.end())) {
-        BindingLibraryStatus().Text(L"快照已再次变化，未用旧版本覆盖；请先保留当前编辑内容。"); return;
+        BindingLibraryStatus().Text(iima::loc::Text(L"TheSnapshotHasChangedAgainAndIs")); return;
     }
     auto error = iima::BindingLibraryError(library, name, text, bindingSnapshotUndoExpected_.has_value());
     if (!error.empty()) { BindingLibraryStatus().Text(to_hstring(error)); return; }
     library.insert_or_assign(name, text); bindingSnapshotUndo_.reset(); bindingSnapshotUndoExpected_.reset();
     RefreshBindingLibrary(name); MarkUserDataDirty();
-    BindingLibraryStatus().Text(L"旧快照已恢复，正在保存；尚未应用到当前快捷键。");
+    BindingLibraryStatus().Text(iima::loc::Text(L"TheOldSnapshotHasBeenRestoredAnd"));
 }
 void MainWindow::LoadBindingSnapshot() {
     if (closing_ || !userDataLoaded_) return;
@@ -131,6 +131,6 @@ void MainWindow::LoadBindingSnapshot() {
     // bindings. Export or save a draft before choosing this action if needed.
     KeyBindingsEditor().Text(to_hstring(found->second));
     BindingSnapshotName().Text(to_hstring(found->first));
-    BindingLibraryStatus().Text(L"已替换编辑区；检查后点击“保存并应用”才切换当前快捷键。");
+    BindingLibraryStatus().Text(iima::loc::Text(L"TheEditingAreaHasBeenReplacedAfter"));
 }
 }

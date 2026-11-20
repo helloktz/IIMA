@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<WixLocalization xmlns="http://wixtoolset.org/schemas/v4/wxl">
+  <String Id="ChineseName" Value="简体中文" />
+  <String Id="LanguageZh" Value="安装语言" />
+  <String Id="SetupZh" Value="IIMA 安装向导" />
+  <String Id="ReadyZh" Value="准备安装 IIMA" />
+  <String Id="DestinationZh" Value="IIMA 将安装到" />
+  <String Id="ProgressZh" Value="正在安装 IIMA…" />
+  <String Id="DoneZh" Value="IIMA 安装完成" />
+  <String Id="NextZh" Value="下一步" />
+  <String Id="BackZh" Value="上一步" />
+  <String Id="InstallZh" Value="安装" />
+  <String Id="CancelZh" Value="取消" />
+  <String Id="CloseZh" Value="关闭" />
+  <String Id="FailedZh" Value="IIMA 安装未能完成。" />
+  <String Id="CanceledZh" Value="IIMA 安装已取消。" />
+  <String Id="FilesInUseZh" Value="请关闭列表中的应用，然后选择“重试”。" />
+  <String Id="YesZh" Value="是" />
+  <String Id="NoZh" Value="否" />
+  <String Id="OkZh" Value="确定" />
+  <String Id="AbortZh" Value="中止" />
+  <String Id="RetryZh" Value="重试" />
+  <String Id="IgnoreZh" Value="忽略" />
+</WixLocalization>

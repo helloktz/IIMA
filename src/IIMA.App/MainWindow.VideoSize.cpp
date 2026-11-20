@@ -72,20 +72,20 @@ MainWindow::VideoResizeResult MainWindow::TryResizeToVideo(std::optional<double>
         const bool deferredFullscreen = automatic && !automaticResizeExternal_ && fullscreen_ && fullscreenRestore_ &&
             fullscreenRestore_->geometry && fullscreenRestore_->videoSizingEligible;
         if (!deferredFullscreen && (!presenter || presenter.State() != Microsoft::UI::Windowing::OverlappedPresenterState::Restored)) {
-            report(L"请先返回普通窗口模式，再按视频尺寸缩放。"); return VideoResizeResult::Unsupported;
+            report(iima::loc::Text(L"PleaseReturnToNormalWindowModeBefore")); return VideoResizeResult::Unsupported;
         }
         auto const& state = session_->Snapshot();
         if (state.session != iima::SessionState::Ready || state.media != iima::MediaState::Loaded || !state.voConfigured) {
-            report(L"当前没有已配置的播放画面，无法按视频尺寸缩放。"); return VideoResizeResult::Retry;
+            report(iima::loc::Text(L"ThereIsCurrentlyNoConfiguredPlaybackSo")); return VideoResizeResult::Retry;
         }
         const auto video = VideoDisplaySize(state.videoOutputParameters);
         if (!video) {
-            report(L"视频尺寸、旋转或内建裁剪尚不支持，未修改窗口。");
+            report(iima::loc::Text(L"VideoSizeRotationOrBuiltInCropping"));
             return VideoResizeResult::Retry;
         }
         auto display = Microsoft::UI::Windowing::DisplayArea::GetFromWindowId(window.Id(),
             Microsoft::UI::Windowing::DisplayAreaFallback::Nearest);
-        if (!display) { report(L"无法取得当前屏幕工作区。"); return VideoResizeResult::Retry; }
+        if (!display) { report(iima::loc::Text(L"CouldNotDetermineTheCurrentDisplayWork")); return VideoResizeResult::Retry; }
         HWND hwnd{}; check_hresult(GetNativeWindowHandle(&hwnd));
         const auto dpi = GetDpiForWindow(hwnd) / 96.0;
         const auto panelWidth = VideoPanel().ActualWidth() * VideoPanel().CompositionScaleX();
@@ -104,7 +104,7 @@ MainWindow::VideoResizeResult MainWindow::TryResizeToVideo(std::optional<double>
             extraHeight = fullscreenRestore_->chrome.height * dpi * 96 / saved.dpi;
         }
         if ((!deferredFullscreen && (panelWidth <= 0 || panelHeight <= 0)) || extraWidth < 0 || extraHeight < 0) {
-            report(L"窗口布局仍在变化，请稍后重试视频尺寸缩放。"); return VideoResizeResult::Retry;
+            report(iima::loc::Text(L"TheLayoutOfTheWindowIsStill")); return VideoResizeResult::Retry;
         }
         auto bounds = iima::ScaledVideoWindow(*video,
             current,
@@ -131,7 +131,7 @@ MainWindow::VideoResizeResult MainWindow::TryResizeToVideo(std::optional<double>
                 bounds->y = work.Y + (work.Height - bounds->height) / 2;
             }
         }
-        if (!bounds) { report(L"当前布局无法容纳所请求的视频尺寸。"); return VideoResizeResult::Retry; }
+        if (!bounds) { report(iima::loc::Text(L"TheCurrentLayoutDoesNotAccommodateThe")); return VideoResizeResult::Retry; }
         if (automatic && automaticResizeStart_ && !automaticResizeInitial_ &&
             !automaticResizeKeepArea_ && automaticResizeOption_ == 0 && bounds) {
             bounds->x = work.X + (work.Width - bounds->width) / 2;

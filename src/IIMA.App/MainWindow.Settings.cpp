@@ -45,8 +45,8 @@ void MainWindow::WireSettingsControls()
     number(MaxVolumeBox(), &iima::UserSettings::maxVolume, &iima::PlayerSession::SetMaxVolume);
     number(AudioDelayBox(), &iima::UserSettings::audioDelay, &iima::PlayerSession::SetAudioDelay);
     number(SubtitleDelayBox(), &iima::UserSettings::subtitleDelay, &iima::PlayerSession::SetSubtitleDelay);
-    for (auto text : {L"不循环", L"单文件循环", L"播放列表循环"}) RepeatModeBox().Items().Append(box_value(text));
-    for (auto text : {L"视频与字幕", L"仅视频", L"当前视频输出（不含控件）"}) ScreenshotModeBox().Items().Append(box_value(text));
+    for (auto text : {iima::loc::Text(L"NoLoop"), iima::loc::Text(L"LoopFile"), iima::loc::Text(L"LoopPlaylist2")}) RepeatModeBox().Items().Append(box_value(text));
+    for (auto text : {iima::loc::Text(L"VideosAndSubtitles"), iima::loc::Text(L"VideoOnly"), iima::loc::Text(L"CurrentVideoOutputWithoutControls")}) ScreenshotModeBox().Items().Append(box_value(text));
     RepeatModeBox().SelectionChanged([weak](auto const&, auto const&) {
         if (auto self = weak.get(); self && self->userDataLoaded_ && !self->updating_ && !self->closing_) {
             auto index = self->RepeatModeBox().SelectedIndex();

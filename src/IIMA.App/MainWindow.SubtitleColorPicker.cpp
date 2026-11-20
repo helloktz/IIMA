@@ -36,9 +36,9 @@ fire_and_forget MainWindow::ChooseSubtitleColor(unsigned kind) {
         auto byte = [](double channel) { return static_cast<std::uint8_t>(std::lround(channel * 255)); };
         color.Color(Windows::UI::Color{byte(initial->alpha), byte(initial->red), byte(initial->green), byte(initial->blue)});
         Controls::TextBlock info;
-        info.Text((observed ? hstring(L"初始颜色来自当前内核观察值。") : fromDraft ?
-            hstring(L"当前内核颜色不可解析，使用编辑草稿作为初值。") : hstring(L"当前颜色未知，使用默认草稿作为初值。")) +
-            L" 主副字幕共享样式，ASS内置排版可能覆盖选择。仅确认后提交此颜色，不改变描边宽度。8位sRGB，透明度0完全透明。");
+        info.Text((observed ? hstring(iima::loc::Text(L"TheInitialColourIsDerivedFromThe")) : fromDraft ?
+            hstring(iima::loc::Text(L"TheCurrentKernelColourIsNotDecipherable")) : hstring(iima::loc::Text(L"TheCurrentColourIsUnknownUsingThe"))) +
+            iima::loc::Text(L"TheMainSubtitleSharingStyleTheASS"));
         info.TextWrapping(TextWrapping::Wrap);
         Controls::StackPanel content;
         content.Spacing(8); content.Children().Append(info); content.Children().Append(color);
@@ -47,9 +47,9 @@ fire_and_forget MainWindow::ChooseSubtitleColor(unsigned kind) {
         Controls::ContentDialog dialog;
         subtitleColorDialog_ = dialog;
         dialog.XamlRoot(Root().XamlRoot());
-        dialog.Title(box_value(kind == 0 ? L"字幕文字颜色" : kind == 1 ? L"字幕描边颜色" : L"字幕背景颜色"));
+        dialog.Title(box_value(kind == 0 ? iima::loc::Text(L"SubtitleTextColour") : kind == 1 ? iima::loc::Text(L"SubtitleOutlineColor") : iima::loc::Text(L"SubtitleBackgroundColour")));
         dialog.Content(scroll);
-        dialog.PrimaryButtonText(L"应用颜色"); dialog.CloseButtonText(L"取消");
+        dialog.PrimaryButtonText(iima::loc::Text(L"ApplyColours")); dialog.CloseButtonText(iima::loc::Text(L"Cancel"));
         dialog.DefaultButton(Controls::ContentDialogButton::Close);
         auto weak = get_weak();
         dialog.PrimaryButtonClick([weak, epoch, entry, path, primary, secondary, info](auto const&, Controls::ContentDialogButtonClickEventArgs const& args) {
@@ -59,7 +59,7 @@ fire_and_forget MainWindow::ChooseSubtitleColor(unsigned kind) {
             if (state.media != iima::MediaState::Loaded || self->navigationEpoch_ != epoch ||
                 state.entryId != entry || state.path != path || state.subtitleId != primary ||
                 state.secondarySubtitleId != secondary || !self->ApplySubtitleColorButton().IsEnabled()) {
-                args.Cancel(true); info.Text(L"媒体或字幕选择已变化，请取消后重新选择颜色。");
+                args.Cancel(true); info.Text(iima::loc::Text(L"TheSelectionOfMediaOrSubtitlesHas"));
             }
         });
         auto result = co_await dialog.ShowAsync();
@@ -79,7 +79,7 @@ fire_and_forget MainWindow::ChooseSubtitleColor(unsigned kind) {
             draft.Text(to_hstring(value.HexString())); // draft, never observed success
         }
     } catch (hresult_error const& error) { if (!closing_) ShowError(error.message()); }
-    catch (...) { if (!closing_) ShowError(L"无法选择字幕颜色。"); }
+    catch (...) { if (!closing_) ShowError(iima::loc::Text(L"CouldNotSelectTheSubtitleColor")); }
     subtitleColorDialog_ = nullptr;
     pickerOpen_ = false;
     if (!closing_) OpenPendingFiles();

@@ -122,7 +122,7 @@ MainWindow::MainWindow()
                 self->session_->Seek(seconds);
         });
         if (!mediaIntegration_->TransportAvailable())
-            ShowError(L"系统媒体控制不可用；窗口内播放和防休眠策略仍可使用。关闭并重新打开播放器可重试系统媒体控制。");
+            ShowError(iima::loc::Text(L"SystemMediaControlsAreNotAvailablePlay"));
     } catch (hresult_error const& error) { ShowError(error.message()); }
     try { WireWindowPlaybackPolicy(); }
     catch(hresult_error const& error) { ShowError(error.message()); }
@@ -138,7 +138,7 @@ MainWindow::MainWindow()
     wchar_t executable[32768]{};
     auto length = GetModuleFileNameW(nullptr, executable, static_cast<DWORD>(std::size(executable)));
     if (!length || length >= std::size(executable)) {
-        ShowError(L"无法定位播放器运行目录。");
+        ShowError(iima::loc::Text(L"CannotLocateThePlayerToRunThe"));
         return;
     }
     session_->Start((std::filesystem::path{executable}.parent_path() / L"libmpv-2.dll").wstring());
@@ -226,7 +226,7 @@ void MainWindow::Apply(iima::PlaybackSnapshot const& state)
     UpdateMediaIntegration();
     bool loaded = state.media == iima::MediaState::Loaded || state.media == iima::MediaState::Ended;
     PauseButton().IsEnabled(loaded && outputReady);
-    PauseButton().Content(box_value(state.paused ? L"播放" : L"暂停"));
+    PauseButton().Content(box_value(state.paused ? iima::loc::Text(L"Play") : iima::loc::Text(L"Pause")));
     UpdateCompactOverlayControls();
     auto seekable = loaded && state.seekable && state.duration && *state.duration > 0;
     PositionSlider().IsEnabled(seekable && outputReady);
@@ -241,9 +241,9 @@ void MainWindow::Apply(iima::PlaybackSnapshot const& state)
     if (!presentationError.empty()) ShowError(presentationError);
     else if (!state.error.empty() && !(audioOnly && state.error.starts_with("Composition output"))) ShowError(to_hstring(state.error));
     else if (state.session == iima::SessionState::Ready && !state.compositionAvailable)
-        ShowError(L"当前 libmpv 缺少安全的视频合成接口，请安装配套构建。");
-    else if (state.media == iima::MediaState::Loading) StatusText().Text(L"正在打开…");
-    else if (loaded) StatusText().Text(state.buffering ? L"正在缓冲…" : L"");
+        ShowError(iima::loc::Text(L"TheCurrentLibmpvLacksASecureVideo"));
+    else if (state.media == iima::MediaState::Loading) StatusText().Text(iima::loc::Text(L"Opening"));
+    else if (loaded) StatusText().Text(state.buffering ? iima::loc::Text(L"Buffering") : L"");
     updating_ = false;
     UpdateAutomaticVideoSize();
     UpdateWindowAspectConstraint();

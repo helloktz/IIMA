@@ -26,8 +26,8 @@ std::optional<HistoryLocalDate> LocalDate(std::int64_t timestamp) {
 HistoryPresentation WindowsHistoryPresentation() {
     HistoryPresentation presentation;
     presentation.localDate = LocalDate;
-    presentation.unknownDateLabel = "未知日期";
-    presentation.unknownLocationLabel = "未知位置";
+    presentation.unknownDateLabel = iima::loc::Utf8(L"UnknownDate");
+    presentation.unknownLocationLabel = iima::loc::Utf8(L"UnknownLocation");
     presentation.localizedContains = [](std::string_view text, std::string_view query) {
         if (query.empty()) return true;
         auto haystack = winrt::to_hstring(text), needle = winrt::to_hstring(query);

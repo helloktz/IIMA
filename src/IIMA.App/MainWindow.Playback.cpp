@@ -24,12 +24,12 @@ hstring TrackLabel(iima::MediaTrack const& track)
 {
     auto presentation = iima::TrackPresentation::FromMediaTrack(track);
     if (!presentation) return to_hstring(track.id);
-    iima::TrackLabelStrings strings{"无标题", "关闭", "默认"};
+    iima::TrackLabelStrings strings{iima::loc::Utf8(L"Untitled"), iima::loc::Utf8(L"Off"), iima::loc::Utf8(L"Default")};
     auto name = presentation->ReadableString(strings, [](std::string_view code) {
         // Until localized ISO639 resources are wired, retain the actual code.
         return std::optional<std::string>{std::string(code)};
     });
-    if (track.external) name += " [外部]";
+    if (track.external) name += iima::loc::Utf8(L"External");
     return to_hstring(name);
 }
 }
@@ -165,7 +165,7 @@ void MainWindow::ApplyCollections(iima::PlaybackSnapshot const& state)
     SortPlaylistButton().IsEnabled(!editing);
     ShufflePlaylistButton().IsEnabled(!editing);
     ClearPlaylistButton().IsEnabled(!editing);
-    ShufflePlaylistButton().Content(box_value(session_->PlaylistShuffled() ? L"恢复顺序" : L"随机排序"));
+    ShufflePlaylistButton().Content(box_value(session_->PlaylistShuffled() ? iima::loc::Text(L"RestoreOrder") : iima::loc::Text(L"RandomSorting")));
     // Called under updating_: property projections must never issue commands.
     if (playlistRevision_ != state.playlistRevision) {
         playlistRevision_ = state.playlistRevision;
@@ -219,7 +219,7 @@ void MainWindow::ApplyCollections(iima::PlaybackSnapshot const& state)
         tracks_ = state.tracks;
         auto populate = [this](Controls::ComboBox const& box, std::string const& type) {
             box.Items().Clear();
-            Controls::ComboBoxItem off; off.Content(box_value(L"关闭")); off.Tag(box_value(int64_t{0}));
+            Controls::ComboBoxItem off; off.Content(box_value(iima::loc::Text(L"Off"))); off.Tag(box_value(int64_t{0}));
             box.Items().Append(off);
             int selected = 0;
             for (auto const& track : tracks_) {
@@ -263,7 +263,7 @@ void MainWindow::ApplyCollections(iima::PlaybackSnapshot const& state)
             iima::MediaChapter model(chapter.title, chapter.time, chapter.index);
             auto next = row + 1 < chapters_.size()
                 ? iima::VideoTime(chapters_[row + 1].time) : iima::VideoTime::Infinite();
-            ChapterBox().Items().Append(box_value(to_hstring(model.RowTitle(row, "章节")) +
+            ChapterBox().Items().Append(box_value(to_hstring(model.RowTitle(row, iima::loc::Utf8(L"Chapter"))) +
                 L"  " + to_hstring(model.IntervalLabel(next))));
         }
     }

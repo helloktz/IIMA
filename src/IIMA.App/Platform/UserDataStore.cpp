@@ -98,7 +98,7 @@ UserData LoadUnlocked(bool recover) {
                 std::vector<settings::PreferenceIssue> issues;
                 auto preferences = ReadPreferenceJson(json->GetNamedObject(L"advancedPreferences"), issues);
                 data.settings.advancedPreferences = preferences.Overrides();
-                if (!issues.empty()) data.warning = "部分高级偏好无效，已分别恢复默认值。";
+                if (!issues.empty()) data.warning = iima::loc::Utf8(L"SomeAdvancedPreferencesAreInvalidAndThe");
             }
             if (json->HasKey(L"savedVideoFilters")) data.settings.savedVideoFilters = ReadSavedFiltersJson(json->GetNamedArray(L"savedVideoFilters"));
             if (json->HasKey(L"savedAudioFilters")) data.settings.savedAudioFilters = ReadSavedFiltersJson(json->GetNamedArray(L"savedAudioFilters"));
@@ -141,7 +141,7 @@ UserData LoadUnlocked(bool recover) {
     } catch(...) {
         if (!recover && !PreservedUnchanged(root/L"settings.json")) throw;
         if (recover) Preserve(root/L"settings.json");
-        data.settings={}; data.warning="设置文件无法读取，已保留原文件并使用默认设置。";
+        data.settings={}; data.warning=iima::loc::Utf8(L"SetTheFileToReadTheOriginal");
     }
     try {
         if(auto json=Read(root/L"history.json")) {
@@ -164,7 +164,7 @@ UserData LoadUnlocked(bool recover) {
     } catch(...) {
         if (!recover && !PreservedUnchanged(root/L"history.json")) throw;
         if (recover) Preserve(root/L"history.json");
-        data.history.clear(); data.warning+=" 播放历史无法读取，原文件已保留。";
+        data.history.clear(); data.warning+=iima::loc::Utf8(L"ThePlayHistoryIsNotReadableThe");
     }
     return data;
 }

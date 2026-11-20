@@ -73,9 +73,9 @@ void MainWindow::WireHistoryControls() {
         if (auto self = weak.get(); self && self->userDataLoaded_ && !self->closing_ && self->historyUndo_) {
             auto result = iima::RestoreHistoryEntries(self->userData_.history, *self->historyUndo_);
             self->historyUndo_.reset(); self->RefreshHistory(); self->MarkUserDataDirty();
-            self->ShowError(L"已恢复 " + to_hstring(result.restored) + L" 条历史；跳过已有记录 " +
-                to_hstring(result.alreadyPresent) + L" 条、无效记录 " + to_hstring(result.invalid) +
-                L" 条、超过容量 " + to_hstring(result.capacitySkipped) + L" 条。");
+            self->ShowError(iima::loc::Text(L"Restored") + to_hstring(result.restored) + iima::loc::Text(L"StripHistorySkippingRecords") +
+                to_hstring(result.alreadyPresent) + iima::loc::Text(L"ArticleInvalidRecord") + to_hstring(result.invalid) +
+                iima::loc::Text(L"ArticleExceedingCapacity") + to_hstring(result.capacitySkipped) + iima::loc::Text(L"Article"));
         }
     });
 }
@@ -111,10 +111,10 @@ void MainWindow::OpenSelectedHistory(bool newWindow) {
     auto identities=iima::SelectHistoryRows(historyProjection_,SelectedHistoryRows());
     auto paths=iima::PlayableHistoryPaths(historyProjection_,identities);
     if (paths.empty()) return;
-    if (paths.size()>1000) { ShowError(L"每次最多打开1000条历史，请减少选择。"); return; }
+    if (paths.size()>1000) { ShowError(iima::loc::Text(L"PleaseReduceTheSelectionByOpeningA")); return; }
     std::size_t inputBytes{};
     for (auto const& path:paths) {
-        if (path.size()>1024*1024-inputBytes) { ShowError(L"所选历史路径超过1MiB，未打开。"); return; }
+        if (path.size()>1024*1024-inputBytes) { ShowError(iima::loc::Text(L"TheSelectedHistoricalPathExceeds1MiB")); return; }
         inputBytes+=path.size();
     }
     if (activationTimer_) activationTimer_.Stop();
@@ -149,13 +149,13 @@ void MainWindow::OpenSelectedHistory(bool newWindow) {
                     self->session_->PlaylistEditIntentRevision()!=editIntent || self->session_->PlaylistEditBusy() || self->pickerOpen_ || self->interactiveCrop_.Active() ||
                     self->cropOriginal_ || !self->activationInputs_.empty() ||
                     iima::PlayableHistoryPaths(self->historyProjection_,identities)!=paths) {
-                    self->ShowError(L"解析期间历史选择、文件状态或播放请求已变化，未打开；请重新选择。"); return;
+                    self->ShowError(iima::loc::Text(L"HistorySelectionFileStatusOrPlayRequest")); return;
                 }
-                if (result.paths.empty()) { self->ShowError(L"所选历史中没有可打开的文件，请刷新文件状态。"); return; }
+                if (result.paths.empty()) { self->ShowError(iima::loc::Text(L"ThereAreNoOpenFilesInThe")); return; }
                 std::size_t bytes{};
-                if (result.paths.size()>1000) { self->ShowError(L"解析后超过1000项，未打开。"); return; }
+                if (result.paths.size()>1000) { self->ShowError(iima::loc::Text(L"MoreThan1000PiecesUnopenedAfter")); return; }
                 for (auto const& path:result.paths) {
-                    if (path.size()>1024*1024-bytes) { self->ShowError(L"解析后路径超过1MiB，未打开。"); return; }
+                    if (path.size()>1024*1024-bytes) { self->ShowError(iima::loc::Text(L"TheDecompositionPathExceeds1MiBWhich")); return; }
                     bytes+=path.size();
                 }
                 try {
@@ -163,7 +163,7 @@ void MainWindow::OpenSelectedHistory(bool newWindow) {
                     // survives resolution and both receiving-window routes.
                     if (newWindow) self->selectedInputNewWindowRouter_(std::move(result.paths));
                     else self->ReceiveResolvedInput(std::move(result.paths),false);
-                    if (!result.warnings.empty()) self->ShowError(L"部分历史文件无法打开或被跳过；其余文件已请求打开。");
+                    if (!result.warnings.empty()) self->ShowError(iima::loc::Text(L"SomeOfTheHistoricalFilesCannotBe"));
                 } catch (hresult_error const& error) { self->ShowError(error.message()); }
                   catch (std::exception const& error) { self->ShowError(to_hstring(error.what())); }
             },true); // History resolves regular files only, never replacement directories/playlists.
@@ -200,7 +200,7 @@ void MainWindow::RefreshHistory() {
             if (auto entry = historyProjection_.EntryAt(index)) {
                 auto progress = iima::VideoTime(entry->entry.position).StringRepresentation();
                 const bool missing = entry->availability == iima::HistoryAvailability::Missing;
-                auto caption = to_hstring(entry->fileName) + (missing ? L"（上次检查缺失）" : L"  " + to_hstring(progress));
+                auto caption = to_hstring(entry->fileName) + (missing ? iima::loc::Text(L"LastCheckMissing") : L"  " + to_hstring(progress));
                 item.Content(box_value(caption));
                 // Keep missing items selectable for removal/reveal; only opening
                 // filters them out. Text, not color alone, conveys the status.

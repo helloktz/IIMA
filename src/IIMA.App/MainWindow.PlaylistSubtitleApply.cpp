@@ -94,7 +94,7 @@ void MainWindow::UpdatePlaylistSubtitleAssociations() {
     auto paths=*match; // Own values across any reentrant snapshot callback.
     std::vector<iima::SubtitleLoadItem> batch;
     for(auto const& path:paths) batch.push_back({path,false});
-    if(!batch.empty() && !StartSubtitleLoad(std::move(batch))) ShowError(L"队列关联字幕未确认提交；当前轨道操作未就绪，可手动加载。");
+    if(!batch.empty() && !StartSubtitleLoad(std::move(batch))) ShowError(iima::loc::Text(L"QueueAssociatedSubtitlesAreNotConfirmedFor"));
 
 }
 }

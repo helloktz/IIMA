@@ -54,7 +54,7 @@ PlaylistFileDeletionResult DeletePlaylistFiles(
         operation.wFunc = FO_DELETE;
         operation.pFrom = native.c_str();
         operation.fFlags = FOF_ALLOWUNDO | FOF_WANTNUKEWARNING | FOF_SIMPLEPROGRESS;
-        operation.lpszProgressTitle = L"IIMA：删除所选播放列表文件";
+        operation.lpszProgressTitle = iima::loc::Text(L"IIMADeleteSelectedPlaylistFile");
         // Unowned native UI remains valid if the player window closes. Never
         // set NOCONFIRMATION, SILENT or NOERRORUI: permanent deletion requires
         // the user's native shell confirmation, not an application assumption.

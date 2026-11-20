@@ -31,18 +31,18 @@ void MainWindow::UpdateFullscreenInformation(bool refreshTelemetry) {
     const bool wasVisible=FullscreenInformationBorder().Visibility()==Visibility::Visible;
     FullscreenInformationBorder().Visibility(visible?Visibility::Visible:Visibility::Collapsed);
     if (!visible) { fullscreenInfoTimer_.Stop(); return; }
-    std::wstring caption=L"媒体";
+    std::wstring caption=iima::loc::Text(L"Media");
     if (iima::CanPersistMediaPath(state.path)) {
         try { caption=std::filesystem::path(to_hstring(state.path).c_str()).filename().native(); }
-        catch (...) { caption=L"媒体"; }
-    } else if (iima::IsNetworkMediaPath(state.path)) caption=L"网络媒体";
+        catch (...) { caption=iima::loc::Text(L"Media"); }
+    } else if (iima::IsNetworkMediaPath(state.path)) caption=iima::loc::Text(L"WebBasedMedia");
     for (auto& c:caption) if (c<32 || c==127) c=L' ';
     if (caption.size()>200) {
         caption.resize(200);
         if (caption.back()>=0xd800 && caption.back()<=0xdbff) caption.pop_back();
         caption+=L"…";
     }
-    if (caption.empty()) caption=L"媒体";
+    if (caption.empty()) caption=iima::loc::Text(L"Media");
     if (FullscreenInformationTitle().Text()!=hstring(caption)) FullscreenInformationTitle().Text(caption);
     if (!wasVisible || refreshTelemetry) {
         auto information=iima::ReadFullscreenInformation();
@@ -50,7 +50,7 @@ void MainWindow::UpdateFullscreenInformation(bool refreshTelemetry) {
         FullscreenClockText().Visibility(information.localTime.empty()?Visibility::Collapsed:Visibility::Visible);
         FullscreenBatteryText().Visibility(information.batteryPercent?Visibility::Visible:Visibility::Collapsed);
         FullscreenBatteryText().Text(information.batteryPercent ?
-            L"电池 "+to_hstring(*information.batteryPercent)+L"%"+(information.charging?L"（充电）":L"") : L"");
+            iima::loc::Text(L"Battery")+to_hstring(*information.batteryPercent)+L"%"+(information.charging?iima::loc::Text(L"Charging"):L"") : L"");
     }
     if (!fullscreenInfoTimer_.IsRunning()) fullscreenInfoTimer_.Start();
 }

@@ -14,7 +14,7 @@ bool CanEditLoop(iima::PlaybackSnapshot const& state) {
         *state.duration >= iima::ABLoopState::MinimumEditedPoint;
 }
 hstring PointText(std::optional<double> point) {
-    return point ? to_hstring(*point) : hstring(L"未设置或不可读取");
+    return point ? to_hstring(*point) : hstring(iima::loc::Text(L"NotSetOrReadable"));
 }
 }
 namespace winrt::IIMA::implementation {
@@ -56,12 +56,12 @@ void MainWindow::UpdateABLoopEditor(iima::PlaybackSnapshot const& state) {
     ApplyABPointBButton().IsEnabled(ABPointBBox().IsEnabled());
     // Do not rewrite the editors on time-pos notifications. Feedback is separate
     // and comes only from mpv observations, never from a submitted command.
-    auto text = L"当前 A=" + PointText(state.abLoopA) + L"；B=" + PointText(state.abLoopB);
-    if (!draft) text = text + L"。请建立端点并重新读取后编辑。";
-    else text = text + L"。每次应用后重新读取；0秒按 IINA 调整为0.000001秒。";
-    if (state.abLoopCount == "0") text = text + L" 循环次数为0，当前不会重复。";
+    auto text = iima::loc::Text(L"CurrentA") + PointText(state.abLoopA) + L"；B=" + PointText(state.abLoopB);
+    if (!draft) text = text + iima::loc::Text(L"PleaseCreateAnEndpointAndRereadAnd");
+    else text = text + iima::loc::Text(L"ReadAgainAfterEachApplication0Seconds");
+    if (state.abLoopCount == "0") text = text + iima::loc::Text(L"TheNumberOfCyclesIs0And");
     if (state.abLoopA && state.abLoopB && *state.abLoopA == *state.abLoopB)
-        text = text + L" 两个端点相同，当前不会形成有效区间。";
+        text = text + iima::loc::Text(L"TheTwoEndpointsAreIdenticalAndDo");
     ABEditStatus().Text(text);
     UpdateABLoopMarkers();
 }
@@ -75,7 +75,7 @@ void MainWindow::ApplyABLoopDraft(bool pointB) {
     }
     const double seconds = pointB ? ABPointBBox().Value() : ABPointABox().Value();
     if (!std::isfinite(seconds) || seconds < 0 || seconds > *state.duration) {
-        ShowError(L"端点必须是从0到当前时长之间的有限秒数。");
+        ShowError(iima::loc::Text(L"TheEndpointMustBeALimitedNumber"));
         return;
     }
     const bool accepted = session_->EditABLoopPoint(pointB, seconds, abDraftA_, abDraftB_);
@@ -83,6 +83,6 @@ void MainWindow::ApplyABLoopDraft(bool pointB) {
     // observed values on the next read; no pretend rollback or atomic pair.
     abDraftEpoch_.reset();
     UpdateABLoopEditor(session_->Snapshot());
-    if (!accepted) ShowError(L"端点已改变、尚未建立或命令未被接受，请重新读取。");
+    if (!accepted) ShowError(iima::loc::Text(L"TheLoopEndpointsChangedHaveNotBeen"));
 }
 }

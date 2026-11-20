@@ -53,7 +53,7 @@ void MainWindow::WireEqualizerEditor() {
 std::optional<iima::EQProfile> MainWindow::ReadEqualizerDraft() {
     iima::EQProfile profile;
     for (std::size_t index = 0; index < profile.gains.size(); ++index) profile.gains[index] = equalizerBands_[index].Value();
-    if (!profile.IsFinite()) { ShowError(L"均衡器增益必须是有效数值。"); return {}; }
+    if (!profile.IsFinite()) { ShowError(iima::loc::Text(L"EqualizerGainMustBeAValidValue")); return {}; }
     return profile;
 }
 void MainWindow::SetEqualizerDraft(iima::EQProfile const& profile) {
@@ -70,16 +70,16 @@ void MainWindow::RefreshUserEqualizers() {
 void MainWindow::EditUserEqualizer(int operation) {
     if (closing_ || !userDataLoaded_) return;
     iima::UserEQProfiles library;
-    if (!library.Restore(userData_.settings.userEqualizers)) { ShowError(L"均衡预设无法读取。"); return; }
+    if (!library.Restore(userData_.settings.userEqualizers)) { ShowError(iima::loc::Text(L"TheBalancePresetIsNotReadable")); return; }
     auto row = UserEqualizerBox().SelectedIndex();
     auto name = to_string(UserEqualizerName().Text());
-    if (name.size() > 1024 || name.find('\0') != std::string::npos) { ShowError(L"预设名称过长或无效。"); return; }
+    if (name.size() > 1024 || name.find('\0') != std::string::npos) { ShowError(iima::loc::Text(L"PresetNameIsTooLongOrInvalid")); return; }
     std::vector<std::string> builtinNames;
     for (auto const& item : iima::Equalizations::Presets()) builtinNames.emplace_back(item.key);
     iima::UserEQProfiles::EditResult result = iima::UserEQProfiles::EditResult::Applied;
     if (operation == 0) {
         auto profile = ReadEqualizerDraft(); if (!profile) return;
-        if (library.Values().size() >= 512) { ShowError(L"最多保存512个均衡预设。"); return; }
+        if (library.Values().size() >= 512) { ShowError(iima::loc::Text(L"KeepUpTo512BalancedPresets")); return; }
         result = library.Add(name, *profile, builtinNames);
     } else {
         if (row < 0 || static_cast<std::size_t>(row) >= equalizerNames_.size()) return;
@@ -89,7 +89,7 @@ void MainWindow::EditUserEqualizer(int operation) {
         else return;
     }
     if (result != iima::UserEQProfiles::EditResult::Applied) {
-        ShowError(L"名称不能为空或与现有预设重复，增益必须有效。"); return;
+        ShowError(iima::loc::Text(L"TheNameCannotBeEmptyOrDuplicate")); return;
     }
     userData_.settings.userEqualizers = library.Values();
     RefreshUserEqualizers(); MarkUserDataDirty();

@@ -70,7 +70,7 @@ void MainWindow::UpdateTrackInspector(bool force) {
     trackInspectorGeneration_=state.mediaGeneration;trackInspectorIntent_=state.mediaOpenIntentRevision;
     trackInspectorRevision_=state.tracksRevision;trackInspectorInput_=inputGeneration_;
     if(!projection) {
-        TrackInspectorDetails().Text(L"轨道列表过大或身份不明确，未显示部分结果。请等待完整的播放器观察。");return;
+        TrackInspectorDetails().Text(iima::loc::Text(L"TheTrackListIsTooLargeOr"));return;
     }
     inspectedTracks_=std::move(*projection);
     trackInspectorProjecting_=true;
@@ -91,7 +91,7 @@ void MainWindow::ShowInspectedTrack() {
     bool valid=index>=0 && static_cast<std::size_t>(index)<inspectedTracks_.size();
     CopyTrackInspectionButton().IsEnabled(valid);
     TrackInspectorDetails().Text(valid ? to_hstring(inspectedTracks_[index].Report()) :
-        hstring{L"请选择轨道查看；查看不会改变实际播放轨道。"});
+        hstring{iima::loc::Text(L"PleaseSelectAnOrbitToViewThe")});
     UpdateExternalTrackRemoval();
     UpdateExternalTrackReload();
 }
@@ -118,7 +118,7 @@ void MainWindow::CopyTrackInspection() {
         if(!sameSelection()) return;
         bool copied=Clipboard::SetContentWithOptions(package,options);
         if(!closing_ && sameSelection())
-            ShowError(copied ? L"已复制所选轨道报告，禁用剪贴板历史及漫游；分享前请检查外部路径等私密信息。" : L"剪贴板正忙，未复制轨道报告。");
-    } catch(...) {if(!closing_) ShowError(L"无法复制轨道报告。");}
+            ShowError(copied ? iima::loc::Text(L"TheSelectedTrackReportHasBeenCopied") : iima::loc::Text(L"TheClipboardIsBusyAndTheTrack"));
+    } catch(...) {if(!closing_) ShowError(iima::loc::Text(L"CouldNotCopyTrackReport"));}
 }
 }

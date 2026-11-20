@@ -1,0 +1,2729 @@
+<?xml version='1.0' encoding='utf-8'?>
+<root>
+  <data name="ABCycle" xml:space="preserve">
+    <value>A-B cycle</value>
+  </data>
+  <data name="ACacheFile" xml:space="preserve">
+    <value> A cache file.</value>
+  </data>
+  <data name="ACenteredDraftHasBeenGeneratedIt" xml:space="preserve">
+    <value>A centered draft has been generated; it is submitted after a click application, which is not actually played.</value>
+  </data>
+  <data name="AFollowUpDocumentHasBeenRequested" xml:space="preserve">
+    <value>A follow-up document has been requested to stop; system deletions that are being displayed need to be cancelled. The deletions that have occurred cannot be reinstated by historical revocation.</value>
+  </data>
+  <data name="AFollowUpFileHasBeenRequested" xml:space="preserve">
+    <value>A follow-up file has been requested to stop. The current system delete dialogue box needs to be cancelled; completed deletions cannot be withdrawn.</value>
+  </data>
+  <data name="AMaximumOf1000Copies1" xml:space="preserve">
+    <value>A maximum of 1,000 copies, 1 MiB text, each time.</value>
+  </data>
+  <data name="AMaximumOf16PlayerWindowsAre" xml:space="preserve">
+    <value>A maximum of 16 player windows are open simultaneously; closed windows remain occupied.</value>
+  </data>
+  <data name="AMaximumOf64DifferentFilesPer" xml:space="preserve">
+    <value>A maximum of 64 different files per batch, please reduce the selection.</value>
+  </data>
+  <data name="AMaximumOf64SubtitleFilesWere" xml:space="preserve">
+    <value>A maximum of 64 subtitle files were selected at each time, and the connection was not modified.</value>
+  </data>
+  <data name="ANetworkCurrentPlayRecordHistoricalRecords" xml:space="preserve">
+    <value> A network/current play record. Historical records are maintained.</value>
+  </data>
+  <data name="AStandardizedTextHasBeenGeneratedAnd" xml:space="preserve">
+    <value>A standardized text has been generated, and an independent comment/empty line is not retained. The key has not been changed at this time to save and apply.</value>
+  </data>
+  <data name="AUNCSubtitlePathMustIncludeThe" xml:space="preserve">
+    <value>A UNC subtitle path must include the server and share names.</value>
+  </data>
+  <data name="AVideoFilterExpressionHasBeenGenerated" xml:space="preserve">
+    <value>A video filter expression has been generated and is not added. The corresponding filter needs to be supported by the actual libmpv/FFmpeg.</value>
+  </data>
+  <data name="ActualDecoded" xml:space="preserve">
+    <value>;actual decoded:</value>
+  </data>
+  <data name="ActualSubtitleDelayLord" xml:space="preserve">
+    <value>Actual subtitle delay: Lord </value>
+  </data>
+  <data name="AllowsTheDecodementOfHardwareNotTo" xml:space="preserve">
+    <value>. Allows the decodement of hardware not to guarantee the actual use of hardware in the current video.</value>
+  </data>
+  <data name="AnErrorOccurredInTheOrbitalRemoval" xml:space="preserve">
+    <value>An error occurred in the track removal submission; the submitted operation cannot be withdrawn, please check the current track.</value>
+  </data>
+  <data name="AnErrorOccurredWhileSubmittingTheSubtitle" xml:space="preserve">
+    <value>An error occurred while submitting the subtitle operation; please check the status of the service, the submission cannot be withdrawn.</value>
+  </data>
+  <data name="AnExpandedPathExceeding1MiBNot" xml:space="preserve">
+    <value>An expanded path exceeding 1 MiB, not inserted.</value>
+  </data>
+  <data name="AppendFile" xml:space="preserve">
+    <value>Append File…</value>
+  </data>
+  <data name="Apply" xml:space="preserve">
+    <value>Apply</value>
+  </data>
+  <data name="ApplyColours" xml:space="preserve">
+    <value>Apply Colours</value>
+  </data>
+  <data name="ApplyFontName" xml:space="preserve">
+    <value>Apply font name</value>
+  </data>
+  <data name="ApplyFontNamesOnlyWithoutChangingFonts" xml:space="preserve">
+    <value>Apply font names only, without changing fonts or bold italics. The preview is backed back with Windows fonts, which do not ensure consistency with libass rendering; the ASS built-in styles may overwhelm selection.</value>
+  </data>
+  <data name="ApplydSavingSettingsUnportedActionsAreClearly" xml:space="preserve">
+    <value>Applyd, saving settings. Unported actions are clearly hinted when triggered.</value>
+  </data>
+  <data name="ApplyingNewAreaFiltersAndCheckingResults" xml:space="preserve">
+    <value>Applying new area filters and checking results…</value>
+  </data>
+  <data name="ApplysToTheCurrentWindowTheDisk" xml:space="preserve">
+    <value>Applies to the current window; the disk saves the result following the settings save status.</value>
+  </data>
+  <data name="AreaEditorialServicesAreNoLongerValid" xml:space="preserve">
+    <value>Area editorial services are no longer valid and filters are not submitted.</value>
+  </data>
+  <data name="AreaFilterResultsCannotBeConfirmedDue" xml:space="preserve">
+    <value>Area filter results cannot be confirmed due to changes in media or filters; they do not cover the current status and do not automatically resume playback.</value>
+  </data>
+  <data name="Article" xml:space="preserve">
+    <value> Article.</value>
+  </data>
+  <data name="ArticleExceedingCapacity" xml:space="preserve">
+    <value> Article, exceeding capacity </value>
+  </data>
+  <data name="ArticleInvalidRecord" xml:space="preserve">
+    <value> Article. Invalid record </value>
+  </data>
+  <data name="ArticlesRAMPhaseOut" xml:space="preserve">
+    <value> articles;RAM phase-out </value>
+  </data>
+  <data name="AttributeListHasBeenAppliedSavingResults" xml:space="preserve">
+    <value>attribute list has been applied; saving results are shown by settings saving status.</value>
+  </data>
+  <data name="AttributeNameMustBe1To128" xml:space="preserve">
+    <value>Attribute name must be 1 to 128 non-empty ASCII characters.</value>
+  </data>
+  <data name="Audio" xml:space="preserve">
+    <value>Audio</value>
+  </data>
+  <data name="AudioDeviceSettings" xml:space="preserve">
+    <value>Audio Device Settings…</value>
+  </data>
+  <data name="AudioFilterExpressionGeneratedNotAddedThe" xml:space="preserve">
+    <value>Audio filter expression generated, not added. The corresponding filter needs to be supported by actual libmpv/FFmpeg.</value>
+  </data>
+  <data name="AudioSettings" xml:space="preserve">
+    <value>Audio Settings</value>
+  </data>
+  <data name="AutomaticSelection" xml:space="preserve">
+    <value>Automatic selection</value>
+  </data>
+  <data name="AutomaticSubtitleBatchesAreNotConfirmedThey" xml:space="preserve">
+    <value>Automatic subtitle batches are not confirmed; they can be manually loaded.</value>
+  </data>
+  <data name="AutomaticSubtitleCachesExceed4096QuotesOr" xml:space="preserve">
+    <value>Automatic subtitle caches exceed 4096 quotes or 4MiB budgets, and the subsequent transition does not use this cache.</value>
+  </data>
+  <data name="AutomaticSubtitlesAddUpTo64Entries" xml:space="preserve">
+    <value>Automatic subtitles add up to 64 entries; the rest of the matches are not added, please choose manually.</value>
+  </data>
+  <data name="AutomaticSubtitlesAwaitingOvertimeNotSubmittedManual" xml:space="preserve">
+    <value>Automatic subtitles awaiting overtime, not submitted; manual loading.</value>
+  </data>
+  <data name="AutomaticallyFindsOrSubtitlingFailedNoResults" xml:space="preserve">
+    <value>Automatically finds or subtitling failed, no results applied.</value>
+  </data>
+  <data name="AutomaticallyMatchBackOfficeTasksWithBusy" xml:space="preserve">
+    <value>Automatically match back-office tasks with busy tasks and no additional directory scans are started.</value>
+  </data>
+  <data name="AutomaticallyMatchPathDataBeyondThe1" xml:space="preserve">
+    <value>Automatically match path data beyond the 1 MiB limit, open the file manually.</value>
+  </data>
+  <data name="AutomaticallyMatchesCommonLocalMediaFilesThat" xml:space="preserve">
+    <value>Automatically matches common local media files that only support visible openings.</value>
+  </data>
+  <data name="AutomaticallyMatchingADirectoryToASkipping" xml:space="preserve">
+    <value>Automatically matching a directory to a skipping part of the content:</value>
+  </data>
+  <data name="AutomaticallyMatchingSubtitlesWithoutConfirmationManualLoadable" xml:space="preserve">
+    <value>Automatically matching subtitles without confirmation; manual loadable.</value>
+  </data>
+  <data name="AvailableLocalFilesInTheLast12" xml:space="preserve">
+    <value>Available local files in the last 12 records. Resume position follows settings; complete history is in the sidebar. </value>
+  </data>
+  <data name="BackToPlayer" xml:space="preserve">
+    <value>Back to Player</value>
+  </data>
+  <data name="BackgroundColour" xml:space="preserve">
+    <value>Background Colour</value>
+  </data>
+  <data name="BackstageCheckLocalHistoryFilesWebUnaccessible" xml:space="preserve">
+    <value>Backstage check local history files...Web, unaccessible and unsupported paths remain unknown.</value>
+  </data>
+  <data name="BarRepeatKeys" xml:space="preserve">
+    <value> bar, repeat keys </value>
+  </data>
+  <data name="BarTimeIsUnixMilliseconds" xml:space="preserve">
+    <value> bar. Time is Unix milliseconds.</value>
+  </data>
+  <data name="BarsDiskQueuedForDisposal" xml:space="preserve">
+    <value> bars;disk queued for disposal </value>
+  </data>
+  <data name="Battery" xml:space="preserve">
+    <value>Battery </value>
+  </data>
+  <data name="BeforeEntryNotPlayed" xml:space="preserve">
+    <value> Before entry (not played)</value>
+  </data>
+  <data name="BeforeItem" xml:space="preserve">
+    <value> Before item</value>
+  </data>
+  <data name="BeyondDisplay" xml:space="preserve">
+    <value>Beyond Display</value>
+  </data>
+  <data name="Blur" xml:space="preserve">
+    <value>Blur</value>
+  </data>
+  <data name="Bold" xml:space="preserve">
+    <value>Bold</value>
+  </data>
+  <data name="BrowserOpensASingleHTTPSAddress" xml:space="preserve">
+    <value>Browser opens a single HTTP(S) address that only supports a user name or password.</value>
+  </data>
+  <data name="Buffering" xml:space="preserve">
+    <value>Buffering…</value>
+  </data>
+  <data name="CanNotCreateFolderLockOnS" xml:space="preserve">
+    <value>Could not start the subtitle search.</value>
+  </data>
+  <data name="CanNotDeleteFolderSNoSuch" xml:space="preserve">
+    <value>Drop 1 to 1,000 files or folders at a time.</value>
+  </data>
+  <data name="CanNotGetFolderSS" xml:space="preserve">
+    <value>Could not read the media folder.</value>
+  </data>
+  <data name="CanNotGetFolderSS2" xml:space="preserve">
+    <value>Could not read the entire subtitle search folder. No results were applied.</value>
+  </data>
+  <data name="CanNotOpenMessage" xml:space="preserve">
+    <value>Can not open message</value>
+  </data>
+  <data name="CanNotReloadSubtitlesAtThisTime" xml:space="preserve">
+    <value>Can not reload subtitles at this time: please wait for input, media switch or subtitles to be completed.</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="CancelMute" xml:space="preserve">
+    <value>Cancel Mute</value>
+  </data>
+  <data name="CanceledNoConfirmationOfSubmissionReceivedPlease" xml:space="preserve">
+    <value>Canceled; no confirmation of submission received, please check current track.</value>
+  </data>
+  <data name="CanceledNoReloadingOrderWasSubmitted" xml:space="preserve">
+    <value>Canceled, no reloading order was submitted.</value>
+  </data>
+  <data name="CanceledNoRemovalOrderSubmittedToPlayer" xml:space="preserve">
+    <value>Canceled, no removal order submitted to player.</value>
+  </data>
+  <data name="CanceledTheNetworkRequestSentCannotBe" xml:space="preserve">
+    <value>Canceled. The network request sent cannot be withdrawn.</value>
+  </data>
+  <data name="CancelsTheRequestAndRestoresTheOriginal" xml:space="preserve">
+    <value>Cancels the request and restores the original area filter after the removal results. Turns off the player will release this session directly.</value>
+  </data>
+  <data name="CannotCompleteExternal" xml:space="preserve">
+    <value>Cannot complete external</value>
+  </data>
+  <data name="CannotInitialiseEvolutionSMailComponent" xml:space="preserve">
+    <value>Cannot initialise Evolution's mail component.</value>
+  </data>
+  <data name="CannotLocateThePlayerToRunThe" xml:space="preserve">
+    <value>Cannot locate the player to run the directory.</value>
+  </data>
+  <data name="CannotOnlyConfirmTheCurrentMediaIn" xml:space="preserve">
+    <value>Cannot only confirm the current media in the directory and no automatic matching results are applied.</value>
+  </data>
+  <data name="CannotOpenWindowsDefaultApplicationSettings" xml:space="preserve">
+    <value>Cannot open Windows default application settings.</value>
+  </data>
+  <data name="CannotPerformMousePlay" xml:space="preserve">
+    <value>Cannot perform mouse play.</value>
+  </data>
+  <data name="CannotReadTheMediaDirectoryInIts" xml:space="preserve">
+    <value>Cannot read the media directory in its entirety. No automatic matching results are applied.</value>
+  </data>
+  <data name="CannotSaveTheWindowPositionBeforeThe" xml:space="preserve">
+    <value>Cannot save the window position before the small window, no pattern is switched.</value>
+  </data>
+  <data name="Chapter" xml:space="preserve">
+    <value>Chapter</value>
+  </data>
+  <data name="ChapterMarks" xml:space="preserve">
+    <value> chapter markers ticks seek bar</value>
+  </data>
+  <data name="Character" xml:space="preserve">
+    <value>Character</value>
+  </data>
+  <data name="Charging" xml:space="preserve">
+    <value>(charging)</value>
+  </data>
+  <data name="CheckFailedLastStatusRetainedUnknownDoes" xml:space="preserve">
+    <value>Check failed, last status retained; unknown does not mean that the file is missing.</value>
+  </data>
+  <data name="CheckingStoppedAndLastStateMaintainedYou" xml:space="preserve">
+    <value>Checking stopped and last state maintained. You can refresh manually.</value>
+  </data>
+  <data name="Checklist" xml:space="preserve">
+    <value>Checklist:</value>
+  </data>
+  <data name="ClearCache" xml:space="preserve">
+    <value>Clear Cache</value>
+  </data>
+  <data name="ClearCacheFailed" xml:space="preserve">
+    <value>Clear Cache failed:</value>
+  </data>
+  <data name="ClearCacheFailed2" xml:space="preserve">
+    <value>Clear cache failed.</value>
+  </data>
+  <data name="ClearingCache" xml:space="preserve">
+    <value>Clearing cache…</value>
+  </data>
+  <data name="ClearingRecordsContinuingCollection" xml:space="preserve">
+    <value>Clearing records (continuing collection)</value>
+  </data>
+  <data name="ClickToChangeTheAccuracyOfThe" xml:space="preserve">
+    <value>. Click to change the accuracy of the total length/remain time.</value>
+  </data>
+  <data name="ClickingToggleDisplayMode" xml:space="preserve">
+    <value>; clicking toggle display mode</value>
+  </data>
+  <data name="ClipboardIsBusyNotCopied" xml:space="preserve">
+    <value>Clipboard is busy, not copied.</value>
+  </data>
+  <data name="ClipboardIsBusyNotCopiedPleaseTry" xml:space="preserve">
+    <value>Clipboard is busy, not copied. Please try again.</value>
+  </data>
+  <data name="CloseTheCurrentWindow" xml:space="preserve">
+    <value>Close the current window</value>
+  </data>
+  <data name="CollectChangesPendingProcessing" xml:space="preserve">
+    <value>Collect changes pending processing</value>
+  </data>
+  <data name="Collecting" xml:space="preserve">
+    <value>Collecting:</value>
+  </data>
+  <data name="CollectingStopped" xml:space="preserve">
+    <value>Collecting stopped</value>
+  </data>
+  <data name="ColourMustBeRRGGBBOrAARRGGBBHexadecimal" xml:space="preserve">
+    <value>Colour must be #RRGGBB or #AARRGGBB hexadecimal value.</value>
+  </data>
+  <data name="CommandsOrParametersForThisShortcutHave" xml:space="preserve">
+    <value>Commands or parameters for this shortcut have not been transplanted and have not been executed.</value>
+  </data>
+  <data name="ConfigureContainsLinesThatCannotBeParsed" xml:space="preserve">
+    <value>Configure contains lines that cannot be parsed; valid entries are loaded, check and save.</value>
+  </data>
+  <data name="ConfigureIsExported" xml:space="preserve">
+    <value>Configure is exported.</value>
+  </data>
+  <data name="ConfigureMoreThan256KiB" xml:space="preserve">
+    <value>Configure more than 256 KiB.</value>
+  </data>
+  <data name="ConfiguresMoreThan256KiBOrContains" xml:space="preserve">
+    <value>Configures more than 256 KiB or contains invalid characters.</value>
+  </data>
+  <data name="Confirm" xml:space="preserve">
+    <value>Confirm. </value>
+  </data>
+  <data name="ConfirmCrop" xml:space="preserve">
+    <value>Confirm Crop</value>
+  </data>
+  <data name="ConfirmTheMarkingArea" xml:space="preserve">
+    <value>Confirm the marking area.</value>
+  </data>
+  <data name="ConfirmingToDeleteTheseDiskFiles" xml:space="preserve">
+    <value>Confirming to delete these disk files?</value>
+  </data>
+  <data name="ContainingCommandConfirmed" xml:space="preserve">
+    <value> Containing command confirmed.</value>
+  </data>
+  <data name="ContinueLastPlay" xml:space="preserve">
+    <value>Continue last play:</value>
+  </data>
+  <data name="ContinueToSystemDeleteConfirmation" xml:space="preserve">
+    <value>Continue to system delete confirmation</value>
+  </data>
+  <data name="CopiedAndRequestedToBeRemovedFrom" xml:space="preserve">
+    <value>Copied and requested to be removed from the queue, the result is based on the list; the disk file is not affected. The network address may contain private parameters.</value>
+  </data>
+  <data name="CopiedButQueueRemovalDoesNotStart" xml:space="preserve">
+    <value>Copied, but Queue removal does not start; no entries are confirmed removed.</value>
+  </data>
+  <data name="CopiedButRemovalRequestFailedPleaseCheck" xml:space="preserve">
+    <value>Copied, but removal request failed; please check queue.</value>
+  </data>
+  <data name="CopiedButTheQueueOrPlayRequest" xml:space="preserve">
+    <value>Copied, but the queue or play request has changed; no entries have been removed.</value>
+  </data>
+  <data name="CopiedToTheClipboard" xml:space="preserve">
+    <value>Copied to the clipboard.</value>
+  </data>
+  <data name="CopyFailed" xml:space="preserve">
+    <value>Copy failed:</value>
+  </data>
+  <data name="CopyToTheEndOfThisWindow" xml:space="preserve">
+    <value>Copy to the end of this window list (do not play)</value>
+  </data>
+  <data name="CopyToThisWindowFirst" xml:space="preserve">
+    <value>Copy to this window first </value>
+  </data>
+  <data name="CouldNotApplyTheScrollWheelAction" xml:space="preserve">
+    <value>Could not apply the scroll wheel action.</value>
+  </data>
+  <data name="CouldNotCaptureTheScreenshot" xml:space="preserve">
+    <value>Could not capture the screenshot.</value>
+  </data>
+  <data name="CouldNotChangeTheSubtitleAssociation" xml:space="preserve">
+    <value>Could not change the subtitle association.</value>
+  </data>
+  <data name="CouldNotCloseTemporaryFolderS" xml:space="preserve">
+    <value>
+Skipped subtitles that could not be read or were links.</value>
+  </data>
+  <data name="CouldNotCompleteThePathPleaseReduce" xml:space="preserve">
+    <value>Could not complete the path. Please reduce the selection.</value>
+  </data>
+  <data name="CouldNotCopyTheRawLog" xml:space="preserve">
+    <value>Could not copy the raw log.</value>
+  </data>
+  <data name="CouldNotCopyTrackReport" xml:space="preserve">
+    <value>Could not copy track report.</value>
+  </data>
+  <data name="CouldNotCreateOrActivateThePlayer" xml:space="preserve">
+    <value>Could not create or activate the player window.</value>
+  </data>
+  <data name="CouldNotCreatePlayerWindowOriginalQueue" xml:space="preserve">
+    <value>Could not create player window. Original queue is not modified.</value>
+  </data>
+  <data name="CouldNotDetermineTheCurrentDisplayWork" xml:space="preserve">
+    <value>Could not determine the current display work area.</value>
+  </data>
+  <data name="CouldNotFinishPastingCheckThePlaylist" xml:space="preserve">
+    <value>Could not finish pasting. Check the playlist and any player errors.</value>
+  </data>
+  <data name="CouldNotFinishSelectingOrLoadingSubtitles" xml:space="preserve">
+    <value>Could not finish selecting or loading subtitles. Submitted operations cannot be undone.</value>
+  </data>
+  <data name="CouldNotGenerateFiltersCustomFiltersMust" xml:space="preserve">
+    <value>Could not generate filters; custom filters must provide a valid name.</value>
+  </data>
+  <data name="CouldNotIdentifyAFileTypeThe" xml:space="preserve">
+    <value>Could not identify a file type. The incomplete matches were not applied.</value>
+  </data>
+  <data name="CouldNotIdentifyTheSubtitleFileType" xml:space="preserve">
+    <value>Could not identify the subtitle file type. Results were not applied.</value>
+  </data>
+  <data name="CouldNotListAllSubtitleSearchSubfolders" xml:space="preserve">
+    <value>Could not list all subtitle search subfolders. Results were not applied.</value>
+  </data>
+  <data name="CouldNotListInstalledFontsYouCan" xml:space="preserve">
+    <value>Could not list installed fonts. You can still enter a font name.</value>
+  </data>
+  <data name="CouldNotLocateTheSelectedFile" xml:space="preserve">
+    <value>Could not locate the selected file.</value>
+  </data>
+  <data name="CouldNotOpenNetworkMedia" xml:space="preserve">
+    <value>Could not open network media.</value>
+  </data>
+  <data name="CouldNotOpenNetworkMediaRetryThe" xml:space="preserve">
+    <value>Could not open network media. Retry the address or edit it and try again.</value>
+  </data>
+  <data name="CouldNotOpenTheDroppedItems" xml:space="preserve">
+    <value>Could not open the dropped items.</value>
+  </data>
+  <data name="CouldNotOpenTheJumpToTime" xml:space="preserve">
+    <value>Could not open the Jump to Time dialog.</value>
+  </data>
+  <data name="CouldNotOpenTheRecentItemBecause" xml:space="preserve">
+    <value>Could not open the recent item because its path could not be resolved.</value>
+  </data>
+  <data name="CouldNotOpenTheSelectedAddressIn" xml:space="preserve">
+    <value>Could not open the selected address in the default browser. Playback and the playlist were not changed.</value>
+  </data>
+  <data name="CouldNotOpenTheSelectedItemIn" xml:space="preserve">
+    <value>Could not open the selected item in a new window. Check its address and the 16-window limit.</value>
+  </data>
+  <data name="CouldNotReadFileProperties" xml:space="preserve">
+    <value>Could not read file properties</value>
+  </data>
+  <data name="CouldNotReadTheFolder" xml:space="preserve">
+    <value>Could not read the folder</value>
+  </data>
+  <data name="CouldNotReadTheSubtitleSearchFolder" xml:space="preserve">
+    <value>Could not read the subtitle search folder. The incomplete results were not applied.</value>
+  </data>
+  <data name="CouldNotResolveTheStartupPath" xml:space="preserve">
+    <value>Could not resolve the startup path.</value>
+  </data>
+  <data name="CouldNotRestoreTheWindow" xml:space="preserve">
+    <value>Could not restore the window:</value>
+  </data>
+  <data name="CouldNotSaveSubtitlesCheckTheDestination" xml:space="preserve">
+    <value>Could not save subtitles. Check the destination and its permissions.</value>
+  </data>
+  <data name="CouldNotSelectLutFile" xml:space="preserve">
+    <value>Could not select Lut file.</value>
+  </data>
+  <data name="CouldNotSelectTheSubtitleColor" xml:space="preserve">
+    <value>Could not select the subtitle color.</value>
+  </data>
+  <data name="CouldNotSelectTheSubtitleFont" xml:space="preserve">
+    <value>Could not select the subtitle font.</value>
+  </data>
+  <data name="CouldNotSetTheScreenshotFolder" xml:space="preserve">
+    <value>Could not set the screenshot folder.</value>
+  </data>
+  <data name="CouldNotShowText" xml:space="preserve">
+    <value>Could not show text</value>
+  </data>
+  <data name="CouldNotStartIIMA" xml:space="preserve">
+    <value>Could not start IIMA</value>
+  </data>
+  <data name="CouldNotStartMatchingFilesInThe" xml:space="preserve">
+    <value>Could not start matching files in the same folder. The playlist and subtitles were not changed.</value>
+  </data>
+  <data name="CouldNotStartSignInNoSession" xml:space="preserve">
+    <value>Could not start sign-in. No session was saved.</value>
+  </data>
+  <data name="CouldNotStartTheSubtitleDownloadSearch" xml:space="preserve">
+    <value>Could not start the subtitle download. Search again.</value>
+  </data>
+  <data name="CouldNotTemporarilyRemoveTheCroppingThe" xml:space="preserve">
+    <value>Could not temporarily remove the cropping; the readout confirms that the original filter remains.</value>
+  </data>
+  <data name="CouldNotVerifyThatThisCopyOwns" xml:space="preserve">
+    <value>Could not verify that this copy owns the registration. No file associations were removed.</value>
+  </data>
+  <data name="CouldNotWriteToTheClipboardTry" xml:space="preserve">
+    <value>Could not write to the clipboard. Try again.</value>
+  </data>
+  <data name="CountsOnlyIndicateAResponseToThe" xml:space="preserve">
+    <value>
+Counts only indicate a response to the order and do not guarantee that the image is refreshed. Cancels the submitted reload or code changes; failure may have removed the original subtitles.</value>
+  </data>
+  <data name="CoveredByTheLatterItem" xml:space="preserve">
+    <value> [covered by the latter item]</value>
+  </data>
+  <data name="Crop" xml:space="preserve">
+    <value>Crop</value>
+  </data>
+  <data name="CropTabConflictsNoFilterChanges" xml:space="preserve">
+    <value>Crop tab conflicts, no filter changes.</value>
+  </data>
+  <data name="CurrentA" xml:space="preserve">
+    <value>Current A =</value>
+  </data>
+  <data name="CurrentAutomaticMatchingAssociationUpTo64" xml:space="preserve">
+    <value>Current automatic matching association (up to 64 items).</value>
+  </data>
+  <data name="CurrentDelay" xml:space="preserve">
+    <value>Current delay </value>
+  </data>
+  <data name="CurrentDisabled" xml:space="preserve">
+    <value>(Current disabled)</value>
+  </data>
+  <data name="CurrentEncoding" xml:space="preserve">
+    <value>Current encoding:</value>
+  </data>
+  <data name="CurrentEncodingUnknown" xml:space="preserve">
+    <value>Current encoding: unknown</value>
+  </data>
+  <data name="CurrentKernelValue" xml:space="preserve">
+    <value>Current kernel value:</value>
+  </data>
+  <data name="CurrentProgress" xml:space="preserve">
+    <value>Current progress </value>
+  </data>
+  <data name="CurrentSpeed" xml:space="preserve">
+    <value>Current Speed </value>
+  </data>
+  <data name="CurrentSubtitleLocation" xml:space="preserve">
+    <value>Current Subtitle Location </value>
+  </data>
+  <data name="CurrentToolbarConfigurationMaximumFiveItemsSet" xml:space="preserve">
+    <value>Current toolbar configuration; maximum five items. Set buttons to open advanced preferences.</value>
+  </data>
+  <data name="CurrentVideoOutputWithoutControls" xml:space="preserve">
+    <value>Current Video Output (without Controls)</value>
+  </data>
+  <data name="CustomFFFmpegFilter" xml:space="preserve">
+    <value>Custom FFFmpeg Filter</value>
+  </data>
+  <data name="CustomMpvFilter" xml:space="preserve">
+    <value>Custom mpv filter</value>
+  </data>
+  <data name="Cut" xml:space="preserve">
+    <value>Cut. </value>
+  </data>
+  <data name="CycleEndB" xml:space="preserve">
+    <value>Cycle End B:</value>
+  </data>
+  <data name="CycleEndpointOperationIsNotAcceptedPlease" xml:space="preserve">
+    <value>Cycle endpoint operation is not accepted; please wait for observations to be updated.</value>
+  </data>
+  <data name="CycleEndpointsHaveBeenChangedOrOperations" xml:space="preserve">
+    <value>Cycle endpoints have been changed or operations are not accepted; player observations are maintained.</value>
+  </data>
+  <data name="CycleMode" xml:space="preserve">
+    <value>Cycle Mode</value>
+  </data>
+  <data name="CycleStartA" xml:space="preserve">
+    <value>Cycle Start A:</value>
+  </data>
+  <data name="Default" xml:space="preserve">
+    <value>Default</value>
+  </data>
+  <data name="DefaultSystemAudioOutput" xml:space="preserve">
+    <value>Default System Audio Output</value>
+  </data>
+  <data name="DelaysMustBeLimitedToZeroTo" xml:space="preserve">
+    <value>Delays must be limited to zero to 150 integers and scaled to zero to 100.</value>
+  </data>
+  <data name="DeleteTheHistoricalDiskFile" xml:space="preserve">
+    <value>Delete the historical disk file?</value>
+  </data>
+  <data name="Deleted" xml:space="preserve">
+    <value>Deleted </value>
+  </data>
+  <data name="DeletesIncompletelyTheSystemOperationThatHas" xml:space="preserve">
+    <value>Deletes incompletely. The system operation that has taken place does not roll back. Please check the file before deciding whether to try again.</value>
+  </data>
+  <data name="DeletesOnlyTheDiskThumbnailCacheOf" xml:space="preserve">
+    <value>Deletes only the disk thumbnail cache of IMA, and does not delete video files. Suspends thereafter generate a preview.</value>
+  </data>
+  <data name="DeletesTheDiskFileBelowButKeeps" xml:space="preserve">
+    <value>Deletes the disk file below, but keeps a historical record. History 'withdrawal removal ' does not restore the disk file. Windows gives preference to the wastebin; when recovery is not possible, the system will require a separate permanent deletion confirmation, and does not agree to cancel in the system dialogue box.
+
+</value>
+  </data>
+  <data name="DiagnosisLogsAreNotAvailable" xml:space="preserve">
+    <value>Diagnosis logs are not available:</value>
+  </data>
+  <data name="Disable" xml:space="preserve">
+    <value>Disable </value>
+  </data>
+  <data name="DisabledClickToEnable" xml:space="preserve">
+    <value>Disabled, click to enable</value>
+  </data>
+  <data name="Displaying" xml:space="preserve">
+    <value>; displaying </value>
+  </data>
+  <data name="DocumentsNotCompleted" xml:space="preserve">
+    <value> documents;not completed </value>
+  </data>
+  <data name="DownloadCompletedSubtitleBatchSubmittedActualLoading" xml:space="preserve">
+    <value>Download completed, subtitle batch submitted; actual loading results are available for subtitle loading status.</value>
+  </data>
+  <data name="DownloadingSubtitles" xml:space="preserve">
+    <value>Downloading subtitles…</value>
+  </data>
+  <data name="DownloadsAreCompletedButSubtitleBatchesAre" xml:space="preserve">
+    <value>Downloads are completed, but subtitle batches are not confirmed for submission; the document is kept and can be saved or manually loaded at a later stage.</value>
+  </data>
+  <data name="Draft" xml:space="preserve">
+    <value>Draft:</value>
+  </data>
+  <data name="DragAndDropContainingVirtualObjectsInvalid" xml:space="preserve">
+    <value>Drag and drop containing virtual objects, invalid/device paths or path data beyond 1MiB, unopened.</value>
+  </data>
+  <data name="DragTheSourceOrPlaylistHasChanged" xml:space="preserve">
+    <value>Drag the source or playlist has changed, please drag again.</value>
+  </data>
+  <data name="DrawIn" xml:space="preserve">
+    <value>Picture-in-Picture</value>
+  </data>
+  <data name="EachTimeAMaximumOf64Subtitles" xml:space="preserve">
+    <value>Each time, a maximum of 64 subtitles were added, without any subtitles.</value>
+  </data>
+  <data name="EditFailedNetworkAddress" xml:space="preserve">
+    <value>Edit failed network address</value>
+  </data>
+  <data name="EmptyTheOriginalLogOfThisWindow" xml:space="preserve">
+    <value>Empty the original log of this window</value>
+  </data>
+  <data name="EmptyThumbnailCache" xml:space="preserve">
+    <value>Empty thumbnail cache?</value>
+  </data>
+  <data name="EnabledClickToRemove" xml:space="preserve">
+    <value>Enabled, click to remove</value>
+  </data>
+  <data name="EnterALimitedMultiplierValueBetween0" xml:space="preserve">
+    <value>Enter a limited multiplier value between 0.01 and 100.</value>
+  </data>
+  <data name="EnterAValidFontAndFont" xml:space="preserve">
+    <value>Enter a valid font and font.</value>
+  </data>
+  <data name="EnterAValidFontNameThatDoes" xml:space="preserve">
+    <value>Enter a valid font name that does not contain a line break.</value>
+  </data>
+  <data name="EnterAValidRatioEG16" xml:space="preserve">
+    <value>Enter a valid ratio, e.g. 16:9 or 2.35:1.</value>
+  </data>
+  <data name="EnterAValidTimeBetween0And" xml:space="preserve">
+    <value>Enter a valid time between 0 and the current time.</value>
+  </data>
+  <data name="EnterAValidWebMediaAddressUp" xml:space="preserve">
+    <value>Enter a valid web-media address (up to 32767).</value>
+  </data>
+  <data name="EnterTheAttributeNameAndClickSave" xml:space="preserve">
+    <value>Enter the attribute name and click Save and Monitor.</value>
+  </data>
+  <data name="EnterTheBoxToGetTheFocus" xml:space="preserve">
+    <value>Enter the box to get the focus. Please fill in the key name manually.</value>
+  </data>
+  <data name="EnterTheIntegerCoordinatesWithinTheRange" xml:space="preserve">
+    <value>Enter the integer coordinates within the range.</value>
+  </data>
+  <data name="EnterTheIntegerCropCoordinatesAndDimensions" xml:space="preserve">
+    <value>Enter the integer crop coordinates and dimensions within the video range.</value>
+  </data>
+  <data name="EnterTheSearchWordAsWellAs" xml:space="preserve">
+    <value>Enter the search word, as well as the personal token or API Key required for the service.</value>
+  </data>
+  <data name="EnterTheSecondsMinutesSecondsOrTimes" xml:space="preserve">
+    <value>Enter the seconds, minutes: seconds or times: seconds: seconds, supporting decimal seconds. Plays can continue without jumping.</value>
+  </data>
+  <data name="EnterTheURLOfTheNetworkUp" xml:space="preserve">
+    <value>Enter the URL of the network (up to 1,000 files/1MiB) with an absolute file path or support per line, without adding any entries.</value>
+  </data>
+  <data name="EntriesFailures" xml:space="preserve">
+    <value> entries;failures </value>
+  </data>
+  <data name="EntryMatchKeynameMpvAttributeClassificationAnd" xml:space="preserve">
+    <value> entry. Match keyname, mpv attribute, classification, and option values; settings will not be changed. Enter locates the first entry, Esc emptys the search word.</value>
+  </data>
+  <data name="EntryRemovalDoesNotDeleteDiskFiles" xml:space="preserve">
+    <value> entry; removal does not delete disk files.</value>
+  </data>
+  <data name="EqualizerGainMustBeAValidValue" xml:space="preserve">
+    <value>Equalizer gain must be a valid value.</value>
+  </data>
+  <data name="ExecuteOperationFailed" xml:space="preserve">
+    <value>Execute operation failed.</value>
+  </data>
+  <data name="ExistingDemarkingGraphicsAreNotASingle" xml:space="preserve">
+    <value>Existing demarking graphics are not a single identifiable delogo expression; please check in the filter list and do not replace them automatically.</value>
+  </data>
+  <data name="ExitFullScreen" xml:space="preserve">
+    <value>Exit Full Screen</value>
+  </data>
+  <data name="ExtensionCanvas" xml:space="preserve">
+    <value>Extension canvas</value>
+  </data>
+  <data name="External" xml:space="preserve">
+    <value> [External]</value>
+  </data>
+  <data name="ExternalReadAndConfirmedTargetDocument" xml:space="preserve">
+    <value>External read and confirmed target document</value>
+  </data>
+  <data name="FailedToExportTheRawLog" xml:space="preserve">
+    <value>Failed to export the raw log.</value>
+  </data>
+  <data name="FailedToReadDirectoryFilePropertiesIncomplete" xml:space="preserve">
+    <value>Failed to read directory file properties, incomplete matching results are not applied.</value>
+  </data>
+  <data name="FailedToSaveDiagnosticLog" xml:space="preserve">
+    <value>Failed to save diagnostic log.</value>
+  </data>
+  <data name="FailedToSavePlaylist" xml:space="preserve">
+    <value>Failed to save playlist.</value>
+  </data>
+  <data name="Failure" xml:space="preserve">
+    <value>Failure. </value>
+  </data>
+  <data name="FastLUTDisabled" xml:space="preserve">
+    <value>FastLUT: disabled</value>
+  </data>
+  <data name="FastLUTEnabled" xml:space="preserve">
+    <value>FastLUT: Enabled</value>
+  </data>
+  <data name="FastLUTNotAdded" xml:space="preserve">
+    <value>FastLUT: Not added</value>
+  </data>
+  <data name="FastLUTRequestsHaveNotBeenSubmittedFilter" xml:space="preserve">
+    <value>FastLUT requests have not been submitted; filter chains or player states have changed, please restart.</value>
+  </data>
+  <data name="FastLUTStatusUnknown" xml:space="preserve">
+    <value>FastLUT: Status unknown</value>
+  </data>
+  <data name="FastLUTTabConflictCheckInFilterChain" xml:space="preserve">
+    <value>FastLUT: Tab conflict, check in filter chain; do not automatically overwrite</value>
+  </data>
+  <data name="File" xml:space="preserve">
+    <value>File</value>
+  </data>
+  <data name="FileDepthLimitHasBeenReached" xml:space="preserve">
+    <value>File depth limit has been reached</value>
+  </data>
+  <data name="FileNoDirectoriesLinksOrOfflineFiles" xml:space="preserve">
+    <value>file;no directories, links or offline files are supported.</value>
+  </data>
+  <data name="FileOriginalFilePathNoNeedFor" xml:space="preserve">
+    <value>File (original file path, no need for conversion)</value>
+  </data>
+  <data name="FileSaveCanceled" xml:space="preserve">
+    <value>File save canceled.</value>
+  </data>
+  <data name="FilesAssociatedWithThisCopyHaveBeen" xml:space="preserve">
+    <value>Files associated with this copy have been removed. If previously set as default, select another application in Windows settings.</value>
+  </data>
+  <data name="FilesCouldNotBeDeleted" xml:space="preserve">
+    <value> files could not be deleted.</value>
+  </data>
+  <data name="FilesRequiredForRemoval" xml:space="preserve">
+    <value> files;required for removal </value>
+  </data>
+  <data name="FilterExpressionIsInvalid" xml:space="preserve">
+    <value>Filter expression is invalid.</value>
+  </data>
+  <data name="FilterSnapshotsAreWrittenWhenClickingTo" xml:space="preserve">
+    <value>Filter snapshots are written when clicking to export. The file may contain confidential information, which you want to check and share later.</value>
+  </data>
+  <data name="FilterStatusIsNotYetAvailable" xml:space="preserve">
+    <value>Filter status is not yet available.</value>
+  </data>
+  <data name="FiltersOrMediaHaveBeenChangedAnd" xml:space="preserve">
+    <value>Filters or media have been changed and no other operations are overwritten; original area filter expression has been maintained.</value>
+  </data>
+  <data name="FindOnlineSubtitles" xml:space="preserve">
+    <value>Find Online Subtitles…</value>
+  </data>
+  <data name="FitToWorkspace" xml:space="preserve">
+    <value>Fit to workspace</value>
+  </data>
+  <data name="FiveSecondsBack" xml:space="preserve">
+    <value>Five seconds back.</value>
+  </data>
+  <data name="FiveSecondsForward" xml:space="preserve">
+    <value>Five seconds forward.</value>
+  </data>
+  <data name="FlipUpAndDown" xml:space="preserve">
+    <value>Flip Up and Down</value>
+  </data>
+  <data name="FocusSGoneLoginOff" xml:space="preserve">
+    <value>Focus's gone, login' off.</value>
+  </data>
+  <data name="FollowUpAborted" xml:space="preserve">
+    <value>Follow-up aborted</value>
+  </data>
+  <data name="FollowUpCancelledPendingSubmissionOfRequest" xml:space="preserve">
+    <value>Follow-up cancelled pending submission of request</value>
+  </data>
+  <data name="FollowUpConfirmationHasBeenCancelledPending" xml:space="preserve">
+    <value>Follow-up confirmation has been cancelled pending completion of pending requests; inclusion may have been submitted.</value>
+  </data>
+  <data name="FollowUpConfirmationHasBeenCancelledPending2" xml:space="preserve">
+    <value>Follow-up confirmation has been cancelled pending completion of pending requests; removal may have been submitted.</value>
+  </data>
+  <data name="FollowUpConfirmationHasBeenCancelledPlease" xml:space="preserve">
+    <value>Follow-up confirmation has been cancelled; please check the current track if submitted but the selection results are not confirmed.</value>
+  </data>
+  <data name="FollowUpConfirmationsHaveBeenCancelledRemoval" xml:space="preserve">
+    <value>Follow-up confirmations have been cancelled; removal has been submitted but the results have not been confirmed and cannot be withdrawn. Please check the current track list.</value>
+  </data>
+  <data name="FollowUpHasBeenCancelled" xml:space="preserve">
+    <value>Follow-up has been cancelled.</value>
+  </data>
+  <data name="FollowUpHasBeenCancelledReloadingHas" xml:space="preserve">
+    <value>Follow-up has been cancelled; reloading has been submitted and cannot be withdrawn.</value>
+  </data>
+  <data name="FollowUpOperationsHaveBeenCancelledPending" xml:space="preserve">
+    <value>Follow-up operations have been cancelled pending completion of pending requests; the action submitted cannot be withdrawn.</value>
+  </data>
+  <data name="FollowUpSubtitlesHaveBeenCancelledSubmissions" xml:space="preserve">
+    <value>Follow-up subtitles have been cancelled; submissions cannot be withdrawn.</value>
+  </data>
+  <data name="FontNameSansSerifLeftEmpty" xml:space="preserve">
+    <value>Font name (sans-serif left empty)</value>
+  </data>
+  <data name="Fonts" xml:space="preserve">
+    <value>Fonts</value>
+  </data>
+  <data name="Fullscreen" xml:space="preserve">
+    <value>Fullscreen</value>
+  </data>
+  <data name="FuzzySubtitlingReachesAComparativeCeilingAnd" xml:space="preserve">
+    <value>Fuzzy subtitling reaches a comparative ceiling and only the completed rules are maintained.</value>
+  </data>
+  <data name="GeneratesAnExpressionThatIsInvalidOr" xml:space="preserve">
+    <value>Generates an expression that is invalid or more than 64 KiB, without replacing manual input.</value>
+  </data>
+  <data name="GeneratesTextExceeding256KiB" xml:space="preserve">
+    <value>Generates text exceeding 256 KiB.</value>
+  </data>
+  <data name="GeneratingTextWillExceed256KiBAnd" xml:space="preserve">
+    <value>Generating text will exceed 256 KiB, and this change is not accepted.</value>
+  </data>
+  <data name="GoToTheSign" xml:space="preserve">
+    <value>Go to the sign.</value>
+  </data>
+  <data name="GraphicalSubtitlesDoNotSupportTextStyles" xml:space="preserve">
+    <value>Graphical subtitles do not support text styles, and subtitles may overlap with main subtitles.</value>
+  </data>
+  <data name="HideList" xml:space="preserve">
+    <value>Hide List</value>
+  </data>
+  <data name="HistorySelectionFileStatusOrPlayRequest" xml:space="preserve">
+    <value>History selection, file status or play request changed during the resolution, but was not opened; please re-select.</value>
+  </data>
+  <data name="HistoryTargetIsNoLongerARegular" xml:space="preserve">
+    <value>History target is no longer a regular media file, skipping and not developing directories/playlists</value>
+  </data>
+  <data name="HoursSecondsMillisecondsOrSeconds" xml:space="preserve">
+    <value>Hours: seconds, milliseconds, or seconds</value>
+  </data>
+  <data name="IDonTThinkSo" xml:space="preserve">
+    <value>I don't think so. </value>
+  </data>
+  <data name="IIMADeleteSelectedPlaylistFile" xml:space="preserve">
+    <value>IIMA: Delete selected playlist file</value>
+  </data>
+  <data name="IIMAMediaFiles" xml:space="preserve">
+    <value>IIMA Media Files</value>
+  </data>
+  <data name="IIMAUnableToOpenRequest" xml:space="preserve">
+    <value>IIMA Unable to open request</value>
+  </data>
+  <data name="IMAConnectionClearedMpvSelfLoadingIs" xml:space="preserve">
+    <value>IMA connection cleared; mpv self-loading is not affected.</value>
+  </data>
+  <data name="IMAConnectionsClearedCurrentSubtitlesAreNot" xml:space="preserve">
+    <value>IMA connections cleared; current subtitles are not unmounted and mpv itself is not automatically loaded.</value>
+  </data>
+  <data name="IMARawMediaPlayer" xml:space="preserve">
+    <value>IMA raw media player</value>
+  </data>
+  <data name="IfRegistrationIsNotCompleteTryAgain" xml:space="preserve">
+    <value>If registration is not complete, try again:</value>
+  </data>
+  <data name="IfYouSearchForTooLongWords" xml:space="preserve">
+    <value>If you search for too long words or more than 32 words, please shorten them.</value>
+  </data>
+  <data name="Image" xml:space="preserve">
+    <value> Image</value>
+  </data>
+  <data name="Immediate" xml:space="preserve">
+    <value> immediate</value>
+  </data>
+  <data name="ImportedEditingAreaCheckAndClickSave" xml:space="preserve">
+    <value>Imported editing area, check and click Save and Apply.</value>
+  </data>
+  <data name="IncludesAlreadySkipped" xml:space="preserve">
+    <value>(includes already skipped) </value>
+  </data>
+  <data name="IncreaseVolume" xml:space="preserve">
+    <value>Increase Volume</value>
+  </data>
+  <data name="IndividualSkipping" xml:space="preserve">
+    <value> individual; Skipping </value>
+  </data>
+  <data name="InitialWindowGeometryNotApplied" xml:space="preserve">
+    <value>Initial window geometry not applied:</value>
+  </data>
+  <data name="Input" xml:space="preserve">
+    <value>Input</value>
+  </data>
+  <data name="InsertAtTheEndOfTheList" xml:space="preserve">
+    <value>Insert at the end of the list (do not play)</value>
+  </data>
+  <data name="InsertToTheFirst" xml:space="preserve">
+    <value>Insert to the first </value>
+  </data>
+  <data name="InteractToMark" xml:space="preserve">
+    <value>Interact to mark</value>
+  </data>
+  <data name="InteractiveAreaSelectionRequiresAnUnrotatedVideo" xml:space="preserve">
+    <value>Interactive area selection requires an unrotated video map that has been identified. Please remove the existing video filter/crop and rotate to zero, pending the stabilization of the size of the image.</value>
+  </data>
+  <data name="InteractiveCrop" xml:space="preserve">
+    <value>Interactive Crop</value>
+  </data>
+  <data name="InvalidScreenshotFormat" xml:space="preserve">
+    <value>Invalid screenshot format.</value>
+  </data>
+  <data name="InverselyStaggeringTheCurrentPlayerAutomaticMode" xml:space="preserve">
+    <value> Inversely staggering the current player automatic mode.</value>
+  </data>
+  <data name="Invert" xml:space="preserve">
+    <value>Invert</value>
+  </data>
+  <data name="Inverted" xml:space="preserve">
+    <value>Inverted</value>
+  </data>
+  <data name="IsBeingProcessedPleaseWaitForThe" xml:space="preserve">
+    <value>
+is being processed, please wait for the player to read the results.</value>
+  </data>
+  <data name="ItIsNotPossibleToRegisterA" xml:space="preserve">
+    <value>It is not possible to register a modern stand-by notice, keeping only traditional sleep broadcasts; sleep pauses may not be available.</value>
+  </data>
+  <data name="ItSTooBigPleaseChooseSubtitles" xml:space="preserve">
+    <value>It's too big. Please choose subtitles manually.</value>
+  </data>
+  <data name="Italic" xml:space="preserve">
+    <value>Italic</value>
+  </data>
+  <data name="Item" xml:space="preserve">
+    <value> item.</value>
+  </data>
+  <data name="Items" xml:space="preserve">
+    <value> Items:</value>
+  </data>
+  <data name="Jump" xml:space="preserve">
+    <value>Jump</value>
+  </data>
+  <data name="JumpToTime" xml:space="preserve">
+    <value>Jump to Time</value>
+  </data>
+  <data name="KeepTops" xml:space="preserve">
+    <value>Keep tops.</value>
+  </data>
+  <data name="KeepUpTo512BalancedPresets" xml:space="preserve">
+    <value>Keep up to 512 balanced presets.</value>
+  </data>
+  <data name="KeyFieldsAreFilledActionIsCompleted" xml:space="preserve">
+    <value>Key fields are filled; action is completed and additional/replaced rows are added to the draft and not applied.</value>
+  </data>
+  <data name="LastCheckDidNotFindThisFile" xml:space="preserve">
+    <value>Last check did not find this file, please try again after you have refreshed the historical sidebar.</value>
+  </data>
+  <data name="LastCheckMissing" xml:space="preserve">
+    <value>(Last check missing)</value>
+  </data>
+  <data name="LastProgress" xml:space="preserve">
+    <value>Last progress </value>
+  </data>
+  <data name="LaunchPathIsInvalidOrTooLong" xml:space="preserve">
+    <value>Launch path is invalid or too long.</value>
+  </data>
+  <data name="LeftAndRightKeysAdjustOneSecond" xml:space="preserve">
+    <value>Left and right keys adjust one second, Home/End to the end; Enter does not jump. Exact values can be entered in the A/B cycle editor.</value>
+  </data>
+  <data name="LeftAndRightMirrors" xml:space="preserve">
+    <value>Left and right mirrors</value>
+  </data>
+  <data name="LeftAndRightMirrors2" xml:space="preserve">
+    <value>Left and right mirrors:</value>
+  </data>
+  <data name="Lines" xml:space="preserve">
+    <value> Lines:</value>
+  </data>
+  <data name="ListEntriesThatStillMatchSkipping" xml:space="preserve">
+    <value> list entries that still match; Skipping </value>
+  </data>
+  <data name="LoadAndSelect" xml:space="preserve">
+    <value>Load and Select</value>
+  </data>
+  <data name="LoadAndSelectSubtitles" xml:space="preserve">
+    <value>Load and select subtitles</value>
+  </data>
+  <data name="LoadExternalTracks" xml:space="preserve">
+    <value>Load external tracks…</value>
+  </data>
+  <data name="LoadExternalVideo" xml:space="preserve">
+    <value>Load External Video…</value>
+  </data>
+  <data name="LoadSubtitles" xml:space="preserve">
+    <value>Load Subtitles…</value>
+  </data>
+  <data name="LoadingAndConfirmingSelectedExternals" xml:space="preserve">
+    <value>Loading and confirming selected externals</value>
+  </data>
+  <data name="LoadingAndConfirmingSubtitlesItemByItem" xml:space="preserve">
+    <value>Loading and confirming subtitles item by item…</value>
+  </data>
+  <data name="LoadingServicesWereNotCompleteButRereading" xml:space="preserve">
+    <value>Loading services were not complete, but rereading the confirmed target external track was selected; no automatic re-trying was undertaken.</value>
+  </data>
+  <data name="LocalFilesOnlyTheFirst128Items" xml:space="preserve">
+    <value>Local files only: the first 128 items + the maximum of 32 selected automatically; - is unknown and only known items are included in the total. Change the file to refresh the length and tab cache.</value>
+  </data>
+  <data name="LocalSessionClearedButTheServerExits" xml:space="preserve">
+    <value>Local session cleared, but the server exits unrecognized:</value>
+  </data>
+  <data name="LocalSessionClearedRequestingServerExit" xml:space="preserve">
+    <value>Local session cleared, requesting server exit…</value>
+  </data>
+  <data name="LocalSessionClearedServerConfirmedExit" xml:space="preserve">
+    <value>Local session cleared, server confirmed exit.</value>
+  </data>
+  <data name="LocalSessionHasBeenClearedAndThe" xml:space="preserve">
+    <value>Local session has been cleared and the server cannot be created to quit the task.</value>
+  </data>
+  <data name="LogInToCancelEscOrTab" xml:space="preserve">
+    <value>Log in to cancel; Esc or Tab binding can be manually filled out, but Tab retains the original focus navigation.</value>
+  </data>
+  <data name="LoginOnlyTheAPIKeyAndTokens" xml:space="preserve">
+    <value>Login, only the API Key and tokens are kept in this window for up to 23 hours. The search/download will use this session and the password will not be saved.</value>
+  </data>
+  <data name="LoopFile" xml:space="preserve">
+    <value>Loop File</value>
+  </data>
+  <data name="LoopPlaylist" xml:space="preserve">
+    <value>Loop Playlist</value>
+  </data>
+  <data name="LoopPlaylist2" xml:space="preserve">
+    <value>Loop Playlist</value>
+  </data>
+  <data name="LutIsNotAPlaylistMediumPlease" xml:space="preserve">
+    <value>Lut is not a playlist medium, please drag to the play area.</value>
+  </data>
+  <data name="ManageSavedFilters" xml:space="preserve">
+    <value>Manage saved filters…</value>
+  </data>
+  <data name="MarginalWidth" xml:space="preserve">
+    <value>Marginal width</value>
+  </data>
+  <data name="MatchingDirectorySubtitles" xml:space="preserve">
+    <value>Matching directory subtitles…</value>
+  </data>
+  <data name="MatchingSubtitleFailed" xml:space="preserve">
+    <value>Matching subtitle failed.</value>
+  </data>
+  <data name="MatchingSubtitleLoadingUnconfirmedSubmissionPleaseWait" xml:space="preserve">
+    <value>Matching subtitle loading unconfirmed submission; please wait for the current track operation to try again.</value>
+  </data>
+  <data name="MaximumOf32PropertiesMonitored" xml:space="preserve">
+    <value>Maximum of 32 properties monitored.</value>
+  </data>
+  <data name="Media" xml:space="preserve">
+    <value>Media</value>
+  </data>
+  <data name="MediaChangedDuringTemporaryRemovalAndNo" xml:space="preserve">
+    <value>Media changed during temporary removal and no cropping was written back to the new media; the original expression was retained.</value>
+  </data>
+  <data name="MediaDirectoriesAreNotReadableOrContain" xml:space="preserve">
+    <value>Media directories are not readable or contain hidden/link directories, and no automatic matching is applied.</value>
+  </data>
+  <data name="MediaFreeTime" xml:space="preserve">
+    <value>Media Free Time</value>
+  </data>
+  <data name="MediaHasChangedPleaseRereadSubtitles" xml:space="preserve">
+    <value>Media has changed, please reread subtitles.</value>
+  </data>
+  <data name="MediaOrChapterHasChangedPleaseReopen" xml:space="preserve">
+    <value>Media or chapter has changed, please reopen the chapter menu.</value>
+  </data>
+  <data name="MediaOrDirectoriesAreNotAvailableOr" xml:space="preserve">
+    <value>Media or directories are not available, or hide/link targets; no automatic extension of playlists is available.</value>
+  </data>
+  <data name="MediaOrSessionHasChangedAndThe" xml:space="preserve">
+    <value>Media or session has changed and the original area filter is not written into the new media; the original expression has been retained for manual recovery.</value>
+  </data>
+  <data name="Missing" xml:space="preserve">
+    <value>Missing </value>
+  </data>
+  <data name="MoreThan1000FoldersHaveBeen" xml:space="preserve">
+    <value>More than 1,000 folders have been expanded and are not inserted; please reduce the selection.</value>
+  </data>
+  <data name="MoreThan1000PiecesUnopenedAfter" xml:space="preserve">
+    <value>More than 1,000 pieces, unopened, after resolution.</value>
+  </data>
+  <data name="MoveToPosition" xml:space="preserve">
+    <value>Move to position </value>
+  </data>
+  <data name="MoveToTheEndOfTheList" xml:space="preserve">
+    <value>Move to the end of the list</value>
+  </data>
+  <data name="MoveToWastebin" xml:space="preserve">
+    <value>Move to Wastebin…</value>
+  </data>
+  <data name="MpvShortcutConfiguration" xml:space="preserve">
+    <value>mpv Shortcut Configuration</value>
+  </data>
+  <data name="Multiply" xml:space="preserve">
+    <value> Multiply</value>
+  </data>
+  <data name="MusicMode" xml:space="preserve">
+    <value>Music Mode</value>
+  </data>
+  <data name="Mute" xml:space="preserve">
+    <value>Mute</value>
+  </data>
+  <data name="Mute2" xml:space="preserve">
+    <value> • Mute</value>
+  </data>
+  <data name="NewPlayerWindow" xml:space="preserve">
+    <value>New Player Window</value>
+  </data>
+  <data name="Next" xml:space="preserve">
+    <value>Next</value>
+  </data>
+  <data name="NextFrame" xml:space="preserve">
+    <value>Next frame</value>
+  </data>
+  <data name="NextMediaNextTime" xml:space="preserve">
+    <value> next media open</value>
+  </data>
+  <data name="NextNewPlayer" xml:space="preserve">
+    <value>(Next new player)</value>
+  </data>
+  <data name="NextNewPlayerStartupInitialPlayer" xml:space="preserve">
+    <value> next player startup</value>
+  </data>
+  <data name="NextPlayerWindow" xml:space="preserve">
+    <value>Next Player Window</value>
+  </data>
+  <data name="NextSingleFileOpensSeparatedBySemicolons" xml:space="preserve">
+    <value>Next single file opens. Separated by semicolons, e. g. Subs; D:\Subtitles;./*. End / * search only for direct subdirectories; the current directory always contains. Not supported ~.</value>
+  </data>
+  <data name="NextTimeOpen" xml:space="preserve">
+    <value>Next time open</value>
+  </data>
+  <data name="NoChapterAvailable" xml:space="preserve">
+    <value>No chapter available</value>
+  </data>
+  <data name="NoDeletionStartedHistoryAndDiskFiles" xml:space="preserve">
+    <value>No deletion started; history and disk files are not changed by this operation.</value>
+  </data>
+  <data name="NoDirectorySetSelectASavingPosition" xml:space="preserve">
+    <value>No directory set: select a saving position after capture.</value>
+  </data>
+  <data name="NoEntriesSelectedMultipleOptionsForCtrl" xml:space="preserve">
+    <value>No entries selected; multiple options for Ctrl or Shift</value>
+  </data>
+  <data name="NoLoop" xml:space="preserve">
+    <value>No Loop</value>
+  </data>
+  <data name="NoMatchingSubtitlesFound" xml:space="preserve">
+    <value>No matching subtitles found.</value>
+  </data>
+  <data name="NoMediaFilesAreAvailableForPlay" xml:space="preserve">
+    <value>No media files are available for play at the selected location.</value>
+  </data>
+  <data name="NoRecentPlaybacks" xml:space="preserve">
+    <value>No recent playbacks.</value>
+  </data>
+  <data name="NoSavedFilters" xml:space="preserve">
+    <value>No saved filters</value>
+  </data>
+  <data name="NoSubtitlesFound" xml:space="preserve">
+    <value>No subtitles found.</value>
+  </data>
+  <data name="NoSupportedNormalFilePath" xml:space="preserve">
+    <value>No supported normal file path.</value>
+  </data>
+  <data name="NotAddedClickEnabled" xml:space="preserve">
+    <value>Not added, click enabled</value>
+  </data>
+  <data name="NotAnOpenMediaFileSubtitlesUsed" xml:space="preserve">
+    <value>Not an open media file; subtitles used with subtitles</value>
+  </data>
+  <data name="NotAvailable" xml:space="preserve">
+    <value>Not Available</value>
+  </data>
+  <data name="NotReadForTheTimeBeingTry" xml:space="preserve">
+    <value>Not read for the time being, try again later.</value>
+  </data>
+  <data name="NotSetOrReadable" xml:space="preserve">
+    <value>Not set or readable</value>
+  </data>
+  <data name="NotStarted" xml:space="preserve">
+    <value>Not started</value>
+  </data>
+  <data name="NotStartedExternal" xml:space="preserve">
+    <value>Not started external</value>
+  </data>
+  <data name="NotYetAvailable" xml:space="preserve">
+    <value>Not yet available</value>
+  </data>
+  <data name="OSCLeftAndRightArrowMultiSpeed" xml:space="preserve">
+    <value> OSC control bar left right arrow speed previous next playlist seek</value>
+  </data>
+  <data name="OSCLeftAndRightArrows0Times" xml:space="preserve">
+    <value>(OSC left and right arrows: 0 times / 1 queue / 2 jumps 10 seconds)</value>
+  </data>
+  <data name="Off" xml:space="preserve">
+    <value>Off</value>
+  </data>
+  <data name="OnlyAbsoluteLocalFilePathsOrSupported" xml:space="preserve">
+    <value>Only absolute local file paths or supported web media addresses are supported, and no new windows are opened.</value>
+  </data>
+  <data name="OnlyAbsoluteLocalPathsOrSupportedNetwork" xml:space="preserve">
+    <value>Only absolute local paths or supported network URLs are supported, and drag-and-drop text is not executed.</value>
+  </data>
+  <data name="OnlyCapturesWhenEnteringAFocusEsc" xml:space="preserve">
+    <value>Only captures when entering a focus; Esc cancels and Tab leaves. The binding will not be executed.</value>
+  </data>
+  <data name="OnlyTheOnlyManagedFilterInThe" xml:space="preserve">
+    <value>Only the only managed filter in the current mode (iina_crop or iina_delogo) can be edited; remove other filters, resolve tag conflicts and exit suspended windows first.</value>
+  </data>
+  <data name="OnlyThisItemWillBeRestoredAnd" xml:space="preserve">
+    <value>Only this item will be restored and the unapplied draft will be discarded. The other settings and drafts will remain unchanged. Next opening item will have to reopen the media; the new player entry will only take effect when the new window is initiated.</value>
+  </data>
+  <data name="OnlyTryAgainInThisFailedWindow" xml:space="preserve">
+    <value>Only try again in this failed window, without creating or switching to another window.</value>
+  </data>
+  <data name="Open" xml:space="preserve">
+    <value>Open</value>
+  </data>
+  <data name="OpenFile" xml:space="preserve">
+    <value>Open File…</value>
+  </data>
+  <data name="OpenFolder" xml:space="preserve">
+    <value>Open Folder…</value>
+  </data>
+  <data name="OpenTheRequestMayHaveBeenDelivered" xml:space="preserve">
+    <value>Open the request may have been delivered, but no confirmation has been received. Check the existing IIMA window; no automatic re-issuance is required to avoid repeated playback.</value>
+  </data>
+  <data name="OpenTheRequestOrTheMediaHas" xml:space="preserve">
+    <value>Open the request or the media has changed, and this draft will not be submitted. Please restart after cancel.</value>
+  </data>
+  <data name="OpenURL" xml:space="preserve">
+    <value>Open URL…</value>
+  </data>
+  <data name="OpenWebMedia" xml:space="preserve">
+    <value>Open Web Media</value>
+  </data>
+  <data name="Opening" xml:space="preserve">
+    <value>Opening…</value>
+  </data>
+  <data name="OpeningNetworkStream" xml:space="preserve">
+    <value>Opening network stream…</value>
+  </data>
+  <data name="OpeningWebMediaInThisWindow" xml:space="preserve">
+    <value>Opening Web Media in this Window…</value>
+  </data>
+  <data name="OpensAMaximumOf1000Entries" xml:space="preserve">
+    <value>Opens a maximum of 1,000 entries each time in a new window.</value>
+  </data>
+  <data name="OpensAMaximumOf256FilesOr" xml:space="preserve">
+    <value>Opens a maximum of 256 files or folders at a time.</value>
+  </data>
+  <data name="OpensAnEmptyWindowOrANew" xml:space="preserve">
+    <value>Opens an empty window or a new window without replacing the one that is playing.</value>
+  </data>
+  <data name="OpensTheCurrentWindowAndReplacesThe" xml:space="preserve">
+    <value>Opens the current window and replaces the current queue.</value>
+  </data>
+  <data name="OpensTheRequestOrTheMediaIdentity" xml:space="preserve">
+    <value>Opens the request or the media identity has changed and the current medium is not stopped. Use the player to stop the operation.</value>
+  </data>
+  <data name="OperationCancelled" xml:space="preserve">
+    <value>Operation cancelled.</value>
+  </data>
+  <data name="Orbital" xml:space="preserve">
+    <value>Track…</value>
+  </data>
+  <data name="Orbital2" xml:space="preserve">
+    <value>Track </value>
+  </data>
+  <data name="OrbitalOperationReportErrorNoAutomaticRe" xml:space="preserve">
+    <value>Track operation report error; no automatic re-testing, no withdrawal of the submitted operation.</value>
+  </data>
+  <data name="OrbitalOrPlayerStateHasChangedAnd" xml:space="preserve">
+    <value>Track or player state has changed and no reloading has started; please re-select and confirm.</value>
+  </data>
+  <data name="OrbitalOrPlayerStatusHasChangedAnd" xml:space="preserve">
+    <value>Track or player status has changed and has not started to be removed; please re-select and confirm.</value>
+  </data>
+  <data name="OriginalUTF8LogMayContainPrivate" xml:space="preserve">
+    <value>Original UTF-8 log (may contain private information)</value>
+  </data>
+  <data name="OutputDevice" xml:space="preserve">
+    <value>Output Device</value>
+  </data>
+  <data name="Over512SubtitlesWithDirectoriesAreNot" xml:space="preserve">
+    <value>Over 512 subtitles with directories are not automatically matched.</value>
+  </data>
+  <data name="ParametersAreDerivedFromFixedIINAPresets" xml:space="preserve">
+    <value>Parameters are derived from fixed IINA presets. Generates only expressions and click to add/replace to submit the player. Toggle the type or preset will discard the draft parameter.</value>
+  </data>
+  <data name="ParametersAreInvalidOrNonCompliant" xml:space="preserve">
+    <value>Parameters are invalid or non-compliant:</value>
+  </data>
+  <data name="ParsingClipboardFilesAndFoldersCanCancel" xml:space="preserve">
+    <value>Parsing clipboard files and folders... Can cancel pending paste.</value>
+  </data>
+  <data name="PartOfTheClipboardItemCannotBe" xml:space="preserve">
+    <value>Part of the clipboard item cannot be parsed or skipped; the rest of the entries have been requested to be added, and the list is selected for success.</value>
+  </data>
+  <data name="PartialPropertiesAreNotAvailableAndThe" xml:space="preserve">
+    <value>Partial properties are not available and the corresponding controls are disabled.</value>
+  </data>
+  <data name="PartiallySavedFiltersAreInvalidOrShortcuts" xml:space="preserve">
+    <value>Partially saved filters are invalid or shortcuts are repeated and are not included in these entries.</value>
+  </data>
+  <data name="Paste1To1000FilesOr" xml:space="preserve">
+    <value>Paste 1 to 1,000 files or folders each time.</value>
+  </data>
+  <data name="Pause" xml:space="preserve">
+    <value>Pause</value>
+  </data>
+  <data name="PhysicalPixelWindowGeometryWidthIsHigher" xml:space="preserve">
+    <value>Physical pixel window geometry; width is higher than height and window width ratio is maintained. Positive offset from top left, negative offset from bottom right; percentage locator center. Leave empty to save position and next new player is effective.</value>
+  </data>
+  <data name="Planned" xml:space="preserve">
+    <value>(planned) </value>
+  </data>
+  <data name="Play" xml:space="preserve">
+    <value>Play</value>
+  </data>
+  <data name="PlayTheKernelIsNotYetAvailable" xml:space="preserve">
+    <value>Play the kernel is not yet available. Please install the corresponding libmpv and reopen the file.</value>
+  </data>
+  <data name="PlayerClosed" xml:space="preserve">
+    <value>Player closed</value>
+  </data>
+  <data name="PlayerWindow" xml:space="preserve">
+    <value>Player window:</value>
+  </data>
+  <data name="Playlist" xml:space="preserve">
+    <value>Playlist</value>
+  </data>
+  <data name="PlaylistRowsReceiveMediaOnlySubtitlesAre" xml:space="preserve">
+    <value>Playlist rows receive media only; subtitles are to be dragged to play areas or used to add subtitles.</value>
+  </data>
+  <data name="PlaylistSidebar" xml:space="preserve">
+    <value>Playlist Sidebar</value>
+  </data>
+  <data name="PleaseAdjustTheElectoralAreaToConfirm" xml:space="preserve">
+    <value>Please adjust the electoral area to confirm.</value>
+  </data>
+  <data name="PleaseCheckTheFileWithTheSystem" xml:space="preserve">
+    <value>Please check the file with the system hint and do not automatically retry.</value>
+  </data>
+  <data name="PleaseChooseLocalNormal" xml:space="preserve">
+    <value>Please choose Local Normal</value>
+  </data>
+  <data name="PleaseCreateAnEndpointAndRereadAnd" xml:space="preserve">
+    <value>. Please create an endpoint and reread and edit.</value>
+  </data>
+  <data name="PleaseDragAndDropAnAbsoluteFile" xml:space="preserve">
+    <value>Please drag and drop an absolute file path or supported network URL (up to 32767).</value>
+  </data>
+  <data name="PleaseEnterAValidSubtitleScalingAnd" xml:space="preserve">
+    <value>Please enter a valid subtitle scaling and position.</value>
+  </data>
+  <data name="PleaseEnterOnlyTheTitleOfThe" xml:space="preserve">
+    <value>Please enter only the title of the film and not the full path or address.</value>
+  </data>
+  <data name="PleaseEnterTheTitleManuallyAndDo" xml:space="preserve">
+    <value>Please enter the title manually and do not send the address of the network.</value>
+  </data>
+  <data name="PleaseExitTheSuspendedSmallWindowBefore" xml:space="preserve">
+    <value>Please exit the suspended small window before cutting interactively.</value>
+  </data>
+  <data name="PleaseFillInTheUsernameAndPassword" xml:space="preserve">
+    <value>Please fill in the username and password of the personal API Key, OpenSubtitles.</value>
+  </data>
+  <data name="PleaseOpenTheMediaAndDragThe" xml:space="preserve">
+    <value>Please open the media and drag the subtitles.</value>
+  </data>
+  <data name="PleaseReduceTheSelectionByOpeningA" xml:space="preserve">
+    <value>Please reduce the selection by opening a maximum of 1,000 histories at a time.</value>
+  </data>
+  <data name="PleaseReduceTheSelectionForEachDeletion" xml:space="preserve">
+    <value>Please reduce the selection for each deletion of up to 64 different files.</value>
+  </data>
+  <data name="PleaseReduceTheSelectionForEachLocation" xml:space="preserve">
+    <value>Please reduce the selection for each location of a maximum of 64 files.</value>
+  </data>
+  <data name="PleaseRefreshAsExternalDocumentsChange" xml:space="preserve">
+    <value>. Please refresh as external documents change.</value>
+  </data>
+  <data name="PleaseRemoveTheOtherVideoFiltersAnd" xml:space="preserve">
+    <value>Please remove the other video filters and use source pixel cropping.</value>
+  </data>
+  <data name="PleaseReturnToNormalWindowModeBefore" xml:space="preserve">
+    <value>Please return to normal window mode before scaling by video.</value>
+  </data>
+  <data name="PleaseSelectABindingFirst" xml:space="preserve">
+    <value>Please select a binding first.</value>
+  </data>
+  <data name="PleaseSelectADownloadedSubtitleFirst" xml:space="preserve">
+    <value>Please select a downloaded subtitle first.</value>
+  </data>
+  <data name="PleaseSelectALocalCommonSubtitleFile" xml:space="preserve">
+    <value>Please select a local common subtitle file; no directories, links or offline files are supported.</value>
+  </data>
+  <data name="PleaseSelectALocalFolderToAccess" xml:space="preserve">
+    <value>Please select a local folder to access.</value>
+  </data>
+  <data name="PleaseSelectALogLineToCopy" xml:space="preserve">
+    <value>Please select a log line to copy first.</value>
+  </data>
+  <data name="PleaseSelectAQueueEntry" xml:space="preserve">
+    <value>Please select a queue entry.</value>
+  </data>
+  <data name="PleaseSelectAnOrbitToViewThe" xml:space="preserve">
+    <value>Please select an track to view; the view does not change the actual play track.</value>
+  </data>
+  <data name="PleaseSelectTheOriginalLogLineFirst" xml:space="preserve">
+    <value>Please select the original log line first.</value>
+  </data>
+  <data name="PleaseWaitForTheCurrentVideoAnd" xml:space="preserve">
+    <value>Please wait for the current video and other operations to be completed before importing LUT.</value>
+  </data>
+  <data name="Positioning" xml:space="preserve">
+    <value>Positioning…</value>
+  </data>
+  <data name="PrefetchHasBeenClosedNoCacheLabels" xml:space="preserve">
+    <value>Prefetch has been closed; no cache labels are shown, only the current duration observed by the player is shown.</value>
+  </data>
+  <data name="PresetNameIsTooLongOrInvalid" xml:space="preserve">
+    <value>Preset name is too long or invalid.</value>
+  </data>
+  <data name="PressNonModifiedKeysWindowsSystemKeys" xml:space="preserve">
+    <value>Press non-modified keys; Windows system keys, AltGr, IME and dead keys are not recorded.</value>
+  </data>
+  <data name="PreviewIsNotAvailable" xml:space="preserve">
+    <value>Preview is not available.</value>
+  </data>
+  <data name="Previous" xml:space="preserve">
+    <value>Previous</value>
+  </data>
+  <data name="PreviousCheckExistence" xml:space="preserve">
+    <value>Previous check: Existence </value>
+  </data>
+  <data name="PreviousFrame" xml:space="preserve">
+    <value>Previous Frame</value>
+  </data>
+  <data name="PrimarySubtitles" xml:space="preserve">
+    <value>Primary Subtitles</value>
+  </data>
+  <data name="Processed" xml:space="preserve">
+    <value> Processed </value>
+  </data>
+  <data name="ProfileReadingIncompletely" xml:space="preserve">
+    <value>Profile reading incompletely.</value>
+  </data>
+  <data name="QuantityTimeBudgetIsAchievedAndThe" xml:space="preserve">
+    <value>Quantity/time budget is achieved, and the uninspected portion remains unknown.</value>
+  </data>
+  <data name="QueueAssociatedSubtitlesAreNotConfirmedFor" xml:space="preserve">
+    <value>Queue associated subtitles are not confirmed for submission; current track operations are not ready for manual loading.</value>
+  </data>
+  <data name="QueueOrPlayRequestsChangedDuringThe" xml:space="preserve">
+    <value>Queue or play requests changed during the check of subtitles, no association was changed.</value>
+  </data>
+  <data name="QuickAdditionsAndDecreasesAlongINANon" xml:space="preserve">
+    <value>; quick additions and decreases along INA non-linear steps, and the input box is an independent edit value.</value>
+  </data>
+  <data name="QuitMusicMode" xml:space="preserve">
+    <value>Quit Music Mode</value>
+  </data>
+  <data name="QuitWithoutSaving" xml:space="preserve">
+    <value>Quit without saving</value>
+  </data>
+  <data name="RandomSorting" xml:space="preserve">
+    <value>Random Sorting</value>
+  </data>
+  <data name="ReSelect" xml:space="preserve">
+    <value>, re-select.</value>
+  </data>
+  <data name="ReadAgainAfterEachApplication0Seconds" xml:space="preserve">
+    <value>. Read again after each application; 0 seconds adjusted to 0.00001 seconds by INA.</value>
+  </data>
+  <data name="ReadTheBindingFirstFromTheText" xml:space="preserve">
+    <value>Read the binding first from the text area.</value>
+  </data>
+  <data name="ReadingOrbitsAndOriginalSelection" xml:space="preserve">
+    <value>Reading tracks and original selection…</value>
+  </data>
+  <data name="ReadingRecentPlaybacks" xml:space="preserve">
+    <value>Reading recent playbacks…</value>
+  </data>
+  <data name="ReadingSubtitleFilePropertiesFailedNoResults" xml:space="preserve">
+    <value>Reading subtitle file properties failed, no results applied.</value>
+  </data>
+  <data name="ReadingSubtitleSearchSubdirectorialAttributesFailedNo" xml:space="preserve">
+    <value>Reading subtitle search subdirectorial attributes failed, no results applied.</value>
+  </data>
+  <data name="ReadingTheLatestSubtitleTrack" xml:space="preserve">
+    <value>Reading the latest subtitle track.</value>
+  </data>
+  <data name="ReadsThePlaylistChangedDuringTheClipboard" xml:space="preserve">
+    <value>Reads the playlist changed during the clipboard, please repaint.</value>
+  </data>
+  <data name="RecentlyPlayed" xml:space="preserve">
+    <value>Recently Played</value>
+  </data>
+  <data name="RefreshingEverySecondReadOnlyNotSaving" xml:space="preserve">
+    <value>refreshing every second; read-only, not saving attribute values to logs or settings.</value>
+  </data>
+  <data name="RegisteredAsAnOptionalPlayerTheDefault" xml:space="preserve">
+    <value>Registered as an optional player. The default application has not changed. Select IIMA in Windows settings.</value>
+  </data>
+  <data name="RehabilitatingAndConfirmingTheOriginalOrbitalOption" xml:space="preserve">
+    <value>Rehabilitating and confirming the original track option…</value>
+  </data>
+  <data name="RejectEmptyPathsEmbeddedNULOrDevice" xml:space="preserve">
+    <value>Reject empty paths, embedded NUL, or device namespace</value>
+  </data>
+  <data name="RejectURIOrBackupDataStreamPath" xml:space="preserve">
+    <value>Reject URI or backup data stream path</value>
+  </data>
+  <data name="ReloadCommandConfirmed" xml:space="preserve">
+    <value> Reload command confirmed.</value>
+  </data>
+  <data name="ReloadOrbit" xml:space="preserve">
+    <value>Reload track</value>
+  </data>
+  <data name="ReloadSelectedExternalAudioAndVideoTracks" xml:space="preserve">
+    <value>Reload selected external audio and video tracks?</value>
+  </data>
+  <data name="ReloadSubtitles" xml:space="preserve">
+    <value>Reload subtitles</value>
+  </data>
+  <data name="ReloadingExternalOrbits" xml:space="preserve">
+    <value>Reloading external tracks…</value>
+  </data>
+  <data name="ReloadingExternalSubtitlesInSerials" xml:space="preserve">
+    <value>Reloading external subtitles in serials</value>
+  </data>
+  <data name="ReloadingIsIncompleteNoAutomaticRetestingIs" xml:space="preserve">
+    <value>Reloading is incomplete; no automatic retesting is possible. Check the current track and selection.</value>
+  </data>
+  <data name="ReloadingSuccessfully" xml:space="preserve">
+    <value>;reloading successfully </value>
+  </data>
+  <data name="RemoveExternalTracksFromThePlayer" xml:space="preserve">
+    <value>Remove external tracks from the player?</value>
+  </data>
+  <data name="RemoveTrack" xml:space="preserve">
+    <value>Remove Track</value>
+  </data>
+  <data name="RemovesOnlyFromTheCurrentPlayerAnd" xml:space="preserve">
+    <value>
+Removes only from the current player and does not delete the source file. Removing the audio, video or subtitle that is being used may lead to the disappearance of voiceless, imageless or subtitles; no automatic alternative track is selected. It cannot be withdrawn after submission; external files can be re-added if needed.</value>
+  </data>
+  <data name="RemovesOnlyTheLibrarySnapshotAndCan" xml:space="preserve">
+    <value>Removes only the library snapshot and can be revoked; the configuration and external files currently in force have not been deleted.</value>
+  </data>
+  <data name="RemovingAndRereadingTrackLists" xml:space="preserve">
+    <value>Removing and rereading track lists…</value>
+  </data>
+  <data name="RepeatedKeysFinalPriority" xml:space="preserve">
+    <value> [Repeated keys: final priority]</value>
+  </data>
+  <data name="RequestMode" xml:space="preserve">
+    <value>Request mode:</value>
+  </data>
+  <data name="RereadConfirmedOriginalSelectionIsRestored" xml:space="preserve">
+    <value> Reread confirmed original selection is restored.</value>
+  </data>
+  <data name="RereadTheSourceFileOnlyAndDo" xml:space="preserve">
+    <value>
+Reread the source file only, and do not modify or delete the disk file. The player may remove and add tracks, or the track ID may change; or try to restore the original audio or video selection. The restoration selection may be absent at the time of failure. The operation does not automatically switch to play/suspend, and does not guarantee that the frame or sound is present. The submitted operation cannot be withdrawn.</value>
+  </data>
+  <data name="RereadingConfirmedTargetOrbit" xml:space="preserve">
+    <value> Rereading confirmed target track.</value>
+  </data>
+  <data name="RestoreDefaultValue" xml:space="preserve">
+    <value>Restore default value</value>
+  </data>
+  <data name="RestoreOrder" xml:space="preserve">
+    <value>Restore Order</value>
+  </data>
+  <data name="RestoreOriginalSubtitleSelection" xml:space="preserve">
+    <value>Restore original subtitle selection</value>
+  </data>
+  <data name="RestoreThisDefault" xml:space="preserve">
+    <value>Restore this default</value>
+  </data>
+  <data name="Restored" xml:space="preserve">
+    <value>Restored </value>
+  </data>
+  <data name="ResumeOriginalAreaFilterAndCheckResults" xml:space="preserve">
+    <value>Resume original area filter and check results…</value>
+  </data>
+  <data name="RetrySave" xml:space="preserve">
+    <value>Retry Save</value>
+  </data>
+  <data name="Rotate" xml:space="preserve">
+    <value>Rotate</value>
+  </data>
+  <data name="RowInsertionDoesNotSupportThePlaylist" xml:space="preserve">
+    <value>Row insertion does not support the playlist file by step, open the list first; no entries are inserted this time.</value>
+  </data>
+  <data name="RowSkip" xml:space="preserve">
+    <value> Row, Skip </value>
+  </data>
+  <data name="SaveDownloadedSubtitles" xml:space="preserve">
+    <value>Save downloaded subtitles…</value>
+  </data>
+  <data name="SaveFailedYouCanTryAgainOr" xml:space="preserve">
+    <value>Save failed. You can try again, or you can quit and give up this unsaved change.</value>
+  </data>
+  <data name="SavePlaylist" xml:space="preserve">
+    <value>Save Playlist…</value>
+  </data>
+  <data name="SaveScreenshotAs" xml:space="preserve">
+    <value>Save screenshot as…</value>
+  </data>
+  <data name="SavedAudioFilters" xml:space="preserve">
+    <value>Saved Audio Filters</value>
+  </data>
+  <data name="SavedPreferences" xml:space="preserve">
+    <value>;saved preferences:</value>
+  </data>
+  <data name="SavedVideoFilters" xml:space="preserve">
+    <value>Saved Video Filters</value>
+  </data>
+  <data name="SavesALogSnapshotFromTheStart" xml:space="preserve">
+    <value>Saves a log snapshot from the start of the operation.</value>
+  </data>
+  <data name="SavesThePlaylist" xml:space="preserve">
+    <value>Saves the playlist.</value>
+  </data>
+  <data name="SavesTheSuffixInAFormatThat" xml:space="preserve">
+    <value>Saves the suffix in a format that is not consistent with the screenshot and does not save the file.</value>
+  </data>
+  <data name="Scaling" xml:space="preserve">
+    <value>; scaling </value>
+  </data>
+  <data name="Scene" xml:space="preserve">
+    <value>Scene</value>
+  </data>
+  <data name="Screenshots" xml:space="preserve">
+    <value>Screenshots</value>
+  </data>
+  <data name="SearchFontFamily" xml:space="preserve">
+    <value>Search Font Family</value>
+  </data>
+  <data name="SearchingForOnlineSubtitles" xml:space="preserve">
+    <value>Searching for online subtitles…</value>
+  </data>
+  <data name="Sec" xml:space="preserve">
+    <value>sec</value>
+  </data>
+  <data name="SecTrawDraft" xml:space="preserve">
+    <value>sec (traw draft)</value>
+  </data>
+  <data name="SecondsLocation" xml:space="preserve">
+    <value> seconds;location </value>
+  </data>
+  <data name="SecondsSeconds" xml:space="preserve">
+    <value> seconds;seconds </value>
+  </data>
+  <data name="SecondsTimeAlignmentOnlyChangesTheSubtitles" xml:space="preserve">
+    <value> seconds. Time alignment only changes the subtitles, does not skip the video.</value>
+  </data>
+  <data name="SelectAPathThatIsTooMany" xml:space="preserve">
+    <value>Select a path that is too many to be fully displayed.</value>
+  </data>
+  <data name="SelectAResultToDownloadTextSubtitles" xml:space="preserve">
+    <value>Select a result to download. Text subtitles are only supported, and the archive is not unpressed.</value>
+  </data>
+  <data name="SelectASmallerFolderIfTheDirectory" xml:space="preserve">
+    <value>Select a smaller folder if the directory exceeds the security limit.</value>
+  </data>
+  <data name="SelectLUTFile" xml:space="preserve">
+    <value>Select LUT File…</value>
+  </data>
+  <data name="SelectLUTFile2" xml:space="preserve">
+    <value>Select LUT File</value>
+  </data>
+  <data name="SelectOrSubmitSubmittedOperationCannotBe" xml:space="preserve">
+    <value>Select or submit; submitted operation cannot be withdrawn.</value>
+  </data>
+  <data name="SelectTheNormal3DLUTFile" xml:space="preserve">
+    <value>Select the normal 3D LUT file under a valid absolute path; do not accept devices, links or directories.</value>
+  </data>
+  <data name="SelectTheSubtitleFileWithTheNormal" xml:space="preserve">
+    <value>Select the subtitle file with the normal local disc path.</value>
+  </data>
+  <data name="Selected" xml:space="preserve">
+    <value>Selected</value>
+  </data>
+  <data name="Selected2" xml:space="preserve">
+    <value>Selected </value>
+  </data>
+  <data name="SelectedItems" xml:space="preserve">
+    <value> selected items.</value>
+  </data>
+  <data name="SelectingKnown" xml:space="preserve">
+    <value>;selecting known </value>
+  </data>
+  <data name="SetTheFileToReadTheOriginal" xml:space="preserve">
+    <value>Set the file to read, the original file is kept and the default settings are used.</value>
+  </data>
+  <data name="SettingSubtitleEncoding" xml:space="preserve">
+    <value>Setting subtitle encoding</value>
+  </data>
+  <data name="Settings" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="SettingsOrHistoryNotSaved" xml:space="preserve">
+    <value>Settings or History Not Saved</value>
+  </data>
+  <data name="SetupOrHistorySavingFailed" xml:space="preserve">
+    <value>Setup or history saving failed:</value>
+  </data>
+  <data name="Sharpening" xml:space="preserve">
+    <value>Sharpening</value>
+  </data>
+  <data name="ShooterChoosesToBeDisabledPleaseResearch" xml:space="preserve">
+    <value>Shooter chooses to be disabled. Please research.</value>
+  </data>
+  <data name="ShortClickOnTheReservedSlotFirst" xml:space="preserve">
+    <value>; short-click on the reserved slot, first-time longer doubles by release; no rollback</value>
+  </data>
+  <data name="ShortcutConfigurationIsLoaded" xml:space="preserve">
+    <value>Shortcut configuration is loaded.</value>
+  </data>
+  <data name="Show" xml:space="preserve">
+    <value>Show </value>
+  </data>
+  <data name="ShowInResourceManager" xml:space="preserve">
+    <value>Show in Resource Manager</value>
+  </data>
+  <data name="ShowList" xml:space="preserve">
+    <value>Show List</value>
+  </data>
+  <data name="ShowOnlyTheFirst100ItemsManaging" xml:space="preserve">
+    <value>Show only the first 100 items; managing saved filters to view all…</value>
+  </data>
+  <data name="ShowOnlyTheFirst99DevicesOpen" xml:space="preserve">
+    <value>Show only the first 99 devices; open audio device settings to view all</value>
+  </data>
+  <data name="ShowOnlyTheFirst99TracksOpen" xml:space="preserve">
+    <value>Show only the first 99 tracks; open the sidebar to see all</value>
+  </data>
+  <data name="ShowSubtitles" xml:space="preserve">
+    <value>Show subtitles</value>
+  </data>
+  <data name="ShowingOnlyTheFirst100ChaptersOpening" xml:space="preserve">
+    <value>showing only the first 100 chapters; opening the sidebar of the chapter to see all</value>
+  </data>
+  <data name="ShowingOnlyTheLast12ItemsOpening" xml:space="preserve">
+    <value>showing only the last 12 items; opening the historical sidebar to see all</value>
+  </data>
+  <data name="ShowsChapterScaleUpTo512" xml:space="preserve">
+    <value>(Shows chapter scale; up to 512)</value>
+  </data>
+  <data name="Skip" xml:space="preserve">
+    <value>Skip </value>
+  </data>
+  <data name="SkippedLinkFolder" xml:space="preserve">
+    <value>Skipped Link Folder</value>
+  </data>
+  <data name="SkippedSubtitlesPlaylistInsertionDoesNotAdd" xml:space="preserve">
+    <value>
+Skipped subtitles; playlist insertion does not add subtitles to the current media.</value>
+  </data>
+  <data name="SlidersRange025To16With" xml:space="preserve">
+    <value>×; sliders range 0.25 to 16, with precision input supporting 0.01 to 100.</value>
+  </data>
+  <data name="SlowDown" xml:space="preserve">
+    <value>Slow down.</value>
+  </data>
+  <data name="SoftwareDecoding" xml:space="preserve">
+    <value>Software Decoding</value>
+  </data>
+  <data name="SomeAdvancedPreferencesAreInvalidAndThe" xml:space="preserve">
+    <value>Some advanced preferences are invalid and the default values have been restored separately.</value>
+  </data>
+  <data name="SomeFilesHaveNotBeenDeletedOr" xml:space="preserve">
+    <value>Some files have not been deleted or processed, please check the list. Directorys, links, network/equipment paths and hyper long paths are not supported; system errors do not automatically retry.</value>
+  </data>
+  <data name="SomeOfTheHistoricalFilesCannotBe" xml:space="preserve">
+    <value>Some of the historical files cannot be opened or jumped; the others have been requested to be opened.</value>
+  </data>
+  <data name="SourcePixelsTopLeftPoint" xml:space="preserve">
+    <value> Source pixels (top left point)</value>
+  </data>
+  <data name="Speed" xml:space="preserve">
+    <value>Speed</value>
+  </data>
+  <data name="SpeedUp" xml:space="preserve">
+    <value>Speed up.</value>
+  </data>
+  <data name="StartParametersMustBeAValidLocal" xml:space="preserve">
+    <value>Start parameters must be a valid local or UNC filesystem path.</value>
+  </data>
+  <data name="StartsTheFileListMoreThan1" xml:space="preserve">
+    <value>Starts the file list more than 1 MiB. Please open in batches.</value>
+  </data>
+  <data name="StateUnknown" xml:space="preserve">
+    <value>(state unknown)</value>
+  </data>
+  <data name="StatusNotInPlace" xml:space="preserve">
+    <value>Status not in place</value>
+  </data>
+  <data name="StatusUnknown" xml:space="preserve">
+    <value>Status unknown</value>
+  </data>
+  <data name="StayInTheWindow" xml:space="preserve">
+    <value>Stay in the window</value>
+  </data>
+  <data name="Stop" xml:space="preserve">
+    <value>Stop</value>
+  </data>
+  <data name="StripHistorySkippingRecords" xml:space="preserve">
+    <value> strip history; Skipping records </value>
+  </data>
+  <data name="SubdirectoriesOfSubtitleSearchAreNotReadable" xml:space="preserve">
+    <value>Subdirectories of subtitle search are not readable or beyond security limits and do not apply results.</value>
+  </data>
+  <data name="Submit" xml:space="preserve">
+    <value>, submit </value>
+  </data>
+  <data name="SubmitLoginToOpenSubtitlesPasswordNotSaved" xml:space="preserve">
+    <value>Submit login to OpenSubtitles; password not saved…</value>
+  </data>
+  <data name="SubmittedToResourceManager" xml:space="preserve">
+    <value>Submitted to Resource Manager </value>
+  </data>
+  <data name="Subtitle2" xml:space="preserve">
+    <value>Subtitle 2</value>
+  </data>
+  <data name="SubtitleBackgroundColour" xml:space="preserve">
+    <value>Subtitle background colour</value>
+  </data>
+  <data name="SubtitleBatchesAreNotConfirmedForSubmission" xml:space="preserve">
+    <value>Subtitle batches are not confirmed for submission; please wait for the current track operation to try again.</value>
+  </data>
+  <data name="SubtitleDirectoryFormatIsInvalidWindowsPath" xml:space="preserve">
+    <value>Subtitle directory format is invalid; Windows path is separated by semicolon.</value>
+  </data>
+  <data name="SubtitleFiles" xml:space="preserve">
+    <value>Subtitle Files</value>
+  </data>
+  <data name="SubtitleFont" xml:space="preserve">
+    <value>Subtitle Font</value>
+  </data>
+  <data name="SubtitleLoadingIsNotConfirmedPleaseCheck" xml:space="preserve">
+    <value>Subtitle loading is not confirmed; please check loading status, submission cannot be withdrawn and no attempt is automatically repeated.</value>
+  </data>
+  <data name="SubtitleOperationNotSubmittedCheckMediaTrack" xml:space="preserve">
+    <value>Subtitle operation not submitted; check media, track and current status.</value>
+  </data>
+  <data name="SubtitleOperationsAreStillProcessingTheSubmitted" xml:space="preserve">
+    <value>Subtitle operations are still processing the submitted requests; the next instalment will not commence until a response has been received.</value>
+  </data>
+  <data name="SubtitleOutlineColor" xml:space="preserve">
+    <value>Subtitle Outline Color</value>
+  </data>
+  <data name="SubtitleParametersAreNotYetAvailablePlease" xml:space="preserve">
+    <value>Subtitle parameters are not yet available. Please wait for feedback from the player.</value>
+  </data>
+  <data name="SubtitlePreviewAaBb0123456789Chinese" xml:space="preserve">
+    <value>Subtitle preview Aa Bb 0123456789 Chinese</value>
+  </data>
+  <data name="SubtitleProcessingCompletedConfirmationRefersOnlyTo" xml:space="preserve">
+    <value>Subtitle processing completed; confirmation refers only to track facts and does not mean that subtitles have been drawn.</value>
+  </data>
+  <data name="SubtitleSearchDirectoriesAreAbove64Or" xml:space="preserve">
+    <value>Subtitle search directories are above 64 or path length limits, and the results are not applied.</value>
+  </data>
+  <data name="SubtitleSearchDirectoriesAreNotReadableOr" xml:space="preserve">
+    <value>Subtitle search directories are not readable or beyond security restrictions and do not apply results.</value>
+  </data>
+  <data name="SubtitleSearchPathsCannotUseDeviceNamespaces" xml:space="preserve">
+    <value>Subtitle search paths cannot use ~, device namespaces, or wildcards other than a trailing /*.</value>
+  </data>
+  <data name="SubtitleServiceFailed" xml:space="preserve">
+    <value>Subtitle service failed</value>
+  </data>
+  <data name="SubtitleServiceIsOver" xml:space="preserve">
+    <value>Subtitle service is over.</value>
+  </data>
+  <data name="SubtitleSettings" xml:space="preserve">
+    <value>Subtitle Settings</value>
+  </data>
+  <data name="SubtitleTextColour" xml:space="preserve">
+    <value>Subtitle Text Colour</value>
+  </data>
+  <data name="SubtitleTrack" xml:space="preserve">
+    <value>Subtitle Track</value>
+  </data>
+  <data name="Subtitles" xml:space="preserve">
+    <value>Subtitles</value>
+  </data>
+  <data name="SubtitlesActuallyScaled" xml:space="preserve">
+    <value>Subtitles actually scaled:</value>
+  </data>
+  <data name="SubtitlesAreNotFullyCompletedEntriesAre" xml:space="preserve">
+    <value>Subtitles are not fully completed; entries are loaded and not rolled back without an automatic retry.</value>
+  </data>
+  <data name="SubtitlesFailedToBeKeptAndThe" xml:space="preserve">
+    <value>Subtitles failed to be kept, and the original subtitles were kept.</value>
+  </data>
+  <data name="SubtitlesHaveBeenSaved" xml:space="preserve">
+    <value>Subtitles have been saved.</value>
+  </data>
+  <data name="SubtitlesSearchForMoreThan10000" xml:space="preserve">
+    <value>Subtitles search for more than 10,000 access limits, with no results.</value>
+  </data>
+  <data name="SubtitlesSearchForMoreThan512Subtitles" xml:space="preserve">
+    <value>Subtitles search for more than 512 subtitles or 1 MiB path limit, with no results.</value>
+  </data>
+  <data name="SubtitlesWithMoreThan1MiBUnmodified" xml:space="preserve">
+    <value>Subtitles with more than 1 MiB, unmodified.</value>
+  </data>
+  <data name="SupportedHTTPSTextSubtitlesWereNotFound" xml:space="preserve">
+    <value>Supported HTTPS text subtitles were not found; the service may have returned unsupported formats or downloaded domain names.</value>
+  </data>
+  <data name="SupportsHTTPSRTSPSRTMPS" xml:space="preserve">
+    <value>Supports HTTP(S), RTSP(S), RTMP(S), FTP, SFTP. Web addresses do not write play history.</value>
+  </data>
+  <data name="SynchronisingS" xml:space="preserve">
+    <value>Could not scan the folder</value>
+  </data>
+  <data name="SystemCompleteForDeletion" xml:space="preserve">
+    <value>System complete for deletion </value>
+  </data>
+  <data name="SystemMediaControlsAreNotAvailablePlay" xml:space="preserve">
+    <value>System media controls are not available; play-and-sleep policies are still available in the window. Close and re-open the player to retest system media controls.</value>
+  </data>
+  <data name="TabConflict" xml:space="preserve">
+    <value>Tab Conflict</value>
+  </data>
+  <data name="TenSecondsBack" xml:space="preserve">
+    <value>Ten seconds back.</value>
+  </data>
+  <data name="TenSecondsForward" xml:space="preserve">
+    <value>Ten seconds forward.</value>
+  </data>
+  <data name="Text1000X6002030Or80" xml:space="preserve">
+    <value>1000 x 600+20+30 or 80 + 50 + 50%</value>
+  </data>
+  <data name="Text3DLUTInMixedDragAnd" xml:space="preserve">
+    <value>
+3D LUT in mixed drag-and-drop; please drag a single LUT to the play area alone.</value>
+  </data>
+  <data name="Text3DLut" xml:space="preserve">
+    <value>3D Lut</value>
+  </data>
+  <data name="Text5121MiBCacheBudgetReachedOr" xml:space="preserve">
+    <value>512 (1MiB cache budget) reached or close to (2KiB tag each); refreshing clears time and label caches. - Does not indicate that.</value>
+  </data>
+  <data name="TextAreaHasChangedNotCoveredPlease" xml:space="preserve">
+    <value>Text area has changed, not covered. Please first export or save the required content, and then reread the line editor.</value>
+  </data>
+  <data name="TextColour" xml:space="preserve">
+    <value>Text Colour</value>
+  </data>
+  <data name="TextExceeding256KiBOrContainingNUL" xml:space="preserve">
+    <value>Text exceeding 256 KiB or containing NUL, not included.</value>
+  </data>
+  <data name="TheAreaMustBeAtLeast1" xml:space="preserve">
+    <value>; the area must be at least 1 pixel separated from the four sides for confirmation to be submitted.</value>
+  </data>
+  <data name="TheAutomaticMatchToTheDirectoryIs" xml:space="preserve">
+    <value>The automatic match to the directory is incomplete, and the queue or subtitle is not modified.</value>
+  </data>
+  <data name="TheBalancePresetIsNotReadable" xml:space="preserve">
+    <value>The balance preset is not readable.</value>
+  </data>
+  <data name="TheBuiltInLayoutOfTheASS" xml:space="preserve">
+    <value>The built-in layout of the ASS subtitles may overwhelm the style; zooming or repositioning may damage the layout.</value>
+  </data>
+  <data name="TheChangesAreOnlyInLineEdit" xml:space="preserve">
+    <value>. The changes are only in line edit drafts and have not yet generated text or application.</value>
+  </data>
+  <data name="TheChoiceOfMediaOrSubtitlesHas" xml:space="preserve">
+    <value>The choice of media or subtitles has changed. Please reopen it after canceling.</value>
+  </data>
+  <data name="TheClipboardDoesNotHaveAFile" xml:space="preserve">
+    <value>The clipboard does not have a file object or path text.</value>
+  </data>
+  <data name="TheClipboardIsBusyAndTheTrack" xml:space="preserve">
+    <value>The clipboard is busy and the track report is not copied.</value>
+  </data>
+  <data name="TheCommandReportIsWrongButRereading" xml:space="preserve">
+    <value>The command report is wrong, but rereading the confirmed track identity no longer exists; this cannot be the basis for claiming that the order was successful. No attempt has been made automatically.</value>
+  </data>
+  <data name="TheConfigurationSnapshotHasBeenUpdatedAnd" xml:space="preserve">
+    <value>The configuration snapshot has been updated and is being saved; the currently effective shortcut has not been changed.</value>
+  </data>
+  <data name="TheCropAreaIsInvalid" xml:space="preserve">
+    <value>The crop area is invalid.</value>
+  </data>
+  <data name="TheCroppingAreaMustBeWithinThe" xml:space="preserve">
+    <value>The cropping area must be within the source image and at least 1 x 1 pixel.</value>
+  </data>
+  <data name="TheCurrentColourIsUnknownUsingThe" xml:space="preserve">
+    <value>The current colour is unknown, using the default draft as the starting value.</value>
+  </data>
+  <data name="TheCurrentFontIsUnknownTheOpening" xml:space="preserve">
+    <value>The current font is unknown, the opening value is from the edit draft.</value>
+  </data>
+  <data name="TheCurrentIIMADoesNotAcceptThe" xml:space="preserve">
+    <value>The current IIMA does not accept the opening request and may be withdrawing. Please wait for it to exit and try again.</value>
+  </data>
+  <data name="TheCurrentKernelColourIsNotDecipherable" xml:space="preserve">
+    <value>The current kernel colour is not decipherable and the editorial draft is used as the starting value.</value>
+  </data>
+  <data name="TheCurrentLayoutDoesNotAccommodateThe" xml:space="preserve">
+    <value>The current layout does not accommodate the requested video size.</value>
+  </data>
+  <data name="TheCurrentLibmpvLacksASecureVideo" xml:space="preserve">
+    <value>The current libmpv lacks a secure video synthesis interface, please install a builder.</value>
+  </data>
+  <data name="TheCurrentScreenDoesNotRestoreThe" xml:space="preserve">
+    <value>The current screen does not restore the player position and does not change the current presentation pattern.</value>
+  </data>
+  <data name="TheCurrentScreenIsNotAvailablePlease" xml:space="preserve">
+    <value>The current screen is not available, please try again later.</value>
+  </data>
+  <data name="TheDecompositionPathExceeds1MiBWhich" xml:space="preserve">
+    <value>The decomposition path exceeds 1MiB, which is not open.</value>
+  </data>
+  <data name="TheDirectoryExceedsTheAutomaticMatchingOf" xml:space="preserve">
+    <value>The directory exceeds the automatic matching of 10,000 scans, and please open the file manually.</value>
+  </data>
+  <data name="TheDraftHasNotYetBeenApplied" xml:space="preserve">
+    <value>The draft has not yet been applied. Reverting the default also requires clicking on the application.</value>
+  </data>
+  <data name="TheDragAndDropNetworkURLIs" xml:space="preserve">
+    <value>The drag-and-drop network URL is invalid.</value>
+  </data>
+  <data name="TheDragAndDropNetworkURLLacks" xml:space="preserve">
+    <value>The drag-and-drop network URL lacks hostname.</value>
+  </data>
+  <data name="TheEdgeWidthMustBeALimited" xml:space="preserve">
+    <value>The edge width must be a limited value between 0 and 100.</value>
+  </data>
+  <data name="TheEditingAreaHasBeenReplacedAfter" xml:space="preserve">
+    <value>The editing area has been replaced; after checking, click Save and Apply to switch the current shortcut.</value>
+  </data>
+  <data name="TheEndpointMustBeALimitedNumber" xml:space="preserve">
+    <value>The endpoint must be a limited number of seconds between 0 and the current length.</value>
+  </data>
+  <data name="TheEntryContainsAPathThatCannot" xml:space="preserve">
+    <value>The entry contains a path that cannot be copied into a single line of text without loss, and the clipboard is not modified.</value>
+  </data>
+  <data name="TheEntryHasBeenCancelledAndThe" xml:space="preserve">
+    <value>The entry has been cancelled and the key fields remain unchanged.</value>
+  </data>
+  <data name="TheExpandedUTF8PathExceeds1" xml:space="preserve">
+    <value>The expanded UTF-8 path exceeds 1MiB and is not inserted.</value>
+  </data>
+  <data name="TheExternalTrackHasFailedOrThe" xml:space="preserve">
+    <value>The external track has failed or the result has not been confirmed; no automatic re-testing has taken place and the action submitted cannot be withdrawn.</value>
+  </data>
+  <data name="TheFastLUTUpdateFailedOrThe" xml:space="preserve">
+    <value>The fast LUT update failed or the result was not confirmed and not automatically retryed; the submitted operation cannot be withdrawn, please check the current filter chain.</value>
+  </data>
+  <data name="TheFastTrackLUTFilterUpdateHas" xml:space="preserve">
+    <value>The fast-track LUT filter update has been confirmed by the player.</value>
+  </data>
+  <data name="TheFileClipboardContainsVirtualObjectsDevice" xml:space="preserve">
+    <value>The file clipboard contains virtual objects, device paths or too many path data without a local path and is not pasted.</value>
+  </data>
+  <data name="TheFileOperationIsNotFullyCompleted" xml:space="preserve">
+    <value>The file operation is not fully completed; the deletions that have taken place do not roll back, so check the file before deciding whether to try again. Historical records are kept.</value>
+  </data>
+  <data name="TheFilterCannotBeParsedNoCropping" xml:space="preserve">
+    <value>The filter cannot be parsed, no cropping is reset.</value>
+  </data>
+  <data name="TheFinalFilterRequestHasBeenSubmitted" xml:space="preserve">
+    <value>The final filter request has been submitted and is awaiting the outcome; please do not consider the waiting to be completed as recovery.</value>
+  </data>
+  <data name="TheFinalRequestIsNotInThe" xml:space="preserve">
+    <value>The final request is not in the queue. You can click cancel or restore the original area filter again.</value>
+  </data>
+  <data name="TheFirstPageIsShownPleaseShrink" xml:space="preserve">
+    <value>The first page is shown. Please shrink the search word to find the target.</value>
+  </data>
+  <data name="TheInclusionHadBeenSubmittedPriorTo" xml:space="preserve">
+    <value>The inclusion had been submitted prior to cancellation; rereading confirmation that the target external track had been selected and could not be withdrawn.</value>
+  </data>
+  <data name="TheInclusionOrderWasConfirmedButThe" xml:space="preserve">
+    <value>The inclusion order was confirmed, but the subsequent track selection was not confirmed; no automatic re-testing was performed and the action submitted could not be withdrawn.</value>
+  </data>
+  <data name="TheInitialColourIsDerivedFromThe" xml:space="preserve">
+    <value>The initial colour is derived from the current kernel observation value.</value>
+  </data>
+  <data name="TheInitialWindowGeometryCannotBeApplied" xml:space="preserve">
+    <value>The initial window geometry cannot be applied to the current screen and the current window position is maintained.</value>
+  </data>
+  <data name="TheInitialWindowSavedIsGeometricallyInvalid" xml:space="preserve">
+    <value>The initial window saved is geometrically invalid, and the current window position is maintained.</value>
+  </data>
+  <data name="TheInspectionHasBeenRequestedToStop" xml:space="preserve">
+    <value>The inspection has been requested to stop; ongoing Windows file queries may still need to be returned.</value>
+  </data>
+  <data name="TheInvertedStateIsUnknown" xml:space="preserve">
+    <value> The inverted state is unknown.</value>
+  </data>
+  <data name="TheLayoutOfTheWindowIsStill" xml:space="preserve">
+    <value>The layout of the window is still changing. Please try again the video size scaling at a later stage.</value>
+  </data>
+  <data name="TheLinkIsRegisteredByTheIIMA" xml:space="preserve">
+    <value>The link is registered by the IIMA at another location, and please cancel the registration in that copy.</value>
+  </data>
+  <data name="TheListHasChangedDuringTheReading" xml:space="preserve">
+    <value>The list has changed during the reading of the file clipboard, please repaint.</value>
+  </data>
+  <data name="TheListOfAudioDevicesIsNot" xml:space="preserve">
+    <value>The list of audio devices is not yet fully read, so please re-select later.</value>
+  </data>
+  <data name="TheListOfMediaOrAudioDevices" xml:space="preserve">
+    <value>The list of media or audio devices has changed. Please reopen the device menu.</value>
+  </data>
+  <data name="TheLoopEndpointsChangedHaveNotBeen" xml:space="preserve">
+    <value>The loop endpoints changed, have not been set, or the command was rejected. Read them again.</value>
+  </data>
+  <data name="TheMainSubtitleSharingStyleTheASS" xml:space="preserve">
+    <value> The main subtitle sharing style, the ASS built-in layout, may overwhelm the selection. Only submit the colour after confirmation, without changing the width of the frame. Eight sRGBs, transparency 0 is completely transparent.</value>
+  </data>
+  <data name="TheManualConnectionWillBeAppliedNext" xml:space="preserve">
+    <value>The manual connection will be applied next time you play this entry.</value>
+  </data>
+  <data name="TheMapIsNotReadyToBe" xml:space="preserve">
+    <value>The map is not ready to be confirmed. Unable to restore the original area filter.</value>
+  </data>
+  <data name="TheMaximumNumberOfSubtitlingCachesPer" xml:space="preserve">
+    <value>The maximum number of subtitling caches per medium is 64, with the rest matching uncut.</value>
+  </data>
+  <data name="TheMediaChangedDuringTheFinalRequest" xml:space="preserve">
+    <value>The media changed during the final request and the result was not confirmed by the original media; the original expression was retained.</value>
+  </data>
+  <data name="TheMediaHasChangedOrCannotJump" xml:space="preserve">
+    <value>The media has changed or cannot jump, please cancel and reopen.</value>
+  </data>
+  <data name="TheMediaHasChangedPleaseReopenThe" xml:space="preserve">
+    <value>The media has changed, please reopen the menu.</value>
+  </data>
+  <data name="TheMediaHasChangedPleaseReopenThe2" xml:space="preserve">
+    <value>The media has changed, please reopen the track menu.</value>
+  </data>
+  <data name="TheMediaHaveChangedDuringTheConfirmation" xml:space="preserve">
+    <value>The media have changed during the confirmation period and have not started to be deleted.</value>
+  </data>
+  <data name="TheMediaOrPlaylistChangesDuringThe" xml:space="preserve">
+    <value>The media or playlist changes during the confirmation period are not started to be deleted. Please recheck.</value>
+  </data>
+  <data name="TheMediaTheSavedFilterOrThe" xml:space="preserve">
+    <value>The media, the saved filter or the current filter chain have changed. Please reopen the menu.</value>
+  </data>
+  <data name="TheMergerExceededTheMaximumOf64" xml:space="preserve">
+    <value>The merger exceeded the maximum of 64 subtitles per entry without modification of the association.</value>
+  </data>
+  <data name="TheNameCannotBeEmptyOrDuplicate" xml:space="preserve">
+    <value>The name cannot be empty or duplicate existing presets, and the gain must be valid.</value>
+  </data>
+  <data name="TheNewAreaFilterIsNotConfirmed" xml:space="preserve">
+    <value>The new area filter is not confirmed; the reading results are still empty.</value>
+  </data>
+  <data name="TheNewAreaFilterIsNotConfirmed2" xml:space="preserve">
+    <value>The new area filter is not confirmed; the reading results indicate that the original area filter is still in place.</value>
+  </data>
+  <data name="TheNewAreaFilterWasNotSuccessfully" xml:space="preserve">
+    <value>The new area filter was not successfully confirmed and the restoration of the original area filter has been requested; the recovery results are still pending.</value>
+  </data>
+  <data name="TheNumberOfCyclesIs0And" xml:space="preserve">
+    <value> The number of cycles is 0 and will not be repeated at this time.</value>
+  </data>
+  <data name="TheOldSnapshotHasBeenRestoredAnd" xml:space="preserve">
+    <value>The old snapshot has been restored and is being saved; the current shortcut key has not yet been applied.</value>
+  </data>
+  <data name="TheOpeningValueIsDerivedFromThe" xml:space="preserve">
+    <value>The opening value is derived from the current subtitle font. Select a local font family or manually enter a name.</value>
+  </data>
+  <data name="TheOrbitalListHasBeenRereadTo" xml:space="preserve">
+    <value>The track list has been reread to confirm that the target external track no longer exists. No source file has been deleted and no alternative track has been automatically selected.</value>
+  </data>
+  <data name="TheOriginalAreaFilterHasBeenTemporarily" xml:space="preserve">
+    <value>The original area filter has been temporarily removed pending full source image mapping; the request will be cancelled to restore the original area filter.</value>
+  </data>
+  <data name="TheOriginalAreaFilterIsBeingTemporarily" xml:space="preserve">
+    <value>The original area filter is being temporarily removed and the result read; the cancellation will be restored after the result has been confirmed.</value>
+  </data>
+  <data name="TheOriginalChoiceIsNotConfirmed" xml:space="preserve">
+    <value> The original choice is not confirmed.</value>
+  </data>
+  <data name="TheOriginalDataCouldNotBeRead" xml:space="preserve">
+    <value>The original data could not be read or backed up. This session will not overwrite it. Changes will be discarded when you exit.</value>
+  </data>
+  <data name="TheOriginalLogCollectionRequestHasNot" xml:space="preserve">
+    <value>The original log collection request has not been submitted. Please wait for the player to be ready to try again.</value>
+  </data>
+  <data name="TheOriginalPathHasBeenFilledAnd" xml:space="preserve">
+    <value>The original path has been filled and the filter has not been generated or added. The file format is confirmed by FFmpeg.</value>
+  </data>
+  <data name="TheOtherMediaHasNotYetBeen" xml:space="preserve">
+    <value>The other media has not yet been opened. Please wait and redo the subtitles.</value>
+  </data>
+  <data name="ThePathDraftHasBeenChangedNot" xml:space="preserve">
+    <value>The path draft has been changed, not covered. Please re-select.</value>
+  </data>
+  <data name="ThePendingPasteHasBeenCancelledSubmitted" xml:space="preserve">
+    <value>The pending paste has been cancelled; submitted player operations are not affected.</value>
+  </data>
+  <data name="ThePlayHistoryIsNotReadableThe" xml:space="preserve">
+    <value> The play history is not readable, the original document is preserved.</value>
+  </data>
+  <data name="ThePlayerDirectoryContainsCharactersThatCannot" xml:space="preserve">
+    <value>The player directory contains characters that cannot be safely written to the associated command template. Please move to a directory without quotation marks or percentage marks.</value>
+  </data>
+  <data name="ThePlayerMayBeSwitchingOrProcessing" xml:space="preserve">
+    <value>;The player may be switching or processing another track operation.</value>
+  </data>
+  <data name="ThePlayerOptionUsesAnUpstreamKeyname" xml:space="preserve">
+    <value>The player option uses an upstream keyname. The immediate item is submitted to the kernel; the item marked " Next Open " does not rewrite the current medium. The control value indicates preference and does not mean that the kernel has been confirmed.</value>
+  </data>
+  <data name="ThePlaylistChangedDuringTheParseFile" xml:space="preserve">
+    <value>The playlist changed during the parse file, not inserted; please paste again.</value>
+  </data>
+  <data name="ThePlaylistHasChangedPleaseReSelect" xml:space="preserve">
+    <value>The playlist has changed. Please re-select after updating.</value>
+  </data>
+  <data name="ThePlaylistIsTooLargeToKeep" xml:space="preserve">
+    <value>The playlist is too large to keep the context inserted; please start in batches.</value>
+  </data>
+  <data name="ThePlaylistIsTooLargeToKeep2" xml:space="preserve">
+    <value>The playlist is too large to keep dragshots safely; please change to the queue button.</value>
+  </data>
+  <data name="ThePresetHasBeenChangedToCover" xml:space="preserve">
+    <value>The preset has been changed to cover new changes.</value>
+  </data>
+  <data name="TheQueueHasChangedOrIsAssociated" xml:space="preserve">
+    <value>The queue has changed or is associated with more than the storage budget, and the association has not been modified.</value>
+  </data>
+  <data name="TheQueueHasChangedOrTheConnection" xml:space="preserve">
+    <value>The queue has changed or the connection cannot be updated. Please re-select.</value>
+  </data>
+  <data name="TheQueueOrPlayRequestHasChanged" xml:space="preserve">
+    <value>The queue or play request has changed during the selection of subtitles, and the association has not been changed.</value>
+  </data>
+  <data name="TheReloadCommandHasConfirmedThatThe" xml:space="preserve">
+    <value>The reload command has confirmed that the rereading has confirmed the existence of the target track and the original selection has been restored. The track ID may change; it does not represent the header or sound is present.</value>
+  </data>
+  <data name="TheRemovalBeforeTheCancellationHasBeen" xml:space="preserve">
+    <value>The removal before the cancellation has been submitted; read again to confirm that the original track no longer exists. No source file has been deleted.</value>
+  </data>
+  <data name="TheResultOfTheRequestToReceive" xml:space="preserve">
+    <value>The result of the request to receive the account has been cancelled. The request sent cannot be withdrawn and the server may have created or closed a session.</value>
+  </data>
+  <data name="TheSavedToolbarConfigurationIsInvalidNot" xml:space="preserve">
+    <value>The saved toolbar configuration is invalid, not overwritten.</value>
+  </data>
+  <data name="TheScreenshotFileNameTemplateIsInvalid" xml:space="preserve">
+    <value>The screenshot file name template is invalid and only %F, %n and %% are supported and cannot contain the path.</value>
+  </data>
+  <data name="TheScreenshotHasBeenSaved" xml:space="preserve">
+    <value>The screenshot has been saved.</value>
+  </data>
+  <data name="TheScreenshotIsClosedAndCopyingIs" xml:space="preserve">
+    <value>The screenshot is closed and copying is closed. Please enable at least one output.</value>
+  </data>
+  <data name="TheScreenshotTemplateIsInvalidOnlyF" xml:space="preserve">
+    <value>The screenshot template is invalid: only %F, %n, %%, may not contain path, name or super long result.</value>
+  </data>
+  <data name="TheSelectedAddressHasBeenGivenTo" xml:space="preserve">
+    <value>The selected address has been given to the default browser; unverified whether the page is loaded.</value>
+  </data>
+  <data name="TheSelectedEntryContainsAnInvalidNetwork" xml:space="preserve">
+    <value>The selected entry contains an invalid network address and does not open a new window.</value>
+  </data>
+  <data name="TheSelectedEntryContainsInvalidPathsOr" xml:space="preserve">
+    <value>The selected entry contains invalid paths or more than 1MiB, and no new window has been opened.</value>
+  </data>
+  <data name="TheSelectedEntryDoesNotHaveA" xml:space="preserve">
+    <value>The selected entry does not have a local document that can be located.</value>
+  </data>
+  <data name="TheSelectedFileDoesNotHaveA" xml:space="preserve">
+    <value>The selected file does not have a local path or is too long.</value>
+  </data>
+  <data name="TheSelectedHistoricalPathExceeds1MiB" xml:space="preserve">
+    <value>The selected historical path exceeds 1 MiB, which is not open.</value>
+  </data>
+  <data name="TheSelectedItemIsNotAValid" xml:space="preserve">
+    <value>The selected item is not a valid generic subtitle file and the link is not modified.</value>
+  </data>
+  <data name="TheSelectedLogHasBeenPlacedOn" xml:space="preserve">
+    <value>The selected log has been placed on the clipboard.</value>
+  </data>
+  <data name="TheSelectedOriginalLogHasBeenCopied" xml:space="preserve">
+    <value>The selected original log has been copied to disable clipboard history and roaming. Please check for confidential information before sharing.</value>
+  </data>
+  <data name="TheSelectedPathTextIsCopiedThe" xml:space="preserve">
+    <value>The selected path text is copied. The network address may contain private parameters, and please paste carefully.</value>
+  </data>
+  <data name="TheSelectedTrackReportHasBeenCopied" xml:space="preserve">
+    <value>The selected track report has been copied to disable clipboard history and roaming; confidential information such as external paths is shared.</value>
+  </data>
+  <data name="TheSelectionOfMediaOrSubtitlesHas" xml:space="preserve">
+    <value>The selection of media or subtitles has changed. Please re-select the colour after canceling.</value>
+  </data>
+  <data name="TheServerRejectsTheCurrentLoginDocument" xml:space="preserve">
+    <value>The server rejects the current login document and has cleared the local session; please check API Key and re-enter.</value>
+  </data>
+  <data name="TheServerRejectsTheCurrentLoginDocument2" xml:space="preserve">
+    <value>The server rejects the current login document and has cleared the local session; please re-entry.</value>
+  </data>
+  <data name="TheSizeOfTheSourceVideoHas" xml:space="preserve">
+    <value>The size of the source video has been changed and the interactive area selection has been cancelled; the playback has not resumed automatically.</value>
+  </data>
+  <data name="TheSmallWindowSwitchWasNotCompleted" xml:space="preserve">
+    <value>The small window switch was not completed; the return player can be used to try again.</value>
+  </data>
+  <data name="TheSnapshotHasBeenRenamedAndIs" xml:space="preserve">
+    <value>The snapshot has been renamed and is being saved; the current shortcut is unchanged from the editing area.</value>
+  </data>
+  <data name="TheSnapshotHasChangedAgainAndIs" xml:space="preserve">
+    <value>The snapshot has changed again and is not covered by the old version; please keep the current editing first.</value>
+  </data>
+  <data name="TheSourceImageIsTooSmallTo" xml:space="preserve">
+    <value>The source image is too small to select the marked area; the original filter has been requested to be restored and wait for the result.</value>
+  </data>
+  <data name="TheSourceImageIsTooSmallTo2" xml:space="preserve">
+    <value>The source image is too small to select the marked area.</value>
+  </data>
+  <data name="TheStripAtLeast" xml:space="preserve">
+    <value> The strip, at least. </value>
+  </data>
+  <data name="TheSubtitleSearchPathIsTooLong" xml:space="preserve">
+    <value>The subtitle search path is too long or contains a NUL character.</value>
+  </data>
+  <data name="TheSystemDoesNotOpenTheBrowser" xml:space="preserve">
+    <value>The system does not open the browser. The queue and the current play is unchanged.</value>
+  </data>
+  <data name="TheTargetListIsTooLargeTo" xml:space="preserve">
+    <value>The target list is too large to secure the copy of the drop-point snapshot.</value>
+  </data>
+  <data name="TheTemporaryRemovalRequestIsNotQueued" xml:space="preserve">
+    <value>The temporary removal request is not queued and the original area filter is not modified by this operation.</value>
+  </data>
+  <data name="TheTemporaryRemovalResultWasNotConfirmed" xml:space="preserve">
+    <value>The temporary removal result was not confirmed or external changes occurred; the filter was not overwritten and the original expression was retained.</value>
+  </data>
+  <data name="TheToolbarDraftIsInvalidNotApplied" xml:space="preserve">
+    <value>The toolbar draft is invalid, not applied.</value>
+  </data>
+  <data name="TheToolbarPreferencesHaveBeenChangedElsewhere" xml:space="preserve">
+    <value>The toolbar preferences have been changed elsewhere. Please cancel the draft, re-edit and avoid overwhelming the new configuration.</value>
+  </data>
+  <data name="TheTrackListHasChangedPleaseReopen" xml:space="preserve">
+    <value>The track list has changed, please reopen the menu.</value>
+  </data>
+  <data name="TheTrackListIsTooLargeOr" xml:space="preserve">
+    <value>The track list is too large or the identity is not clear and partial results are not shown. Please wait for the full player to see.</value>
+  </data>
+  <data name="TheTwoEndpointsAreIdenticalAndDo" xml:space="preserve">
+    <value> The two endpoints are identical and do not currently form an effective compartment.</value>
+  </data>
+  <data name="TheVideoFilterWasChangedDuringThe" xml:space="preserve">
+    <value>The video filter was changed during the preview by other operations and is not covered; the original area filter expression is maintained.</value>
+  </data>
+  <data name="TheVideoOrSizeHasChangedRead" xml:space="preserve">
+    <value>The video or size has changed. Read the size again.</value>
+  </data>
+  <data name="TheVideoPanelSDPIScalingRatio" xml:space="preserve">
+    <value>The video panel 's DPI scaling ratio is invalid.</value>
+  </data>
+  <data name="TheVideoPixelSizeHasNotYet" xml:space="preserve">
+    <value>The video pixel size has not yet been obtained.</value>
+  </data>
+  <data name="TheWithdrawalOfTheSnapshotDidNot" xml:space="preserve">
+    <value>The withdrawal of the snapshot did not pass the preset verification and the current preset remains unchanged.</value>
+  </data>
+  <data name="ThereAreMoreThan256CoDirectorial" xml:space="preserve">
+    <value>There are more than 256 co-directorial media without automatically expanding the playlist.</value>
+  </data>
+  <data name="ThereAreNoLocallyAvailableRecentItems" xml:space="preserve">
+    <value>No recent local files are currently available. View history or refresh file status in the sidebar.</value>
+  </data>
+  <data name="ThereAreNoNonCurrentLocalFiles" xml:space="preserve">
+    <value>There are no non-current local files that can be deleted; network history and current play files will not be deleted.</value>
+  </data>
+  <data name="ThereAreNoNonCurrentLocalFiles2" xml:space="preserve">
+    <value>There are no non-current local files that can be deleted. Network entries and current play files will not be deleted.</value>
+  </data>
+  <data name="ThereAreNoOpenFilesInThe" xml:space="preserve">
+    <value>There are no open files in the selected history. Please refresh the file status.</value>
+  </data>
+  <data name="ThereAreNoOpenMediaOrSubtitles" xml:space="preserve">
+    <value>There are no open media or subtitles to drag and drop.</value>
+  </data>
+  <data name="ThereAreNoPlayableEntriesInThe" xml:space="preserve">
+    <value>There are no playable entries in the clipboard file.</value>
+  </data>
+  <data name="ThereAreNoSelectedEntriesThatCan" xml:space="preserve">
+    <value>There are no selected entries that can be copied.</value>
+  </data>
+  <data name="ThereIsCurrentlyNoConfiguredPlaybackSo" xml:space="preserve">
+    <value>There is currently no configured playback, so it is not possible to scale it by video.</value>
+  </data>
+  <data name="ThereSMore" xml:space="preserve">
+    <value>There's more. </value>
+  </data>
+  <data name="ThereWasAnErrorInTheOrbital" xml:space="preserve">
+    <value>There was an error in the track reloading submission; the submitted operation cannot be withdrawn, please check the current track.</value>
+  </data>
+  <data name="ThisAudioDeviceIsNoLongerAvailable" xml:space="preserve">
+    <value>This audio device is no longer available, please reopen the device menu.</value>
+  </data>
+  <data name="ThisBatchOpensRequestsNeedMoreThan" xml:space="preserve">
+    <value>This batch opens requests need more than 16 windows. Enable or reduce the selection for groupSimultaneousInPlaylist; this batch is not open.</value>
+  </data>
+  <data name="ThisChangeHasNotBeenSaved" xml:space="preserve">
+    <value>. This change has not been saved.</value>
+  </data>
+  <data name="ThisEntryIsNotTiedToSubtitles" xml:space="preserve">
+    <value>This entry is not tied to subtitles.</value>
+  </data>
+  <data name="ThisFeatureOnlySupportsLocalMediaPaths" xml:space="preserve">
+    <value>This feature only supports local media paths.</value>
+  </data>
+  <data name="ThisHistoryHasBeenRemovedPleaseReopen" xml:space="preserve">
+    <value>This history has been removed. Please reopen the recently played menu.</value>
+  </data>
+  <data name="ThisIsToRemoveDiskFilesNot" xml:space="preserve">
+    <value>This is to remove disk files, not just playlists. Windows will give priority to the wastebin; when recovery is not possible, the system will be asked to confirm permanent deletions. Please cancel the files that do not want to be permanently deleted in the system dialogue box.
+
+</value>
+  </data>
+  <data name="ThisOperationIsNotCurrentlyAvailable" xml:space="preserve">
+    <value>This operation is not currently available.</value>
+  </data>
+  <data name="ThisOptionCannotBeCopiedAcrossThe" xml:space="preserve">
+    <value>This option cannot be copied across the window: a maximum of 1,000 items/1MiB, only a normal absolute disk path or a visible network URL; local playlists, device paths or special protocols are not supported.</value>
+  </data>
+  <data name="ThisPostIsPartOfOurSpecial" xml:space="preserve">
+    <value>This post is part of our special coverage Global Voices 2011.</value>
+  </data>
+  <data name="ThisPreferenceMustBeInteger" xml:space="preserve">
+    <value>This preference must be integer.</value>
+  </data>
+  <data name="ThisQueueEntryHasBeenSavedAnd" xml:space="preserve">
+    <value>This queue entry has been saved, and will be used next time you play this entry; the current subtitle has not been changed.</value>
+  </data>
+  <data name="ThisRatioIsLessThanOnePixel" xml:space="preserve">
+    <value>This ratio is less than one pixel in the current video and does not generate cropping.</value>
+  </data>
+  <data name="ThisRecentItemIsNoLongerAvailable" xml:space="preserve">
+    <value>This recent item is no longer available or is not a regular media file; if it is not open, please recheck with the open file.</value>
+  </data>
+  <data name="ThisShortcutIsAlreadyUsedByInput" xml:space="preserve">
+    <value>This shortcut is already used by input.conf. Change the shortcut configuration or select another key.</value>
+  </data>
+  <data name="ThisWindowDiagnosticLogIsNotAvailable" xml:space="preserve">
+    <value>This window diagnostic log is not available.</value>
+  </data>
+  <data name="ThisWindowHasBeenLoggedInFor" xml:space="preserve">
+    <value>This window has been logged in for more than 23 hours and cleared; please re-entry. The server is still valid for response.</value>
+  </data>
+  <data name="ThisWindowHasReachedTheTemporarySubtitle" xml:space="preserve">
+    <value>This window has reached the temporary subtitle limit. Please try again after closing the window.</value>
+  </data>
+  <data name="TimeAccuracy100Ms" xml:space="preserve">
+    <value>Time accuracy: 100 ms</value>
+  </data>
+  <data name="TimeAccuracy10Ms" xml:space="preserve">
+    <value>Time accuracy: 10 ms</value>
+  </data>
+  <data name="TimeAccuracy1Millisecond" xml:space="preserve">
+    <value>Time accuracy: 1 millisecond</value>
+  </data>
+  <data name="TimeAccuracy1Second" xml:space="preserve">
+    <value>Time accuracy: 1 second</value>
+  </data>
+  <data name="TimeRemainingAtPlaySpeed" xml:space="preserve">
+    <value>Time remaining at play speed</value>
+  </data>
+  <data name="ToAvoidLoopsDoNotGoThrough" xml:space="preserve">
+    <value>To avoid loops, do not go through linked folders</value>
+  </data>
+  <data name="ToSubmitTheFilterOnlyAfterConfirmation" xml:space="preserve">
+    <value>;to submit the filter only after confirmation.</value>
+  </data>
+  <data name="ToggleDrawings" xml:space="preserve">
+    <value>Toggle Picture-in-Picture</value>
+  </data>
+  <data name="ToggleMusicMode" xml:space="preserve">
+    <value>Toggle Music Mode</value>
+  </data>
+  <data name="TooManyFilesToOpenAtOnce" xml:space="preserve">
+    <value>Too many files to open at once, please open in batches.</value>
+  </data>
+  <data name="TotalKnown" xml:space="preserve">
+    <value>Total known </value>
+  </data>
+  <data name="TotalMediaTime" xml:space="preserve">
+    <value>Total media time</value>
+  </data>
+  <data name="Track" xml:space="preserve">
+    <value>Track</value>
+  </data>
+  <data name="TrackIsSelectedThisLoadDoesNot" xml:space="preserve">
+    <value>Track is selected. This load does not automatically switch to play/stop; it does not represent a sound or image.</value>
+  </data>
+  <data name="TryAgainInThisWindow" xml:space="preserve">
+    <value>Try again in this window</value>
+  </data>
+  <data name="TryAgainToReturnPlayer" xml:space="preserve">
+    <value>Try again to return player</value>
+  </data>
+  <data name="UTF8Log" xml:space="preserve">
+    <value>UTF-8 Log</value>
+  </data>
+  <data name="UTF8Playlist" xml:space="preserve">
+    <value>UTF-8 Playlist</value>
+  </data>
+  <data name="UnableToAccessPath" xml:space="preserve">
+    <value>Unable to access path</value>
+  </data>
+  <data name="UnableToConfirmTheRestorationOrApplication" xml:space="preserve">
+    <value>Unable to confirm the restoration or application result, do not overwrite the current filter again; the original area filter expression is preserved for manual recovery.</value>
+  </data>
+  <data name="UnableToParseAbsolutePath" xml:space="preserve">
+    <value>Unable to parse absolute path</value>
+  </data>
+  <data name="UnableToReadLongAtStartUp" xml:space="preserve">
+    <value>Unable to read long at start-up; can refresh and retry at a later time in a visible fashion.</value>
+  </data>
+  <data name="UnableToShowOrCompleteReloadConfirmation" xml:space="preserve">
+    <value>Unable to show or complete reload confirmation in track, no automatic retry.</value>
+  </data>
+  <data name="UnableToShowOrCompleteTrackRemoval" xml:space="preserve">
+    <value>Unable to show or complete track removal confirmation, no automatic retry.</value>
+  </data>
+  <data name="UnableToWriteToClipboardNoQueue" xml:space="preserve">
+    <value>Unable to write to clipboard; no queue entries removed.</value>
+  </data>
+  <data name="UndoTheShortcutThatRestoresTheConflict" xml:space="preserve">
+    <value>Undo the shortcut that restores the conflict with the current input.conf, please resolve the conflict first.</value>
+  </data>
+  <data name="Unknown" xml:space="preserve">
+    <value>Unknown </value>
+  </data>
+  <data name="Unknown2" xml:space="preserve">
+    <value>Unknown </value>
+  </data>
+  <data name="Unknown3" xml:space="preserve">
+    <value>Unknown</value>
+  </data>
+  <data name="UnknownAction" xml:space="preserve">
+    <value>Unknown Action</value>
+  </data>
+  <data name="UnknownDate" xml:space="preserve">
+    <value>Unknown date</value>
+  </data>
+  <data name="UnknownError" xml:space="preserve">
+    <value>Unknown error</value>
+  </data>
+  <data name="UnknownLocation" xml:space="preserve">
+    <value>Unknown location</value>
+  </data>
+  <data name="UnmountedMedia" xml:space="preserve">
+    <value>Unmounted Media</value>
+  </data>
+  <data name="UnrecognizedFilterLinesCouldNotBeSaved" xml:space="preserve">
+    <value>Unrecognized filter lines could not be saved.</value>
+  </data>
+  <data name="UnsolvedItem" xml:space="preserve">
+    <value>,Unsolved Item </value>
+  </data>
+  <data name="Untitled" xml:space="preserve">
+    <value>Untitled</value>
+  </data>
+  <data name="UpAndDown" xml:space="preserve">
+    <value>Up and down:</value>
+  </data>
+  <data name="UpTo10000Bindings" xml:space="preserve">
+    <value>Up to 10,000 bindings.</value>
+  </data>
+  <data name="UseAFullAbsolutePathIncludingThe" xml:space="preserve">
+    <value>Use a full absolute path, including the drive letter for a drive root.</value>
+  </data>
+  <data name="UseARelativeOrFullyQualifiedSubtitle" xml:space="preserve">
+    <value>Use a relative or fully qualified subtitle search path. URIs, alternate data streams, and drive-relative paths are unsupported.</value>
+  </data>
+  <data name="ValuesAreFedBackByThePlayer" xml:space="preserve">
+    <value>Values are fed back by the player; changes are made until the actual properties are updated.</value>
+  </data>
+  <data name="Video" xml:space="preserve">
+    <value>Video</value>
+  </data>
+  <data name="VideoOnly" xml:space="preserve">
+    <value>Video only</value>
+  </data>
+  <data name="VideoOutputSizeUpdateFailed" xml:space="preserve">
+    <value>Video output size update failed.</value>
+  </data>
+  <data name="VideoSettings" xml:space="preserve">
+    <value>Video Settings</value>
+  </data>
+  <data name="VideoSizeRotationOrBuiltInCropping" xml:space="preserve">
+    <value>Video size, rotation, or built-in cropping is not yet supported, and the window is not modified.</value>
+  </data>
+  <data name="VideoTrack" xml:space="preserve">
+    <value>Video Track</value>
+  </data>
+  <data name="VideosAndSubtitles" xml:space="preserve">
+    <value>Videos and Subtitles</value>
+  </data>
+  <data name="Volume" xml:space="preserve">
+    <value>Volume</value>
+  </data>
+  <data name="VolumeReduction" xml:space="preserve">
+    <value>Volume Reduction</value>
+  </data>
+  <data name="VolumeSilence" xml:space="preserve">
+    <value>Volume (Silence)</value>
+  </data>
+  <data name="WaitForTheMediaToLoad" xml:space="preserve">
+    <value>Wait for the media to load.</value>
+  </data>
+  <data name="WaitingForACombinationOfKeys" xml:space="preserve">
+    <value>Waiting for a combination of keys…</value>
+  </data>
+  <data name="WaitingForTheCompletionOfTheSubmitted" xml:space="preserve">
+    <value>Waiting for the completion of the submitted track operation; another reload cannot be started.</value>
+  </data>
+  <data name="WaitingForTheCompletionOfTheSubmitted2" xml:space="preserve">
+    <value>Waiting for the completion of the submitted track operation; cannot start another removal.</value>
+  </data>
+  <data name="WaitingForTheEndOfTheTrailing" xml:space="preserve">
+    <value>Waiting for the end of the trailing subtitle…</value>
+  </data>
+  <data name="WaitingForTheSubmittedOrbitalLoadingOperation" xml:space="preserve">
+    <value>Waiting for the submitted track loading operation to be completed…</value>
+  </data>
+  <data name="WaitsForCompatibleAndStableVideoMaps" xml:space="preserve">
+    <value>Waits for compatible and stable video maps; exit can be cancelled. Unsupported changes such as rotation/internal tailoring need to be restored first.</value>
+  </data>
+  <data name="WebBasedMedia" xml:space="preserve">
+    <value>Web-based media</value>
+  </data>
+  <data name="WebBasedMediaAreBeingRedirectedOr" xml:space="preserve">
+    <value>Web-based media are being redirected or awaiting confirmation and can be cancelled.</value>
+  </data>
+  <data name="WhatSLeft" xml:space="preserve">
+    <value>What's left? </value>
+  </data>
+  <data name="Window" xml:space="preserve">
+    <value>Window</value>
+  </data>
+  <data name="WindowDimensions" xml:space="preserve">
+    <value>Window Dimensions</value>
+  </data>
+  <data name="WindowGeometryFormatIsInvalidExample1000" xml:space="preserve">
+    <value>Window geometry format is invalid. Example: 1000x600+2030, 80%+50+50+50+50+20-30; leave the first video size in the middle of the current screen. Next new player is effective.</value>
+  </data>
+  <data name="WindowLayoutIsBeingRestoredPleaseEnter" xml:space="preserve">
+    <value>Window layout is being restored, please enter the full screen again later.</value>
+  </data>
+  <data name="WindowLocationFileCouldNotBeRead" xml:space="preserve">
+    <value> window location file could not be read, keep the original file.</value>
+  </data>
+  <data name="WindowPositionNotRestored" xml:space="preserve">
+    <value>Window position not restored:</value>
+  </data>
+  <data name="WindowsWasUnableToOpenTheScreenshot" xml:space="preserve">
+    <value>Windows was unable to open the screenshot. Please check the default image application.</value>
+  </data>
+  <data name="YouCanConfigureUpTo32Subtitle" xml:space="preserve">
+    <value>You can configure up to 32 subtitle search paths.</value>
+  </data>
+</root>

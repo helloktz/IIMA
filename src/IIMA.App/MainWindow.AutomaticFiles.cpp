@@ -108,7 +108,7 @@ void MainWindow::UpdateAutomaticFiles() {
                 }
                 self->automaticFilesPath_.clear(); // Reentrant Notify cannot restart this scan.
                 if (!result.complete) {
-                    self->ShowError(L"同目录自动匹配未完整完成，未修改队列或字幕。");
+                    self->ShowError(iima::loc::Text(L"TheAutomaticMatchToTheDirectoryIs"));
                     return;
                 }
                 std::vector<std::string> before, after;
@@ -153,16 +153,16 @@ void MainWindow::UpdateAutomaticFiles() {
                 }
                 self->UpdateAutomaticSubtitleCache(); // Initial batch waits for expansion readback.
                 std::wstring warning;
-                if (subtitleLimited) warning=L"自动字幕最多添加64项；其余匹配未添加，请手动选择。";
+                if (subtitleLimited) warning=iima::loc::Text(L"AutomaticSubtitlesAddUpTo64Entries");
                 if (!result.warnings.empty()) {
                     if (!warning.empty()) warning+=L"\n";
-                    warning+=L"同目录自动匹配已跳过部分内容：" + result.warnings.front();
+                    warning+=iima::loc::Text(L"AutomaticallyMatchingADirectoryToASkipping") + result.warnings.front();
                 }
                 if (!warning.empty()) self->ShowError(hstring(warning));
             });
     } catch (...) {
         CancelAutomaticFiles();
-        ShowError(L"无法开始同目录自动匹配，未修改队列或字幕。");
+        ShowError(iima::loc::Text(L"CouldNotStartMatchingFilesInThe"));
     }
 }
 void MainWindow::ClearAutomaticSubtitleCache() {
@@ -186,7 +186,7 @@ void MainWindow::RetainAutomaticSubtitleMatches(iima::SubtitleMatchResult const&
             if (item.subtitles.size()==64) { limited=true; break; }
             bytes+=path.native().size()*sizeof(wchar_t);
             if (++references>4096 || bytes>4*1024*1024) {
-                ShowError(L"自动字幕缓存超过4096条引用或4MiB预算，后续切换不使用此缓存。");
+                ShowError(iima::loc::Text(L"AutomaticSubtitleCachesExceed4096QuotesOr"));
                 return; // Do not publish a partial cross-media cache.
             }
             item.subtitles.push_back(path);
@@ -194,7 +194,7 @@ void MainWindow::RetainAutomaticSubtitleMatches(iima::SubtitleMatchResult const&
         retained.push_back(std::move(item)); // relatedSubtitles intentionally not retained.
     }
     automaticSubtitleMatches_=std::move(retained);
-    if (limited) ShowError(L"自动字幕缓存每个媒体最多保留64项，其余匹配未缓存。");
+    if (limited) ShowError(iima::loc::Text(L"TheMaximumNumberOfSubtitlingCachesPer"));
 }
 void MainWindow::UpdateAutomaticSubtitleCache() {
     if (automaticSubtitleMatches_.empty() && automaticSubtitleInitial_.empty()) return;
@@ -234,10 +234,10 @@ void MainWindow::UpdateAutomaticSubtitleCache() {
         } else {
             const auto now=std::chrono::steady_clock::now();
             if(automaticSubtitleInitialDeadline_==std::chrono::steady_clock::time_point{}) automaticSubtitleInitialDeadline_=now+std::chrono::seconds(10);
-            if(now>automaticSubtitleInitialDeadline_) {automaticSubtitleInitial_.clear();ShowError(L"自动字幕等待超时，未提交；可手动加载。");}
+            if(now>automaticSubtitleInitialDeadline_) {automaticSubtitleInitial_.clear();ShowError(iima::loc::Text(L"AutomaticSubtitlesAwaitingOvertimeNotSubmittedManual"));}
             else if(CanStartSubtitleLoad()) {
                 auto batch=std::move(automaticSubtitleInitial_);automaticSubtitleInitial_.clear();
-                if(!StartSubtitleLoad(std::move(batch))) ShowError(L"自动字幕批次未确认提交；可手动加载。");
+                if(!StartSubtitleLoad(std::move(batch))) ShowError(iima::loc::Text(L"AutomaticSubtitleBatchesAreNotConfirmedThey"));
                 if(inputGeneration_==automaticSubtitleInput_ && session_->Snapshot().mediaOpenIntentRevision==automaticSubtitleIntent_)
                     automaticSubtitleUserIntent_=session_->SubtitleEditIntentRevision();
                 return; // Do not continue with references changed by synchronous Notify.
@@ -281,7 +281,7 @@ void MainWindow::UpdateAutomaticSubtitleCache() {
     }
     std::vector<iima::SubtitleLoadItem> batch;
     for(auto const& path:paths) batch.push_back({path,false});
-    if(!batch.empty() && !StartSubtitleLoad(std::move(batch))) ShowError(L"自动匹配字幕未确认提交；可手动加载。");
+    if(!batch.empty() && !StartSubtitleLoad(std::move(batch))) ShowError(iima::loc::Text(L"AutomaticallyMatchingSubtitlesWithoutConfirmationManualLoadable"));
     // Own auto additions must not masquerade as a later user selection.
     automaticSubtitleUserIntent_=session_->SubtitleEditIntentRevision();
 }

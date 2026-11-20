@@ -1,0 +1,1407 @@
+<?xml version='1.0' encoding='utf-8'?>
+<root>
+  <data name="ABLoopButton.Content" xml:space="preserve">
+    <value>A-B 循环</value>
+  </data>
+  <data name="ABLoopThumbA.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>拖动循环起点A；不跳转播放位置</value>
+  </data>
+  <data name="ABLoopThumbA.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>循环起点A；左右键调整一秒</value>
+  </data>
+  <data name="ABLoopThumbB.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>拖动循环终点B；不跳转播放位置</value>
+  </data>
+  <data name="ABLoopThumbB.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>循环终点B；左右键调整一秒</value>
+  </data>
+  <data name="ABPeerAdjustment.Header" xml:space="preserve">
+    <value>精确调整 A-B 端点</value>
+  </data>
+  <data name="ABPointABox.Header" xml:space="preserve">
+    <value>A 点（秒）</value>
+  </data>
+  <data name="ABPointBBox.Header" xml:space="preserve">
+    <value>B 点（秒）</value>
+  </data>
+  <data name="AddBindingRowButton.Content" xml:space="preserve">
+    <value>追加绑定</value>
+  </data>
+  <data name="AddChainFilterButton.Content" xml:space="preserve">
+    <value>添加</value>
+  </data>
+  <data name="AddPlaylistSubtitleAssociationButton.Content" xml:space="preserve">
+    <value>关联字幕…</value>
+  </data>
+  <data name="AdvancedPlayWindowPreferences.Header" xml:space="preserve">
+    <value>高级播放与窗口偏好</value>
+  </data>
+  <data name="AdvancedSettingsCategory.Header" xml:space="preserve">
+    <value>分类</value>
+  </data>
+  <data name="AdvancedSettingsEnableTheSeparateRetentionAnd.Text" xml:space="preserve">
+    <value>高级设置可分别启用截图保存和复制；同时启用时使用同一张图。保存格式由 screenShotFormat 决定，仅复制时使用PNG。部分格式需要配套编码/解码器。</value>
+  </data>
+  <data name="AdvancedSettingsModifiedOnly.Content" xml:space="preserve">
+    <value>仅显示已修改的偏好</value>
+  </data>
+  <data name="AdvancedSettingsSearchBox.Header" xml:space="preserve">
+    <value>搜索已接入的高级偏好</value>
+  </data>
+  <data name="AdvancedSettingsSearchBox.PlaceholderText" xml:space="preserve">
+    <value>键名、mpv属性或分类；空格分隔多个词</value>
+  </data>
+  <data name="AligningThePreviousOrTheNextSubtitles.Text" xml:space="preserve">
+    <value>将上一句或下一句字幕对齐到当前视频时刻；内嵌字幕受预读取范围限制。</value>
+  </data>
+  <data name="All.Content" xml:space="preserve">
+    <value>全部</value>
+  </data>
+  <data name="All2.Content" xml:space="preserve">
+    <value>全部</value>
+  </data>
+  <data name="AppendButton.Content" xml:space="preserve">
+    <value>添加</value>
+  </data>
+  <data name="AppendFolderItem.Text" xml:space="preserve">
+    <value>将文件夹追加到当前队列…</value>
+  </data>
+  <data name="ApplicationMenuBar.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>播放器菜单</value>
+  </data>
+  <data name="ApplyABPointAButton.Content" xml:space="preserve">
+    <value>应用 A 点</value>
+  </data>
+  <data name="ApplyABPointBButton.Content" xml:space="preserve">
+    <value>应用 B 点</value>
+  </data>
+  <data name="ApplyAspectButton.Content" xml:space="preserve">
+    <value>应用比例</value>
+  </data>
+  <data name="ApplyAudioEqualizerButton.Content" xml:space="preserve">
+    <value>应用均衡预设</value>
+  </data>
+  <data name="ApplyCropButton.Content" xml:space="preserve">
+    <value>应用裁剪</value>
+  </data>
+  <data name="ApplyCustomEqualizerButton.Content" xml:space="preserve">
+    <value>应用编辑值</value>
+  </data>
+  <data name="ApplyCustomSpeedButton.Content" xml:space="preserve">
+    <value>应用倍速</value>
+  </data>
+  <data name="ApplyFilterButton.Content" xml:space="preserve">
+    <value>添加或替换滤镜</value>
+  </data>
+  <data name="ApplyRotationButton.Content" xml:space="preserve">
+    <value>应用旋转</value>
+  </data>
+  <data name="ApplySecondarySubtitleButton.Content" xml:space="preserve">
+    <value>应用编辑参数</value>
+  </data>
+  <data name="ApplySubtitleBackgroundButton.Content" xml:space="preserve">
+    <value>仅应用背景颜色</value>
+  </data>
+  <data name="ApplySubtitleColorButton.Content" xml:space="preserve">
+    <value>仅应用文字颜色</value>
+  </data>
+  <data name="ApplySubtitleEncodingButton.Content" xml:space="preserve">
+    <value>应用编码并重载外部字幕</value>
+  </data>
+  <data name="ApplySubtitleLayoutButton.Content" xml:space="preserve">
+    <value>应用字幕位置与缩放</value>
+  </data>
+  <data name="ApplySubtitleOutlineButton.Content" xml:space="preserve">
+    <value>应用描边颜色和宽度</value>
+  </data>
+  <data name="ApplySubtitleStyleButton.Content" xml:space="preserve">
+    <value>应用字体、字号和字形</value>
+  </data>
+  <data name="AspectText.Header" xml:space="preserve">
+    <value>视频比例（例如 16:9）</value>
+  </data>
+  <data name="Audio.Content" xml:space="preserve">
+    <value>音频</value>
+  </data>
+  <data name="AudioAudio.Content" xml:space="preserve">
+    <value>音频 Audio</value>
+  </data>
+  <data name="AudioBox.Header" xml:space="preserve">
+    <value>音轨</value>
+  </data>
+  <data name="AudioBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>音轨</value>
+  </data>
+  <data name="AudioDelayBox.Header" xml:space="preserve">
+    <value>音频延迟（秒，正数延后）</value>
+  </data>
+  <data name="AudioDeviceBox.Header" xml:space="preserve">
+    <value>音频输出设备</value>
+  </data>
+  <data name="AudioEqualizerBox.Header" xml:space="preserve">
+    <value>音频均衡预设</value>
+  </data>
+  <data name="AutoPlayNextCheck.Content" xml:space="preserve">
+    <value>自动播放下一项</value>
+  </data>
+  <data name="BindingRowAction.Header" xml:space="preserve">
+    <value>动作（IINA动作加 @iina 前缀）</value>
+  </data>
+  <data name="BindingRowComment.Header" xml:space="preserve">
+    <value>行内注释</value>
+  </data>
+  <data name="BindingRowKey.Header" xml:space="preserve">
+    <value>mpv按键名称（如 Ctrl+o）</value>
+  </data>
+  <data name="BindingRowSearch.Header" xml:space="preserve">
+    <value>搜索按键、动作或注释</value>
+  </data>
+  <data name="BindingRowsList.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>快捷键绑定行</value>
+  </data>
+  <data name="BindingSnapshotBox.Header" xml:space="preserve">
+    <value>已保存快照</value>
+  </data>
+  <data name="BindingSnapshotName.Header" xml:space="preserve">
+    <value>新建或重命名的名称</value>
+  </data>
+  <data name="BrightnessSlider.Header" xml:space="preserve">
+    <value>亮度</value>
+  </data>
+  <data name="BrightnessSlider.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>亮度</value>
+  </data>
+  <data name="BufferingProgress.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>缓存填充百分比</value>
+  </data>
+  <data name="CancelExternalAudioButton.Content" xml:space="preserve">
+    <value>取消音频载入后续确认</value>
+  </data>
+  <data name="CancelExternalReloadButton.Content" xml:space="preserve">
+    <value>取消轨道重载后续操作</value>
+  </data>
+  <data name="CancelExternalRemovalButton.Content" xml:space="preserve">
+    <value>取消后续确认</value>
+  </data>
+  <data name="CancelExternalVideoButton.Content" xml:space="preserve">
+    <value>取消视频载入后续确认</value>
+  </data>
+  <data name="CancelHistoryAvailabilityButton.Content" xml:space="preserve">
+    <value>停止状态检查</value>
+  </data>
+  <data name="CancelHistoryDeletionButton.Content" xml:space="preserve">
+    <value>停止文件删除</value>
+  </data>
+  <data name="CancelKeyRecordingButton.Content" xml:space="preserve">
+    <value>取消按键录入</value>
+  </data>
+  <data name="CancelNetworkOpenButton.Content" xml:space="preserve">
+    <value>取消加载</value>
+  </data>
+  <data name="CancelPlaylistDeletionButton.Content" xml:space="preserve">
+    <value>停止后续文件删除</value>
+  </data>
+  <data name="CancelPlaylistPasteButton.Content" xml:space="preserve">
+    <value>取消待处理粘贴</value>
+  </data>
+  <data name="CancelSubtitleLoadButton.Content" xml:space="preserve">
+    <value>取消后续字幕载入</value>
+  </data>
+  <data name="CancelSubtitleReloadButton.Content" xml:space="preserve">
+    <value>取消后续字幕重载</value>
+  </data>
+  <data name="CaptureFirstAndSelectPositionTheDirectory.Text" xml:space="preserve">
+    <value>先捕获再选择位置。设置目录后自动保存且不覆盖同名文件；目录不可用会报告失败，不另选位置。高级设置 screenShotTemplate 支持 %F（媒体名）、%n（序号）、%%（百分号），不支持任意mpv模板或路径。</value>
+  </data>
+  <data name="ChainFilterExpression.Header" xml:space="preserve">
+    <value>滤镜表达式</value>
+  </data>
+  <data name="ChapterBox.Header" xml:space="preserve">
+    <value>章节</value>
+  </data>
+  <data name="ChapterBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>章节</value>
+  </data>
+  <data name="ChooseQuickLutButton.Content" xml:space="preserve">
+    <value>选择并应用 LUT…</value>
+  </data>
+  <data name="ChooseScreenshotDirectoryButton.Content" xml:space="preserve">
+    <value>选择截图目录…</value>
+  </data>
+  <data name="ChooseSubtitleBackgroundButton.Content" xml:space="preserve">
+    <value>选择背景颜色…</value>
+  </data>
+  <data name="ChooseSubtitleColorButton.Content" xml:space="preserve">
+    <value>选择文字颜色…</value>
+  </data>
+  <data name="ChooseSubtitleFontButton.Content" xml:space="preserve">
+    <value>选择本地字体…</value>
+  </data>
+  <data name="ChooseSubtitleOutlineColorButton.Content" xml:space="preserve">
+    <value>选择描边颜色…</value>
+  </data>
+  <data name="ClearABLoopButton.Content" xml:space="preserve">
+    <value>清除 A-B</value>
+  </data>
+  <data name="ClearAdvancedSettingsSearchButton.Content" xml:space="preserve">
+    <value>清除全部过滤条件</value>
+  </data>
+  <data name="ClearHistoryButton.Content" xml:space="preserve">
+    <value>清空历史</value>
+  </data>
+  <data name="ClearPlaylistButton.Content" xml:space="preserve">
+    <value>清空</value>
+  </data>
+  <data name="ClearPlaylistSubtitleAssociationButton.Content" xml:space="preserve">
+    <value>清除关联（不卸载）</value>
+  </data>
+  <data name="ClearScreenshotDirectoryButton.Content" xml:space="preserve">
+    <value>清除目录，改为每次另存为</value>
+  </data>
+  <data name="ClearThumbnailCacheButton.Content" xml:space="preserve">
+    <value>清空缩略图缓存…</value>
+  </data>
+  <data name="ClickToLoginToSendAUser.Text" xml:space="preserve">
+    <value>点击登录会把用户名、密码和个人API Key发送至api.opensubtitles.com。仅在此窗口内存保留返回令牌及Key，不写入磁盘；登录后把手工Key/JWT框留空即可使用会话。关闭清除本地会话，不自动发退出请求。</value>
+  </data>
+  <data name="CompactBackButton.Content" xml:space="preserve">
+    <value>−10秒</value>
+  </data>
+  <data name="CompactBackButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>后退10秒</value>
+  </data>
+  <data name="CompactForwardButton.Content" xml:space="preserve">
+    <value>+10秒</value>
+  </data>
+  <data name="CompactForwardButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>前进10秒</value>
+  </data>
+  <data name="CompactOverlayButton.Content" xml:space="preserve">
+    <value>切换悬浮小窗</value>
+  </data>
+  <data name="CompactPauseReturnButton.Content" xml:space="preserve">
+    <value>暂停并返回</value>
+  </data>
+  <data name="CompactPlayPauseButton.Content" xml:space="preserve">
+    <value>播放</value>
+  </data>
+  <data name="ConfirmsThatEachCompletedTrackFactSheet.Text" xml:space="preserve">
+    <value>确认按每项完成时的轨道事实统计，含已有跳过，不表示同时选中所有字幕；失败可与确认重叠。未结项包含在途请求，不代表尚未提交。</value>
+  </data>
+  <data name="ContrastSlider.Header" xml:space="preserve">
+    <value>对比度</value>
+  </data>
+  <data name="ContrastSlider.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>对比度</value>
+  </data>
+  <data name="CopyPlaylistPathsButton.Content" xml:space="preserve">
+    <value>复制所选路径</value>
+  </data>
+  <data name="CopyPlaylistPathsButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>含网络URL原文，可能含私密参数</value>
+  </data>
+  <data name="CopyPlaylistUrlsButton.Content" xml:space="preserve">
+    <value>仅复制所选网络URL</value>
+  </data>
+  <data name="CopySavedFilterButton.Content" xml:space="preserve">
+    <value>按名称复制选中预设（不复制快捷键）</value>
+  </data>
+  <data name="CopyScreenshotButton.Content" xml:space="preserve">
+    <value>复制视频截图</value>
+  </data>
+  <data name="CopyTrackInspectionButton.Content" xml:space="preserve">
+    <value>复制所选轨道报告</value>
+  </data>
+  <data name="CropAspectText.Header" xml:space="preserve">
+    <value>居中比例（源像素）</value>
+  </data>
+  <data name="CropHeight.Header" xml:space="preserve">
+    <value>高度</value>
+  </data>
+  <data name="CropWidth.Header" xml:space="preserve">
+    <value>宽度</value>
+  </data>
+  <data name="CustomSpeedBox.Header" xml:space="preserve">
+    <value>精确倍速</value>
+  </data>
+  <data name="CustomSpeedJump.Header" xml:space="preserve">
+    <value>自定义倍速与跳转</value>
+  </data>
+  <data name="CustomSpeedSlider.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>对数倍速滑杆</value>
+  </data>
+  <data name="Customize10ParagraphBalance.Header" xml:space="preserve">
+    <value>自定义十段均衡</value>
+  </data>
+  <data name="CutPlaylistPathsButton.Content" xml:space="preserve">
+    <value>剪切队列条目</value>
+  </data>
+  <data name="CutPlaylistPathsButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>复制成功后从队列移除，不删除磁盘文件；移除当前项可能切换播放</value>
+  </data>
+  <data name="CycleAudioTrackButton.Content" xml:space="preserve">
+    <value>切换下一音轨</value>
+  </data>
+  <data name="CycleSubtitleTrackButton.Content" xml:space="preserve">
+    <value>切换下一主字幕轨道</value>
+  </data>
+  <data name="CycleVideoTrackButton.Content" xml:space="preserve">
+    <value>切换下一视频轨道</value>
+  </data>
+  <data name="DefaultAppsButton.Content" xml:space="preserve">
+    <value>选择 Windows 默认应用…</value>
+  </data>
+  <data name="DeinterlaceCheck.Content" xml:space="preserve">
+    <value>反交错</value>
+  </data>
+  <data name="DeleteBindingSnapshotButton.Content" xml:space="preserve">
+    <value>移除所选快照</value>
+  </data>
+  <data name="DeleteHistoryFilesButton.Content" xml:space="preserve">
+    <value>删除磁盘文件…</value>
+  </data>
+  <data name="DeletePlaylistFilesButton.Content" xml:space="preserve">
+    <value>删除所选磁盘文件…</value>
+  </data>
+  <data name="DeletePlaylistFilesButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>区别于移除列表；系统优先使用回收站，不能回收时另行确认</value>
+  </data>
+  <data name="DeleteSavedFilterButton.Content" xml:space="preserve">
+    <value>删除选中预设</value>
+  </data>
+  <data name="DeleteUserEqualizerButton.Content" xml:space="preserve">
+    <value>删除选中预设</value>
+  </data>
+  <data name="DiagnosticCategoryBox.Header" xml:space="preserve">
+    <value>分类（app 或 playback；空白为全部）</value>
+  </data>
+  <data name="DiagnosticCopyButton.Content" xml:space="preserve">
+    <value>复制选中日志</value>
+  </data>
+  <data name="DiagnosticExpander.Header" xml:space="preserve">
+    <value>本窗口诊断日志</value>
+  </data>
+  <data name="DiagnosticFollowBox.Content" xml:space="preserve">
+    <value>跟随最新行</value>
+  </data>
+  <data name="DiagnosticList.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>诊断日志（Ctrl或Shift多选）</value>
+  </data>
+  <data name="DiagnosticLiveBox.Content" xml:space="preserve">
+    <value>实时刷新</value>
+  </data>
+  <data name="DiagnosticRefreshButton.Content" xml:space="preserve">
+    <value>读取最新快照</value>
+  </data>
+  <data name="DiagnosticSaveAllButton.Content" xml:space="preserve">
+    <value>保存全部保留快照…</value>
+  </data>
+  <data name="DiagnosticSaveFilteredButton.Content" xml:space="preserve">
+    <value>保存筛选结果…</value>
+  </data>
+  <data name="DiagnosticSearchBox.Header" xml:space="preserve">
+    <value>搜索消息（不区分大小写）</value>
+  </data>
+  <data name="DisableHardwareDecodeButton.Content" xml:space="preserve">
+    <value>临时使用软件解码</value>
+  </data>
+  <data name="DismissNetworkOpenButton.Content" xml:space="preserve">
+    <value>关闭提示</value>
+  </data>
+  <data name="DismissScreenshotPreviewButton.Content" xml:space="preserve">
+    <value>关闭预览</value>
+  </data>
+  <data name="DoNotUseTheINAServiceCertificate.Text" xml:space="preserve">
+    <value>不使用 IINA 的服务凭据；OpenSubtitles 需自行提供 API Key，可选择以下窗口内存登录（不保存密码）。点击下载会消耗服务额度，即使随后取消或文件下载失败。</value>
+  </data>
+  <data name="DoubleVideoSizeButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>视频双倍尺寸</value>
+  </data>
+  <data name="DownloadedSubtitleBox.Header" xml:space="preserve">
+    <value>本窗口下载的字幕</value>
+  </data>
+  <data name="DragControlBar.Text" xml:space="preserve">
+    <value>⋮⋮  拖动控制栏</value>
+  </data>
+  <data name="DragsTheEdgeOrCornerPointAdjustment.Text" xml:space="preserve">
+    <value>拖动边缘或角点调整；内部拖动移动；外部拖动新建。Enter确认，Esc取消。</value>
+  </data>
+  <data name="EditNetworkOpenButton.Content" xml:space="preserve">
+    <value>编辑地址</value>
+  </data>
+  <data name="EditShortcutsLineByLine.Header" xml:space="preserve">
+    <value>逐行编辑快捷键</value>
+  </data>
+  <data name="EmptyLabel.Text" xml:space="preserve">
+    <value>打开视频，开始播放</value>
+  </data>
+  <data name="ExitCompactOverlayButton.Content" xml:space="preserve">
+    <value>返回播放器</value>
+  </data>
+  <data name="ExportKeyBindingsButton.Content" xml:space="preserve">
+    <value>导出 input.conf</value>
+  </data>
+  <data name="Fast3DLut.Header" xml:space="preserve">
+    <value>快捷3D LUT</value>
+  </data>
+  <data name="Filename.Content" xml:space="preserve">
+    <value>文件名</value>
+  </data>
+  <data name="FilterChainView.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>当前滤镜</value>
+  </data>
+  <data name="FilterPresetBox.Header" xml:space="preserve">
+    <value>当前链可用预设</value>
+  </data>
+  <data name="FilterTypeBox.Header" xml:space="preserve">
+    <value>滤镜链</value>
+  </data>
+  <data name="FitVideoSizeButton.Content" xml:space="preserve">
+    <value>画面适合工作区</value>
+  </data>
+  <data name="FlipVideoButton.Content" xml:space="preserve">
+    <value>上下翻转：状态未知</value>
+  </data>
+  <data name="FullPath.Content" xml:space="preserve">
+    <value>完整路径</value>
+  </data>
+  <data name="FullView.Content" xml:space="preserve">
+    <value>全画面</value>
+  </data>
+  <data name="FullscreenButton.Content" xml:space="preserve">
+    <value>全屏</value>
+  </data>
+  <data name="FullscreenClockText.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>当前本地时间</value>
+  </data>
+  <data name="GenerateFilterPresetButton.Content" xml:space="preserve">
+    <value>生成并替换下方表达式</value>
+  </data>
+  <data name="GenerateFiltersByPresetIINA.Header" xml:space="preserve">
+    <value>按IINA预设生成滤镜</value>
+  </data>
+  <data name="HalfVideoSizeButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>视频半倍尺寸</value>
+  </data>
+  <data name="History.Text" xml:space="preserve">
+    <value>历史记录</value>
+  </data>
+  <data name="HistoryGroupingBox.Header" xml:space="preserve">
+    <value>历史分组</value>
+  </data>
+  <data name="HistorySearchScopeBox.Header" xml:space="preserve">
+    <value>搜索范围</value>
+  </data>
+  <data name="HistorySearchText.PlaceholderText" xml:space="preserve">
+    <value>搜索历史记录</value>
+  </data>
+  <data name="HistoryView.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>播放历史</value>
+  </data>
+  <data name="HueSlider.Header" xml:space="preserve">
+    <value>色相</value>
+  </data>
+  <data name="HueSlider.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>色相</value>
+  </data>
+  <data name="ImageAdjustment.Header" xml:space="preserve">
+    <value>画面调整</value>
+  </data>
+  <data name="ImportKeyBindingsButton.Content" xml:space="preserve">
+    <value>导入 input.conf</value>
+  </data>
+  <data name="InitialOpenFileButton.Content" xml:space="preserve">
+    <value>打开文件…</value>
+  </data>
+  <data name="InitialOpenUrlButton.Content" xml:space="preserve">
+    <value>打开网络地址…</value>
+  </data>
+  <data name="InputConfFormatEffectiveImmediatelyAfterSaving.Text" xml:space="preserve">
+    <value>input.conf 格式。保存后立即生效；留空可取消全部快捷键。</value>
+  </data>
+  <data name="InspectorApplyButton.Content" xml:space="preserve">
+    <value>保存并监视</value>
+  </data>
+  <data name="InspectorNamesBox.Header" xml:space="preserve">
+    <value>每行一个属性名（最多 32 项）</value>
+  </data>
+  <data name="InteractiveCropAspect.Header" xml:space="preserve">
+    <value>居中比例</value>
+  </data>
+  <data name="InteractiveCropAspectButton.Content" xml:space="preserve">
+    <value>应用比例到草稿</value>
+  </data>
+  <data name="InteractiveCropCancelButton.Content" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="InteractiveCropConfirmButton.Content" xml:space="preserve">
+    <value>确认裁剪</value>
+  </data>
+  <data name="InteractiveCropHeight.Header" xml:space="preserve">
+    <value>高（源像素）</value>
+  </data>
+  <data name="InteractiveCropNumbersButton.Content" xml:space="preserve">
+    <value>更新坐标草稿</value>
+  </data>
+  <data name="InteractiveCropResume.Content" xml:space="preserve">
+    <value>退出时恢复进入前的播放状态</value>
+  </data>
+  <data name="InteractiveCropTitle.Text" xml:space="preserve">
+    <value>交互裁剪</value>
+  </data>
+  <data name="InteractiveCropWidth.Header" xml:space="preserve">
+    <value>宽（源像素）</value>
+  </data>
+  <data name="InteractiveCropX.Header" xml:space="preserve">
+    <value>X（源像素）</value>
+  </data>
+  <data name="InteractiveCropY.Header" xml:space="preserve">
+    <value>Y（源像素）</value>
+  </data>
+  <data name="InteractiveDelogoRemoveButton.Content" xml:space="preserve">
+    <value>移除原去标志滤镜</value>
+  </data>
+  <data name="InterfaceInterface.Content" xml:space="preserve">
+    <value>界面 Interface</value>
+  </data>
+  <data name="JumpToBeginningButton.Content" xml:space="preserve">
+    <value>跳转到开头</value>
+  </data>
+  <data name="JumpToTimeButton.Content" xml:space="preserve">
+    <value>跳转到时间…</value>
+  </data>
+  <data name="KeyRecordingSurface.Header" xml:space="preserve">
+    <value>按键录入区域</value>
+  </data>
+  <data name="KeyRecordingSurface.PlaceholderText" xml:space="preserve">
+    <value>先点击录入按钮，再按键</value>
+  </data>
+  <data name="KeyRecordingSurface.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>快捷键录入，仅当前焦点有效</value>
+  </data>
+  <data name="LargerSubtitleButton.Content" xml:space="preserve">
+    <value>字幕放大</value>
+  </data>
+  <data name="LineEditingIsAStandAloneDraft.Text" xml:space="preserve">
+    <value>行编辑是独立草稿。生成会规范化文本，仅保留行内注释；请先导出需保留的原文。</value>
+  </data>
+  <data name="LoadABDraftButton.Content" xml:space="preserve">
+    <value>读取当前端点</value>
+  </data>
+  <data name="LoadBindingRowsButton.Content" xml:space="preserve">
+    <value>从文本读取并替换行草稿</value>
+  </data>
+  <data name="LoadBindingSnapshotButton.Content" xml:space="preserve">
+    <value>载入所选并替换编辑区</value>
+  </data>
+  <data name="LoadCropSizeButton.Content" xml:space="preserve">
+    <value>读取当前视频尺寸</value>
+  </data>
+  <data name="LoadExternalAudioButton.Content" xml:space="preserve">
+    <value>载入外置音频…</value>
+  </data>
+  <data name="LoadExternalAudioButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>载入并选择当前媒体的外部音轨，可能替换声音；不主动播放、不改变队列</value>
+  </data>
+  <data name="LoadExternalVideoButton.Content" xml:space="preserve">
+    <value>载入外部视频…</value>
+  </data>
+  <data name="LoadExternalVideoButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>载入并选择当前媒体的外部视频，可能替换显示画面；不自动播放、不改变队列</value>
+  </data>
+  <data name="LoadObservedEqualizerButton.Content" xml:space="preserve">
+    <value>读取当前均衡</value>
+  </data>
+  <data name="LoadSecondarySubtitleButton.Content" xml:space="preserve">
+    <value>读取当前参数</value>
+  </data>
+  <data name="LoadUserEqualizerButton.Content" xml:space="preserve">
+    <value>载入编辑器</value>
+  </data>
+  <data name="LocalPreviewsAreSavedInTheCurrent.Text" xml:space="preserve">
+    <value>本地预览图会保存在当前用户缓存目录。高级选项 maxThumbnailPreviewCacheSize 为 MiB，0 禁用磁盘缓存。</value>
+  </data>
+  <data name="LocationOfTheFile.Content" xml:space="preserve">
+    <value>文件所在位置</value>
+  </data>
+  <data name="MatchSubtitleButton.Content" xml:space="preserve">
+    <value>匹配同目录字幕</value>
+  </data>
+  <data name="MaxVolumeBox.Header" xml:space="preserve">
+    <value>音量上限</value>
+  </data>
+  <data name="MediaInformationExpander.Header" xml:space="preserve">
+    <value>媒体信息</value>
+  </data>
+  <data name="MirrorVideoButton.Content" xml:space="preserve">
+    <value>左右镜像：状态未知</value>
+  </data>
+  <data name="MoreOpens.Content" xml:space="preserve">
+    <value>更多打开方式</value>
+  </data>
+  <data name="MoreOpens.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>更多打开方式</value>
+  </data>
+  <data name="MoveBindingRowDownButton.Content" xml:space="preserve">
+    <value>下移</value>
+  </data>
+  <data name="MoveBindingRowUpButton.Content" xml:space="preserve">
+    <value>上移</value>
+  </data>
+  <data name="MoveChainFilterDownButton.Content" xml:space="preserve">
+    <value>下移</value>
+  </data>
+  <data name="MoveChainFilterUpButton.Content" xml:space="preserve">
+    <value>上移</value>
+  </data>
+  <data name="MoveDownButton.Content" xml:space="preserve">
+    <value>下移</value>
+  </data>
+  <data name="MoveSavedFilterDownButton.Content" xml:space="preserve">
+    <value>预设下移</value>
+  </data>
+  <data name="MoveSavedFilterUpButton.Content" xml:space="preserve">
+    <value>预设上移</value>
+  </data>
+  <data name="MoveUpButton.Content" xml:space="preserve">
+    <value>上移</value>
+  </data>
+  <data name="MpvLogCaptureLevel.Header" xml:space="preserve">
+    <value>采集详细程度（开始时生效）</value>
+  </data>
+  <data name="MpvLogClearButton.Content" xml:space="preserve">
+    <value>清空本窗口原始日志</value>
+  </data>
+  <data name="MpvLogCopyButton.Content" xml:space="preserve">
+    <value>复制所选原始日志（可能含私密信息）</value>
+  </data>
+  <data name="MpvLogDisplayLevel.Header" xml:space="preserve">
+    <value>显示等级（包含更严重消息）</value>
+  </data>
+  <data name="MpvLogExpander.Header" xml:space="preserve">
+    <value>原始 mpv 日志（手动启用）</value>
+  </data>
+  <data name="MpvLogExportButton.Content" xml:space="preserve">
+    <value>导出筛选快照（可能含私密信息）…</value>
+  </data>
+  <data name="MpvLogList.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>原始mpv日志</value>
+  </data>
+  <data name="MpvLogLive.Content" xml:space="preserve">
+    <value>展开时实时刷新</value>
+  </data>
+  <data name="MpvLogPrefix.Header" xml:space="preserve">
+    <value>来源prefix（精确匹配；留空为全部）</value>
+  </data>
+  <data name="MpvLogRefreshButton.Content" xml:space="preserve">
+    <value>读取最新快照</value>
+  </data>
+  <data name="MpvLogSearch.Header" xml:space="preserve">
+    <value>搜索消息（不区分大小写）</value>
+  </data>
+  <data name="MpvLogStartButton.Content" xml:space="preserve">
+    <value>开始采集原始日志</value>
+  </data>
+  <data name="MpvLogStopButton.Content" xml:space="preserve">
+    <value>停止采集，保留快照</value>
+  </data>
+  <data name="MpvPropertiesWatch.Text" xml:space="preserve">
+    <value>mpv 属性监视</value>
+  </data>
+  <data name="MusicModeButton.Content" xml:space="preserve">
+    <value>音乐模式</value>
+  </data>
+  <data name="MusicMuteButton.Content" xml:space="preserve">
+    <value>静音</value>
+  </data>
+  <data name="MusicPlaylistButton.Content" xml:space="preserve">
+    <value>显示列表</value>
+  </data>
+  <data name="MusicReturnButton.Content" xml:space="preserve">
+    <value>返回播放器</value>
+  </data>
+  <data name="MusicVolumeButton.Content" xml:space="preserve">
+    <value>音量</value>
+  </data>
+  <data name="MusicVolumeSlider.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>音乐模式音量</value>
+  </data>
+  <data name="MusicVolumeValue.Text" xml:space="preserve">
+    <value>不可用</value>
+  </data>
+  <data name="MusicVolumeValue.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>观测音量</value>
+  </data>
+  <data name="MuteCheck.Content" xml:space="preserve">
+    <value>静音</value>
+  </data>
+  <data name="NameProfileSaveTheEditingAreaAs.Text" xml:space="preserve">
+    <value>命名配置库：保存编辑区为快照；载入只替换编辑区，需另点保存并应用。空编辑区可保存为空配置。</value>
+  </data>
+  <data name="Network.Content" xml:space="preserve">
+    <value>网络 Network</value>
+  </data>
+  <data name="NewWindowButton.Content" xml:space="preserve">
+    <value>新建窗口</value>
+  </data>
+  <data name="NextButton.Content" xml:space="preserve">
+    <value>下一项</value>
+  </data>
+  <data name="NextChapterButton.Content" xml:space="preserve">
+    <value>下一章节</value>
+  </data>
+  <data name="NextSecondaryTimingButton.Content" xml:space="preserve">
+    <value>副字幕：对齐下一句</value>
+  </data>
+  <data name="NextSubtitleButton.Content" xml:space="preserve">
+    <value>下一句</value>
+  </data>
+  <data name="NextSubtitleTimingButton.Content" xml:space="preserve">
+    <value>主字幕：对齐下一句</value>
+  </data>
+  <data name="NextWindowButton.Content" xml:space="preserve">
+    <value>下个窗口</value>
+  </data>
+  <data name="NormalWindowModeDownsizesProportionallyWhenYou.Text" xml:space="preserve">
+    <value>普通窗口模式；计入边框和侧栏，超出屏幕时按比例缩小。</value>
+  </data>
+  <data name="OneHalfVideoSizeButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>视频一点五倍尺寸</value>
+  </data>
+  <data name="OnlineSubtitleApiKeyBox.Header" xml:space="preserve">
+    <value>OpenSubtitles 个人 API Key</value>
+  </data>
+  <data name="OnlineSubtitleCancelButton.Content" xml:space="preserve">
+    <value>取消并清除令牌</value>
+  </data>
+  <data name="OnlineSubtitleDownloadButton.Content" xml:space="preserve">
+    <value>下载并载入选中结果</value>
+  </data>
+  <data name="OnlineSubtitleExpander.Header" xml:space="preserve">
+    <value>在线字幕</value>
+  </data>
+  <data name="OnlineSubtitleHashCheck.Content" xml:space="preserve">
+    <value>OpenSubtitles：发送当前本地影片哈希以提高匹配度</value>
+  </data>
+  <data name="OnlineSubtitleLanguageBox.Header" xml:space="preserve">
+    <value>OpenSubtitles 语言代码（如 en、zh-cn，可留空）</value>
+  </data>
+  <data name="OnlineSubtitleProviderBox.Header" xml:space="preserve">
+    <value>服务</value>
+  </data>
+  <data name="OnlineSubtitleQueryBox.Header" xml:space="preserve">
+    <value>搜索词（可修改）</value>
+  </data>
+  <data name="OnlineSubtitleResultsView.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>在线字幕搜索结果</value>
+  </data>
+  <data name="OnlineSubtitleSearchButton.Content" xml:space="preserve">
+    <value>发送查询</value>
+  </data>
+  <data name="OnlineSubtitleTokenBox.Header" xml:space="preserve">
+    <value>Assrt 令牌 / OpenSubtitles JWT（可选）</value>
+  </data>
+  <data name="OnlineSubtitleUseTitleButton.Content" xml:space="preserve">
+    <value>填入当前文件名</value>
+  </data>
+  <data name="OnlyExternalTextSubtitlesAreAffectedEmbedded.Text" xml:space="preserve">
+    <value>仅影响外部文本字幕；内嵌或图形字幕不适用。自动检测与可用编码取决于播放器构建。</value>
+  </data>
+  <data name="OnlyIndividualLocalMediaEntriesAreSupported.Text" xml:space="preserve">
+    <value>仅支持单个本地媒体条目；修改在下次播放该条目时生效，不保存到磁盘。清除关联不卸载当前字幕，也不禁用mpv自行加载；当前轨道请在字幕菜单中调整。</value>
+  </data>
+  <data name="OnlyTheLatest1024DiagnosesAreRetained.Text" xml:space="preserve">
+    <value>仅保留最近 1024 条诊断，不含完整 mpv 日志；此窗口不会新增媒体路径采集。</value>
+  </data>
+  <data name="OpenButton.Content" xml:space="preserve">
+    <value>打开文件</value>
+  </data>
+  <data name="OpenButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>打开文件</value>
+  </data>
+  <data name="OpenFileAlternativeItem.Text" xml:space="preserve">
+    <value>反转窗口偏好打开文件…</value>
+  </data>
+  <data name="OpenFolderAlternativeItem.Text" xml:space="preserve">
+    <value>反转窗口偏好打开文件夹…</value>
+  </data>
+  <data name="OpenFolderItem.Text" xml:space="preserve">
+    <value>打开文件夹…</value>
+  </data>
+  <data name="OpenHistoryButton.Content" xml:space="preserve">
+    <value>在当前窗口播放</value>
+  </data>
+  <data name="OpenHistoryNewWindowButton.Content" xml:space="preserve">
+    <value>在新窗口播放</value>
+  </data>
+  <data name="OpenPlaylistBrowserButton.Content" xml:space="preserve">
+    <value>在默认浏览器打开所选URL</value>
+  </data>
+  <data name="OpenPlaylistBrowserButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>仅单个不含凭据的HTTP(S)地址；会交给外部浏览器，不能撤回，也不验证页面加载</value>
+  </data>
+  <data name="OpenScreenshotPreviewButton.Content" xml:space="preserve">
+    <value>打开图片</value>
+  </data>
+  <data name="OpenSubAccountStatus.Text" xml:space="preserve">
+    <value>未登录；仍可手动输入API Key/JWT搜索。</value>
+  </data>
+  <data name="OpenSubCancelLoginButton.Content" xml:space="preserve">
+    <value>取消等待账户请求</value>
+  </data>
+  <data name="OpenSubLoginButton.Content" xml:space="preserve">
+    <value>发送凭据并登录OpenSubtitles</value>
+  </data>
+  <data name="OpenSubLogoutButton.Content" xml:space="preserve">
+    <value>清除本地会话并请求服务器退出</value>
+  </data>
+  <data name="OpenSubPasswordBox.Header" xml:space="preserve">
+    <value>OpenSubtitles 密码（只用于本次登录）</value>
+  </data>
+  <data name="OpenSubUsernameBox.Header" xml:space="preserve">
+    <value>OpenSubtitles 用户名（可选登录）</value>
+  </data>
+  <data name="OpenUrlAlternativeItem.Text" xml:space="preserve">
+    <value>反转窗口偏好打开网络媒体…</value>
+  </data>
+  <data name="OpenUrlButton.Content" xml:space="preserve">
+    <value>打开网络媒体…</value>
+  </data>
+  <data name="OrbitalOperations.Text" xml:space="preserve">
+    <value>轨道操作</value>
+  </data>
+  <data name="OriginalVideoSizeButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>视频原始尺寸</value>
+  </data>
+  <data name="OscDragHandle.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>拖动浮动播放控制栏</value>
+  </data>
+  <data name="OscLeftButton.Content" xml:space="preserve">
+    <value>减速</value>
+  </data>
+  <data name="OscRightButton.Content" xml:space="preserve">
+    <value>加速</value>
+  </data>
+  <data name="ParametersWillNotBeAutomaticallyOverwritedIn.Text" xml:space="preserve">
+    <value>参数不会在编辑中被自动覆盖，请先读取当前值。位置超过100可能截断字幕。</value>
+  </data>
+  <data name="PastePlaylistPathsButton.Content" xml:space="preserve">
+    <value>粘贴文件或路径到列表</value>
+  </data>
+  <data name="PastePlaylistPathsButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>支持资源管理器文件/文件夹，或每行一个绝对路径/URL；插入首选项前，无选择则插入开头</value>
+  </data>
+  <data name="PauseButton.Content" xml:space="preserve">
+    <value>播放</value>
+  </data>
+  <data name="PauseWhenOpenCheck.Content" xml:space="preserve">
+    <value>打开后暂停</value>
+  </data>
+  <data name="PlayControlBarToolButton.Header" xml:space="preserve">
+    <value>播放控制栏工具按钮</value>
+  </data>
+  <data name="PlaySelectedButton.Content" xml:space="preserve">
+    <value>播放</value>
+  </data>
+  <data name="PlaySelectedNewWindowButton.Content" xml:space="preserve">
+    <value>在新窗口播放所选项</value>
+  </data>
+  <data name="Playlist.Text" xml:space="preserve">
+    <value>播放列表</value>
+  </data>
+  <data name="PlaylistDurationHint.Text" xml:space="preserve">
+    <value>自动预取队列前128项与选中项（最多32项）；仅本地媒体文件。</value>
+  </data>
+  <data name="PlaylistDurationSummary.Text" xml:space="preserve">
+    <value>时长未知</value>
+  </data>
+  <data name="PlaylistSelectionText.Text" xml:space="preserve">
+    <value>未选择条目；Ctrl或Shift可多选</value>
+  </data>
+  <data name="PlaylistSubtitleAssociationList.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>所选条目的字幕关联路径</value>
+  </data>
+  <data name="PlaylistSubtitleAssociationStatus.Text" xml:space="preserve">
+    <value>请选择一个队列条目。</value>
+  </data>
+  <data name="PlaylistView.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>播放列表（Ctrl或Shift多选，可拖动排序）</value>
+  </data>
+  <data name="PositionSlider.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>播放进度</value>
+  </data>
+  <data name="PrepareCropAspectButton.Content" xml:space="preserve">
+    <value>生成比例裁剪草稿</value>
+  </data>
+  <data name="PresetEditsDoNotChangeTheCurrent.Text" xml:space="preserve">
+    <value>预设编辑不改变当前滤镜链。撤销仅限本窗口最近一次编辑。</value>
+  </data>
+  <data name="PreviousButton.Content" xml:space="preserve">
+    <value>上一项</value>
+  </data>
+  <data name="PreviousChapterButton.Content" xml:space="preserve">
+    <value>上一章节</value>
+  </data>
+  <data name="PreviousSecondaryTimingButton.Content" xml:space="preserve">
+    <value>副字幕：对齐上一句</value>
+  </data>
+  <data name="PreviousSubtitleButton.Content" xml:space="preserve">
+    <value>上一句</value>
+  </data>
+  <data name="PreviousSubtitleTimingButton.Content" xml:space="preserve">
+    <value>主字幕：对齐上一句</value>
+  </data>
+  <data name="QueueSelectedNextButton.Content" xml:space="preserve">
+    <value>选中项接下来播放</value>
+  </data>
+  <data name="RecentPlayDate.Content" xml:space="preserve">
+    <value>最近播放日期</value>
+  </data>
+  <data name="RecentlyPlayed.Text" xml:space="preserve">
+    <value>最近播放</value>
+  </data>
+  <data name="RecordHistoryCheck.Content" xml:space="preserve">
+    <value>记录播放历史</value>
+  </data>
+  <data name="RefreshHistoryAvailabilityButton.Content" xml:space="preserve">
+    <value>刷新文件状态</value>
+  </data>
+  <data name="RefreshPlaylistDurationsButton.Content" xml:space="preserve">
+    <value>刷新时长与标签</value>
+  </data>
+  <data name="RefreshPlaylistDurationsButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>清除全部时长、标题与艺人缓存并重新读取；不会更改播放队列</value>
+  </data>
+  <data name="RegisterAssociationsButton.Content" xml:space="preserve">
+    <value>注册为可选播放器</value>
+  </data>
+  <data name="RegistrationDoesNotChangeTheDefaultApplication.Text" xml:space="preserve">
+    <value>注册不会更改默认应用；移动播放器目录后需重新注册。</value>
+  </data>
+  <data name="RelativeSeekBackButton.Content" xml:space="preserve">
+    <value>后退5秒</value>
+  </data>
+  <data name="RelativeSeekBackButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>遵循useExactSeek：relative/exact/auto</value>
+  </data>
+  <data name="RelativeSeekForwardButton.Content" xml:space="preserve">
+    <value>前进5秒</value>
+  </data>
+  <data name="RelativeSeekForwardButton.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve">
+    <value>遵循useExactSeek：relative/exact/auto</value>
+  </data>
+  <data name="ReloadInspectedTrackButton.Content" xml:space="preserve">
+    <value>重载所选外部音视频轨道…</value>
+  </data>
+  <data name="ReloadSubtitlesButton.Content" xml:space="preserve">
+    <value>重新加载外部字幕</value>
+  </data>
+  <data name="RemoveAudioEqualizerButton.Content" xml:space="preserve">
+    <value>移除音频均衡</value>
+  </data>
+  <data name="RemoveBindingRowButton.Content" xml:space="preserve">
+    <value>移除所选绑定</value>
+  </data>
+  <data name="RemoveButton.Content" xml:space="preserve">
+    <value>移除</value>
+  </data>
+  <data name="RemoveChainFilterButton.Content" xml:space="preserve">
+    <value>移除</value>
+  </data>
+  <data name="RemoveFilterButton.Content" xml:space="preserve">
+    <value>移除滤镜</value>
+  </data>
+  <data name="RemoveHistoryButton.Content" xml:space="preserve">
+    <value>移除所选</value>
+  </data>
+  <data name="RemoveInspectedTrackButton.Content" xml:space="preserve">
+    <value>移除所选外部轨道…</value>
+  </data>
+  <data name="RemoveQuickLutButton.Content" xml:space="preserve">
+    <value>移除快捷 LUT</value>
+  </data>
+  <data name="RenameBindingSnapshotButton.Content" xml:space="preserve">
+    <value>重命名所选快照</value>
+  </data>
+  <data name="RenameUserEqualizerButton.Content" xml:space="preserve">
+    <value>重命名选中预设</value>
+  </data>
+  <data name="RepeatModeBox.Header" xml:space="preserve">
+    <value>播放循环</value>
+  </data>
+  <data name="ReplaceBindingRowButton.Content" xml:space="preserve">
+    <value>替换所选绑定</value>
+  </data>
+  <data name="ReplaceChainFilterButton.Content" xml:space="preserve">
+    <value>替换选中</value>
+  </data>
+  <data name="ResetAspectButton.Content" xml:space="preserve">
+    <value>原始比例</value>
+  </data>
+  <data name="ResetBrightnessButton.Content" xml:space="preserve">
+    <value>重置亮度</value>
+  </data>
+  <data name="ResetContrastButton.Content" xml:space="preserve">
+    <value>重置对比度</value>
+  </data>
+  <data name="ResetCropButton.Content" xml:space="preserve">
+    <value>移除裁剪</value>
+  </data>
+  <data name="ResetCustomSpeedButton.Content" xml:space="preserve">
+    <value>恢复正常速度</value>
+  </data>
+  <data name="ResetFilterPresetButton.Content" xml:space="preserve">
+    <value>恢复该预设的默认参数</value>
+  </data>
+  <data name="ResetGammaButton.Content" xml:space="preserve">
+    <value>重置Gamma</value>
+  </data>
+  <data name="ResetHueButton.Content" xml:space="preserve">
+    <value>重置色相</value>
+  </data>
+  <data name="ResetKeyBindingsButton.Content" xml:space="preserve">
+    <value>恢复 Windows 默认快捷键</value>
+  </data>
+  <data name="ResetSaturationButton.Content" xml:space="preserve">
+    <value>重置饱和度</value>
+  </data>
+  <data name="ResetSecondaryDelayButton.Content" xml:space="preserve">
+    <value>重置副字幕延迟</value>
+  </data>
+  <data name="ResetSubtitleScaleButton.Content" xml:space="preserve">
+    <value>原始比例</value>
+  </data>
+  <data name="RestoreHardwareDecodeButton.Content" xml:space="preserve">
+    <value>恢复已保存的解码偏好</value>
+  </data>
+  <data name="ResumeCheck.Content" xml:space="preserve">
+    <value>从上次位置继续</value>
+  </data>
+  <data name="RetryNetworkOpenButton.Content" xml:space="preserve">
+    <value>重试</value>
+  </data>
+  <data name="RevealFileButton.Content" xml:space="preserve">
+    <value>在资源管理器中显示</value>
+  </data>
+  <data name="RevealHistoryButton.Content" xml:space="preserve">
+    <value>定位文件</value>
+  </data>
+  <data name="RevealPlaylistButton.Content" xml:space="preserve">
+    <value>定位所选文件</value>
+  </data>
+  <data name="RevealScreenshotPreviewButton.Content" xml:space="preserve">
+    <value>定位文件</value>
+  </data>
+  <data name="RotationBox.Header" xml:space="preserve">
+    <value>旋转角度</value>
+  </data>
+  <data name="SaturationSlider.Header" xml:space="preserve">
+    <value>饱和度</value>
+  </data>
+  <data name="SaturationSlider.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>饱和度</value>
+  </data>
+  <data name="SaveBindingSnapshotButton.Content" xml:space="preserve">
+    <value>将编辑区另存为新快照</value>
+  </data>
+  <data name="SaveCurrentChainFilterButton.Content" xml:space="preserve">
+    <value>保存当前选中滤镜</value>
+  </data>
+  <data name="SaveKeyBindingsButton.Content" xml:space="preserve">
+    <value>保存并应用</value>
+  </data>
+  <data name="SaveNewFilterButton.Content" xml:space="preserve">
+    <value>将表达式另存预设</value>
+  </data>
+  <data name="SaveOnlineSubtitleButton.Content" xml:space="preserve">
+    <value>将选中字幕另存为…</value>
+  </data>
+  <data name="SavePlaylistButton.Content" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="SaveScreenshotAsButton.Content" xml:space="preserve">
+    <value>截图另存为…</value>
+  </data>
+  <data name="SaveUserEqualizerButton.Content" xml:space="preserve">
+    <value>另存预设</value>
+  </data>
+  <data name="SavedFilterKey.Header" xml:space="preserve">
+    <value>快捷键（例如 F6，可留空）</value>
+  </data>
+  <data name="SavedFilterName.Header" xml:space="preserve">
+    <value>预设名称</value>
+  </data>
+  <data name="SavedFilters.Header" xml:space="preserve">
+    <value>保存的滤镜</value>
+  </data>
+  <data name="ScreenshotButton.Content" xml:space="preserve">
+    <value>截图（按偏好输出）</value>
+  </data>
+  <data name="ScreenshotModeBox.Header" xml:space="preserve">
+    <value>截图内容</value>
+  </data>
+  <data name="ScreenshotPreview.Text" xml:space="preserve">
+    <value>截图预览</value>
+  </data>
+  <data name="ScreenshotPreviewImage.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>刚完成的截图预览</value>
+  </data>
+  <data name="ScreenshotSaveLocation.Header" xml:space="preserve">
+    <value>截图保存位置</value>
+  </data>
+  <data name="SearchToSendQueryWordsLanguageAnd.Text" xml:space="preserve">
+    <value>搜索把查询词、语言和凭据发送给选中的服务。OpenSubtitles可选影片哈希；Shooter必须发送当前本地影片的四段MD5指纹和查询词，不发送完整路径。不上传媒体文件；凭据不保存，下载只访问服务域名下的 HTTPS 链接。</value>
+  </data>
+  <data name="SecondarySubtitleBox.Header" xml:space="preserve">
+    <value>副字幕轨道</value>
+  </data>
+  <data name="SecondarySubtitleDelayBox.Header" xml:space="preserve">
+    <value>延迟（秒）</value>
+  </data>
+  <data name="SecondarySubtitlePositionBox.Header" xml:space="preserve">
+    <value>位置（0顶部，100底部）</value>
+  </data>
+  <data name="SecondarySubtitleScaleBox.Header" xml:space="preserve">
+    <value>缩放</value>
+  </data>
+  <data name="SecondarySubtitles.Header" xml:space="preserve">
+    <value>副字幕</value>
+  </data>
+  <data name="SecondarySubtitlesVisibleCheck.Content" xml:space="preserve">
+    <value>显示副字幕</value>
+  </data>
+  <data name="SelectToUseOnlyViewWithoutSwitching.Text" xml:space="preserve">
+    <value>选择仅用于查看，不切换播放轨道。报告可能包含外部文件路径等私密信息；仅显示本窗口播放器已观察到的轨道。</value>
+  </data>
+  <data name="SetTheEndpointsWithABLoop.Text" xml:space="preserve">
+    <value>先用 A-B 循环建立端点，再读取并分别调整秒数。允许 A 在 B 之后。</value>
+  </data>
+  <data name="ShortcutConfiguration.Header" xml:space="preserve">
+    <value>快捷键配置</value>
+  </data>
+  <data name="ShufflePlaylistButton.Content" xml:space="preserve">
+    <value>随机排序</value>
+  </data>
+  <data name="SmallerSubtitleButton.Content" xml:space="preserve">
+    <value>字幕缩小</value>
+  </data>
+  <data name="SortPlaylistButton.Content" xml:space="preserve">
+    <value>排序</value>
+  </data>
+  <data name="SourcePixelCropping.Header" xml:space="preserve">
+    <value>源像素裁剪</value>
+  </data>
+  <data name="SpeedBox.Header" xml:space="preserve">
+    <value>播放速度</value>
+  </data>
+  <data name="SpeedBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>播放速度</value>
+  </data>
+  <data name="StartInteractiveCropButton.Content" xml:space="preserve">
+    <value>在视频上交互裁剪…</value>
+  </data>
+  <data name="StartInteractiveDelogoButton.Content" xml:space="preserve">
+    <value>在视频上选择去标志区域…</value>
+  </data>
+  <data name="StartKeyRecordingButton.Content" xml:space="preserve">
+    <value>录入一个按键组合</value>
+  </data>
+  <data name="StartPlayback.Text" xml:space="preserve">
+    <value>开始播放</value>
+  </data>
+  <data name="StatusText.Text" xml:space="preserve">
+    <value>正在初始化播放器…</value>
+  </data>
+  <data name="StepBackButton.Content" xml:space="preserve">
+    <value>上一帧</value>
+  </data>
+  <data name="StepForwardButton.Content" xml:space="preserve">
+    <value>下一帧</value>
+  </data>
+  <data name="SubtitleAssociationsForTheSelectedItem.Header" xml:space="preserve">
+    <value>所选条目字幕关联</value>
+  </data>
+  <data name="SubtitleBackgroundText.Header" xml:space="preserve">
+    <value>背景/阴影颜色</value>
+  </data>
+  <data name="SubtitleBoldCheck.Content" xml:space="preserve">
+    <value>粗体字幕</value>
+  </data>
+  <data name="SubtitleBox.Header" xml:space="preserve">
+    <value>字幕</value>
+  </data>
+  <data name="SubtitleBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>字幕</value>
+  </data>
+  <data name="SubtitleButton.Content" xml:space="preserve">
+    <value>加载字幕…</value>
+  </data>
+  <data name="SubtitleColorText.Header" xml:space="preserve">
+    <value>文字颜色</value>
+  </data>
+  <data name="SubtitleDelayBox.Header" xml:space="preserve">
+    <value>字幕延迟（秒，正数延后）</value>
+  </data>
+  <data name="SubtitleEncodingBox.Header" xml:space="preserve">
+    <value>选择编码</value>
+  </data>
+  <data name="SubtitleEncodingObservedText.Text" xml:space="preserve">
+    <value>当前编码：未知</value>
+  </data>
+  <data name="SubtitleFontSizeBox.Header" xml:space="preserve">
+    <value>字幕字号</value>
+  </data>
+  <data name="SubtitleFontText.Header" xml:space="preserve">
+    <value>字幕字体</value>
+  </data>
+  <data name="SubtitleItalicCheck.Content" xml:space="preserve">
+    <value>斜体字幕</value>
+  </data>
+  <data name="SubtitleOutlineColorText.Header" xml:space="preserve">
+    <value>描边颜色</value>
+  </data>
+  <data name="SubtitleOutlineSizeBox.Header" xml:space="preserve">
+    <value>描边宽度</value>
+  </data>
+  <data name="SubtitlePositionBox.Header" xml:space="preserve">
+    <value>字幕位置（0顶部，100底部）</value>
+  </data>
+  <data name="SubtitleScaleBox.Header" xml:space="preserve">
+    <value>字幕缩放</value>
+  </data>
+  <data name="SubtitleTextEncoding.Header" xml:space="preserve">
+    <value>字幕文本编码</value>
+  </data>
+  <data name="SubtitleTimeAlignment.Header" xml:space="preserve">
+    <value>字幕时间对齐</value>
+  </data>
+  <data name="Subtitles.Content" xml:space="preserve">
+    <value>字幕 Subtitles</value>
+  </data>
+  <data name="SubtitlesShareTextStylesTheFollowingAre.Text" xml:space="preserve">
+    <value>主副字幕共享文字样式。以下是编辑草稿，不代表当前值。颜色为 #RRGGBB 或 #AARRGGBB，AA=00完全透明，FF不透明。</value>
+  </data>
+  <data name="SubtitlesVisibleCheck.Content" xml:space="preserve">
+    <value>显示字幕</value>
+  </data>
+  <data name="ThumbnailCache.Text" xml:space="preserve">
+    <value>缩略图缓存</value>
+  </data>
+  <data name="TimeModeButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>切换总时长与剩余时间</value>
+  </data>
+  <data name="ToggleChainFilterButton.Content" xml:space="preserve">
+    <value>启用/停用</value>
+  </data>
+  <data name="ToggleSavedFilterButton.Content" xml:space="preserve">
+    <value>应用/移除选中预设</value>
+  </data>
+  <data name="ToolbarAddButton.Content" xml:space="preserve">
+    <value>添加到末尾</value>
+  </data>
+  <data name="ToolbarApplyButton.Content" xml:space="preserve">
+    <value>应用</value>
+  </data>
+  <data name="ToolbarAvailableBox.Header" xml:space="preserve">
+    <value>可添加动作</value>
+  </data>
+  <data name="ToolbarCancelButton.Content" xml:space="preserve">
+    <value>取消草稿</value>
+  </data>
+  <data name="ToolbarCurrentList.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>工具栏当前草稿顺序</value>
+  </data>
+  <data name="ToolbarDefaultButton.Content" xml:space="preserve">
+    <value>将草稿恢复为默认</value>
+  </data>
+  <data name="ToolbarDownButton.Content" xml:space="preserve">
+    <value>下移</value>
+  </data>
+  <data name="ToolbarRemoveButton.Content" xml:space="preserve">
+    <value>移除</value>
+  </data>
+  <data name="ToolbarUpButton.Content" xml:space="preserve">
+    <value>上移</value>
+  </data>
+  <data name="TrackInspectorBox.Header" xml:space="preserve">
+    <value>查看轨道</value>
+  </data>
+  <data name="TrackInspectorExpander.Header" xml:space="preserve">
+    <value>轨道详情与操作</value>
+  </data>
+  <data name="UndoBindingSnapshotButton.Content" xml:space="preserve">
+    <value>撤销上次覆盖或移除</value>
+  </data>
+  <data name="UndoHistoryButton.Content" xml:space="preserve">
+    <value>撤销移除</value>
+  </data>
+  <data name="UndoSavedFilterButton.Content" xml:space="preserve">
+    <value>撤销上次预设编辑</value>
+  </data>
+  <data name="UnregisterAssociationsButton.Content" xml:space="preserve">
+    <value>移除此副本的文件关联注册</value>
+  </data>
+  <data name="UpToFiveButtonsToLeaveBlank.Text" xml:space="preserve">
+    <value>最多5个按钮，可留空。修改是草稿，应用后才改变控制栏；播放、打开文件和进度条保持不变。</value>
+  </data>
+  <data name="UpdateBindingSnapshotButton.Content" xml:space="preserve">
+    <value>用编辑区覆盖所选快照</value>
+  </data>
+  <data name="UpdateSavedFilterButton.Content" xml:space="preserve">
+    <value>更新选中预设</value>
+  </data>
+  <data name="UserEqualizerBox.Header" xml:space="preserve">
+    <value>我的预设</value>
+  </data>
+  <data name="UserEqualizerName.Header" xml:space="preserve">
+    <value>预设名称</value>
+  </data>
+  <data name="Video.Content" xml:space="preserve">
+    <value>视频</value>
+  </data>
+  <data name="VideoFilterLabelText.Header" xml:space="preserve">
+    <value>要移除的滤镜标签</value>
+  </data>
+  <data name="VideoFilterText.Header" xml:space="preserve">
+    <value>视频滤镜</value>
+  </data>
+  <data name="VideoTrackBox.Header" xml:space="preserve">
+    <value>视频轨道</value>
+  </data>
+  <data name="VideoTrackBox.PlaceholderText" xml:space="preserve">
+    <value>尚无已确认选择</value>
+  </data>
+  <data name="VideoTrackBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>视频轨道</value>
+  </data>
+  <data name="VideoVideo.Content" xml:space="preserve">
+    <value>视频 Video</value>
+  </data>
+  <data name="VolumeSlider.Header" xml:space="preserve">
+    <value>音量</value>
+  </data>
+  <data name="VolumeSlider.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>音量</value>
+  </data>
+  <data name="WarningTheOriginalLogMayContainComplete.Text" xml:space="preserve">
+    <value>警告：原始日志可能包含完整文件路径、网络URL和凭据。默认不采集，仅保留有界内存；复制或导出前请检查内容。trace日志量大，超限会丢弃；清空不能撤回已复制或写出的内容。</value>
+  </data>
+  <data name="Window.Content" xml:space="preserve">
+    <value>窗口 Window</value>
+  </data>
+  <data name="WindowCountText.Text" xml:space="preserve">
+    <value>播放器窗口：1</value>
+  </data>
+  <data name="WindowsFileAssociation.Text" xml:space="preserve">
+    <value>Windows 文件关联</value>
+  </data>
+  <data name="WriteBindingRowsButton.Content" xml:space="preserve">
+    <value>生成规范化文本并替换文本区</value>
+  </data>
+  <data name="YouCanAlsoDragASingleLUT.Text" xml:space="preserve">
+    <value>也可将单个LUT拖到播放区域。只替换快捷LUT，其他滤镜保留；文件内容由FFmpeg验证。</value>
+  </data>
+  <data name="ZoomWindowByVideoSize.Header" xml:space="preserve">
+    <value>按视频尺寸缩放窗口</value>
+  </data>
+</root>

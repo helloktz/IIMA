@@ -21,7 +21,12 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           persist-credentials: false
-          clean: true
+          clean: false
+      - name: Clean checkout while preserving the Ninja build trees
+        run: |
+          git reset --hard HEAD
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          git clean -ffdx -e /.build/cmake/
       - name: Check CMake, Ninja and NuGet
         run: |
           cmake --version
@@ -34,9 +39,9 @@ jobs:
           if (-not $env:IIMA_LIBMPV_SDK) { throw 'Set repository variable IIMA_LIBMPV_SDK to the runner-local SDK directory.' }
           ./scripts/stage-libmpv.ps1 -SdkDirectory $env:IIMA_LIBMPV_SDK
       - name: Build Debug x64
-        run: ./scripts/build.ps1 -Configuration Debug -Rebuild
+        run: ./scripts/build.ps1 -Configuration Debug
       - name: Build Release x64
-        run: ./scripts/build.ps1 -Configuration Release -Rebuild
+        run: ./scripts/build.ps1 -Configuration Release
       - name: Preserve build diagnostics
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2

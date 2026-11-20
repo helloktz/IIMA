@@ -82,8 +82,8 @@ void MainWindow::UpdateNetworkOpen(iima::PlaybackSnapshot const& state) {
     const bool visible=!networkOpenUrl_.empty();
     NetworkOpenPanel().Visibility(visible ? Visibility::Visible : Visibility::Collapsed);
     if (!visible) return;
-    NetworkOpenStatus().Text(networkOpenFailed_ ? L"网络媒体打开失败。可重试原地址或编辑后在此窗口重试。" :
-        redirect ? L"网络媒体正在重定向或等待确认，可取消。" : L"正在此窗口打开网络媒体…");
+    NetworkOpenStatus().Text(networkOpenFailed_ ? iima::loc::Text(L"CouldNotOpenNetworkMediaRetryThe") :
+        redirect ? iima::loc::Text(L"WebBasedMediaAreBeingRedirectedOr") : iima::loc::Text(L"OpeningWebMediaInThisWindow"));
     const bool allowed=!pickerOpen_ && !interactiveCrop_.Active() && !cropOriginal_;
     CancelNetworkOpenButton().Visibility(waiting ? Visibility::Visible : Visibility::Collapsed);
     CancelNetworkOpenButton().IsEnabled(allowed);
@@ -104,7 +104,7 @@ void MainWindow::CancelNetworkOpen() {
     } else {
         // Core compares the expected intent atomically on this UI dispatcher.
         if (!session_->CancelNetworkOpen(networkOpenIntent_)) {
-            ShowError(L"打开请求或媒体身份已变化，未停止当前媒体。请使用播放器停止操作。");
+            ShowError(iima::loc::Text(L"OpensTheRequestOrTheMediaIdentity"));
             return;
         }
         networkOpenUrl_.clear();

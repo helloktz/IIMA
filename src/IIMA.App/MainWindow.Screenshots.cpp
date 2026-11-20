@@ -18,18 +18,18 @@ fire_and_forget MainWindow::SaveScreenshot(bool clipboardOnly, bool forceSaveAs)
     request.copy=clipboardOnly || preferences_.Boolean("screenshotCopyToClipboard");
     request.preview=preferences_.Boolean("screenshotShowPreview") && preferences_.Boolean("enableOSD");
     request.forceSaveAs=forceSaveAs;
-    if(!request.save && !request.copy) { ShowError(L"截图保存和复制均已关闭，请启用至少一种输出。"); co_return; }
+    if(!request.save && !request.copy) { ShowError(iima::loc::Text(L"TheScreenshotIsClosedAndCopyingIs")); co_return; }
     request.format=request.save ? static_cast<iima::ScreenshotFormat>(preferences_.Integer("screenShotFormat")) : iima::ScreenshotFormat::Png;
     const auto extension=iima::ScreenshotExtension(request.format);
     try {
-        if(extension.empty()) throw hresult_invalid_argument(L"截图格式无效。");
+        if(extension.empty()) throw hresult_invalid_argument(iima::loc::Text(L"InvalidScreenshotFormat"));
         const auto mediaPath=session_->Snapshot().path;
         const auto fallbackMedia=mediaPath.find("://")!=mediaPath.npos ? std::string{"IIMA-screenshot"} : mediaPath;
         auto filename=request.save ? iima::PlanScreenshotFilename(session_->Snapshot().path,++screenshotSequence_,
             request.format,preferences_.String("screenShotTemplate")) :
             std::optional<std::string>{iima::SuggestedScreenshotFilename(fallbackMedia,++screenshotSequence_,request.format)};
         if(!filename && forceSaveAs) filename=iima::SuggestedScreenshotFilename(fallbackMedia,screenshotSequence_,request.format);
-        if(!filename) throw hresult_invalid_argument(L"截图文件名模板无效，仅支持%F、%n和%%且不能包含路径。");
+        if(!filename) throw hresult_invalid_argument(iima::loc::Text(L"TheScreenshotFileNameTemplateIsInvalid"));
         request.filename=std::move(*filename);
         if(request.save && !forceSaveAs) request.directory=std::filesystem::path(to_hstring(preferences_.String("screenShotFolder")).c_str());
         auto staging=std::make_shared<iima::ScreenshotStaging>(iima::ScreenshotStaging::Create(to_hstring(extension)));
@@ -55,7 +55,7 @@ fire_and_forget MainWindow::SaveScreenshot(bool clipboardOnly, bool forceSaveAs)
         if(!closing_) ShowError(error.message()); else FinishClose();
     } catch(...) {
         screenshotPostProcessing_=false; pickerOpen_=false;
-        if(!closing_) ShowError(L"无法提交截图。"); else FinishClose();
+        if(!closing_) ShowError(iima::loc::Text(L"CouldNotCaptureTheScreenshot")); else FinishClose();
     }
 }
 fire_and_forget MainWindow::FinishScreenshot(std::shared_ptr<iima::ScreenshotStaging> staging, ScreenshotOutputRequest request) {
@@ -72,7 +72,7 @@ fire_and_forget MainWindow::FinishScreenshot(std::shared_ptr<iima::ScreenshotSta
             check_hresult(picker.as<::IInitializeWithWindow>()->Initialize(hwnd));
             auto extension=iima::ScreenshotExtension(request.format);
             picker.SuggestedFileName(to_hstring(request.filename));
-            picker.FileTypeChoices().Insert(to_hstring(extension)+L" 图像",single_threaded_vector<hstring>({L"."+to_hstring(extension)}));
+            picker.FileTypeChoices().Insert(to_hstring(extension)+iima::loc::Text(L"Image"),single_threaded_vector<hstring>({L"."+to_hstring(extension)}));
             auto operation=picker.PickSaveFileAsync();
             screenshotPickerOperation_=operation.as<Windows::Foundation::IAsyncInfo>();
             auto file=co_await operation;
@@ -82,7 +82,7 @@ fire_and_forget MainWindow::FinishScreenshot(std::shared_ptr<iima::ScreenshotSta
                 auto suffix=to_string(destination->extension().native());
                 for(auto& c:suffix) if(c>='A' && c<='Z') c=static_cast<char>(c+('a'-'A'));
                 if(iima::ParseScreenshotFormat(suffix)!=std::optional{request.format})
-                    throw hresult_invalid_argument(L"保存后缀与截图格式不一致，未保存文件。");
+                    throw hresult_invalid_argument(iima::loc::Text(L"SavesTheSuffixInAFormatThat"));
             } else saveCancelled=true;
         } catch(...) { screenshotPickerOperation_=nullptr; saveFailure=std::current_exception(); }
     }
@@ -130,12 +130,12 @@ fire_and_forget MainWindow::FinishScreenshot(std::shared_ptr<iima::ScreenshotSta
         try { std::rethrow_exception(failure); }
         catch(hresult_error const& error) { return error.message(); }
         catch(std::exception const& error) { return to_hstring(error.what()); }
-        catch(...) { return L"未知错误"; }
+        catch(...) { return iima::loc::Text(L"UnknownError"); }
     };
     hstring report;
-    if(request.save) report=saved ? L"截图已保存。" : saveCancelled ? L"已取消保存文件。" : L"截图保存失败："+detail(saveFailure)+L"。";
-    if(request.copy) report=report+(copied ? hstring{L"已复制到剪贴板。"} : L"复制失败："+detail(copyFailure)+L"。");
-    if(previewFailed) report=report+L"预览不可用。";
+    if(request.save) report=saved ? iima::loc::Text(L"TheScreenshotHasBeenSaved") : saveCancelled ? iima::loc::Text(L"FileSaveCanceled") : iima::loc::Text(L"CanNotOpenMessage")+detail(saveFailure)+L"。";
+    if(request.copy) report=report+(copied ? hstring{iima::loc::Text(L"CopiedToTheClipboard")} : iima::loc::Text(L"CopyFailed")+detail(copyFailure)+L"。");
+    if(previewFailed) report=report+iima::loc::Text(L"PreviewIsNotAvailable");
     if(!closing_) ShowError(report);
     screenshotPostProcessing_=false; pickerOpen_=false;
     if(closing_) { FinishClose(); co_return; }
@@ -155,7 +155,7 @@ void MainWindow::WireScreenshotSettings() {
 }
 void MainWindow::UpdateScreenshotSettings() {
     auto folder=preferences_.String("screenShotFolder");
-    ScreenshotDirectoryText().Text(folder.empty() ? L"未设置目录：捕获后选择保存位置。" : L"截图目录："+to_hstring(folder));
+    ScreenshotDirectoryText().Text(folder.empty() ? iima::loc::Text(L"NoDirectorySetSelectASavingPosition") : iima::loc::Text(L"Checklist")+to_hstring(folder));
     const bool allowed=userDataLoaded_ && !closing_ && !pickerOpen_;
     ChooseScreenshotDirectoryButton().IsEnabled(allowed);
     ClearScreenshotDirectoryButton().IsEnabled(allowed && !folder.empty());
@@ -182,7 +182,7 @@ fire_and_forget MainWindow::ChooseScreenshotDirectory() {
                 ApplyAdvancedSetting("screenShotFolder",to_string(path.native()));
         }
     } catch(hresult_error const& error) { if(!closing_) ShowError(error.message()); }
-      catch(...) { if(!closing_) ShowError(L"无法设置截图目录。"); }
+      catch(...) { if(!closing_) ShowError(iima::loc::Text(L"CouldNotSetTheScreenshotFolder")); }
     pickerOpen_=false;
     if(!closing_) { UpdateScreenshotSettings(); OpenPendingFiles(); FlushActivation(); }
 }

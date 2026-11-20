@@ -104,11 +104,11 @@ void MainWindow::WireInteractiveCrop() {
         std::array<double,4> numbers{self->InteractiveCropX().Value(),self->InteractiveCropY().Value(),
             self->InteractiveCropWidth().Value(),self->InteractiveCropHeight().Value()};
         for (auto value : numbers) if (!std::isfinite(value) || value < 0 || value > 65536 || std::floor(value) != value) {
-            self->InteractiveCropStatus().Text(L"请输入范围内的整数坐标。"); return;
+            self->InteractiveCropStatus().Text(iima::loc::Text(L"EnterTheIntegerCoordinatesWithinTheRange")); return;
         }
         if (!self->interactiveCrop_.SetPixels({static_cast<int>(numbers[0]),static_cast<int>(numbers[1]),
                 static_cast<int>(numbers[2]),static_cast<int>(numbers[3])})) {
-            self->InteractiveCropStatus().Text(L"裁剪区域必须位于源图像内且至少1×1像素。"); return;
+            self->InteractiveCropStatus().Text(iima::loc::Text(L"TheCroppingAreaMustBeWithinThe")); return;
         }
         self->PaintInteractiveCrop();
     });
@@ -175,21 +175,21 @@ void MainWindow::StartInteractiveCrop() {
         BeginManagedCropTransaction(); return;
     }
     if (AppWindow().Presenter().Kind() == Microsoft::UI::Windowing::AppWindowPresenterKind::CompactOverlay) {
-        ShowError(L"请先退出悬浮小窗再交互裁剪。"); return;
+        ShowError(iima::loc::Text(L"PleaseExitTheSuspendedSmallWindowBefore")); return;
     }
     auto mapping = InteractiveCropMapping();
     if (!mapping) {
-        if (cropOriginal_) { InteractiveCropStatus().Text(L"原区域滤镜已临时移除，等待完整源图像映射；取消将请求恢复原区域滤镜。"); return; }
-        ShowError(L"交互区域选择需要已确认的未旋转视频映射。请移除现有视频滤镜/裁剪，恢复旋转为0，等待画面尺寸稳定后重试。"); return;
+        if (cropOriginal_) { InteractiveCropStatus().Text(iima::loc::Text(L"TheOriginalAreaFilterHasBeenTemporarily")); return; }
+        ShowError(iima::loc::Text(L"InteractiveAreaSelectionRequiresAnUnrotatedVideo")); return;
     }
     std::optional<iima::CropPixels> initial;
     if (interactiveDelogo_) {
         if (mapping->sourceWidth < 4 || mapping->sourceHeight < 4) {
             if (cropOriginal_) {
                 FinishManagedCropTransaction(false);
-                ShowError(L"源画面过小，无法选择去标志区域；已请求恢复原滤镜，请等待结果。");
+                ShowError(iima::loc::Text(L"TheSourceImageIsTooSmallTo"));
             }
-            else ShowError(L"源画面过小，无法选择去标志区域。");
+            else ShowError(iima::loc::Text(L"TheSourceImageIsTooSmallTo2"));
             return;
         }
         // Unlike crop, delogo needs a bounded interior region, not the full
@@ -220,8 +220,8 @@ void MainWindow::StartInteractiveCrop() {
     cropTransactionPhase_ = CropTransactionPhase::Editing;
     InteractiveDelogoRemoveButton().Visibility(interactiveDelogo_ && !cropOriginal_->entries.empty()
         ? Visibility::Visible : Visibility::Collapsed);
-    InteractiveCropTitle().Text(interactiveDelogo_ ? L"交互去标志" : L"交互裁剪");
-    InteractiveCropConfirmButton().Content(box_value(interactiveDelogo_ ? L"确认去标志区域" : L"确认裁剪"));
+    InteractiveCropTitle().Text(interactiveDelogo_ ? iima::loc::Text(L"InteractToMark") : iima::loc::Text(L"InteractiveCrop"));
+    InteractiveCropConfirmButton().Content(box_value(interactiveDelogo_ ? iima::loc::Text(L"ConfirmTheMarkingArea") : iima::loc::Text(L"ConfirmCrop")));
     InteractiveCropAspect().Visibility(interactiveDelogo_ ? Visibility::Collapsed : Visibility::Visible);
     InteractiveCropAspectButton().Visibility(interactiveDelogo_ ? Visibility::Collapsed : Visibility::Visible);
     InteractiveCropCanvas().IsHitTestVisible(true);
@@ -254,19 +254,19 @@ void MainWindow::PaintInteractiveCrop() {
     if (!pixels) return;
     InteractiveCropX().Value(pixels->x); InteractiveCropY().Value(pixels->y);
     InteractiveCropWidth().Value(pixels->width); InteractiveCropHeight().Value(pixels->height);
-    InteractiveCropStatus().Text(L"草稿：("+to_hstring(pixels->x)+L", "+to_hstring(pixels->y)+L") "+
-        to_hstring(pixels->width)+L" × "+to_hstring(pixels->height)+(interactiveDelogo_ ? L"；区域须与四边至少相隔1像素，确认才提交。" : L"；确认才提交滤镜。"));
+    InteractiveCropStatus().Text(iima::loc::Text(L"Draft")+to_hstring(pixels->x)+L", "+to_hstring(pixels->y)+L") "+
+        to_hstring(pixels->width)+L" × "+to_hstring(pixels->height)+(interactiveDelogo_ ? iima::loc::Text(L"TheAreaMustBeAtLeast1") : iima::loc::Text(L"ToSubmitTheFilterOnlyAfterConfirmation")));
 }
 void MainWindow::UpdateInteractiveCrop(iima::PlaybackSnapshot const& state) {
     if (cropOriginal_) {
         if (navigationEpoch_ != interactiveCropEpoch_ || state.entryId != interactiveCropEntry_ ||
             state.session != iima::SessionState::Ready || state.media != iima::MediaState::Loaded) {
-            AbandonManagedCropTransaction(L"媒体或会话已变化，未把原区域滤镜写入新的媒体；原表达式已保留供手动恢复。"); return;
+            AbandonManagedCropTransaction(iima::loc::Text(L"MediaOrSessionHasChangedAndThe")); return;
         }
         if (cropTransactionPhase_ == CropTransactionPhase::Removing || cropTransactionPhase_ == CropTransactionPhase::Writing) return;
         iima::FilterEditPlan expected{cropExpectedEmpty_,{},true,{}};
         if (!expected.FreshMatches(state.videoFilters)) {
-            AbandonManagedCropTransaction(L"预览期间视频滤镜被其他操作改变，未覆盖；原区域滤镜表达式已保留。"); return;
+            AbandonManagedCropTransaction(iima::loc::Text(L"TheVideoFilterWasChangedDuringThe")); return;
         }
         interactiveCropFilterRevision_ = state.videoFilters.revision;
         if (cropTransactionPhase_ == CropTransactionPhase::Preparing) { StartInteractiveCrop(); return; }
@@ -280,7 +280,7 @@ void MainWindow::UpdateInteractiveCrop(iima::PlaybackSnapshot const& state) {
     if (!cropMapping_ || CropNumber(state.videoParameters,"w") != std::optional<double>{cropMapping_->sourceWidth} ||
         CropNumber(state.videoParameters,"h") != std::optional<double>{cropMapping_->sourceHeight}) {
         FinishInteractiveCrop(false,false);
-        if (!closing_) ShowError(L"源视频尺寸已改变，交互区域选择已取消；未自动恢复播放。");
+        if (!closing_) ShowError(iima::loc::Text(L"TheSizeOfTheSourceVideoHas"));
         return;
     }
     if (!mapping) {
@@ -289,7 +289,7 @@ void MainWindow::UpdateInteractiveCrop(iima::PlaybackSnapshot const& state) {
         cropPointer_.reset(); interactiveCrop_.CancelDrag(); InteractiveCropCanvas().ReleasePointerCaptures();
         InteractiveCropCanvas().Visibility(Visibility::Collapsed);
         InteractiveCropConfirmButton().IsEnabled(false);
-        InteractiveCropStatus().Text(L"等待兼容且稳定的视频映射；可取消退出。旋转/内建裁剪等不支持的变换需先恢复。");
+        InteractiveCropStatus().Text(iima::loc::Text(L"WaitsForCompatibleAndStableVideoMaps"));
         return;
     }
     InteractiveCropCanvas().Visibility(Visibility::Visible);
@@ -323,7 +323,7 @@ void MainWindow::FinishInteractiveCrop(bool commit, bool restorePlayback) {
     PlayerSidebarContent().IsEnabled(true);
     RefreshPlayerMenus();
     UpdateWindowAspectConstraint();
-    if (commit && !closing_) ShowError(L"区域编辑事务已失效，未提交滤镜。");
+    if (commit && !closing_) ShowError(iima::loc::Text(L"AreaEditorialServicesAreNoLongerValid"));
     if (resume) session_->Pause(false);
     ControlBarActivity();
     if (!closing_) {

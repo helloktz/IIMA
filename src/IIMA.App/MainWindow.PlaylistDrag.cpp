@@ -110,7 +110,7 @@ bool MainWindow::CopyPlaylistDrag(MainWindow& target,DragEventArgs const& args,s
     constexpr std::size_t budget=32*1024*1024,overhead=sizeof(std::pair<std::int64_t,std::string>);
     for(auto const& item:initial.playlist) {
         if(bytes>budget-overhead || item.path.size()>budget-overhead-bytes) {
-            target.ShowError(L"目标列表过大，无法安全保留复制落点快照。");return false;
+            target.ShowError(iima::loc::Text(L"TheTargetListIsTooLargeTo"));return false;
         }
         bytes+=item.path.size()+overhead;identities.emplace_back(item.id,item.path);
     }
@@ -188,7 +188,7 @@ void MainWindow::WirePlaylistDrag() {
                 constexpr std::size_t budget=32*1024*1024;
                 const auto overhead=sizeof(std::pair<std::int64_t,std::string>);
                 if(bytes>budget-overhead || entry.path.size()>budget-overhead-bytes) {
-                    args.Cancel(true);self->ShowError(L"播放列表过大，无法安全保留拖动快照；请改用队列按钮分批操作。");return;
+                    args.Cancel(true);self->ShowError(iima::loc::Text(L"ThePlaylistIsTooLargeToKeep2"));return;
                 }
                 if(entry.path.empty() || entry.id<0 || !ids.insert(entry.id).second ||
                     self->playlist_[i].id!=entry.id || self->playlist_[i].path!=entry.path ||
@@ -247,8 +247,8 @@ void MainWindow::WirePlaylistDrag() {
                     !self->inputResolving_ && self->pendingFiles_.empty() && self->activationInputs_.empty()) {
                     self->DragOverFiles(args);
                     if (auto row=self->PlaylistDropRow(args); row && args.AcceptedOperation()==DataPackageOperation::Copy) {
-                        args.DragUIOverride().Caption(*row==self->playlist_.size() ? L"插入到列表末尾（不播放）" :
-                            L"插入到第 " + to_hstring(*row+1) + L" 项之前（不播放）");
+                        args.DragUIOverride().Caption(*row==self->playlist_.size() ? iima::loc::Text(L"InsertAtTheEndOfTheList") :
+                            iima::loc::Text(L"InsertToTheFirst") + to_hstring(*row+1) + iima::loc::Text(L"BeforeEntryNotPlayed"));
                         args.DragUIOverride().IsCaptionVisible(true);
                     } else args.AcceptedOperation(DataPackageOperation::None);
                 }
@@ -263,9 +263,9 @@ void MainWindow::WirePlaylistDrag() {
             if(!same && (!source->playlistDragCopyAllowed_ || !self->PlaylistDropTargetCurrent(false))) return;
             if(auto row=self->PlaylistDropRow(args)) {
                 args.AcceptedOperation(same ? DataPackageOperation::Move : DataPackageOperation::Copy);
-                args.DragUIOverride().Caption(same ? (*row==self->playlist_.size() ? hstring(L"移动到列表末尾") :
-                    L"移动到第 "+to_hstring(*row+1)+L" 项之前") :
-                    (*row==self->playlist_.size() ? hstring(L"复制到此窗口列表末尾（不播放）") : L"复制到此窗口第 "+to_hstring(*row+1)+L" 项之前（不播放）"));
+                args.DragUIOverride().Caption(same ? (*row==self->playlist_.size() ? hstring(iima::loc::Text(L"MoveToTheEndOfTheList")) :
+                    iima::loc::Text(L"MoveToPosition")+to_hstring(*row+1)+iima::loc::Text(L"BeforeItem")) :
+                    (*row==self->playlist_.size() ? hstring(iima::loc::Text(L"CopyToTheEndOfThisWindow")) : iima::loc::Text(L"CopyToThisWindowFirst")+to_hstring(*row+1)+iima::loc::Text(L"BeforeEntryNotPlayed")));
                 args.DragUIOverride().IsCaptionVisible(true);
             }
         }
@@ -292,7 +292,7 @@ void MainWindow::WirePlaylistDrag() {
             try {
                 if(!source->PlaylistDragCurrent(args,true)) {
                     consumeOriginal();
-                    if(!self->closing_) self->ShowError(L"拖动来源或播放列表已变化，请重新拖动。");
+                    if(!self->closing_) self->ShowError(iima::loc::Text(L"DragTheSourceOrPlaylistHasChanged"));
                     return;
                 }
                 const auto targetRevision=self->session_->Snapshot().playlistRevision;
@@ -312,7 +312,7 @@ void MainWindow::WirePlaylistDrag() {
                 } else {
                     if(!source->playlistDragCopyAllowed_) {
                         consumeOriginal();
-                        self->ShowError(L"此选择不能跨窗口复制：最多1000项／1MiB，仅普通绝对盘符路径或显式网络URL；不支持本地播放列表、设备路径或特殊协议。");return;
+                        self->ShowError(iima::loc::Text(L"ThisOptionCannotBeCopiedAcrossThe"));return;
                     }
                     submitted=source->CopyPlaylistDrag(*self,args,*row);
                     consumeOriginal(); // Also consume on a rejected/no-op drop.

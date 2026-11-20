@@ -66,7 +66,7 @@ void MainWindow::WireDiagnosticViewer() {
 }
 void MainWindow::RefreshDiagnosticViewer(bool force) {
     if (closing_ || (!force && !DiagnosticExpander().IsExpanded())) return;
-    if (!diagnostics_) { DiagnosticStatusText().Text(L"本窗口诊断日志不可用。"); return; }
+    if (!diagnostics_) { DiagnosticStatusText().Text(iima::loc::Text(L"ThisWindowDiagnosticLogIsNotAvailable")); return; }
     // Bounded owned memory only. No disk I/O and no mpv read on the UI thread.
     auto snapshot = diagnostics_->Snapshot();
     if (!force && snapshot.revision == diagnosticSnapshot_.revision &&
@@ -116,9 +116,9 @@ void MainWindow::RenderDiagnosticViewer() {
     diagnosticVisible_ = std::move(visible);
     if (DiagnosticFollowBox().IsChecked().Value() && DiagnosticList().Items().Size())
         DiagnosticList().ScrollIntoView(DiagnosticList().Items().GetAt(DiagnosticList().Items().Size() - 1));
-    DiagnosticStatusText().Text(L"显示 " + to_hstring(diagnosticVisible_.size()) + L" / " +
-        to_hstring(diagnosticSnapshot_.records.size()) + L" 条；内存淘汰 " + to_hstring(diagnosticSnapshot_.evicted) +
-        L" 条；磁盘排队丢弃 " + to_hstring(diagnosticSnapshot_.diskQueueDropped) + L" 条。时间为 Unix 毫秒。");
+    DiagnosticStatusText().Text(iima::loc::Text(L"Show") + to_hstring(diagnosticVisible_.size()) + L" / " +
+        to_hstring(diagnosticSnapshot_.records.size()) + iima::loc::Text(L"ArticlesRAMPhaseOut") + to_hstring(diagnosticSnapshot_.evicted) +
+        iima::loc::Text(L"BarsDiskQueuedForDisposal") + to_hstring(diagnosticSnapshot_.diskQueueDropped) + iima::loc::Text(L"BarTimeIsUnixMilliseconds"));
 }
 void MainWindow::CopyDiagnosticSelection() {
     if (closing_) return;
@@ -129,12 +129,12 @@ void MainWindow::CopyDiagnosticSelection() {
         std::string text;
         for (auto const& record : diagnosticVisible_)
             if (selected.contains(record.sequence)) text += LogLine(record);
-        if (text.empty()) { DiagnosticStatusText().Text(L"请先选择要复制的日志行。"); return; }
+        if (text.empty()) { DiagnosticStatusText().Text(iima::loc::Text(L"PleaseSelectALogLineToCopy")); return; }
         Windows::ApplicationModel::DataTransfer::DataPackage package;
         package.SetText(to_hstring(text));
         Windows::ApplicationModel::DataTransfer::Clipboard::SetContent(package);
-        DiagnosticStatusText().Text(L"已将选中日志放入剪贴板。");
-    } catch (...) { DiagnosticStatusText().Text(L"无法写入剪贴板，请重试。"); }
+        DiagnosticStatusText().Text(iima::loc::Text(L"TheSelectedLogHasBeenPlacedOn"));
+    } catch (...) { DiagnosticStatusText().Text(iima::loc::Text(L"CouldNotWriteToTheClipboardTry")); }
 }
 fire_and_forget MainWindow::SaveDiagnosticSnapshot(bool all) {
     auto lifetime = get_strong();
@@ -154,7 +154,7 @@ fire_and_forget MainWindow::SaveDiagnosticSnapshot(bool all) {
         check_hresult(GetNativeWindowHandle(&hwnd));
         check_hresult(picker.as<::IInitializeWithWindow>()->Initialize(hwnd));
         picker.SuggestedFileName(all ? L"IIMA-diagnostic-snapshot" : L"IIMA-diagnostic-filtered");
-        picker.FileTypeChoices().Insert(L"UTF-8 日志", single_threaded_vector<hstring>({L".log"}));
+        picker.FileTypeChoices().Insert(iima::loc::Text(L"UTF8Log"), single_threaded_vector<hstring>({L".log"}));
         auto file = co_await picker.PickSaveFileAsync();
         if (file && !closing_) {
             auto path = std::filesystem::path(file.Path().c_str());
@@ -164,9 +164,9 @@ fire_and_forget MainWindow::SaveDiagnosticSnapshot(bool all) {
             catch (...) { failure = std::current_exception(); }
             co_await ui;
             if (failure) std::rethrow_exception(failure);
-            if (!closing_) DiagnosticStatusText().Text(L"已保存操作开始时的日志快照。");
+            if (!closing_) DiagnosticStatusText().Text(iima::loc::Text(L"SavesALogSnapshotFromTheStart"));
         }
-    } catch (...) { if (!closing_) ShowError(L"保存诊断日志失败。"); }
+    } catch (...) { if (!closing_) ShowError(iima::loc::Text(L"FailedToSaveDiagnosticLog")); }
     pickerOpen_ = false;
     if (!closing_) OpenPendingFiles();
 }

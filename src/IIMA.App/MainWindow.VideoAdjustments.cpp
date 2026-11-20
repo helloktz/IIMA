@@ -52,18 +52,18 @@ void MainWindow::UpdateVideoAdjustments(iima::PlaybackSnapshot const& state) {
     DisableHardwareDecodeButton().IsEnabled(active && state.hardwareDecodeMode.has_value() &&
         state.hardwareDecodeMode != "no");
     RestoreHardwareDecodeButton().IsEnabled(active && userDataLoaded_);
-    std::wstring decode = L"请求模式：";
-    decode += state.hardwareDecodeMode ? to_hstring(*state.hardwareDecodeMode).c_str() : L"未知";
-    decode += L"；实际解码：";
-    if (!active || state.hwdecCurrent.empty()) decode += L"尚不可用";
-    else if (state.hwdecCurrent == "no") decode += L"软件解码";
+    std::wstring decode = iima::loc::Text(L"RequestMode");
+    decode += state.hardwareDecodeMode ? to_hstring(*state.hardwareDecodeMode).c_str() : iima::loc::Text(L"Unknown3");
+    decode += iima::loc::Text(L"ActualDecoded");
+    if (!active || state.hwdecCurrent.empty()) decode += iima::loc::Text(L"NotYetAvailable");
+    else if (state.hwdecCurrent == "no") decode += iima::loc::Text(L"SoftwareDecoding");
     else decode += to_hstring(state.hwdecCurrent).c_str();
     if (userDataLoaded_) {
         auto preference = preferences_.Integer("hardwareDecoder");
-        decode += L"；已保存偏好：";
+        decode += iima::loc::Text(L"SavedPreferences");
         decode += preference == 2 ? L"auto-copy" : preference == 1 ? L"auto" : L"no";
     }
-    decode += L"。允许硬件解码不保证当前视频实际使用硬件。";
+    decode += iima::loc::Text(L"AllowsTheDecodementOfHardwareNotTo");
     HardwareDecodeStatus().Text(decode);
     bool complete = true;
     auto project = [&](Controls::Slider slider, Controls::Button reset, std::optional<int> value) {
@@ -82,9 +82,9 @@ void MainWindow::UpdateVideoAdjustments(iima::PlaybackSnapshot const& state) {
     DeinterlaceCheck().IsEnabled(active && state.deinterlaceMode.has_value());
     if (state.deinterlace) DeinterlaceCheck().IsChecked(*state.deinterlace);
     else DeinterlaceCheck().IsChecked(nullptr);
-    std::wstring status = !active ? L"等待媒体加载。" : complete ? L"数值由播放器反馈；修改后等待实际属性更新。" : L"部分属性暂不可用，对应控件已禁用。";
-    if (state.deinterlaceMode == "auto") status += L" 反交错当前为播放器自动模式。";
-    else if (!state.deinterlaceMode) status += L" 反交错状态未知。";
+    std::wstring status = !active ? iima::loc::Text(L"WaitForTheMediaToLoad") : complete ? iima::loc::Text(L"ValuesAreFedBackByThePlayer") : iima::loc::Text(L"PartialPropertiesAreNotAvailableAndThe");
+    if (state.deinterlaceMode == "auto") status += iima::loc::Text(L"InverselyStaggeringTheCurrentPlayerAutomaticMode");
+    else if (!state.deinterlaceMode) status += iima::loc::Text(L"TheInvertedStateIsUnknown");
     VideoAdjustmentStatus().Text(status);
 }
 }

@@ -29,7 +29,7 @@ void MainWindow::ReceiveActivation(std::vector<std::wstring> paths)
         SetForegroundWindow(hwnd); // Best effort: Windows foreground policy still applies.
     }
     if (paths.empty()) return;
-    if (activationInputs_.size() + paths.size() > 256) { ShowError(L"一次打开的文件过多，请分批打开。"); return; }
+    if (activationInputs_.size() + paths.size() > 256) { ShowError(iima::loc::Text(L"TooManyFilesToOpenAtOnce")); return; }
     activationInputs_.insert(activationInputs_.end(), std::make_move_iterator(paths.begin()), std::make_move_iterator(paths.end()));
     InvalidateSubtitleLoad();
     InvalidateExternalAVLoad();
@@ -75,13 +75,13 @@ void MainWindow::WireAssociationControls()
     RegisterAssociationsButton().Click([weak](auto const&, auto const&) {
         if (auto self = weak.get(); self && !self->closing_) try {
             iima::FileAssociations::Register();
-            self->ShowError(L"已注册为可选播放器，默认应用未改变。请在 Windows 设置中选择 IIMA。");
-        } catch (hresult_error const& error) { self->ShowError(L"注册未完成，可重试：" + error.message()); }
+            self->ShowError(iima::loc::Text(L"RegisteredAsAnOptionalPlayerTheDefault"));
+        } catch (hresult_error const& error) { self->ShowError(iima::loc::Text(L"IfRegistrationIsNotCompleteTryAgain") + error.message()); }
     });
     UnregisterAssociationsButton().Click([weak](auto const&, auto const&) {
         if (auto self = weak.get(); self && !self->closing_) try {
             iima::FileAssociations::Unregister();
-            self->ShowError(L"已移除此副本的文件关联注册。如原先设为默认，请在 Windows 设置中选择其他应用。");
+            self->ShowError(iima::loc::Text(L"FilesAssociatedWithThisCopyHaveBeen"));
         } catch (hresult_error const& error) { self->ShowError(error.message()); }
     });
     DefaultAppsButton().Click([weak](auto const&, auto const&) {
@@ -107,7 +107,7 @@ void MainWindow::InitializeDiagnostics()
         auto directory = std::to_wstring(stamp) + L"-" + std::to_wstring(GetCurrentProcessId()) + L"-" + std::to_wstring(++sequence);
         diagnostics_ = std::make_unique<iima::DiagnosticLog>(path / L"IIMA" / L"logs" / directory, [weak, dispatcher](std::string error) {
             dispatcher.TryEnqueue([weak, error = std::move(error)] {
-                if (auto self = weak.get()) self->ShowError(L"诊断日志不可用：" + to_hstring(error));
+                if (auto self = weak.get()) self->ShowError(iima::loc::Text(L"DiagnosisLogsAreNotAvailable") + to_hstring(error));
             });
         });
         diagnostics_->Write("app", "starting");
