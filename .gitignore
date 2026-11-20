@@ -2,5 +2,6 @@
 /artifacts/
 /.vs/
 /.openidea/
+/.codegraph/
 **/*.vcxproj.user
 **/Generated Files/
