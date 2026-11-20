@@ -119,7 +119,12 @@ void MainWindow::WirePlayerMenus() {
     };
     auto loaded = [this] { auto const& s = session_->Snapshot(); return s.session == iima::SessionState::Ready && s.media == iima::MediaState::Loaded; };
     auto seekable = [this, loaded] { return loaded() && session_->Snapshot().seekable; };
-    auto video = [this, loaded] { return loaded() && session_->Snapshot().voConfigured; };
+    auto video = [this, loaded] {
+        auto const& state = session_->Snapshot();
+        return loaded() && state.voConfigured && std::ranges::any_of(state.tracks, [](auto const& track) {
+            return track.type == "video" && track.selected;
+        });
+    };
     auto normalVideo = [this, video] {
         auto normal = AppWindow().Presenter().try_as<Microsoft::UI::Windowing::OverlappedPresenter>();
         return video() && !musicMode_.IsMusic() && !interactiveCrop_.Active() && !cropOriginal_ && normal &&

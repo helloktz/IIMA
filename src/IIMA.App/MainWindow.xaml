@@ -4,7 +4,7 @@
     xmlns:local="using:IIMA">
     <Grid Background="{ThemeResource IimaPanelBackgroundBrush}">
         <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-        <MenuBar x:Name="ApplicationMenuBar" IsEnabled="False" AutomationProperties.Name="播放器菜单"/>
+        <MenuBar x:Name="ApplicationMenuBar" IsEnabled="False" RequestedTheme="Dark" AutomationProperties.Name="播放器菜单"/>
     <ContentControl x:Name="PlayerContent" Grid.Row="1" IsTabStop="False" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
     <Grid x:Name="Root" Background="{ThemeResource IimaVideoBackgroundBrush}" RequestedTheme="Dark" AllowDrop="True">
         <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="300"/></Grid.ColumnDefinitions>
@@ -216,7 +216,11 @@
         <Border x:Name="PlayerSidebar" Grid.Column="1" Background="{ThemeResource IimaPanelBackgroundBrush}" Padding="12">
             <ContentControl x:Name="PlayerSidebarContent" IsTabStop="False" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
             <Grid RowSpacing="8">
-                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="3*"/>
+                    <RowDefinition Height="2*" MaxHeight="300"/>
+                </Grid.RowDefinitions>
                 <StackPanel Orientation="Horizontal" Spacing="6">
                     <TextBlock Text="播放列表" Foreground="{ThemeResource IimaTextBrush}" VerticalAlignment="Center"/>
                     <Button x:Name="AppendButton" Content="添加"/>
@@ -225,37 +229,37 @@
                 <ListView x:Name="PlaylistView" Grid.Row="1" Foreground="{ThemeResource IimaTextBrush}" SelectionMode="Extended"
                           CanDragItems="True" AllowDrop="True" CanReorderItems="False"
                           AutomationProperties.Name="播放列表（Ctrl或Shift多选，可拖动排序）" />
-                <StackPanel Grid.Row="2" Spacing="6">
-                    <StackPanel Orientation="Horizontal" Spacing="4">
-                        <Button x:Name="SortPlaylistButton" Content="排序"/>
-                        <Button x:Name="ShufflePlaylistButton" Content="随机排序"/>
-                        <Button x:Name="ClearPlaylistButton" Content="清空"/>
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal" Spacing="4">
-                        <Button x:Name="PreviousButton" Content="上一项"/>
-                        <Button x:Name="PlaySelectedButton" Content="播放"/>
-                        <Button x:Name="NextButton" Content="下一项"/>
-                    </StackPanel>
-                    <TextBlock x:Name="PlaylistDurationSummary" Text="时长未知" TextWrapping="Wrap" FontSize="12"/>
-                    <TextBlock x:Name="PlaylistDurationHint" Text="自动预取队列前128项与选中项（最多32项）；仅本地媒体文件。" TextWrapping="Wrap" FontSize="12"/>
-                    <Button x:Name="RefreshPlaylistDurationsButton" Content="刷新时长与标签" ToolTipService.ToolTip="清除全部时长、标题与艺人缓存并重新读取；不会更改播放队列"/>
-                    <TextBlock x:Name="PlaylistSelectionText" Text="未选择条目；Ctrl或Shift可多选" TextWrapping="Wrap"/>
-                    <Button x:Name="DeletePlaylistFilesButton" Content="删除所选磁盘文件…" ToolTipService.ToolTip="区别于移除列表；系统优先使用回收站，不能回收时另行确认"/>
-                    <Button x:Name="CancelPlaylistDeletionButton" Content="停止后续文件删除" IsEnabled="False"/>
-                    <Button x:Name="QueueSelectedNextButton" Content="选中项接下来播放"/>
-                    <StackPanel Orientation="Horizontal" Spacing="4">
-                        <Button x:Name="RemoveButton" Content="移除"/>
+                <ScrollViewer Grid.Row="2" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <Button x:Name="SortPlaylistButton" Content="排序"/>
+                            <Button x:Name="ShufflePlaylistButton" Content="随机排序"/>
+                            <Button x:Name="ClearPlaylistButton" Content="清空"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <Button x:Name="PreviousButton" Content="上一项"/>
+                            <Button x:Name="PlaySelectedButton" Content="播放"/>
+                            <Button x:Name="NextButton" Content="下一项"/>
+                        </StackPanel>
+                        <TextBlock x:Name="PlaylistDurationSummary" Text="时长未知" TextWrapping="Wrap" FontSize="12"/>
+                        <TextBlock x:Name="PlaylistDurationHint" Text="自动预取队列前128项与选中项（最多32项）；仅本地媒体文件。" TextWrapping="Wrap" FontSize="12"/>
+                        <Button x:Name="RefreshPlaylistDurationsButton" Content="刷新时长与标签" ToolTipService.ToolTip="清除全部时长、标题与艺人缓存并重新读取；不会更改播放队列"/>
+                        <TextBlock x:Name="PlaylistSelectionText" Text="未选择条目；Ctrl或Shift可多选" TextWrapping="Wrap"/>
+                        <Button x:Name="DeletePlaylistFilesButton" Content="删除所选磁盘文件…" ToolTipService.ToolTip="区别于移除列表；系统优先使用回收站，不能回收时另行确认"/>
+                        <Button x:Name="CancelPlaylistDeletionButton" Content="停止后续文件删除" IsEnabled="False"/>
+                        <Button x:Name="QueueSelectedNextButton" Content="选中项接下来播放"/>
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <Button x:Name="RemoveButton" Content="移除"/>
+                            <Button x:Name="MoveUpButton" Content="上移"/>
+                            <Button x:Name="MoveDownButton" Content="下移"/>
+                        </StackPanel>
                         <Button x:Name="RevealPlaylistButton" Content="定位所选文件"/>
-                        <Button x:Name="CopyPlaylistPathsButton" Content="复制所选路径" ToolTipService.ToolTip="含网络URL原文，可能含私密参数"/>
-                        <Button x:Name="CopyPlaylistUrlsButton" Content="仅复制所选网络URL"/>
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <Button x:Name="CopyPlaylistPathsButton" Content="复制所选路径" ToolTipService.ToolTip="含网络URL原文，可能含私密参数"/>
+                            <Button x:Name="CopyPlaylistUrlsButton" Content="仅复制所选网络URL"/>
+                        </StackPanel>
                         <Button x:Name="PastePlaylistPathsButton" Content="粘贴文件或路径到列表" ToolTipService.ToolTip="支持资源管理器文件/文件夹，或每行一个绝对路径/URL；插入首选项前，无选择则插入开头"/>
                         <Button x:Name="CancelPlaylistPasteButton" Content="取消待处理粘贴"/>
-                        <Button x:Name="MoveUpButton" Content="上移"/>
-                        <Button x:Name="MoveDownButton" Content="下移"/>
-                    </StackPanel>
-                </StackPanel>
-                <ScrollViewer Grid.Row="3" MaxHeight="300" HorizontalScrollBarVisibility="Disabled">
-                    <StackPanel Spacing="6">
                         <Button x:Name="CutPlaylistPathsButton" Content="剪切队列条目" ToolTipService.ToolTip="复制成功后从队列移除，不删除磁盘文件；移除当前项可能切换播放"/>
                         <Button x:Name="PlaySelectedNewWindowButton" Content="在新窗口播放所选项" IsEnabled="False"/>
                         <Button x:Name="OpenPlaylistBrowserButton" Content="在默认浏览器打开所选URL" IsEnabled="False"
