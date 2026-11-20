@@ -1,15 +1,11 @@
 IIMA playback development build
 
 Target: Windows 11 x64.
-Extract the entire directory, then run IIMA.exe. Do not move the executable alone.
-This development build integrates a native WinUI playback interface with libmpv.
-Playback and D3D11 composition require validation on your Windows 11 x64 hardware.
-See the repository validation record for checks actually performed.
+Extract the entire directory and run IIMA.exe from it. Use File > Open File to play local media.
+See docs/VALIDATION.md in the source repository for the hardware and playback cases exercised.
 
-Windows App SDK and Release VC++ runtime DLLs are included app-locally.
-The package is unsigned, requires no installer, and does not register file associations.
-Close the window to exit. Remove the extracted directory to remove this development build.
+The unsigned ZIP includes the Windows App SDK, VC++ runtime, and libmpv DLLs.
+Run directly after extraction. The application saves settings and playback history under %LOCALAPPDATA%\IIMA.
+Close all player windows before removing the extracted application directory.
 
-This is a development verification artifact, not a public product release.
-Project-wide licensing and signing must be settled before public distribution.
-Dependency versions and upstream license materials accompany this package.
+This package is for development verification. See DEPENDENCIES.md, libmpv-manifest.json, and licenses/ for provenance and notices.

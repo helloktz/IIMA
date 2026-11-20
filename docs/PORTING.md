@@ -23,6 +23,8 @@ mpv 接口基准为 `references/mpv-source.txt` 的 `bcde6b93cca4d128d84e1a60d1a
 
 - 不读用户全局 mpv 配置和外部脚本，以保证默认行为可重现。
 - WinUI 线程投影状态；mpv 工作线程初始化、读取事件和销毁句柄。Swift ARC/闭包转为显式拥有对象与弱引用。
+- `PlayerSession` 沿用 IINA `PlayerCore.openMainWindow` 的 `force-window` 行为。`vo-configured` 和 `current-vo` 由 mpv 输出状态驱动，保留跨文件复用的观察值。视频菜单同时检查当前选中的视频轨，延续 `PlayerCore.screenshot` 对活跃视频的要求。
+- IINA `PlayerCore.openURLs` 将单个播放清单交给 mpv，`MPVController.handleEvent` 处理文件开始、加载、结束及打开时暂停偏好。IIMA 额外等待加载回复与呈现就绪。清单展开时，`PlayerSession` 用 mpv `END_FILE` 提供的插入区间确认后继 `START_FILE`，将恢复播放的条件移交给实际曲目。用户主动暂停和后续打开仍可取消原请求。
 - 初始播放不暂停；seek 是绝对秒值。未知时长时禁用拖动，不制造假时长。
 - 第一批没有续播、历史、目录扫描和 pauseWhenOpen；后续批次已接入这些链路，见下文。
 

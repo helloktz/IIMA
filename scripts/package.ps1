@@ -36,6 +36,7 @@ Copy-Item -LiteralPath (Join-Path $RepoRoot 'build/patches/mpv-iima-owned-swapch
 Copy-Item -LiteralPath (Join-Path $mpvRoot 'manifest.json') -Destination (Join-Path $stage 'libmpv-manifest.json')
 Copy-Item -LiteralPath (Join-Path $mpvRoot 'verified-binaries.json') -Destination $stage
 Copy-Item -LiteralPath (Join-Path $RepoRoot 'references/iina/LICENSE') -Destination (Join-Path $licensesRoot 'IINA-LICENSE')
+Copy-Item -LiteralPath (Join-Path $RepoRoot 'references/iina-source.txt') -Destination (Join-Path $licensesRoot 'IINA-SOURCE.txt')
 [xml]$packages = Get-Content -LiteralPath (Join-Path $RepoRoot 'src/IIMA.App/packages.config') -Raw
 foreach ($package in $packages.packages.package) {
     $folder = "$($package.id).$($package.version)"

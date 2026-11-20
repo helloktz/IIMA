@@ -28,10 +28,10 @@ No new frame loop or Render API path is introduced; output remains gpu-next + D3
 
 ## Validation and license
 
-`git apply --check` passes against the exact reference snapshot in the Linux development environment. Applying to independent copies, checking reverse applicability, and parsing the patched public header with GCC C11 and G++ C++23 also pass. These are patch/header checks, not a full mpv compilation. No Windows compilation, hardware execution, rapid-replacement stress test or race detector has run. These remain required acceptance steps. The proof concerns reference acquisition, not all GPU lifecycle behavior or rendering correctness.
+`git apply --check` and reverse applicability checks pass against the fixed source. The patched public header parses with GCC C11 and G++ C++23. The Windows x64 CLANG64 build and IIMA SDK probe pass, and local playback exercises the composition chain on an RTX 3060 Ti. See the [Windows validation record](../../docs/VALIDATION.md) for the runtime cases exercised and remaining hardware checks.
 
 The patch retains each modified upstream file's copyright and license. Modified client API code follows the existing permissive notice; video files retain their LGPL notices. Distribute this patch and the exact corresponding modified source/build materials with the binary in accordance with all applicable licenses. This document does not assert that a licenses directory alone completes distribution obligations.
 
 ## Export path
 
-The declaration uses `MPV_EXPORT`, which is `__declspec(dllexport)` on Windows. `player/client.c` sees this declaration through `player/client.h` → `mpv/stream_cb.h` → `mpv/client.h` before the function definition. The fixed Meson `library` target has no export `.def`/symbol whitelist; hidden ELF visibility is overridden by `MPV_EXPORT` on the declaration. Staging verifies the exact named export with `GetProcAddress`; that Windows check has not yet run.
+The declaration uses `MPV_EXPORT`, which is `__declspec(dllexport)` on Windows. `player/client.c` sees this declaration through `player/client.h` → `mpv/stream_cb.h` → `mpv/client.h` before the function definition. The fixed Meson `library` target has no export `.def`/symbol whitelist; hidden ELF visibility is overridden by `MPV_EXPORT` on the declaration. The Windows staging probe verified the exact named export with `GetProcAddress`.

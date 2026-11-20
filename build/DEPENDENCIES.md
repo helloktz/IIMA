@@ -1,6 +1,6 @@
-# 初始化构建依赖
+# 构建与运行依赖
 
-IIMA 版本由 `Directory.Build.props` 的 `IimaVersion` 定义。当前为 `0.1.0`，属于播放集成研发产物，尚未完成 Windows 播放验证。
+IIMA 版本由 `Directory.Build.props` 的 `IimaVersion` 定义。当前 `0.1.0` 是 Windows 11 x64 研发产物。播放验收的机器和范围见仓库的 `docs/VALIDATION.md`。
 
 | 项目 | 固定版本 / 选择 | 记录位置 |
 |---|---|---|
@@ -17,7 +17,7 @@ IIMA 版本由 `Directory.Build.props` 的 `IimaVersion` 定义。当前为 `0.1
 
 NuGet 包来自 https://api.nuget.org/v3/index.json，NuGet CLI 来自微软的 https://dist.nuget.org/。包版本和显式原生 MSBuild 导入分别保存在 packages.config 与 build/NuGet.props、build/NuGet.targets；更新时同时修改并重建验证。
 
-打包脚本复制依赖包根目录中的许可/NOTICE 文件，并附带构建包清单。VC++ CRT 来自固定 MSVC 安装中的 Release redist 目录，其使用与分发遵循对应 Visual Studio 许可。此开发产物不代表项目根许可证或正式发行审核已经完成。
+ZIP 包含 IINA 参考提交及许可证、NuGet 许可与 NOTICE、libmpv 的补丁和源码来源，以及所有媒体运行 DLL 的版本及来源清单。`libmpv-manifest.json` 记录构建方式，`licenses/libmpv/` 包含构建材料和 FFmpeg、mpv、MSYS2 软件包的许可文本。VC++ CRT 来自固定 MSVC 安装中的 Release redist 目录，其使用与分发遵循对应 Visual Studio 许可。公开发行需要确认项目许可证、对应源码交付和适用的再分发条款。
 
 参考资料：
 
