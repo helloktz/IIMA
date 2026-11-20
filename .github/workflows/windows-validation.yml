@@ -1,6 +1,7 @@
 name: Windows native build
 # Deliberately manual: a self-hosted Windows runner with the pinned toolchain
-# and staged, locally built libmpv SDK must be provisioned by the repository owner.
+# and libmpv SDK must be provisioned by the repository owner. An empty NuGet
+# cache requires a .NET SDK and access to a configured package source.
 on:
   workflow_dispatch:
 permissions:
@@ -21,10 +22,11 @@ jobs:
         with:
           persist-credentials: false
           clean: true
-      - name: Check CMake and Ninja
+      - name: Check CMake, Ninja and NuGet
         run: |
           cmake --version
           ninja --version
+          Get-Command nuget -CommandType Application -ErrorAction Stop | Out-Null
       - name: Stage runner-managed libmpv SDK
         env:
           IIMA_LIBMPV_SDK: ${{ vars.IIMA_LIBMPV_SDK }}

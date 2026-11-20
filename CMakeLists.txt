@@ -41,26 +41,25 @@ set(CMAKE_CL_SHOWINCLUDES_PREFIX "${CMAKE_MATCH_2}")
 cmake_path(CONVERT "$ENV{WindowsSdkDir}" TO_CMAKE_PATH_LIST IIMA_WINDOWS_SDK NORMALIZE)
 cmake_path(CONVERT "$ENV{VCToolsInstallDir}" TO_CMAKE_PATH_LIST IIMA_VC_TOOLS NORMALIZE)
 set(IIMA_WORK_DIR "${PROJECT_SOURCE_DIR}/.build")
-set(IIMA_PACKAGES_DIR "${IIMA_WORK_DIR}/packages")
-set(IIMA_PACKAGE_CONFIG "${PROJECT_SOURCE_DIR}/src/IIMA.App/packages.config")
+set(IIMA_PACKAGE_MANIFEST "${PROJECT_SOURCE_DIR}/build/IIMA.Dependencies.csproj")
+set(IIMA_PACKAGE_RESOLVER "${PROJECT_SOURCE_DIR}/scripts/resolve-nuget-packages.ps1")
 find_program(IIMA_PWSH pwsh REQUIRED)
 execute_process(
-    COMMAND "${IIMA_PWSH}" -NoProfile -File "${PROJECT_SOURCE_DIR}/scripts/restore-packages.ps1"
+    COMMAND "${IIMA_PWSH}" -NoProfile -File "${IIMA_PACKAGE_RESOLVER}"
+    OUTPUT_VARIABLE nuget_packages
+    OUTPUT_STRIP_TRAILING_WHITESPACE
     COMMAND_ERROR_IS_FATAL ANY
 )
-file(STRINGS "${IIMA_PACKAGE_CONFIG}" iima_package_entries REGEX "<package id=")
+string(JSON nuget_cache GET "${nuget_packages}" cache)
+message(STATUS "Using shared NuGet packages: ${nuget_cache}")
 set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
-    "${IIMA_PACKAGE_CONFIG}" "${PROJECT_SOURCE_DIR}/build/config.json"
-    "${PROJECT_SOURCE_DIR}/scripts/restore-packages.ps1")
+    "${IIMA_PACKAGE_MANIFEST}" "${PROJECT_SOURCE_DIR}/build/config.json"
+    "${IIMA_PACKAGE_RESOLVER}")
 
 function(iima_package_directory output package_id)
-    foreach(entry IN LISTS iima_package_entries)
-        if(entry MATCHES "id=\"([^\"]+)\" version=\"([^\"]+)\"" AND CMAKE_MATCH_1 STREQUAL package_id)
-            set("${output}" "${IIMA_PACKAGES_DIR}/${package_id}.${CMAKE_MATCH_2}" PARENT_SCOPE)
-            return()
-        endif()
-    endforeach()
-    message(FATAL_ERROR "Missing ${package_id} in packages.config.")
+    string(JSON package_directory GET "${nuget_packages}" packages "${package_id}")
+    cmake_path(CONVERT "${package_directory}" TO_CMAKE_PATH_LIST normalized_directory NORMALIZE)
+    set("${output}" "${normalized_directory}" PARENT_SCOPE)
 endfunction()
 
 add_library(iima_compile_settings INTERFACE)

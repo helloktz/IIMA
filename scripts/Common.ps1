@@ -47,16 +47,13 @@ function Invoke-IimaBuildTool([scriptblock]$Action) {
     New-Item -ItemType Directory -Force $temp | Out-Null
     $previousTemp = $env:TEMP
     $previousTmp = $env:TMP
-    $previousNuGetCache = $env:NUGET_HTTP_CACHE_PATH
     try {
         $env:TEMP = $temp
         $env:TMP = $temp
-        $env:NUGET_HTTP_CACHE_PATH = Join-Path $BuildRoot 'nuget-http-cache'
         & $Action
     } finally {
         $env:TEMP = $previousTemp
         $env:TMP = $previousTmp
-        $env:NUGET_HTTP_CACHE_PATH = $previousNuGetCache
     }
 }
 

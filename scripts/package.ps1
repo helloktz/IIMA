@@ -87,12 +87,11 @@ Copy-Item -LiteralPath (Join-Path $mpvRoot 'manifest.json') -Destination (Join-P
 Copy-Item -LiteralPath (Join-Path $mpvRoot 'verified-binaries.json') -Destination $payload
 Copy-Item -LiteralPath (Join-Path $RepoRoot 'references/iina/LICENSE') -Destination (Join-Path $licenses 'IINA-LICENSE')
 Copy-Item -LiteralPath (Join-Path $RepoRoot 'references/iina/IIMA-SOURCE.txt') -Destination (Join-Path $licenses 'IINA-SOURCE.txt')
-$packageConfig = Join-Path $RepoRoot 'src/IIMA.App/packages.config'
-[xml]$packages = Get-Content -LiteralPath $packageConfig -Raw
-foreach ($package in $packages.packages.package) {
-    $folder = "$($package.id).$($package.version)"
-    $packageRoot = Join-Path $BuildRoot "packages/$folder"
-    $notices = Get-ChildItem -LiteralPath $packageRoot -File |
+$packageManifest = Join-Path $RepoRoot 'build/IIMA.Dependencies.csproj'
+$packages = (& (Join-Path $PSScriptRoot 'resolve-nuget-packages.ps1') | ConvertFrom-Json -AsHashtable).packages
+foreach ($package in $packages.GetEnumerator()) {
+    $folder = "$($package.Key).$(Split-Path -Leaf $package.Value)"
+    $notices = Get-ChildItem -LiteralPath $package.Value -File |
         Where-Object { $_.Name -match '(?i)license|notice|redist' }
     if ($notices) {
         $destination = Join-Path $licenses $folder
@@ -100,7 +99,7 @@ foreach ($package in $packages.packages.package) {
         $notices | Copy-Item -Destination $destination
     }
 }
-Copy-Item -LiteralPath $packageConfig -Destination (Join-Path $payload 'build-packages.config')
+Copy-Item -LiteralPath $packageManifest -Destination (Join-Path $payload 'build-packages.csproj')
 
 $msiPath = Join-Path $pending "$packageName.msi"
 Invoke-IimaBuildTool {
