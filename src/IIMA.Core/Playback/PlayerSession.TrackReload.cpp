@@ -1,6 +1,6 @@
 // IINA AppData.swift audioReload/videoReload command allowlist.
 // Copyright © 2016 lhc. All rights reserved.
-// GPL-3.0; references/iina/LICENSE and references/iina-source.txt.
+// GPL-3.0; references/iina/LICENSE and references/iina/IIMA-SOURCE.txt.
 // Selection-preserving Windows transaction; mpv cmd_track_reload removes then
 // re-adds a track and selects it, even when the requested track was not selected.
 #include "PlayerSession.h"

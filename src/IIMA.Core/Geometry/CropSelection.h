@@ -1,6 +1,6 @@
 // Adapted from IINA InteractiveMode.swift (InteractiveModeController/CropBoxView)
 // and PlayerCore.setCrop. Copyright (c) 2026 lhc and contributors, GPL-3.0.
-// See references/iina/LICENSE and references/iina-source.txt.
+// See references/iina/LICENSE and references/iina/IIMA-SOURCE.txt.
 #pragma once
 #include <cstdint>
 #include <optional>

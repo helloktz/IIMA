@@ -1,6 +1,6 @@
 // Static port of IINA OSDMessage.swift and OSDView.swift.
 // Copyright (c) 2016-2026 lhc and IINA contributors.
-// Source version: references/iina-source.txt; license: references/iina/LICENSE (GPL v3).
+// Source version: references/iina/IIMA-SOURCE.txt; license: references/iina/LICENSE (GPL v3).
 #include "OSDMessage.h"
 
 #include <algorithm>

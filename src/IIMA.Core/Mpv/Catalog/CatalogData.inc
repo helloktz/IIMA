@@ -1,6 +1,6 @@
 // Transcribed from IINA's pinned mpv constant catalog; GPL v3.
-// Copyright IINA contributors. Source/license: references/iina-source.txt,
-// references/iina/LICENSE. Regenerate with scripts/generate-mpv-catalog.py.
+// Copyright IINA contributors. Source/license: references/iina/IIMA-SOURCE.txt,
+// references/iina/LICENSE.
 // Names describe the reference API, not availability in the loaded libmpv.
     {Kind::Command, "", "seek", MPVCommand::seek, "seek <target> [<flags>]", Argument::None},
     {Kind::Command, "", "revertSeek", MPVCommand::revertSeek, "revert-seek [<flags>]", Argument::None},

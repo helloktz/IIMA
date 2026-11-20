@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package Name="IIMA" Manufacturer="IIMA" Version="$(IimaVersion)"
+           UpgradeCode="C8F9F568-A4C6-4FBA-8FB5-BBE8E12F9C31" Scope="perMachine"
+           InstallerVersion="500">
+    <MajorUpgrade AllowSameVersionUpgrades="yes" Schedule="afterInstallInitialize"
+                  DowngradeErrorMessage="A newer version of IIMA is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="IIMA">
+        <Component Id="Player">
+          <File Id="PlayerExe" Source="!(bindpath.payload)\IIMA.exe" KeyPath="yes">
+            <Shortcut Id="StartMenuShortcut" Directory="ProgramMenuFolder"
+                      Name="IIMA" WorkingDirectory="INSTALLFOLDER" Advertise="yes" />
+          </File>
+        </Component>
+      </Directory>
+    </StandardDirectory>
+    <StandardDirectory Id="ProgramMenuFolder" />
+
+    <ComponentGroup Id="Payload" Directory="INSTALLFOLDER">
+      <Files Include="!(bindpath.payload)\**">
+        <Exclude Files="!(bindpath.payload)\IIMA.exe" />
+      </Files>
+    </ComponentGroup>
+    <Feature Id="IIMA" Title="IIMA" Level="1">
+      <ComponentRef Id="Player" />
+      <ComponentGroupRef Id="Payload" />
+    </Feature>
+  </Package>
+</Wix>

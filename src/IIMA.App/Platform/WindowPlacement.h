@@ -1,7 +1,7 @@
 #pragma once
 // Adapted from IINA MainWindowController.windowFrameFromGeometry,
 // determineScreenToUse and MainWindowLastPosition. Copyright (c) 2017 lhc.
-// GPL-3.0; references/iina/LICENSE and references/iina-source.txt.
+// GPL-3.0; references/iina/LICENSE and references/iina/IIMA-SOURCE.txt.
 #include "../../IIMA.Core/Geometry/WindowGeometry.h"
 #include <cstdint>
 #include <optional>

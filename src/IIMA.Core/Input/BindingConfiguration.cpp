@@ -1,6 +1,6 @@
 // Adapted from IINA SettingsPageKeyBindings.ConfigEditor, KeyMapping and
 // PlayerCore.setKeyBindings. Copyright (c) 2016-2026 lhc; GPL-3.0.
-// See references/iina-source.txt and references/iina/LICENSE.
+// See references/iina/IIMA-SOURCE.txt and references/iina/LICENSE.
 #include "BindingConfiguration.h"
 #include <algorithm>
 #include <limits>

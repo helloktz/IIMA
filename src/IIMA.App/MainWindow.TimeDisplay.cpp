@@ -1,6 +1,6 @@
 // IINA DurationDisplayTextField.updateText/switchMode/setPrecision and
 // PlayerCore remaining-time selection. Copyright (c) 2017 lhc and contributors.
-// GPL-3.0; references/iina/LICENSE and references/iina-source.txt.
+// GPL-3.0; references/iina/LICENSE and references/iina/IIMA-SOURCE.txt.
 #include "pch.h"
 #include "MainWindow.xaml.h"
 #include "../IIMA.Core/Media/VideoTime.h"

@@ -1,5 +1,5 @@
 // IINA PlayerCore.loadExternalSubFile, Copyright © 2016 lhc. GPL-3.0.
-// references/iina-source.txt; references/iina/LICENSE.
+// references/iina/IIMA-SOURCE.txt; references/iina/LICENSE.
 // Windows adaptation: bounded batches, fresh worker identities and cancellation.
 #include "PlayerSession.h"
 #include <set>

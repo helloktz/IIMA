@@ -1,6 +1,6 @@
 // Adapted from IINA PlayerCore playlist operations and MPVController event flow.
 // Copyright (c) 2016-2025 lhc and contributors. GPL-3.0.
-// Source/version/license: references/iina-source.txt, references/iina/LICENSE.
+// Source/version/license: references/iina/IIMA-SOURCE.txt, references/iina/LICENSE.
 #include "PlayerSession.h"
 #include <algorithm>
 #include <utility>

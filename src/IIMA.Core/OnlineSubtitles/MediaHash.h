@@ -1,6 +1,6 @@
 // Subtitle matching hashes adapted from IINA OpenSubSubtitle/ShooterSubtitle.
 // Copyright (c) lhc and IINA contributors. GPL-3.0; references/iina/LICENSE.
-// Reference snapshot: references/iina-source.txt.
+// Reference snapshot: references/iina/IIMA-SOURCE.txt.
 #pragma once
 #include <array>
 #include <cstddef>

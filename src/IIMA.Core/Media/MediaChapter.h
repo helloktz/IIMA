@@ -1,6 +1,6 @@
 // Ported from IINA MPVChapter.swift and SidebarChaptersPane.swift.
 // Copyright (c) 2016 lhc and IINA contributors.
-// Source version: references/iina-source.txt. License: references/iina/LICENSE (GPL v3).
+// Source version: references/iina/IIMA-SOURCE.txt. License: references/iina/LICENSE (GPL v3).
 #pragma once
 
 #include "VideoTime.h"

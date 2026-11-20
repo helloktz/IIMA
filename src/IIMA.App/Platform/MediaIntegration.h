@@ -9,7 +9,7 @@ namespace iima {
 enum class SystemMediaCommand { Play, Pause, Previous, Next };
 // Windows adaptation of IINA NowPlayingInfoManager.updateInfo,
 // AppDelegate.swift RemoteCommandController, and SleepPreventer.updateSleepPrevention.
-// Upstream: references/iina-source.txt; upstream copyright/license remain applicable.
+// Upstream: references/iina/IIMA-SOURCE.txt; upstream copyright/license remain applicable.
 class MediaIntegration final {
 public:
     // Construct, update and close on the owning UI thread. Native callbacks are

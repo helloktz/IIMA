@@ -1,5 +1,5 @@
 // Derived from IINA SavedFilter.swift, copyright (c) 2017 lhc.
-// GNU GPL v3; see references/iina/LICENSE and references/iina-source.txt.
+// GNU GPL v3; see references/iina/LICENSE and references/iina/IIMA-SOURCE.txt.
 #pragma once
 #include "MPVFilter.h"
 #include <cstdint>

@@ -1,6 +1,6 @@
 // Static port of IINA PlayerCore.swift, PlaybackInfo.swift and AppData.swift.
 // Copyright (c) 2016-2026 lhc and IINA contributors.
-// Source snapshot: references/iina-source.txt. License: references/iina/LICENSE (GPL v3).
+// Source snapshot: references/iina/IIMA-SOURCE.txt. License: references/iina/LICENSE (GPL v3).
 #include "PlaybackActions.h"
 #include "../Mpv/Catalog/MPVCommand.h"
 

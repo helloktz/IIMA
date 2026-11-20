@@ -1,5 +1,5 @@
 // Derived from IINA MainMenuActions.swift menuSavePlaylist (lhc, 2016).
-// GPL-3.0; references/iina-source.txt and references/iina/LICENSE.
+// GPL-3.0; references/iina/IIMA-SOURCE.txt and references/iina/LICENSE.
 #pragma once
 #include "../Mpv/MpvClient.h"
 #include <span>

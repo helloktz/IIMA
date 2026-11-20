@@ -1,6 +1,6 @@
 // Ported from IINA VideoTime.swift and Extensions.swift.
 // Copyright (c) 2016 lhc and IINA contributors.
-// Source: references/iina, commit recorded in references/iina-source.txt.
+// Source: references/iina, commit recorded in references/iina/IIMA-SOURCE.txt.
 // License: GNU GPL v3, see references/iina/LICENSE.
 #pragma once
 

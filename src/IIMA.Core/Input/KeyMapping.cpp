@@ -1,7 +1,7 @@
 // Static C++ port of IINA KeyMapping.swift / KeyCodeHelper.swift and
 // PlayerCore.setKeyBindings/filterSectionBindings.
 // Copyright (c) 2016 lhc. Derived from IINA, licensed under GPL-3.0.
-// Source revision and license: references/iina-source.txt, references/iina/LICENSE.
+// Source revision and license: references/iina/IIMA-SOURCE.txt, references/iina/LICENSE.
 #include "KeyMapping.h"
 
 #include <algorithm>

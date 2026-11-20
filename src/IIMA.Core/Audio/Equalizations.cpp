@@ -1,7 +1,7 @@
 // Static port of IINA Equalizations.swift, PlayerCore.setAudioEq and SidebarAudioPane.
 // Created upstream by Yuze Jiang, 2024/06/29.
 // Copyright (c) 2024 lhc and IINA contributors.
-// Source: references/iina-source.txt. License: references/iina/LICENSE (GNU GPL v3).
+// Source: references/iina/IIMA-SOURCE.txt. License: references/iina/LICENSE (GNU GPL v3).
 #include "Equalizations.h"
 
 #include <algorithm>

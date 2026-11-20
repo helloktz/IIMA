@@ -1,5 +1,5 @@
 // Query layer for the IINA mpv named-constant catalog. GPL v3.
-// Source/version/license: references/iina-source.txt, references/iina/LICENSE.
+// Source/version/license: references/iina/IIMA-SOURCE.txt, references/iina/LICENSE.
 #pragma once
 #include <cstddef>
 #include <cstdint>

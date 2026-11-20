@@ -1,4 +1,4 @@
-// Source: references/iina-source.txt; see header for original symbols/license.
+// Source: references/iina/IIMA-SOURCE.txt; see header for original symbols/license.
 #include "MusicModePolicy.h"
 
 namespace iima {

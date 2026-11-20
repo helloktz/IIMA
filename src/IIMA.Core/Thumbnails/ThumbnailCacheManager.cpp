@@ -1,5 +1,5 @@
 // Adapted from IINA CacheManager.swift, copyright (c) 2017 lhc.
-// GNU GPL v3; see references/iina/LICENSE and references/iina-source.txt.
+// GNU GPL v3; see references/iina/LICENSE and references/iina/IIMA-SOURCE.txt.
 #include "ThumbnailCacheManager.h"
 #include <algorithm>
 #include <limits>

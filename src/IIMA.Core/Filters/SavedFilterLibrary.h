@@ -1,6 +1,6 @@
 // Derived from IINA FilterWindowController.swift, SavedFilter.swift and
 // MenuController.updateSavedFilters, copyright (c) 2016-2017 lhc.
-// GNU GPL v3; see references/iina/LICENSE and references/iina-source.txt.
+// GNU GPL v3; see references/iina/LICENSE and references/iina/IIMA-SOURCE.txt.
 #pragma once
 #include "SavedFilter.h"
 #include "FilterChain.h"

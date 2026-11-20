@@ -1,7 +1,7 @@
 // Typed Windows adaptation of IINA AppData input-command support for
 // sub-remove/audio-remove/video-remove (rather than a new raw command surface).
 // Copyright (c) 2016-2026 lhc and IINA contributors. GPL-3.0.
-// Sources: references/iina-source.txt, references/iina/LICENSE;
+// Sources: references/iina/IIMA-SOURCE.txt, references/iina/LICENSE;
 // mpv player/command.c cmd_track_remove and loadfile.c mp_remove_track.
 #include "PlayerSession.h"
 #include <algorithm>

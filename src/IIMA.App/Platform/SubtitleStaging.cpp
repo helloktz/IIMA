@@ -1,6 +1,6 @@
 // Downloaded subtitle ownership adapted from IINA OnlineSubtitle/AssrtSubtitle.
 // Copyright (c) 2017-2018 lhc and IINA contributors. GPL-3.0.
-// Source snapshot and license: references/iina-source.txt, references/iina/LICENSE.
+// Source snapshot and license: references/iina/IIMA-SOURCE.txt, references/iina/LICENSE.
 #include "pch.h"
 #include "SubtitleStaging.h"
 #include <algorithm>

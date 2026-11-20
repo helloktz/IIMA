@@ -1,6 +1,6 @@
 // Windows adaptation of IINA AssrtSubtitle.swift / OnlineSubtitle.swift.
 // Copyright (c) 2018 lhc and IINA contributors. GPL-3.0.
-// See references/iina/LICENSE and references/iina-source.txt.
+// See references/iina/LICENSE and references/iina/IIMA-SOURCE.txt.
 #pragma once
 #include <cstdint>
 #include <stop_token>

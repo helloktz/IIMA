@@ -1,6 +1,6 @@
 // Copyright © 2016 lhc. All rights reserved. Adapted logic under IINA GPL-3.0.
 // Behavior adapted from IINA PlayerCore.swift, MPVController.handleEvent and
-// PlaybackInfo.swift; see docs/PORTING.md and references/iina/LICENSE.
+// PlaybackInfo.swift; see references/iina/LICENSE.
 #include "PlaybackState.h"
 #include <cmath>
 #include <charconv>

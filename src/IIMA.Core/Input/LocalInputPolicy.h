@@ -4,7 +4,7 @@
 #include <vector>
 namespace iima {
 // Translated from IINA Utility extension tables and DraggingDetect.getPlayableFiles.
-// Source/version/license: references/iina-source.txt and references/iina/LICENSE.
+// Source/version/license: references/iina/IIMA-SOURCE.txt and references/iina/LICENSE.
 bool IsPlaylistPath(std::wstring_view path);
 bool AcceptExplicitFile(std::wstring_view path);
 enum class DiscoveredMediaType { None, Video, Audio };

@@ -1,6 +1,6 @@
 // Windows adaptation of IINA PlayerCore.generateThumbnails and FFmpegController.
 // IINA business rules copyright (c) 2017 lhc and contributors, GPL-3.0.
-// See references/iina/LICENSE and references/iina-source.txt.
+// See references/iina/LICENSE and references/iina/IIMA-SOURCE.txt.
 #pragma once
 #include <cstdint>
 #include <filesystem>

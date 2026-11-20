@@ -1,7 +1,7 @@
-/.deps/
-/artifacts/
-/.vs/
-/.openidea/
+/.build/
 /.codegraph/
+/.dist/
+/.openidea/
+/.vs/
+
 **/*.vcxproj.user
-**/Generated Files/

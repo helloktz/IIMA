@@ -1,6 +1,6 @@
 // Derived from IINA PlayerCore.swift, MPVCommandWrappers.swift and
 // SidebarPlaylistPane.swift. Copyright (c) 2016-2025 lhc and contributors.
-// GPL-3.0; references/iina-source.txt and references/iina/LICENSE.
+// GPL-3.0; references/iina/IIMA-SOURCE.txt and references/iina/LICENSE.
 #pragma once
 #include "../Mpv/MpvClient.h"
 #include <span>

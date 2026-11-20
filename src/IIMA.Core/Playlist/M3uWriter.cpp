@@ -1,5 +1,5 @@
 // Derived from IINA MainMenuActions.swift menuSavePlaylist (lhc, 2016).
-// GPL-3.0; references/iina-source.txt and references/iina/LICENSE.
+// GPL-3.0; references/iina/IIMA-SOURCE.txt and references/iina/LICENSE.
 #include "M3uWriter.h"
 
 namespace iima {

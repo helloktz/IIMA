@@ -1,5 +1,5 @@
 // Derived from IINA AutoFileMatcher.swift, Copyright (c) 2017 lhc.
-// GPL-3.0; source/version/license: references/iina-source.txt, references/iina/LICENSE.
+// GPL-3.0; source/version/license: references/iina/IIMA-SOURCE.txt, references/iina/LICENSE.
 #pragma once
 #include "FileGroup.h"
 #include <cstdint>

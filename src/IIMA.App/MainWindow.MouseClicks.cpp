@@ -1,6 +1,6 @@
 // IINA PlayerWindowController.mouseUp/rightMouseUp/otherMouseUp and
 // MainWindowController.performMouseAction. Copyright lhc and contributors.
-// GPL-3.0; references/iina/LICENSE and references/iina-source.txt.
+// GPL-3.0; references/iina/LICENSE and references/iina/IIMA-SOURCE.txt.
 #include "pch.h"
 #include "MainWindow.xaml.h"
 #include <winrt/Windows.Devices.Input.h>

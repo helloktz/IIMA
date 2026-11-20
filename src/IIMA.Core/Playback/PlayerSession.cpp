@@ -1,6 +1,6 @@
 // Adapted from IINA PlayerCore.swift / MPVController.swift / PlaybackInfo.swift.
 // Copyright © 2016 lhc. All rights reserved. IINA's GPL-3.0 license applies
-// to the adapted logic; see references/iina/LICENSE and docs/PORTING.md.
+// to the adapted logic; see references/iina/LICENSE.
 #include "PlayerSession.h"
 #include "../Network/MediaUrl.h"
 #include "../Windows/MusicModePolicy.h"

@@ -1,6 +1,6 @@
 // IINA PlayerCore.loadExternalAudioFile/loadExternalVideoFile and
 // JavascriptAPICore.TrackAPI.loadTrack. Copyright (c) 2016, 2018 lhc. GPL-3.0.
-// See references/iina-source.txt and references/iina/LICENSE.
+// See references/iina/IIMA-SOURCE.txt and references/iina/LICENSE.
 // Windows local-file picker adaptation; no raw command or playlist-load surface.
 #include "PlayerSession.h"
 #include <algorithm>
