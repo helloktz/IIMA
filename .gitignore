@@ -4,4 +4,4 @@
 /.openidea/
 /.vs/
 
-**/*.vcxproj.user
+/CMakeUserPresets.json

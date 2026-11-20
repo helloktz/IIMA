@@ -2,22 +2,44 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $script:RepoRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $script:BuildRoot = Join-Path $RepoRoot '.build'
-[xml]$script:BuildProperties = Get-Content -LiteralPath (Join-Path $RepoRoot 'Directory.Build.props') -Raw
+$script:BuildConfig = Get-Content -LiteralPath (Join-Path $RepoRoot 'build/config.json') -Raw | ConvertFrom-Json
 
 function Get-IimaToolchain {
     if (-not $IsWindows) { throw 'MSVC/WinUI builds require Windows.' }
     $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio/Installer/vswhere.exe'
-    if (-not (Test-Path -LiteralPath $vswhere)) { throw 'Install Visual Studio 2026 Build Tools with C++ desktop tools and the Windows SDK pinned in Directory.Build.props.' }
+    if (-not (Test-Path -LiteralPath $vswhere)) { throw 'Install Visual Studio Build Tools with C++ desktop tools and the Windows SDK pinned in build/config.json.' }
     $instances = & $vswhere -products '*' -all -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -format json | ConvertFrom-Json
-    $toolVersion = [string]$BuildProperties.Project.PropertyGroup.VCToolsVersion
+    $toolVersion = [string]$BuildConfig.msvc
     foreach ($instance in $instances) {
         $compiler = Join-Path $instance.installationPath "VC/Tools/MSVC/$toolVersion/bin/Hostx64/x64/cl.exe"
-        $msbuild = Join-Path $instance.installationPath 'MSBuild/Current/Bin/MSBuild.exe'
-        if ((Test-Path -LiteralPath $compiler) -and (Test-Path -LiteralPath $msbuild)) {
-            return [pscustomobject]@{ Root=$instance.installationPath; MSBuild=$msbuild; ToolVersion=$toolVersion }
+        $vcvars = Join-Path $instance.installationPath 'VC/Auxiliary/Build/vcvarsall.bat'
+        if ((Test-Path -LiteralPath $compiler) -and (Test-Path -LiteralPath $vcvars)) {
+            return [pscustomobject]@{ Root=$instance.installationPath; VCVars=$vcvars; ToolVersion=$toolVersion }
         }
     }
-    throw "MSVC $toolVersion is required by Directory.Build.props. Provision the pinned toolset on the Windows worker."
+    throw "MSVC $toolVersion is required by build/config.json."
+}
+
+function Invoke-IimaMsvcEnvironment([scriptblock]$Action) {
+    $toolchain = Get-IimaToolchain
+    $command = 'call "{0}" x64 {1} -vcvars_ver={2} >nul && set' -f $toolchain.VCVars,$BuildConfig.windowsSdk,$toolchain.ToolVersion
+    $setup = & $env:ComSpec /d /c $command
+    if ($LASTEXITCODE -ne 0) { throw 'Unable to initialize the pinned x64 MSVC and Windows SDK environment.' }
+    $previous = @{}
+    try {
+        foreach ($entry in $setup) {
+            if ($entry -notmatch '^([^=]+)=(.*)$') { continue }
+            $name = $Matches[1]
+            $value = $Matches[2]
+            $oldValue = [Environment]::GetEnvironmentVariable($name)
+            if ($oldValue -ceq $value) { continue }
+            $previous[$name] = $oldValue
+            [Environment]::SetEnvironmentVariable($name, $value)
+        }
+        Invoke-IimaBuildTool $Action
+    } finally {
+        foreach ($name in $previous.Keys) { [Environment]::SetEnvironmentVariable($name, $previous[$name]) }
+    }
 }
 
 function Invoke-IimaBuildTool([scriptblock]$Action) {

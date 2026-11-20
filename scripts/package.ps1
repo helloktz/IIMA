@@ -32,19 +32,19 @@ function Set-IimaMsiRuntimeLanguage([string]$PackagePath) {
     }
 }
 
-$version = [string]$BuildProperties.Project.PropertyGroup.IimaVersion
+$version = [string]$BuildConfig.version
 $msiVersion = $null
 if ($version -notmatch '^(0|[1-35-9][0-35-9]*)\.(0|[1-35-9][0-35-9]*)\.(0|[1-35-9][0-35-9]*)$' -or
     -not [version]::TryParse($version, [ref]$msiVersion) -or
     $msiVersion.Major -gt 255 -or $msiVersion.Minor -gt 255 -or $msiVersion.Build -gt 65535) {
-    throw 'IimaVersion must be an MSI-compatible three-part version using the project-approved digits.'
+    throw 'The version in build/config.json must be an MSI-compatible three-part version using the project-approved digits.'
 }
 $mpvRoot = Join-Path $BuildRoot 'libmpv'
 if (-not (Test-Path -LiteralPath (Join-Path $mpvRoot 'verified-binaries.json'))) {
     throw 'Stage the libmpv SDK with scripts/stage-libmpv.ps1 before packaging.'
 }
 
-$wixVersion = [string]$BuildProperties.Project.PropertyGroup.WixVersion
+$wixVersion = [string]$BuildConfig.wix
 $wix = Get-Command wix -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
 if (-not $wix -or ((& $wix.Source --version) -split '\+')[0] -ne $wixVersion) {
     $toolDirectory = Join-Path $BuildRoot "tools/wix-$wixVersion"
@@ -67,7 +67,7 @@ $payload = Join-Path $work $packageName
 $pending = Join-Path $work 'dist'
 New-Item -ItemType Directory -Path $payload,$pending -Force | Out-Null
 
-$binaryRoot = Join-Path $BuildRoot 'bin/x64/Release/IIMA.App'
+$binaryRoot = Join-Path $BuildRoot 'cmake/release/bin'
 Get-ChildItem -LiteralPath $binaryRoot -Force |
     Where-Object { $_.Extension -notin @('.pdb','.ilk','.lib','.exp') } |
     Copy-Item -Destination $payload -Recurse -Force
