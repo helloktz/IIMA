@@ -145,9 +145,14 @@ struct MpvClient::State {
                 if (code < 0) throw std::runtime_error(std::string(operation) + ": " + api.error_string(code));
             };
             // No global config/scripts/watch-later. mpv remains the state authority.
+            for (auto const* name : {"load-scripts", "osc"}) {
+                auto code = api.set_option_string(handle, name, "no");
+                // mpv omits these options when the corresponding script support is compiled out.
+                if (code != MPV_ERROR_OPTION_NOT_FOUND) check(code, name);
+            }
             for (auto const& [name, value] : std::vector<std::pair<char const*,char const*>>{
-                {"config","no"}, {"load-scripts","no"}, {"idle","yes"}, {"terminal","no"},
-                {"input-default-bindings","no"}, {"input-vo-keyboard","no"}, {"osc","no"},
+                {"config","no"}, {"idle","yes"}, {"terminal","no"},
+                {"input-default-bindings","no"}, {"input-vo-keyboard","no"},
                 // The native host owns per-window system/display sleep policy.
                 {"stop-screensaver","no"},
                 {"vo","gpu-next"}, {"gpu-api","d3d11"}, {"gpu-context","d3d11"},
@@ -672,10 +677,14 @@ struct MpvClient::State {
                 case MPV_EVENT_START_FILE: e.kind=MpvEvent::Kind::StartFile; if(raw->data) e.entryId=static_cast<mpv_event_start_file*>(raw->data)->playlist_entry_id; break;
                 case MPV_EVENT_FILE_LOADED: e.kind=MpvEvent::Kind::Loaded; break;
                 case MPV_EVENT_END_FILE: {
+                    static_assert(MpvEvent::EndFileReasonRedirect == MPV_END_FILE_REASON_REDIRECT);
                     e.kind=MpvEvent::Kind::EndFile;
                     auto const& end=*static_cast<mpv_event_end_file*>(raw->data);
                     e.entryId=end.playlist_entry_id; e.reason=end.reason; e.error=end.error;
-                    if (end.playlist_insert_num_entries > 0) e.insertedEntryId=end.playlist_insert_id;
+                    if (end.playlist_insert_num_entries > 0) {
+                        e.insertedEntryId=end.playlist_insert_id;
+                        e.insertedEntryCount=end.playlist_insert_num_entries;
+                    }
                     if(end.error<0) e.text=api.error_string(end.error); break;
                 }
                 case MPV_EVENT_SEEK: e.kind=MpvEvent::Kind::Seek; break;

@@ -50,6 +50,7 @@ struct Chapter {
 };
 // Owns all payloads; never exports mpv's borrowed event memory.
 struct MpvEvent {
+    static constexpr int EndFileReasonRedirect = 5;
     enum class Kind { Ready, Failure, StartFile, Loaded, EndFile, Seek, Restart, SeekMeasurement,
                       Property, CommandReply, SpeedEditReply, PlaylistReply, ExternalTrackStateReply, ExternalTrackEditReply, SubtitleLoadReply, ExternalAVLoadReply, ExternalTrackRemovalReply, SubtitleStateReply, PauseReply, VideoGeometryReply, WindowScaleReply, WatchedPropertiesReply, VideoReconfig, Shutdown } kind;
     std::string name, text;
@@ -57,6 +58,7 @@ struct MpvEvent {
     std::optional<bool> flag;
     std::int64_t entryId{-1};
     std::int64_t insertedEntryId{-1}; // First playlist entry created by END_FILE redirect.
+    int insertedEntryCount{};
     std::uint64_t requestId{};
     int error{}, reason{};
     std::optional<std::int64_t> integer;

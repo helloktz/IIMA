@@ -147,6 +147,61 @@ void TransitionRegressions() {
         s->CloseAsync();
     }
 }
+
+void PlaylistRedirectRegressions() {
+    const auto redirect = [](std::int64_t ended, std::int64_t inserted, int count=1) {
+        MpvEvent start{MpvEvent::Kind::StartFile};
+        start.entryId=ended;
+        events(start);
+        MpvEvent end{MpvEvent::Kind::EndFile};
+        end.entryId=ended;
+        end.reason=MpvEvent::EndFileReasonRedirect;
+        end.insertedEntryId=inserted;
+        end.insertedEntryCount=count;
+        events(end);
+    };
+    for (bool replyFirst : {false, true}) {
+        auto s=LoadedSession();
+        s->Open("list.m3u8");
+        Reply(commands.back().first);
+        const auto load=commands.back().first;
+        if (replyFirst) Reply(load,20);
+        redirect(20,30,2);
+        redirect(31,40);
+        assert(ResumeCount()==0);
+        LoadAndBind(s,40);
+        if (!replyFirst) {
+            assert(ResumeCount()==0);
+            Reply(load,20);
+        }
+        assert(ResumeCount()==1);
+        s->CloseAsync();
+    }
+    for (bool explicitlyPaused : {false, true}) {
+        auto s=LoadedSession();
+        s->Open("list.m3u8");
+        Reply(commands.back().first);
+        const auto load=commands.back().first;
+        redirect(20,30);
+        if (explicitlyPaused) s->Pause(true);
+        Reply(load,explicitlyPaused ? 20 : 25);
+        LoadAndBind(s,30);
+        assert(ResumeCount()==0);
+        s->CloseAsync();
+    }
+    {
+        auto s=LoadedSession();
+        s->Open("list.m3u8");
+        Reply(commands.back().first);
+        const auto load=commands.back().first;
+        redirect(20,30);
+        LoadAndBind(s,31); // The next start is outside the redirect's range.
+        Reply(load,20);
+        LoadAndBind(s,30); // A later selection must not revive that transition.
+        assert(ResumeCount()==0);
+        s->CloseAsync();
+    }
+}
 }
 int main() {
     iima::settings::PreferenceStore preferences;
@@ -157,6 +212,7 @@ int main() {
     std::string error;
     assert(!preferences.Set("controlBarToolbarButtons", std::string{"plugins,pip"}, error));
     TransitionRegressions();
+    PlaylistRedirectRegressions();
     commands.clear();
     auto session=PlayerSession::Create([](auto work){work();},[](auto const&){});
     session->Start(L"test");

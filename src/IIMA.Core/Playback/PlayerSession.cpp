@@ -39,6 +39,7 @@ void PlayerSession::BeginMediaOriginIntent(bool explicitOpen) {
     networkPauseRequest_=0; networkLoadRequest_=0; networkEntry_.reset();
     networkLifecycle_.clear(); networkJournalOverflow_=false;
     networkBaselineGeneration_=snapshot_.mediaGeneration; networkOwnedGeneration_.reset();
+    pendingResumeRedirect_.reset(); resumeRedirectsBeforeReply_.clear();
     pendingWindowScale_.reset(); blockedWindowScale_.reset();
     snapshot_.externalWindowScale.reset();
     videoGeometryRequest_ = 0;
@@ -767,13 +768,34 @@ void PlayerSession::OnEvent(MpvEvent e) {
     if(e.kind==MpvEvent::Kind::CommandReply && loadRequest_ && e.requestId==loadRequest_) {
         loadRequest_=0;
         if(e.error<0) resumePending_=false;
-        else if(loadReturnsEntry_) expectedEntry_=e.entryId;
+        else if(loadReturnsEntry_) {
+            expectedEntry_=e.entryId;
+            for (auto [previous, next] : resumeRedirectsBeforeReply_)
+                if (expectedEntry_==previous) expectedEntry_=next;
+        }
+        resumeRedirectsBeforeReply_.clear();
+    }
+    // A playlist container ends during loading and mpv starts an inserted
+    // entry. Only the next START_FILE can continue this transition, and mpv
+    // may select any entry in the contiguous range reported by END_FILE.
+    if (resumePending_ && transitionIssued_ && !waitingForStart_ &&
+        e.kind==MpvEvent::Kind::EndFile && e.reason==MpvEvent::EndFileReasonRedirect &&
+        snapshot_.media==MediaState::Loading && e.entryId==snapshot_.entryId &&
+        e.insertedEntryId>=0 && e.insertedEntryCount>0) {
+        pendingResumeRedirect_={e.entryId,e.insertedEntryId,e.insertedEntryCount};
     }
     // A playlist command can reload the current entry. Its old Loaded state and
     // rebound swapchain must not satisfy this new transaction before START_FILE.
     // Replies and lifecycle events are independent, so require both in either order.
-    if(e.kind==MpvEvent::Kind::StartFile && transitionIssued_ && !pauseRequest_)
+    if(e.kind==MpvEvent::Kind::StartFile && transitionIssued_ && !pauseRequest_) {
         waitingForStart_=false;
+        if (auto redirect=std::exchange(pendingResumeRedirect_,std::nullopt); resumePending_ && redirect) {
+            const auto next=e.entryId>=redirect->firstInserted &&
+                e.entryId-redirect->firstInserted<redirect->count ? e.entryId : -1;
+            if (loadReturnsEntry_ && loadRequest_) resumeRedirectsBeforeReply_.emplace_back(redirect->entry,next);
+            else if (expectedEntry_==redirect->entry) expectedEntry_=next;
+        }
+    }
     const auto previousChain=snapshot_.swapChain;
     const bool wasPlaying=!snapshot_.paused;
     ApplyPlaybackEvent(snapshot_,e);

@@ -6,9 +6,14 @@ int main() {
     PlaybackSnapshot s;
     ApplyPlaybackEvent(s,{MpvEvent::Kind::Ready});
     assert(s.session==SessionState::Ready && !s.duration && !s.position);
+    MpvEvent configured{MpvEvent::Kind::Property}; configured.name="vo-configured"; configured.flag=true;
+    MpvEvent renderer{MpvEvent::Kind::Property}; renderer.name="current-vo"; renderer.text="gpu-next";
+    ApplyPlaybackEvent(s,configured);
+    ApplyPlaybackEvent(s,renderer);
     MpvEvent start{MpvEvent::Kind::StartFile}; start.entryId=17;
     ApplyPlaybackEvent(s,start);
     assert(s.media==MediaState::Loading && s.entryId==17);
+    assert(s.voConfigured && s.currentVo=="gpu-next");
     MpvEvent duration{MpvEvent::Kind::Property}; duration.name="duration"; duration.number=60;
     ApplyPlaybackEvent(s,duration); assert(s.duration==60);
     duration.number.reset(); ApplyPlaybackEvent(s,duration); assert(!s.duration);
@@ -26,6 +31,10 @@ int main() {
     start.entryId=18; ApplyPlaybackEvent(s,start);
     assert(!s.swapChain);
     assert(s.media==MediaState::Loading && s.error.empty() && !s.position && !s.duration);
+    assert(s.voConfigured && s.currentVo=="gpu-next");
+    configured.flag=false; renderer.text.clear();
+    ApplyPlaybackEvent(s,configured); ApplyPlaybackEvent(s,renderer);
+    assert(!s.voConfigured && s.currentVo.empty());
     MpvEvent reply{MpvEvent::Kind::CommandReply}; reply.error=0;
     ApplyPlaybackEvent(s,reply); assert(s.media==MediaState::Loading);
     MpvEvent property{MpvEvent::Kind::Property}; property.name="loop-playlist"; property.text="inf";

@@ -41,7 +41,9 @@ void ApplyPlaybackEvent(PlaybackSnapshot& s, MpvEvent const& e) {
         s.subtitleId.reset(); s.secondarySubtitleId.reset();
         s.videoId.reset(); s.audioId.reset();
         s.tracks.clear(); ++s.tracksRevision; s.chapters.clear(); ++s.chaptersRevision; s.chapterIndex.reset();
-        s.videoCodec.clear(); s.hwdecCurrent.clear(); s.currentVo.clear(); s.voConfigured=false; break;
+        // The VO can already be configured by force-window and reused for the
+        // new media. mpv only reports changes to these output properties.
+        s.videoCodec.clear(); s.hwdecCurrent.clear(); break;
     case MpvEvent::Kind::Loaded:
         if(s.media==MediaState::Loading) s.media=MediaState::Loaded;
         s.swapChain=e.swapChain;

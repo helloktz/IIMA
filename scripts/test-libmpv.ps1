@@ -51,7 +51,13 @@ public static class IimaMpvProbe {
      handle=Function<Create>(dll,"mpv_create")();
      if(handle==IntPtr.Zero) throw new Exception("mpv_create failed");
      var option=Function<SetOption>(dll,"mpv_set_option_string");
-     string[,] settings={{"config","no"},{"load-scripts","no"},{"vo","gpu-next"},{"gpu-api","d3d11"},{"gpu-context","d3d11"},{"d3d11-output-mode","composition"},{"d3d11-composition-size","640x360"},{"idle","yes"}};
+     const int optionNotFound = -5; // MPV_ERROR_OPTION_NOT_FOUND
+     foreach (var name in new[] { "load-scripts", "osc" }) {
+       int result = option(handle, name, "no");
+       if (result < 0 && result != optionNotFound)
+         throw new Exception("Could not disable " + name + ": " + result);
+     }
+     string[,] settings={{"config","no"},{"vo","gpu-next"},{"gpu-api","d3d11"},{"gpu-context","d3d11"},{"d3d11-output-mode","composition"},{"d3d11-composition-size","640x360"},{"idle","yes"}};
      for(int i=0;i<settings.GetLength(0);i++) {
        int result=option(handle,settings[i,0],settings[i,1]);
        if(result<0) throw new Exception("Unsupported option "+settings[i,0]+": "+result);

@@ -403,6 +403,9 @@ private:
     std::int64_t expectedEntry_{-1};
     bool resumePending_{};
     bool transitionIssued_{}, waitingForStart_{}, loadReturnsEntry_{};
+    struct ResumeRedirect { std::int64_t entry, firstInserted; int count; };
+    std::optional<ResumeRedirect> pendingResumeRedirect_;
+    std::vector<std::pair<std::int64_t, std::int64_t>> resumeRedirectsBeforeReply_;
     std::vector<std::vector<std::string>> pendingCommands_;
     std::unique_ptr<PlaylistPlanCursor> playlistEdit_;
     std::uint64_t playlistEditCommand_{}, playlistEditQuery_{}, playlistEditRevision_{};
